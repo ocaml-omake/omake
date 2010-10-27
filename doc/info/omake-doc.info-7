@@ -1,5 +1,45 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-11-25,	Next: Subsection 10-11-26,	Prev: Subsection 10-11-24,	Up: Section 10-11
+  
+
+10.11.25   prompt-invisible-begin, prompt-invisible-end
+=======================================================
+
+<<   $(prompt-invisible-begin) : String
+     $(prompt-invisible-end) : String
+>>
+  
+  The 'prompt-invisible-begin' and 'prompt-invisible-end' functions
+return the escape sequences that must used to mark the "invisible"
+sections of the shell 'prompt' (such as various escape sequences). 
+
+Node: Subsection 10-11-26,	Next: Subsection 10-11-27,	Prev: Subsection 10-11-25,	Up: Section 10-11
+  
+
+10.11.26   prompt-invisible
+===========================
+
+<<   $(prompt-invisible s) : Sequence
+>>
+  
+  The 'prompt-invisible' will wrap its argument with
+'$(prompt-invisible-begin)' and '$(prompt-invisible-end)'. All the
+`invisible" sections of the shell 'prompt' (such as various escape
+sequences) must be wrapped this way. 
+
+Node: Subsection 10-11-27,	Next: Subsection 10-11-28,	Prev: Subsection 10-11-26,	Up: Section 10-11
+  
+
+10.11.27   gettimeofday
+=======================
+
+<<   $(gettimeofday) : Float
+>>
+  
+  The 'gettimeofday' function returns the time of day in seconds since
+January 1, 1970.
+
 Node: Subsection 10-11-28,	Next: Subsection 10-11-29,	Prev: Subsection 10-11-27,	Up: Section 10-11
   
 
@@ -1630,32 +1670,3 @@ generator (default is 'yacc' on 'Unix', empty on 'Win32').
  LEX
  The name of the 'lex' lexer generator
 (default is 'lex' on 'Unix', empty on 'Win32'). 
-
-Node: Subsection 13-5-3,	Next: Subsection 13-5-4,	Prev: Subsection 13-5-2,	Up: Section 13-5
-  
-
-13.5.3   Generated C files
-==========================
-   Because the C scanners do not normally know anything about generated
-source files (such as generated header files), these files may need to
-be created before running the scanner.
-
-13.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
-------------------------------------------------
-\@name
-{function:LocalCGeneratedFiles} 
-<<CGeneratedFiles(files)
-  LocalCGeneratedFiles(files)
->>
-  
-  The 'CGeneratedFiles' and 'LocalCGeneratedFiles' functions specify
-files that need to be generated before any C files are scanned for
-dependencies. For example, if 'config.h' and 'inputs.h' are both
-generated files, specify: 
-<<CGeneratedFiles(config.h inputs.h)
->>
-  
-  The 'CGeneratedFiles' function is global --- its arguments will be
-generated before any C files anywhere in the project are scanned for
-dependencies. The 'LocalCGeneratedFiles' function follows the normal
-scoping rules of OMake.

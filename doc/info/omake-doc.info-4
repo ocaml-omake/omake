@@ -804,37 +804,39 @@ Node: Section 9-3,	Next: Subsection 9-3-1,	Prev: Section 9-2,	Up: Chapter 9
 * Subsection 9-3-11::	join
 * Subsection 9-3-12::	string
 * Subsection 9-3-13::	string-length
-* Subsection 9-3-14::	string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped
-* Subsection 9-3-15::	decode-uri, encode-uri
-* Subsection 9-3-16::	quote
-* Subsection 9-3-17::	quote-argv
-* Subsection 9-3-18::	html-string
-* Subsection 9-3-19::	addsuffix
-* Subsection 9-3-20::	mapsuffix
-* Subsection 9-3-21::	addsuffixes
-* Subsection 9-3-22::	removeprefix
-* Subsection 9-3-23::	removesuffix
-* Subsection 9-3-24::	replacesuffixes
-* Subsection 9-3-25::	addprefix
-* Subsection 9-3-26::	mapprefix
-* Subsection 9-3-27::	add-wrapper
-* Subsection 9-3-28::	set
-* Subsection 9-3-29::	mem
-* Subsection 9-3-30::	intersection
-* Subsection 9-3-31::	intersects
-* Subsection 9-3-32::	set-diff
-* Subsection 9-3-33::	filter
-* Subsection 9-3-34::	filter-out
-* Subsection 9-3-35::	capitalize
-* Subsection 9-3-36::	uncapitalize
-* Subsection 9-3-37::	uppercase
-* Subsection 9-3-38::	lowercase
-* Subsection 9-3-39::	system
-* Subsection 9-3-40::	shell
-* Subsection 9-3-41::	export
-* Subsection 9-3-42::	while
-* Subsection 9-3-43::	break
-* Subsection 9-3-44::	random, random-init
+* Subsection 9-3-14::	string-escaped, ocaml-escaped, html-escaped, html-pre-escaped
+* Subsection 9-3-15::	c-escaped, id-escaped, sql-escaped, uri-escaped
+* Subsection 9-3-16::	hexify, unhexify
+* Subsection 9-3-17::	decode-uri, encode-uri
+* Subsection 9-3-18::	quote
+* Subsection 9-3-19::	quote-argv
+* Subsection 9-3-20::	html-string
+* Subsection 9-3-21::	addsuffix
+* Subsection 9-3-22::	mapsuffix
+* Subsection 9-3-23::	addsuffixes, addprefixes
+* Subsection 9-3-24::	removeprefix
+* Subsection 9-3-25::	removesuffix
+* Subsection 9-3-26::	replacesuffixes
+* Subsection 9-3-27::	addprefix
+* Subsection 9-3-28::	mapprefix
+* Subsection 9-3-29::	add-wrapper
+* Subsection 9-3-30::	set
+* Subsection 9-3-31::	mem
+* Subsection 9-3-32::	intersection
+* Subsection 9-3-33::	intersects
+* Subsection 9-3-34::	set-diff
+* Subsection 9-3-35::	filter
+* Subsection 9-3-36::	filter-out
+* Subsection 9-3-37::	capitalize
+* Subsection 9-3-38::	uncapitalize
+* Subsection 9-3-39::	uppercase
+* Subsection 9-3-40::	lowercase
+* Subsection 9-3-41::	system
+* Subsection 9-3-42::	shell
+* Subsection 9-3-43::	export
+* Subsection 9-3-44::	while
+* Subsection 9-3-45::	break
+* Subsection 9-3-46::	random, random-init
 
 
 Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9-3
@@ -1071,18 +1073,24 @@ sequence))'.
 Node: Subsection 9-3-14,	Next: Subsection 9-3-15,	Prev: Subsection 9-3-13,	Up: Section 9-3
   
 
-9.3.14   string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
-=======================================================================
-c-escaped, id-escaped
-=====================
+9.3.14   string-escaped, ocaml-escaped, html-escaped, html-pre-escaped
+======================================================================
+ 
+
+Node: Subsection 9-3-15,	Next: Subsection 9-3-16,	Prev: Subsection 9-3-14,	Up: Section 9-3
+  
 
+9.3.15   c-escaped, id-escaped, sql-escaped, uri-escaped
+========================================================
 
 <<   $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
      $(html-escaped sequence) : String Array
      $(html-pre-escaped sequence) : String Array
      $(c-escaped sequence) : String Array
-     $(hex-escaped sequence) : StringArray
+     $(id-escaped sequence) : StringArray
+     $(sql-escaped sequence) : StringArray
+     $(uri-escaped sequence) : StringArray
         sequence : Array
 >>
   
@@ -1104,10 +1112,26 @@ does not translate newlines into '<br>'.
       a\ b y\:z
 >>
 
-Node: Subsection 9-3-15,	Next: Subsection 9-3-16,	Prev: Subsection 9-3-14,	Up: Section 9-3
+Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: Section 9-3
   
 
-9.3.15   decode-uri, encode-uri
+9.3.16   hexify, unhexify
+=========================
+
+<<   $(hexify sequence) : sequence
+         sequence : Sequence
+>>
+  
+  The function 'hexify' converts a string to a HEX ASCII representation.
+The inverse function is 'unhexify'.
+<<   osh> hexify($"Hello world")
+     - : <array <data "48656c6c6f"> <data "776f726c64">>
+>>
+
+Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: Section 9-3
+  
+
+9.3.17   decode-uri, encode-uri
 ===============================
 
 <<    $(decode-uri sequence) : sequence
@@ -1122,10 +1146,10 @@ represented by hexadecimal characters.
       "a b~c"
 >>
 
-Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: Section 9-3
+Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: Section 9-3
   
 
-9.3.16   quote
+9.3.18   quote
 ==============
 
 <<   $(quote sequence) : String
@@ -1137,10 +1161,10 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression '$(quote a "b c" d)' evaluates to '"a \"b
 c\" d"', and '$(quote abc)' evaluates to '"abc"'. 
 
-Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: Section 9-3
+Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: Section 9-3
   
 
-9.3.17   quote-argv
+9.3.19   quote-argv
 ===================
 
 <<   $(quote-argv sequence) : String
@@ -1151,10 +1175,10 @@ Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: S
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components. 
 
-Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: Section 9-3
+Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: Section 9-3
   
 
-9.3.18   html-string
+9.3.20   html-string
 ====================
 
 <<   $(html-string sequence) : String
@@ -1167,10 +1191,10 @@ function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace inside sequence elements is preserved
 literally. 
 
-Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: Section 9-3
+Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: Section 9-3
   
 
-9.3.19   addsuffix
+9.3.21   addsuffix
 ==================
 
 <<   $(addsuffix suffix, sequence) : Array
@@ -1184,10 +1208,10 @@ elements in the sequence.
   For example, '$(addsuffix .c, a b "c d")' evaluates to 'a.c b.c "c
 d".c'. 
 
-Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: Section 9-3
+Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: Section 9-3
   
 
-9.3.20   mapsuffix
+9.3.22   mapsuffix
 ==================
 
 <<   $(mapsuffix suffix, sequence) : Array
@@ -1202,14 +1226,17 @@ number of elements in the sequence.
   For example, '$(mapsuffix .c, a b "c d")' evaluates to 'a .c b .c "c
 d" .c'. 
 
-Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: Section 9-3
+Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: Section 9-3
   
 
-9.3.21   addsuffixes
-====================
+9.3.23   addsuffixes, addprefixes
+=================================
 
 <<   $(addsuffixes suffixes, sequence) : Array
         suffixes : Sequence
+        sequence : Sequence
+     $(addprefixes prefixes, sequence) : Array
+        prefixes : Sequence
         sequence : Sequence
 >>
   
@@ -1217,12 +1244,14 @@ Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: S
 each component of a sequence. If 'suffixes' has 'n' elements, and
 'sequence' has 'm' elements, the the result has 'n * m' elements.
   For example, the '$(addsuffixes .c .o, a b c)' expressions evaluates
-to 'a.c a.o b.c b.o c.o c.a'. 
+to 'a.c a.o b.c b.o c.o c.a'.
+  '$(addprefixes prefixes, sequence)' is roughly equivalent to
+'$(addsuffixes sequence, prefixes)'. 
 
-Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: Section 9-3
+Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: Section 9-3
   
 
-9.3.22   removeprefix
+9.3.24   removeprefix
 =====================
 
 <<   $(removeprefix prefix, sequence) : Array
@@ -1233,10 +1262,10 @@ Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: S
   The 'removeprefix' function removes a prefix from each component of a
 sequence. 
 
-Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: Section 9-3
+Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: Section 9-3
   
 
-9.3.23   removesuffix
+9.3.25   removesuffix
 =====================
 
 <<   $(removesuffix sequence) : Array
@@ -1247,10 +1276,10 @@ Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: S
 of a sequence.
   For example, '$(removesuffix a.c b.foo "c d")' expands to 'a b "c d"'.
 
-Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: Section 9-3
+Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: Section 9-3
   
 
-9.3.24   replacesuffixes
+9.3.26   replacesuffixes
 ========================
 
 <<   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -1265,10 +1294,10 @@ the same length.
   For example, '$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
 'a.o b.o c.z'. 
 
-Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: Section 9-3
+Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: Section 9-3
   
 
-9.3.25   addprefix
+9.3.27   addprefix
 ==================
 
 <<   $(addprefix prefix, sequence) : Array
@@ -1282,10 +1311,10 @@ as the number of elements in the argument sequence.
   For example, '$(addprefix foo/, a b "c d")' evaluates to 'foo/a foo/b
 foo/"c d"'. 
 
-Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: Section 9-3
+Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: Section 9-3
   
 
-9.3.26   mapprefix
+9.3.28   mapprefix
 ==================
 
 <<   $(mapprefix prefix, sequence) : Array
@@ -1300,10 +1329,10 @@ elements as the argument sequence.
   For example, '$(mapprefix foo, a b "c d")' expands to 'foo a foo b foo
 "c d"'. 
 
-Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: Section 9-3
+Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: Section 9-3
   
 
-9.3.27   add-wrapper
+9.3.29   add-wrapper
 ====================
 
 <<   $(add-wrapper prefix, suffix, sequence) : Array
@@ -1318,10 +1347,10 @@ dir/, .c, a b)' evaluates to 'dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence. 
 
-Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: Section 9-3
+Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: Section 9-3
   
 
-9.3.28   set
+9.3.30   set
 ============
 
 <<   $(set sequence) : Array
@@ -1332,10 +1361,10 @@ Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: S
 duplicates.
   For example, '$(set z y z "m n" w a)' expands to '"m n" a w y z'. 
 
-Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: Section 9-3
+Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: Section 9-3
   
 
-9.3.29   mem
+9.3.31   mem
 ============
 
 <<   $(mem elem, sequence) : Boolean
@@ -1347,10 +1376,10 @@ Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: S
   For example, '$(mem "m n", y z "m n" w a)' evaluates to 'true', while
 '$(mem m n, y z "m n" w a)' evaluates to 'false'. 
 
-Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: Section 9-3
+Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: Section 9-3
   
 
-9.3.30   intersection
+9.3.32   intersection
 =====================
 
 <<   $(intersection sequence1, sequence2) : Array
@@ -1365,10 +1394,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression '$(intersection c a b a, b a)' evaluates
 to 'a b a'. 
 
-Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: Section 9-3
+Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: Section 9-3
   
 
-9.3.31   intersects
+9.3.33   intersects
 ===================
 
 <<   $(intersects sequence1, sequence2) : Boolean
@@ -1382,10 +1411,10 @@ intersection and testing whether it is empty.
   For example, the expression '$(intersects a b c, d c e)' evaluates to
 'true', and '$(intersects a b c a, d e f)' evaluates to 'false'. 
 
-Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: Section 9-3
+Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: Section 9-3
   
 
-9.3.32   set-diff
+9.3.34   set-diff
 =================
 
 <<   $(set-diff sequence1, sequence2) : Array
@@ -1401,10 +1430,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression '$(set-diff c a b a e, b a)' evaluates to
 'c e'. 
 
-Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: Section 9-3
+Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: Section 9-3
   
 
-9.3.33   filter
+9.3.35   filter
 ===============
 
 <<   $(filter patterns, sequence) : Array
@@ -1418,10 +1447,10 @@ wildcard '%' character.
   For example '$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to 'x.o b.h y.o'. 
 
-Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: Section 9-3
+Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: Section 9-3
   
 
-9.3.34   filter-out
+9.3.36   filter-out
 ===================
 
 <<   $(filter-out patterns, sequence) : Array
@@ -1435,10 +1464,10 @@ occurrence of the wildcard '%' character.
   For example '$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to 'x.o y.o'. 
 
-Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: Section 9-3
+Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: Section 9-3
   
 
-9.3.35   capitalize
+9.3.37   capitalize
 ===================
 
 <<   $(capitalize sequence) : Array
@@ -1449,10 +1478,10 @@ Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: S
 example, '$(capitalize through the looking Glass)' evaluates to 'Through
 The Looking Glass'. 
 
-Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: Section 9-3
+Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: Section 9-3
   
 
-9.3.36   uncapitalize
+9.3.38   uncapitalize
 =====================
 
 <<   $(uncapitalize sequence) : Array
@@ -1463,10 +1492,10 @@ Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: S
   For example, '$(uncapitalize through the looking Glass)' evaluates to
 'through the looking glass'. 
 
-Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: Section 9-3
+Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: Section 9-3
   
 
-9.3.37   uppercase
+9.3.39   uppercase
 ==================
 
 <<   $(uppercase sequence) : Array
@@ -1477,10 +1506,10 @@ Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: S
 uppercase. For example, '$(uppercase through the looking Glass)'
 evaluates to 'THROUGH THE LOOKING GLASS'. 
 
-Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: Section 9-3
+Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: Section 9-3
   
 
-9.3.38   lowercase
+9.3.40   lowercase
 ==================
 
 <<   $(lowercase sequence) : Array
@@ -1492,10 +1521,10 @@ lowercase.
   For example, '$(lowercase through tHe looking Glass)' evaluates to
 'through the looking glass'. 
 
-Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: Section 9-3
+Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: Section 9-3
   
 
-9.3.39   system
+9.3.41   system
 ===============
 
 <<   system(s)
@@ -1509,10 +1538,10 @@ function is used internally by omake to evaluate shell commands.
 <<   ls foo
 >>
 
-Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: Section 9-3
+Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: Section 9-3
   
 
-9.3.40   shell
+9.3.42   shell
 ==============
 
 <<   $(shell command) : Array
@@ -1532,10 +1561,10 @@ diverted.
 'OMakefile', and 'hello.c', then '$(shell ls)' evaluates to 'hello.c
 OMakefile OMakeroot' (on a Unix system). 
 
-Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: Section 9-3
+Node: Subsection 9-3-43,	Next: Subsection 9-3-44,	Prev: Subsection 9-3-42,	Up: Section 9-3
   
 
-9.3.41   export
+9.3.43   export
 ===============
  The 'export'
 function allows one to capture the current environment in a variable.
@@ -1555,10 +1584,10 @@ function allows one to capture the current environment in a variable.
 the arguments to the 'export' special form (see
 Section 6.3*Note Section 6-3::).  
 
-Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: Section 9-3
+Node: Subsection 9-3-44,	Next: Subsection 9-3-45,	Prev: Subsection 9-3-43,	Up: Section 9-3
   
 
-9.3.42   while
+9.3.44   while
 ==============
 
 <<   while <test>
@@ -1616,10 +1645,10 @@ value is printed.
   The 'break' function can be used to break out of the 'while' loop
 early.  
 
-Node: Subsection 9-3-43,	Next: Subsection 9-3-44,	Prev: Subsection 9-3-42,	Up: Section 9-3
+Node: Subsection 9-3-45,	Next: Subsection 9-3-46,	Prev: Subsection 9-3-44,	Up: Section 9-3
   
 
-9.3.43   break
+9.3.45   break
 ==============
 
 <<   break
@@ -1627,45 +1656,3 @@ Node: Subsection 9-3-43,	Next: Subsection 9-3-44,	Prev: Subsection 9-3-42,	Up: S
   
   Terminate execution of the innermost loop, returning the current
 state. 
-
-Node: Subsection 9-3-44,	Next: Section 9-4,	Prev: Subsection 9-3-43,	Up: Section 9-3
-  
-
-9.3.44   random, random-init
-============================
-
-<<    random-init(i)
-          i : Int
-      random() : Int
->>
-  
-  Produce a random number. The numbers are pseudo-random, and are not
-cryptographically secure.
-  The generator is initialized from semi-random system data. Subsequent
-runs should produce different results. The 'rando-init' function can be
-used to return the generator to a known state. 
-
-Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
-  
-
-9.4   Arithmetic
-*=*=*=*=*=*=*=*=
-
-   
-* Menu:
-
-* Subsection 9-4-1::	int
-* Subsection 9-4-2::	float
-* Subsection 9-4-3::	Basic arithmetic
-* Subsection 9-4-4::	Comparisons
-
-
-Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
-  
-
-9.4.1   int
-===========
-
-  The 'int' function can be used to create integers. It returns an 'Int'
-object.
-  '$(int 17)'.

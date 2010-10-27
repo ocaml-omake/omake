@@ -1,5 +1,47 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-3-46,	Next: Section 9-4,	Prev: Subsection 9-3-45,	Up: Section 9-3
+  
+
+9.3.46   random, random-init
+============================
+
+<<    random-init(i)
+          i : Int
+      random() : Int
+>>
+  
+  Produce a random number. The numbers are pseudo-random, and are not
+cryptographically secure.
+  The generator is initialized from semi-random system data. Subsequent
+runs should produce different results. The 'rando-init' function can be
+used to return the generator to a known state. 
+
+Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
+  
+
+9.4   Arithmetic
+*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 9-4-1::	int
+* Subsection 9-4-2::	float
+* Subsection 9-4-3::	Basic arithmetic
+* Subsection 9-4-4::	Comparisons
+
+
+Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
+  
+
+9.4.1   int
+===========
+
+  The 'int' function can be used to create integers. It returns an 'Int'
+object.
+  '$(int 17)'.
+
 Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
   
 
@@ -566,7 +608,7 @@ Node: Section 10-2,	Next: Subsection 10-2-1,	Prev: Section 10-1,	Up: Chapter 10
 * Subsection 10-2-2::	where
 * Subsection 10-2-3::	rehash
 * Subsection 10-2-4::	exists-in-path
-* Subsection 10-2-5::	digest, digest-optional
+* Subsection 10-2-5::	digest, digest-optional, digest-string
 * Subsection 10-2-6::	find-in-path, find-in-path-optional
 * Subsection 10-2-7::	digest-in-path, digest-in-path-optional
 
@@ -628,8 +670,8 @@ present in the current search path.
 Node: Subsection 10-2-5,	Next: Subsection 10-2-6,	Prev: Subsection 10-2-4,	Up: Section 10-2
   
 
-10.2.5   digest, digest-optional
-================================
+10.2.5   digest, digest-optional, digest-string
+===============================================
 
 <<     $(digest files) : String Array
           file : File Array
@@ -637,6 +679,9 @@ Node: Subsection 10-2-5,	Next: Subsection 10-2-6,	Prev: Subsection 10-2-4,	Up: S
   
        $(digest-optional files) : String Array
           file : File Array
+  
+       $(digest-string s) : String
+          s : String
 >>
   
   The 'digest' and 'digest-optional' functions compute MD5 digests of
@@ -846,7 +891,7 @@ Node: Subsection 10-3-5,	Next: Subsection 10-3-6,	Prev: Subsection 10-3-4,	Up: S
 10.3.5   find-ocaml-targets-in-path-optional
 ============================================
 \
-@name{@fun140} The 'find-ocaml-targets-in-path-optional' function is
+@name{@fun146} The 'find-ocaml-targets-in-path-optional' function is
 very similar to the 'find-targets-in-path-optional' one, except an
 OCaml-style search is used, where for every element of the search path
 and for every name being searched for, first the uncapitalized version
@@ -1559,7 +1604,7 @@ Node: Subsection 10-7-1,	Next: Subsection 10-7-2,	Prev: Section 10-7,	Up: Sectio
    - '-O' file : The file's owner is the current effective user 
    - '-p' file : The file is a named pipe 
    - '-r' file : The file is readable 
-   - '-s' file : The file is empty 
+   - '-s' file : The file has a non-zero size 
    - '-S' file : The file is a socket 
    - '-u' file : The set'-user''-id' bit is set on the file 
    - '-w' file : The file is writable 
@@ -1645,49 +1690,3 @@ symbolic links.
 /home/jyh/.../omake/osx_resources/installer_files/.svn/format>
 >>
    
-
-Node: Section 10-8,	Next: Subsection 10-8-1,	Prev: Section 10-7,	Up: Chapter 10
-  
-
-10.8   IO functions
-*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 10-8-1::	Standard channels
-* Subsection 10-8-2::	open-in-string
-* Subsection 10-8-3::	open-out-string, out-contents
-* Subsection 10-8-4::	fopen
-* Subsection 10-8-5::	close
-* Subsection 10-8-6::	read, input-line
-* Subsection 10-8-7::	write
-* Subsection 10-8-8::	lseek
-* Subsection 10-8-9::	rewind
-* Subsection 10-8-10::	tell
-* Subsection 10-8-11::	flush
-* Subsection 10-8-12::	channel-name
-* Subsection 10-8-13::	dup
-* Subsection 10-8-14::	dup2
-* Subsection 10-8-15::	set-nonblock
-* Subsection 10-8-16::	set-close-on-exec-mode
-* Subsection 10-8-17::	pipe
-* Subsection 10-8-18::	mkfifo
-* Subsection 10-8-19::	select
-* Subsection 10-8-20::	lockf
-* Subsection 10-8-21::	InetAddr
-* Subsection 10-8-22::	Host
-* Subsection 10-8-23::	gethostbyname
-* Subsection 10-8-24::	Protocol
-* Subsection 10-8-25::	getprotobyname
-* Subsection 10-8-26::	Service
-* Subsection 10-8-27::	getservbyname
-* Subsection 10-8-28::	socket
-* Subsection 10-8-29::	bind
-* Subsection 10-8-30::	listen
-* Subsection 10-8-31::	accept
-* Subsection 10-8-32::	connect
-* Subsection 10-8-33::	getchar
-* Subsection 10-8-34::	gets
-* Subsection 10-8-35::	fgets
-

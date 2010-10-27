@@ -24,13 +24,13 @@
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc332">Chapter&#XA0;12</A>&#XA0;&#XA0;The standard objects</H1><UL>
+<H1 CLASS="chapter"><A NAME="htoc334">Chapter&#XA0;12</A>&#XA0;&#XA0;The standard objects</H1><UL>
 <LI><A HREF="omake-pervasives.html#toc96">Pervasives objects</A>
 </LI></UL>
 <P>
 <A NAME="chapter:pervasives"></A>
 </P><P><CODE>Pervasives</CODE> defines the objects that are defined in all
-programs. The following objects are defined.</P><H2 CLASS="section"><A NAME="toc96"></A><A NAME="htoc333">12.1</A>&#XA0;&#XA0;Pervasives objects</H2><H3 CLASS="subsection"><A NAME="htoc334">12.1.1</A>&#XA0;&#XA0;Object</H3><P><A NAME="obj:Object"></A><A NAME="object:Object"></A><A NAME="@default362"></A><A NAME="@obj10"></A></P><P>Parent objects: none.</P><P>The <CODE>Object</CODE> object is the root object.
+programs. The following objects are defined.</P><H2 CLASS="section"><A NAME="toc96"></A><A NAME="htoc335">12.1</A>&#XA0;&#XA0;Pervasives objects</H2><H3 CLASS="subsection"><A NAME="htoc336">12.1.1</A>&#XA0;&#XA0;Object</H3><P><A NAME="obj:Object"></A><A NAME="object:Object"></A><A NAME="@default368"></A><A NAME="@obj10"></A></P><P>Parent objects: none.</P><P>The <CODE>Object</CODE> object is the root object.
 Every class is a subclass of <CODE>Object</CODE>.</P><P>It provides the following fields:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(o.object-length)</CODE>: the number of fields and methods in the object.
 </LI><LI CLASS="li-itemize"><CODE>$(o.object-mem &lt;var&gt;)</CODE>: returns <CODE>true</CODE> iff the <CODE>&lt;var&gt;</CODE> is a field
@@ -57,7 +57,7 @@ function collects just the field names of an object.</P><PRE CLASS="verbatim">  
          names[] += $(v)
          export
       return $(names)
-   </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc335">12.1.2</A>&#XA0;&#XA0;Map</H3><P><A NAME="obj:Map"></A><A NAME="object:Map"></A><A NAME="@default363"></A><A NAME="@obj11"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Map</CODE> object is a dictionary from values to values. The <CODE>&lt;key&gt;</CODE>
+   </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc337">12.1.2</A>&#XA0;&#XA0;Map</H3><P><A NAME="obj:Map"></A><A NAME="object:Map"></A><A NAME="@default369"></A><A NAME="@obj11"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Map</CODE> object is a dictionary from values to values. The <CODE>&lt;key&gt;</CODE>
 values are restricted to simple values: integers, floating-point numbers,
 strings, files, directories, and arrays of simple values.</P><P>The Map object provides the following methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(o.length)</CODE>: the number of items in the map.
@@ -93,11 +93,11 @@ defined using definitions with the form <CODE>$|key|</CODE>
     $||key1|key2|| = value2    # The key is key1|key2
     X = $|key 1|               # Define X to be the value of field $|key 1|
 </PRE><P>The usual modifiers are also allowed. The expression <CODE>$`|key|</CODE> represents
-lazy evaluation of the key, and <CODE>$,|key|</CODE> is normal evaluation.</P><H3 CLASS="subsection"><A NAME="htoc336">12.1.3</A>&#XA0;&#XA0;Number</H3><P><A NAME="obj:Number"></A><A NAME="object:Number"></A><A NAME="@default364"></A><A NAME="@obj12"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Number</CODE> object is the parent object for integers
+lazy evaluation of the key, and <CODE>$,|key|</CODE> is normal evaluation.</P><H3 CLASS="subsection"><A NAME="htoc338">12.1.3</A>&#XA0;&#XA0;Number</H3><P><A NAME="obj:Number"></A><A NAME="object:Number"></A><A NAME="@default370"></A><A NAME="@obj12"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Number</CODE> object is the parent object for integers
 and floating-point numbers.
-</P><H3 CLASS="subsection"><A NAME="htoc337">12.1.4</A>&#XA0;&#XA0;Int</H3><P><A NAME="obj:Int"></A><A NAME="object:Int"></A><A NAME="@default365"></A><A NAME="@obj13"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Int</CODE> object represents integer values.
-</P><H3 CLASS="subsection"><A NAME="htoc338">12.1.5</A>&#XA0;&#XA0;Float</H3><P><A NAME="obj:Float"></A><A NAME="object:Float"></A><A NAME="@default366"></A><A NAME="@obj14"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Float</CODE> object represents floating-point numbers.
-</P><H3 CLASS="subsection"><A NAME="htoc339">12.1.6</A>&#XA0;&#XA0;Sequence</H3><P><A NAME="obj:Sequence"></A><A NAME="object:Sequence"></A><A NAME="@default367"></A><A NAME="@obj15"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Sequence</CODE> object represents a generic object containing
+</P><H3 CLASS="subsection"><A NAME="htoc339">12.1.4</A>&#XA0;&#XA0;Int</H3><P><A NAME="obj:Int"></A><A NAME="object:Int"></A><A NAME="@default371"></A><A NAME="@obj13"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Int</CODE> object represents integer values.
+</P><H3 CLASS="subsection"><A NAME="htoc340">12.1.5</A>&#XA0;&#XA0;Float</H3><P><A NAME="obj:Float"></A><A NAME="object:Float"></A><A NAME="@default372"></A><A NAME="@obj14"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Float</CODE> object represents floating-point numbers.
+</P><H3 CLASS="subsection"><A NAME="htoc341">12.1.6</A>&#XA0;&#XA0;Sequence</H3><P><A NAME="obj:Sequence"></A><A NAME="object:Sequence"></A><A NAME="@default373"></A><A NAME="@obj15"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Sequence</CODE> object represents a generic object containing
 sequential elements. It provides the following methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(s.length)</CODE>: the number of elements in the sequence.
 </LI><LI CLASS="li-itemize"><CODE>$(s.is-nonempty)</CODE>: true iff the expression <CODE>$(s.nth 0)</CODE>
@@ -136,17 +136,17 @@ are equal.<PRE CLASS="verbatim">  osh&gt; items = $(int 0 3 -2)
   - : bool = true
   osh&gt; items.sort($(compare))
   - : Array = -2 3 0
-  </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc340">12.1.7</A>&#XA0;&#XA0;Array</H3><P><A NAME="obj:Array"></A><A NAME="object:Array"></A><A NAME="@default368"></A><A NAME="@obj16"></A></P><P>Parent objects: <CODE>Sequence</CODE>.</P><P>The <CODE>Array</CODE> is a random-access sequence.
+  </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc342">12.1.7</A>&#XA0;&#XA0;Array</H3><P><A NAME="obj:Array"></A><A NAME="object:Array"></A><A NAME="@default374"></A><A NAME="@obj16"></A></P><P>Parent objects: <CODE>Sequence</CODE>.</P><P>The <CODE>Array</CODE> is a random-access sequence.
 It provides the following additional methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(s.nth &lt;i&gt;)</CODE>: returns element <CODE>i</CODE> of the sequence.
 </LI><LI CLASS="li-itemize"><CODE>$(s.rev &lt;i&gt;)</CODE>: returns the reversed sequence.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc341">12.1.8</A>&#XA0;&#XA0;String</H3><P><A NAME="obj:String"></A><A NAME="object:String"></A><A NAME="@default369"></A><A NAME="@obj17"></A></P><P>Parent objects: <CODE>Array</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc342">12.1.9</A>&#XA0;&#XA0;Fun</H3><P><A NAME="obj:Fun"></A><A NAME="object:Fun"></A><A NAME="@default370"></A><A NAME="@obj18"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Fun</CODE> object provides the following methods.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc343">12.1.8</A>&#XA0;&#XA0;String</H3><P><A NAME="obj:String"></A><A NAME="object:String"></A><A NAME="@default375"></A><A NAME="@obj17"></A></P><P>Parent objects: <CODE>Array</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc344">12.1.9</A>&#XA0;&#XA0;Fun</H3><P><A NAME="obj:Fun"></A><A NAME="object:Fun"></A><A NAME="@default376"></A><A NAME="@obj18"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Fun</CODE> object provides the following methods.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(f.arity)</CODE>: the arity if the function.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc343">12.1.10</A>&#XA0;&#XA0;Rule</H3><P><A NAME="obj:Rule"></A><A NAME="object:Rule"></A><A NAME="@default371"></A><A NAME="@obj19"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Rule</CODE> object represents a build rule.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc345">12.1.10</A>&#XA0;&#XA0;Rule</H3><P><A NAME="obj:Rule"></A><A NAME="object:Rule"></A><A NAME="@default377"></A><A NAME="@obj19"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Rule</CODE> object represents a build rule.
 It does not currently have any methods.
-</P><H3 CLASS="subsection"><A NAME="htoc344">12.1.11</A>&#XA0;&#XA0;Target</H3><P><A NAME="obj:Target"></A><A NAME="object:Target"></A><A NAME="@default372"></A><A NAME="@obj20"></A></P><P>Parent object: <CODE>Object</CODE>.</P><P>The <CODE>Target</CODE> object contains information collected for
+</P><H3 CLASS="subsection"><A NAME="htoc346">12.1.11</A>&#XA0;&#XA0;Target</H3><P><A NAME="obj:Target"></A><A NAME="object:Target"></A><A NAME="@default378"></A><A NAME="@obj20"></A></P><P>Parent object: <CODE>Object</CODE>.</P><P>The <CODE>Target</CODE> object contains information collected for
 a specific target file.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>target</CODE>: the target file.
 </LI><LI CLASS="li-itemize"><CODE>effects</CODE>: the files that may be modified by a
@@ -176,7 +176,7 @@ contain different values in different contexts. The easiest way
 to make sure that the <CODE>Target</CODE> information is complete is
 to compute it within a rule body, where the rule depends on
 the target file, or the dependencies of the target file.
-</P><H3 CLASS="subsection"><A NAME="htoc345">12.1.12</A>&#XA0;&#XA0;Node</H3><P><A NAME="obj:Node"></A><A NAME="object:Node"></A><A NAME="@default373"></A><A NAME="@obj21"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Node</CODE> object is the parent object for files and directories.
+</P><H3 CLASS="subsection"><A NAME="htoc347">12.1.12</A>&#XA0;&#XA0;Node</H3><P><A NAME="obj:Node"></A><A NAME="object:Node"></A><A NAME="@default379"></A><A NAME="@obj21"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Node</CODE> object is the parent object for files and directories.
 It supports the following operations.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(node.stat)</CODE>: returns a <CODE>stat</CODE> object for the file. If the
@@ -188,14 +188,14 @@ the link, not the link itself.</LI><LI CLASS="li-itemize"><CODE>$(node.lstat)</C
 </LI><LI CLASS="li-itemize"><CODE>$(node.symlink &lt;file&gt;)</CODE>: create a symbolic link <CODE>&lt;dst&gt;</CODE> to this file.
 </LI><LI CLASS="li-itemize"><CODE>$(node.chmod &lt;perm&gt;)</CODE>: change the permission of this file.
 </LI><LI CLASS="li-itemize"><CODE>$(node.chown &lt;uid&gt;, &lt;gid&gt;)</CODE>: change the owner and group id of this file.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc346">12.1.13</A>&#XA0;&#XA0;File</H3><P><A NAME="obj:File"></A><A NAME="object:File"></A><A NAME="@default374"></A><A NAME="@obj22"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The file object represents the name of a file.
-</P><H3 CLASS="subsection"><A NAME="htoc347">12.1.14</A>&#XA0;&#XA0;Dir</H3><P><A NAME="obj:Dir"></A><A NAME="object:Dir"></A><A NAME="@default375"></A><A NAME="@obj23"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The <CODE>Dir</CODE> object represents the name of a directory.
-</P><H3 CLASS="subsection"><A NAME="htoc348">12.1.15</A>&#XA0;&#XA0;Channel</H3><P><A NAME="obj:Channel"></A><A NAME="object:Channel"></A><A NAME="@default376"></A><A NAME="@obj24"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Channel</CODE> is a generic IO channel.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc348">12.1.13</A>&#XA0;&#XA0;File</H3><P><A NAME="obj:File"></A><A NAME="object:File"></A><A NAME="@default380"></A><A NAME="@obj22"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The file object represents the name of a file.
+</P><H3 CLASS="subsection"><A NAME="htoc349">12.1.14</A>&#XA0;&#XA0;Dir</H3><P><A NAME="obj:Dir"></A><A NAME="object:Dir"></A><A NAME="@default381"></A><A NAME="@obj23"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The <CODE>Dir</CODE> object represents the name of a directory.
+</P><H3 CLASS="subsection"><A NAME="htoc350">12.1.15</A>&#XA0;&#XA0;Channel</H3><P><A NAME="obj:Channel"></A><A NAME="object:Channel"></A><A NAME="@default382"></A><A NAME="@obj24"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Channel</CODE> is a generic IO channel.
 It provides the following methods.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(o.close)</CODE>: close the channel.
 </LI><LI CLASS="li-itemize"><CODE>$(o.name)</CODE>: returns the file name associated with the channel.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc349">12.1.16</A>&#XA0;&#XA0;InChannel</H3><P><A NAME="obj:InChannel"></A><A NAME="object:InChannel"></A><A NAME="@default377"></A><A NAME="@obj25"></A></P><P>Parent objects: <CODE>Channel</CODE>.</P><P>A <CODE>InChannel</CODE> is an input channel. The variable <CODE>stdin</CODE> is the
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc351">12.1.16</A>&#XA0;&#XA0;InChannel</H3><P><A NAME="obj:InChannel"></A><A NAME="object:InChannel"></A><A NAME="@default383"></A><A NAME="@obj25"></A></P><P>Parent objects: <CODE>Channel</CODE>.</P><P>A <CODE>InChannel</CODE> is an input channel. The variable <CODE>stdin</CODE> is the
 standard input channel.</P><P>It provides the following methods.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(InChannel.fopen &lt;file&gt;)</CODE>: open a new input channel.
@@ -203,7 +203,7 @@ standard input channel.</P><P>It provides the following methods.
 using a string as input.
 </LI><LI CLASS="li-itemize"><CODE>$(o.read &lt;number&gt;)</CODE>: reads the given number of characters from the channel
 </LI><LI CLASS="li-itemize"><CODE>$(o.readln)</CODE>: reads a line from the channel
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc350">12.1.17</A>&#XA0;&#XA0;OutChannel</H3><P><A NAME="obj:OutChannel"></A><A NAME="object:OutChannel"></A><A NAME="@default378"></A><A NAME="@obj26"></A></P><P>Parent object: <CODE>Channel</CODE>.</P><P>A <CODE>OutChannel</CODE> is an output channel. The variables <CODE>stdout</CODE>
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc352">12.1.17</A>&#XA0;&#XA0;OutChannel</H3><P><A NAME="obj:OutChannel"></A><A NAME="object:OutChannel"></A><A NAME="@default384"></A><A NAME="@obj26"></A></P><P>Parent object: <CODE>Channel</CODE>.</P><P>A <CODE>OutChannel</CODE> is an output channel. The variables <CODE>stdout</CODE>
 and <CODE>stderr</CODE> are the standard output and error channels.</P><P>It provides the following methods.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(OutChannel.fopen &lt;file&gt;)</CODE>: open a new output channel.
@@ -217,27 +217,27 @@ appending to the file.
 </LI><LI CLASS="li-itemize"><CODE>$(c.print &lt;string&gt;)</CODE>: print a string to the channel.
 </LI><LI CLASS="li-itemize"><CODE>$(c.println &lt;string&gt;)</CODE>: print a string to the channel,
 followed by a line terminator.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc351">12.1.18</A>&#XA0;&#XA0;Location</H3><P><A NAME="obj:Location"></A><A NAME="object:Location"></A><A NAME="@default379"></A><A NAME="@obj27"></A></P><P>Parent objects: <CODE>Location</CODE>.</P><P>The <CODE>Location</CODE> object represents a location in a file.
-</P><H3 CLASS="subsection"><A NAME="htoc352">12.1.19</A>&#XA0;&#XA0;Exception</H3><P><A NAME="obj:Exception"></A><A NAME="object:Exception"></A><A NAME="@default380"></A><A NAME="@obj28"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Exception</CODE> object is used as the base object for exceptions.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc353">12.1.18</A>&#XA0;&#XA0;Location</H3><P><A NAME="obj:Location"></A><A NAME="object:Location"></A><A NAME="@default385"></A><A NAME="@obj27"></A></P><P>Parent objects: <CODE>Location</CODE>.</P><P>The <CODE>Location</CODE> object represents a location in a file.
+</P><H3 CLASS="subsection"><A NAME="htoc354">12.1.19</A>&#XA0;&#XA0;Exception</H3><P><A NAME="obj:Exception"></A><A NAME="object:Exception"></A><A NAME="@default386"></A><A NAME="@obj28"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Exception</CODE> object is used as the base object for exceptions.
 It has no fields.
-</P><H3 CLASS="subsection"><A NAME="htoc353">12.1.20</A>&#XA0;&#XA0;RuntimeException</H3><P><A NAME="obj:RuntimeException"></A><A NAME="object:RuntimeException"></A><A NAME="@default381"></A><A NAME="@obj29"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>RuntimeException</CODE> object represents an exception from the
+</P><H3 CLASS="subsection"><A NAME="htoc355">12.1.20</A>&#XA0;&#XA0;RuntimeException</H3><P><A NAME="obj:RuntimeException"></A><A NAME="object:RuntimeException"></A><A NAME="@default387"></A><A NAME="@obj29"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>RuntimeException</CODE> object represents an exception from the
 runtime system. It has the following fields.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>position</CODE>: a string representing the location where the
 exception was raised.
 </LI><LI CLASS="li-itemize"><CODE>message</CODE>: a string containing the exception message.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc354">12.1.21</A>&#XA0;&#XA0;UnbuildableException</H3><P><A NAME="obj:UnbuildableException"></A><A NAME="object:UnbuildableException"></A><A NAME="@default382"></A><A NAME="@obj30"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>UnbuildableException</CODE> object should be used to signal that a target
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc356">12.1.21</A>&#XA0;&#XA0;UnbuildableException</H3><P><A NAME="obj:UnbuildableException"></A><A NAME="object:UnbuildableException"></A><A NAME="@default388"></A><A NAME="@obj30"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>UnbuildableException</CODE> object should be used to signal that a target
 is not buildable. It will be caught by functions such as
 <CODE><A HREF="omake-system.html#fun:target-exists">target-exists</A></CODE>.
 This exception has the following fields:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>target</CODE>: indicates which target is not buildable.
 </LI><LI CLASS="li-itemize"><CODE>message</CODE>: a string containing the exception message.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc355">12.1.22</A>&#XA0;&#XA0;Shell</H3><P><A NAME="obj:Shell"></A><A NAME="object:Shell"></A><A NAME="@default383"></A><A NAME="@obj31"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Shell</CODE> object contains the collection of builtin functions
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc357">12.1.22</A>&#XA0;&#XA0;Shell</H3><P><A NAME="obj:Shell"></A><A NAME="object:Shell"></A><A NAME="@default389"></A><A NAME="@obj31"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Shell</CODE> object contains the collection of builtin functions
 available as shell commands.</P><P>You can define aliases by extending this object with additional methods.
 All methods in this class are called with one argument: a single array
 containing an argument list.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>echo</CODE><A NAME="@default384"></A><P>The <CODE>echo</CODE> function prints its arguments to the standard output channel.
-</P></LI><LI CLASS="li-itemize"><CODE>jobs</CODE><A NAME="@default385"></A><P>The <CODE>jobs</CODE> method prints the status of currently running commands.
-</P></LI><LI CLASS="li-itemize"><CODE>cd</CODE><A NAME="@default386"></A><P>The <CODE>cd</CODE> function changes the current directory.
+<CODE>echo</CODE><A NAME="@default390"></A><P>The <CODE>echo</CODE> function prints its arguments to the standard output channel.
+</P></LI><LI CLASS="li-itemize"><CODE>jobs</CODE><A NAME="@default391"></A><P>The <CODE>jobs</CODE> method prints the status of currently running commands.
+</P></LI><LI CLASS="li-itemize"><CODE>cd</CODE><A NAME="@default392"></A><P>The <CODE>cd</CODE> function changes the current directory.
 Note that the current directory follows the usual scoping
 rules. For example, the following program lists the
 files in the <CODE>foo</CODE> directory, but the current
@@ -248,34 +248,34 @@ directory is not changed.</P><PRE CLASS="verbatim">   section
 
    echo Listing files in the current directory...
    ls
-</PRE></LI><LI CLASS="li-itemize"><CODE>bg</CODE><A NAME="@default387"></A><P>The <CODE>bg</CODE> method places a job in the background.
+</PRE></LI><LI CLASS="li-itemize"><CODE>bg</CODE><A NAME="@default393"></A><P>The <CODE>bg</CODE> method places a job in the background.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>fg</CODE><A NAME="@default388"></A><P>The <CODE>fg</CODE> method brings a job to the foreground.
+</P></LI><LI CLASS="li-itemize"><CODE>fg</CODE><A NAME="@default394"></A><P>The <CODE>fg</CODE> method brings a job to the foreground.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>stop</CODE><A NAME="@default389"></A><P>The <CODE>stop</CODE> method suspends a running job.
-</P></LI><LI CLASS="li-itemize"><CODE>wait</CODE><A NAME="@default390"></A><P>The <CODE>wait</CODE> function waits for a running job to terminate.
+</P></LI><LI CLASS="li-itemize"><CODE>stop</CODE><A NAME="@default395"></A><P>The <CODE>stop</CODE> method suspends a running job.
+</P></LI><LI CLASS="li-itemize"><CODE>wait</CODE><A NAME="@default396"></A><P>The <CODE>wait</CODE> function waits for a running job to terminate.
 It is not possible to wait for a suspended job.</P><P>The job is not brought to the foreground. If the <CODE>wait</CODE>
 is interrupted, the job continues to run in the background.
-</P></LI><LI CLASS="li-itemize"><CODE>kill</CODE><A NAME="@default391"></A><P>The <CODE>kill</CODE> function signal a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>.</P><P>The signals are either numeric, or symbolic.
+</P></LI><LI CLASS="li-itemize"><CODE>kill</CODE><A NAME="@default397"></A><P>The <CODE>kill</CODE> function signal a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>.</P><P>The signals are either numeric, or symbolic.
 The symbolic signals are named as follows.</P><P>ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
 USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
-</P></LI><LI CLASS="li-itemize"><CODE>exit</CODE><A NAME="@default392"></A><P>The <CODE>exit</CODE> function terminates the current session.
-</P></LI><LI CLASS="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><A NAME="@default393"></A><A NAME="@default394"></A><P>See the documentation for the corresponding functions.
-</P></LI><LI CLASS="li-itemize"><CODE>rehash</CODE><A NAME="@default395"></A><P>Reset the search path.
-</P></LI><LI CLASS="li-itemize"><CODE>ln-or-cp</CODE><A NAME="@default396"></A> <EM>src</EM> dst<P>Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, <CODE>ln-or-cp</CODE> would first
+</P></LI><LI CLASS="li-itemize"><CODE>exit</CODE><A NAME="@default398"></A><P>The <CODE>exit</CODE> function terminates the current session.
+</P></LI><LI CLASS="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><A NAME="@default399"></A><A NAME="@default400"></A><P>See the documentation for the corresponding functions.
+</P></LI><LI CLASS="li-itemize"><CODE>rehash</CODE><A NAME="@default401"></A><P>Reset the search path.
+</P></LI><LI CLASS="li-itemize"><CODE>ln-or-cp</CODE><A NAME="@default402"></A> <EM>src</EM> dst<P>Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, <CODE>ln-or-cp</CODE> would first
 delete the </EM>dst file (unless it is a directory), if it exists. Next it would try to create
 a symbolic link <EM>dst poiting to </EM>src (it will make all the necessary adjustmnents of
 relative paths). If symbolic link can not be created (<EM>e.g.</EM> the OS or the filesystem does
 not support symbolic links), it will try to create a hard link. If that fails too, it will try
 to forcibly copy <EM>src to </EM>dst.
-</P></LI><LI CLASS="li-itemize"><CODE>history</CODE><A NAME="@default397"></A><P>Print the current command-line history.
-</P></LI><LI CLASS="li-itemize"><CODE>digest</CODE><A NAME="@default398"></A><P>Print the digests of the given files.
+</P></LI><LI CLASS="li-itemize"><CODE>history</CODE><A NAME="@default403"></A><P>Print the current command-line history.
+</P></LI><LI CLASS="li-itemize"><CODE>digest</CODE><A NAME="@default404"></A><P>Print the digests of the given files.
 </P></LI><LI CLASS="li-itemize">Win32 functions.<P>Win32 doesn&#X2019;t provide very many programs for scripting, except
 for the functions that are builtin to the DOS <CODE>cmd.exe</CODE>.
 The following functions are defined on Win32 and only on Win32.
 On other systems, it is expected that these programs already
 exist.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>grep</CODE><A NAME="@default399"></A><PRE CLASS="verbatim">   grep [-q] [-n] [-v] [-h] pattern files...
+<CODE>grep</CODE><A NAME="@default405"></A><PRE CLASS="verbatim">   grep [-q] [-n] [-v] [-h] pattern files...
 </PRE><P>The <CODE>grep</CODE> alias calls the <TT>omake</TT>&#X2019;s internal <A HREF="omake-system.html#fun:grep"><CODE>grep</CODE> function</A>.
 </P></LI></UL><P>By default, <TT>omake</TT> uses internal versions of the following commands:
 <CODE>cp</CODE>, <CODE>mv</CODE>, <CODE>cat</CODE>, <CODE>rm</CODE>, <CODE>mkdir</CODE>, <CODE>chmod</CODE>,
@@ -283,14 +283,14 @@ exist.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 If you really want to use the standard system versions of these
 commands, set the <CODE>USE_SYSTEM_COMMANDS</CODE> as one of the first
 definitions in your <CODE>OMakeroot</CODE> file.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>pwd</CODE><A NAME="@default400"></A><PRE CLASS="verbatim">    pwd
+<CODE>pwd</CODE><A NAME="@default406"></A><PRE CLASS="verbatim">    pwd
 </PRE><P>The <CODE>pwd</CODE> alias would print the absolute path to current directory.
-</P></LI><LI CLASS="li-itemize"><CODE>mkdir</CODE><A NAME="@default401"></A><PRE CLASS="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
+</P></LI><LI CLASS="li-itemize"><CODE>mkdir</CODE><A NAME="@default407"></A><PRE CLASS="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
 </PRE><P>The <CODE>mkdir</CODE> function is used to create directories.
 The -verb+-m+ option can be used to specify the permission
 mode of the created directory. If the <CODE>-p</CODE> option
 is specified, the full path is created.
-</P></LI><LI CLASS="li-itemize"><CODE>cp</CODE>, <CODE>mv</CODE><A NAME="@default402"></A><A NAME="@default403"></A><PRE CLASS="verbatim">    cp [-f] [-i] [-v] src dst
+</P></LI><LI CLASS="li-itemize"><CODE>cp</CODE>, <CODE>mv</CODE><A NAME="@default408"></A><A NAME="@default409"></A><PRE CLASS="verbatim">    cp [-f] [-i] [-v] src dst
     cp [-f] [-i] [-v] files dst
     mv [-f] [-i] [-v] src dst
     mv [-f] [-i] [-v] files dst
@@ -302,7 +302,7 @@ into the directory.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>-f</B></DT><DD CLASS="dd-description"> Copy files forcibly, do not prompt.
 </DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removing destination files.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>rm</CODE><A NAME="@default404"></A><PRE CLASS="verbatim">   rm [-f] [-i] [-v] [-r] files
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>rm</CODE><A NAME="@default410"></A><PRE CLASS="verbatim">   rm [-f] [-i] [-v] [-r] files
    rmdir [-f] [-i] [-v] [-r] dirs
 </PRE><P>The <CODE>rm</CODE> function removes a set of files.
 No warnings are issued if the files do not exist, or if
@@ -312,7 +312,7 @@ they cannot be removed.</P><P>Options:
 </DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removal.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Remove contents of directories recursively.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>chmod</CODE><A NAME="@default405"></A><PRE CLASS="verbatim">    chmod [-r] [-v] [-f] mode files
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>chmod</CODE><A NAME="@default411"></A><PRE CLASS="verbatim">    chmod [-r] [-v] [-f] mode files
 </PRE><P>The <CODE>chmod</CODE> function changes the permissions on a set of
 files or directories. This function does nothing on Win32.
 The <CODE>mode</CODE> may be specified as an octal number,
@@ -322,14 +322,14 @@ See the man page for <CODE>chmod</CODE> for details.</P><P>Options:
 <B>-r</B></DT><DD CLASS="dd-description"> Change permissions of all files in a directory recursively.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
 </DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>cat</CODE><A NAME="@default406"></A><PRE CLASS="verbatim">   cat files...
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>cat</CODE><A NAME="@default412"></A><PRE CLASS="verbatim">   cat files...
 </PRE><P>The <CODE>cat</CODE> function prints the contents of the files to stdout
-</P></LI><LI CLASS="li-itemize"><CODE>test</CODE><A NAME="@default407"></A><P><CODE>test</CODE> <EM>expression</EM><BR>
+</P></LI><LI CLASS="li-itemize"><CODE>test</CODE><A NAME="@default413"></A><P><CODE>test</CODE> <EM>expression</EM><BR>
  <CODE>[</CODE> <EM>expression</EM> +]+<BR>
  <CODE>[ --help</CODE><BR>
  <CODE>[ --version</CODE><BR>
 
-See the documentation for the <A HREF="omake-system.html#fun:test"><CODE>test</CODE> function</A>.</P></LI><LI CLASS="li-itemize"><CODE>find</CODE><A NAME="@default408"></A><P><CODE>find</CODE> <EM>expression</EM></P><P>See the documentation for the <A HREF="omake-system.html#fun:find"><CODE>find</CODE> function</A>.</P></LI></UL></LI></UL>
+See the documentation for the <A HREF="omake-system.html#fun:test"><CODE>test</CODE> function</A>.</P></LI><LI CLASS="li-itemize"><CODE>find</CODE><A NAME="@default414"></A><P><CODE>find</CODE> <EM>expression</EM></P><P>See the documentation for the <A HREF="omake-system.html#fun:find"><CODE>find</CODE> function</A>.</P></LI></UL></LI></UL>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>

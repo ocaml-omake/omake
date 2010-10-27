@@ -166,10 +166,11 @@ Appendix E     Index of functions and special forms
    - accept, 10.8.31*Note Subsection 10-8-31:: 
    - add, 9.4.3*Note Subsection 9-4-3:: 
    - add-project-directories, 10.6.2*Note Subsection 10-6-2:: 
-   - add-wrapper, 9.3.27*Note Subsection 9-3-27:: 
-   - addprefix, 9.3.25*Note Subsection 9-3-25:: 
-   - addsuffix, 9.3.19*Note Subsection 9-3-19:: 
-   - addsuffixes, 9.3.21*Note Subsection 9-3-21:: 
+   - add-wrapper, 9.3.29*Note Subsection 9-3-29:: 
+   - addprefix, 9.3.27*Note Subsection 9-3-27:: 
+   - addprefixes, 9.3.23*Note Subsection 9-3-23:: 
+   - addsuffix, 9.3.21*Note Subsection 9-3-21:: 
+   - addsuffixes, 9.3.23*Note Subsection 9-3-23:: 
    - and, 9.2.3*Note Subsection 9-2-3:: 
    - apply, 9.5.2*Note Subsection 9-5-2:: 
    - applya, 9.5.3*Note Subsection 9-5-3:: 
@@ -180,7 +181,7 @@ Appendix E     Index of functions and special forms
    - basename, 10.1.4*Note Subsection 10-1-4:: 
    - bg, 11.10.2*Note Subsection 11-10-2:: 
    - bind, 10.8.29*Note Subsection 10-8-29:: 
-   - break, 9.3.43*Note Subsection 9-3-43:: 
+   - break, 9.3.45*Note Subsection 9-3-45:: 
    - build, 13.3.6*Note Subsection 13-3-6:: 
  
    - CGeneratedFiles, 13.5.3.1*Note Subsection 13-5-3:: 
@@ -198,8 +199,8 @@ Appendix E     Index of functions and special forms
    - CProgramInstall, 13.5.4.7*Note Subsection 13-5-4:: 
    - CXXProgram, 13.5.4.8*Note Subsection 13-5-4:: 
    - CXXProgramInstall, 13.5.4.8*Note Subsection 13-5-4:: 
-   - c-escaped, 9.3.14*Note Subsection 9-3-14:: 
-   - capitalize, 9.3.35*Note Subsection 9-3-35:: 
+   - c-escaped, 9.3.15*Note Subsection 9-3-15:: 
+   - capitalize, 9.3.37*Note Subsection 9-3-37:: 
    - cat, 10.11.2*Note Subsection 10-11-2:: 
    - cd, 11.9.2*Note Subsection 11-9-2:: 
    - channel-name, 10.8.12*Note Subsection 10-8-12:: 
@@ -220,7 +221,7 @@ Appendix E     Index of functions and special forms
    - DynamicCXXLibrary, 13.5.4.9*Note Subsection 13-5-4:: 
    - DynamicCXXLibraryCopy, 13.5.4.9*Note Subsection 13-5-4:: 
    - DynamicCXXLibraryInstall, 13.5.4.9*Note Subsection 13-5-4:: 
-   - decode-uri, 9.3.15*Note Subsection 9-3-15:: 
+   - decode-uri, 9.3.17*Note Subsection 9-3-17:: 
    - defined, 9.2.10*Note Subsection 9-2-10:: 
    - defined-env, 9.2.11*Note Subsection 9-2-11:: 
    - dependencies, 13.3.1*Note Subsection 13-3-1:: 
@@ -230,6 +231,7 @@ Appendix E     Index of functions and special forms
    - digest-in-path, 10.2.7*Note Subsection 10-2-7:: 
    - digest-in-path-optional, 10.2.7*Note Subsection 10-2-7:: 
    - digest-optional, 10.2.5*Note Subsection 10-2-5:: 
+   - digest-string, 10.2.5*Note Subsection 10-2-5:: 
    - dir, 10.1.1*Note Subsection 10-1-1:: 
    - dirname, 10.1.5*Note Subsection 10-1-5:: 
    - dirof, 10.1.7*Note Subsection 10-1-7:: 
@@ -238,7 +240,7 @@ Appendix E     Index of functions and special forms
    - dup2, 10.8.14*Note Subsection 10-8-14:: 
  
    - echo, 11.9.1*Note Subsection 11-9-1:: 
-   - encode-uri, 9.3.15*Note Subsection 9-3-15:: 
+   - encode-uri, 9.3.17*Note Subsection 9-3-17:: 
    - eprint, 10.9*Note Section 10-9:: 
    - eprintln, 10.9*Note Section 10-9:: 
    - eprintv, 10.10*Note Section 10-10:: 
@@ -247,7 +249,7 @@ Appendix E     Index of functions and special forms
    - equal, 9.2.2*Note Subsection 9-2-2:: 
    - exists-in-path, 10.2.4*Note Subsection 10-2-4:: 
    - exit, 9.2.9*Note Subsection 9-2-9:: 
-   - export, 9.3.41*Note Subsection 9-3-41:: 
+   - export, 9.3.43*Note Subsection 9-3-43:: 
  
    - fg, 11.10.3*Note Subsection 11-10-3:: 
    - fgets, 10.8.35*Note Subsection 10-8-35:: 
@@ -255,9 +257,9 @@ Appendix E     Index of functions and special forms
    - file-check-sort, 10.3.7*Note Subsection 10-3-7:: 
    - file-exists, 10.3.1*Note Subsection 10-3-1:: 
    - file-sort, 10.3.6*Note Subsection 10-3-6:: 
-   - filter, 9.3.33*Note Subsection 9-3-33:: 
+   - filter, 9.3.35*Note Subsection 9-3-35:: 
    - filter-exists, 10.3.3*Note Subsection 10-3-3:: 
-   - filter-out, 9.3.34*Note Subsection 9-3-34:: 
+   - filter-out, 9.3.36*Note Subsection 9-3-36:: 
    - filter-proper-targets, 10.3.3*Note Subsection 10-3-3:: 
    - filter-targets, 10.3.3*Note Subsection 10-3-3:: 
    - find, 10.7.2*Note Subsection 10-7-2:: 
@@ -299,20 +301,21 @@ Appendix E     Index of functions and special forms
    - grep, 10.11.3*Note Subsection 10-11-3:: 
    - gt, 9.4.4*Note Subsection 9-4-4:: 
  
+   - hexify, 9.3.16*Note Subsection 9-3-16:: 
    - history, 11.11.1*Note Subsection 11-11-1:: 
    - homename, 10.1.10*Note Subsection 10-1-10:: 
    - html-escaped, 9.3.14*Note Subsection 9-3-14:: 
    - html-pre-escaped, 9.3.14*Note Subsection 9-3-14:: 
-   - html-string, 9.3.18*Note Subsection 9-3-18:: 
+   - html-string, 9.3.20*Note Subsection 9-3-20:: 
  
-   - id-escaped, 9.3.14*Note Subsection 9-3-14:: 
+   - id-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - if, 9.2.5*Note Subsection 9-2-5:: 
    - in, 10.1.3*Note Subsection 10-1-3:: 
    - include, 4.8*Note Section 4-8:: 
    - input-line, 10.8.6*Note Subsection 10-8-6:: 
    - int, 9.4.1*Note Subsection 9-4-1:: 
-   - intersection, 9.3.30*Note Subsection 9-3-30:: 
-   - intersects, 9.3.31*Note Subsection 9-3-31:: 
+   - intersection, 9.3.32*Note Subsection 9-3-32:: 
+   - intersects, 9.3.33*Note Subsection 9-3-33:: 
  
    - jobs, 11.10.1*Note Subsection 11-10-1:: 
    - join, 9.3.11*Note Subsection 9-3-11:: 
@@ -336,7 +339,7 @@ Appendix E     Index of functions and special forms
    - localtime, 10.11.29*Note Subsection 10-11-29:: 
    - lockf, 10.8.20*Note Subsection 10-8-20:: 
    - lor, 9.4.3*Note Subsection 9-4-3:: 
-   - lowercase, 9.3.38*Note Subsection 9-3-38:: 
+   - lowercase, 9.3.40*Note Subsection 9-3-40:: 
    - ls, 10.4.2*Note Subsection 10-4-2:: 
    - lseek, 10.8.8*Note Subsection 10-8-8:: 
    - lsl, 9.4.3*Note Subsection 9-4-3:: 
@@ -345,11 +348,11 @@ Appendix E     Index of functions and special forms
    - lt, 9.4.4*Note Subsection 9-4-4:: 
    - lxor, 9.4.3*Note Subsection 9-4-3:: 
  
-   - mapprefix, 9.3.26*Note Subsection 9-3-26:: 
-   - mapsuffix, 9.3.20*Note Subsection 9-3-20:: 
+   - mapprefix, 9.3.28*Note Subsection 9-3-28:: 
+   - mapsuffix, 9.3.22*Note Subsection 9-3-22:: 
    - match, 4.11*Note Section 4-11::, 9.2.6*Note Subsection 9-2-6:: 
    - max, 9.4.3*Note Subsection 9-4-3:: 
-   - mem, 9.3.29*Note Subsection 9-3-29:: 
+   - mem, 9.3.31*Note Subsection 9-3-31:: 
    - min, 9.4.3*Note Subsection 9-4-3:: 
    - mkdir, 10.5.1*Note Subsection 10-5-1:: 
    - mkfifo, 10.8.18*Note Subsection 10-8-18:: 
@@ -390,23 +393,23 @@ Appendix E     Index of functions and special forms
    - prompt-invisible-begin, 10.11.25*Note Subsection 10-11-25:: 
    - prompt-invisible-end, 10.11.25*Note Subsection 10-11-25:: 
  
-   - quote, 9.3.16*Note Subsection 9-3-16:: 
-   - quote-argv, 9.3.17*Note Subsection 9-3-17:: 
+   - quote, 9.3.18*Note Subsection 9-3-18:: 
+   - quote-argv, 9.3.19*Note Subsection 9-3-19:: 
  
    - RunCProg, 14.1.5*Note Subsection 14-1-5:: 
    - raise, 9.2.8*Note Subsection 9-2-8:: 
-   - random, 9.3.44*Note Subsection 9-3-44:: 
-   - random-init, 9.3.44*Note Subsection 9-3-44:: 
+   - random, 9.3.46*Note Subsection 9-3-46:: 
+   - random-init, 9.3.46*Note Subsection 9-3-46:: 
    - read, 10.8.6*Note Subsection 10-8-6:: 
    - readlink, 10.5.8*Note Subsection 10-5-8:: 
    - readlink-raw, 10.5.8*Note Subsection 10-5-8:: 
    - rehash, 10.2.3*Note Subsection 10-2-3:: 
    - remove-project-directories, 10.6.3*Note Subsection 10-6-3:: 
-   - removeprefix, 9.3.22*Note Subsection 9-3-22:: 
-   - removesuffix, 9.3.23*Note Subsection 9-3-23:: 
+   - removeprefix, 9.3.24*Note Subsection 9-3-24:: 
+   - removesuffix, 9.3.25*Note Subsection 9-3-25:: 
    - rename, 10.5.5*Note Subsection 10-5-5:: 
    - replace-nth, 9.3.6*Note Subsection 9-3-6:: 
-   - replacesuffixes, 9.3.24*Note Subsection 9-3-24:: 
+   - replacesuffixes, 9.3.26*Note Subsection 9-3-26:: 
    - rev, 9.3.10*Note Subsection 9-3-10:: 
    - rewind, 10.8.9*Note Subsection 10-8-9:: 
    - rootname, 10.1.6*Note Subsection 10-1-6:: 
@@ -427,15 +430,16 @@ Appendix E     Index of functions and special forms
    - select, 10.8.19*Note Subsection 10-8-19:: 
    - sequence-forall, 9.7.1*Note Subsection 9-7-1:: 
    - sequence-sort, 9.7.3*Note Subsection 9-7-3:: 
-   - set, 9.3.28*Note Subsection 9-3-28:: 
+   - set, 9.3.30*Note Subsection 9-3-30:: 
    - set-close-on-exec-mode, 10.8.16*Note Subsection 10-8-16:: 
-   - set-diff, 9.3.32*Note Subsection 9-3-32:: 
+   - set-diff, 9.3.34*Note Subsection 9-3-34:: 
    - set-nonblock, 10.8.15*Note Subsection 10-8-15:: 
    - setenv, 9.2.13*Note Subsection 9-2-13:: 
    - setvar, 9.2.17*Note Subsection 9-2-17:: 
-   - shell, 9.3.40*Note Subsection 9-3-40:: 
+   - shell, 9.3.42*Note Subsection 9-3-42:: 
    - socket, 10.8.28*Note Subsection 10-8-28:: 
    - split, 9.3.2*Note Subsection 9-3-2:: 
+   - sql-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - stat, 10.5.3*Note Subsection 10-5-3:: 
    - stat-reset, 10.3.2*Note Subsection 10-3-2:: 
    - stop, 11.10.4*Note Subsection 11-10-4:: 
@@ -449,7 +453,7 @@ Appendix E     Index of functions and special forms
    - switch, 4.11*Note Section 4-11::, 9.2.6*Note Subsection 9-2-6:: 
    - symlink, 10.5.7*Note Subsection 10-5-7:: 
    - symlink-raw, 10.5.7*Note Subsection 10-5-7:: 
-   - system, 9.3.39*Note Subsection 9-3-39:: 
+   - system, 9.3.41*Note Subsection 9-3-41:: 
  
    - TeXGeneratedFiles, 13.7.2.2*Note Subsection 13-7-2:: 
    - TryCompileC, 14.1.4*Note Subsection 14-1-4:: 
@@ -470,10 +474,12 @@ Appendix E     Index of functions and special forms
    - ule, 9.4.4*Note Subsection 9-4-4:: 
    - ult, 9.4.4*Note Subsection 9-4-4:: 
    - umask, 10.5.13*Note Subsection 10-5-13:: 
-   - uncapitalize, 9.3.36*Note Subsection 9-3-36:: 
+   - uncapitalize, 9.3.38*Note Subsection 9-3-38:: 
+   - unhexify, 9.3.16*Note Subsection 9-3-16:: 
    - unlink, 10.5.4*Note Subsection 10-5-4:: 
    - unsetenv, 9.2.14*Note Subsection 9-2-14:: 
-   - uppercase, 9.3.37*Note Subsection 9-3-37:: 
+   - uppercase, 9.3.39*Note Subsection 9-3-39:: 
+   - uri-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - utimes, 10.5.11*Note Subsection 10-5-11:: 
  
    - VerboseCheckCHeader, 14.1.6*Note Subsection 14-1-6:: 
@@ -483,7 +489,7 @@ Appendix E     Index of functions and special forms
    - wait, 11.10.5*Note Subsection 11-10-5:: 
    - where, 10.2.2*Note Subsection 10-2-2:: 
    - which, 10.2.1*Note Subsection 10-2-1:: 
-   - while, 9.3.42*Note Subsection 9-3-42:: 
+   - while, 9.3.44*Note Subsection 9-3-44:: 
    - write, 10.8.7*Note Subsection 10-8-7:: 
  
    - xterm-escape, 10.11.24*Note Subsection 10-11-24:: 
@@ -644,8 +650,7 @@ I.2   Version
 *=*=*=*=*=*=*
 
   
-  Version: 0.9.8.5+ (working towards version 0.9.8.6 and/or 0.9.9+) of
-18^thMarch, 2008.
+  Version: 0.9.8.6 of 26^thOctober, 2010.
 
 Node: Section I-3,	Next: Section I-4,	Prev: Section I-2,	Up: Appendix I
   

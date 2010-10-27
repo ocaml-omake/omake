@@ -1,5 +1,34 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 13-5-3,	Next: Subsection 13-5-4,	Prev: Subsection 13-5-2,	Up: Section 13-5
+  
+
+13.5.3   Generated C files
+==========================
+   Because the C scanners do not normally know anything about generated
+source files (such as generated header files), these files may need to
+be created before running the scanner.
+
+13.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
+------------------------------------------------
+\@name
+{function:LocalCGeneratedFiles} 
+<<CGeneratedFiles(files)
+  LocalCGeneratedFiles(files)
+>>
+  
+  The 'CGeneratedFiles' and 'LocalCGeneratedFiles' functions specify
+files that need to be generated before any C files are scanned for
+dependencies. For example, if 'config.h' and 'inputs.h' are both
+generated files, specify: 
+<<CGeneratedFiles(config.h inputs.h)
+>>
+  
+  The 'CGeneratedFiles' function is global --- its arguments will be
+generated before any C files anywhere in the project are scanned for
+dependencies. The 'LocalCGeneratedFiles' function follows the normal
+scoping rules of OMake.
+
 Node: Subsection 13-5-4,	Next: Section 13-6,	Prev: Subsection 13-5-3,	Up: Section 13-5
   
 
@@ -1471,46 +1500,3 @@ location for the project.
   Remote execution is currently an experimental feature. Remote
 filesystems like NFS do not provide adequate file consistency for this
 to work.
-
-Node: Subsection A-3-13,	Next: Subsection A-3-14,	Prev: Subsection A-3-12,	Up: Section A-3
-  
-
-A.3.13   --print-dependencies
-=============================
-
-'--print-dependencies'
-  Print dependency information for the targets on the command line.
-
-Node: Subsection A-3-14,	Next: Subsection A-3-15,	Prev: Subsection A-3-13,	Up: Section A-3
-  
-
-A.3.14   --show-dependencies
-============================
-
-'--show-dependencies <target>'
-  Print dependency information if the 'target' is built.
-
-Node: Subsection A-3-15,	Next: Subsection A-3-16,	Prev: Subsection A-3-14,	Up: Section A-3
-  
-
-A.3.15   --all-dependencies
-===========================
-
-'--all-dependencies'
-  If either of the options --print-dependencies or --show-dependencies
-is in effect, print transitive dependencies. That is, print all
-dependencies recursively. If neither option --print-dependencies,
---show-dependencies is specified, this option has no effect.
-
-Node: Subsection A-3-16,	Next: Subsection A-3-17,	Prev: Subsection A-3-15,	Up: Section A-3
-  
-
-A.3.16   --verbose-dependencies
-===============================
-
-'--verbose-dependencies'
-  If either of the options --print-dependencies or --show-dependencies
-is in effect, also print listings for each dependency. The output is
-very verbose, consider redirecting to a file. If neither option
---print-dependencies, --show-dependencies is specified, this option has
-no effect.

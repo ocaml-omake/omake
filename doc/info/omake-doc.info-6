@@ -1,5 +1,51 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 10-8,	Next: Subsection 10-8-1,	Prev: Section 10-7,	Up: Chapter 10
+  
+
+10.8   IO functions
+*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 10-8-1::	Standard channels
+* Subsection 10-8-2::	open-in-string
+* Subsection 10-8-3::	open-out-string, out-contents
+* Subsection 10-8-4::	fopen
+* Subsection 10-8-5::	close
+* Subsection 10-8-6::	read, input-line
+* Subsection 10-8-7::	write
+* Subsection 10-8-8::	lseek
+* Subsection 10-8-9::	rewind
+* Subsection 10-8-10::	tell
+* Subsection 10-8-11::	flush
+* Subsection 10-8-12::	channel-name
+* Subsection 10-8-13::	dup
+* Subsection 10-8-14::	dup2
+* Subsection 10-8-15::	set-nonblock
+* Subsection 10-8-16::	set-close-on-exec-mode
+* Subsection 10-8-17::	pipe
+* Subsection 10-8-18::	mkfifo
+* Subsection 10-8-19::	select
+* Subsection 10-8-20::	lockf
+* Subsection 10-8-21::	InetAddr
+* Subsection 10-8-22::	Host
+* Subsection 10-8-23::	gethostbyname
+* Subsection 10-8-24::	Protocol
+* Subsection 10-8-25::	getprotobyname
+* Subsection 10-8-26::	Service
+* Subsection 10-8-27::	getservbyname
+* Subsection 10-8-28::	socket
+* Subsection 10-8-29::	bind
+* Subsection 10-8-30::	listen
+* Subsection 10-8-31::	accept
+* Subsection 10-8-32::	connect
+* Subsection 10-8-33::	getchar
+* Subsection 10-8-34::	gets
+* Subsection 10-8-35::	fgets
+
+
 Node: Subsection 10-8-1,	Next: Subsection 10-8-2,	Prev: Section 10-8,	Up: Section 10-8
   
 
@@ -1586,43 +1632,3 @@ empty value.
   Note: if you intend to use the value returned by 'xterm-escape' inside
 the shell 'prompt', you need to wrap it using the 'prompt-invisible'
 function. 
-
-Node: Subsection 10-11-25,	Next: Subsection 10-11-26,	Prev: Subsection 10-11-24,	Up: Section 10-11
-  
-
-10.11.25   prompt-invisible-begin, prompt-invisible-end
-=======================================================
-
-<<   $(prompt-invisible-begin) : String
-     $(prompt-invisible-end) : String
->>
-  
-  The 'prompt-invisible-begin' and 'prompt-invisible-end' functions
-return the escape sequences that must used to mark the "invisible"
-sections of the shell 'prompt' (such as various escape sequences). 
-
-Node: Subsection 10-11-26,	Next: Subsection 10-11-27,	Prev: Subsection 10-11-25,	Up: Section 10-11
-  
-
-10.11.26   prompt-invisible
-===========================
-
-<<   $(prompt-invisible s) : Sequence
->>
-  
-  The 'prompt-invisible' will wrap its argument with
-'$(prompt-invisible-begin)' and '$(prompt-invisible-end)'. All the
-`invisible" sections of the shell 'prompt' (such as various escape
-sequences) must be wrapped this way. 
-
-Node: Subsection 10-11-27,	Next: Subsection 10-11-28,	Prev: Subsection 10-11-26,	Up: Section 10-11
-  
-
-10.11.27   gettimeofday
-=======================
-
-<<   $(gettimeofday) : Float
->>
-  
-  The 'gettimeofday' function returns the time of day in seconds since
-January 1, 1970.

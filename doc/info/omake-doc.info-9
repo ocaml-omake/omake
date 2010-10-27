@@ -1,5 +1,48 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection A-3-13,	Next: Subsection A-3-14,	Prev: Subsection A-3-12,	Up: Section A-3
+  
+
+A.3.13   --print-dependencies
+=============================
+
+'--print-dependencies'
+  Print dependency information for the targets on the command line.
+
+Node: Subsection A-3-14,	Next: Subsection A-3-15,	Prev: Subsection A-3-13,	Up: Section A-3
+  
+
+A.3.14   --show-dependencies
+============================
+
+'--show-dependencies <target>'
+  Print dependency information if the 'target' is built.
+
+Node: Subsection A-3-15,	Next: Subsection A-3-16,	Prev: Subsection A-3-14,	Up: Section A-3
+  
+
+A.3.15   --all-dependencies
+===========================
+
+'--all-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, print transitive dependencies. That is, print all
+dependencies recursively. If neither option --print-dependencies,
+--show-dependencies is specified, this option has no effect.
+
+Node: Subsection A-3-16,	Next: Subsection A-3-17,	Prev: Subsection A-3-15,	Up: Section A-3
+  
+
+A.3.16   --verbose-dependencies
+===============================
+
+'--verbose-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, also print listings for each dependency. The output is
+very verbose, consider redirecting to a file. If neither option
+--print-dependencies, --show-dependencies is specified, this option has
+no effect.
+
 Node: Subsection A-3-17,	Next: Subsection A-3-18,	Prev: Subsection A-3-16,	Up: Section A-3
   
 
@@ -1031,7 +1074,7 @@ B.4   Programming syntax
 *=*=*=*=*=*=*=*=*=*=*=*=
 
    
-  This feature will be introduced in version 0.9.8.6.
+  This feature was introduced in version 0.9.8.6.
   The standard OMake language is designed to make it easy to specify
 strings. By default, all values are strings, and strings are any
 sequence of text and variable references; quote symbols are not
@@ -1221,10 +1264,11 @@ Appendix C     Index
    - accept, 10.8.31*Note Subsection 10-8-31:: 
    - add, 9.4.3*Note Subsection 9-4-3:: 
    - add-project-directories, 10.6.2*Note Subsection 10-6-2:: 
-   - add-wrapper, 9.3.27*Note Subsection 9-3-27:: 
-   - addprefix, 9.3.25*Note Subsection 9-3-25:: 
-   - addsuffix, 9.3.19*Note Subsection 9-3-19:: 
-   - addsuffixes, 9.3.21*Note Subsection 9-3-21:: 
+   - add-wrapper, 9.3.29*Note Subsection 9-3-29:: 
+   - addprefix, 9.3.27*Note Subsection 9-3-27:: 
+   - addprefixes, 9.3.23*Note Subsection 9-3-23:: 
+   - addsuffix, 9.3.21*Note Subsection 9-3-21:: 
+   - addsuffixes, 9.3.23*Note Subsection 9-3-23:: 
    - aliases, 15.2*Note Section 15-2:: 
    - and, 9.2.3*Note Subsection 9-2-3:: 
    - apply, 9.5.2*Note Subsection 9-5-2:: 
@@ -1241,7 +1285,7 @@ Appendix C     Index
    - bg, 11.10.2*Note Subsection 11-10-2::,
    12.1.22*Note Subsection 12-1-22:: 
    - bind, 10.8.29*Note Subsection 10-8-29:: 
-   - break, 9.3.43*Note Subsection 9-3-43:: 
+   - break, 9.3.45*Note Subsection 9-3-45:: 
    - build, 13.3.6*Note Subsection 13-3-6:: 
    - build model, 3*Note Chapter 3:: 
  
@@ -1271,8 +1315,8 @@ Appendix C     Index
    - CXXFLAGS, 13.5.2*Note Subsection 13-5-2:: 
    - CXXProgram, 13.5.4.8*Note Subsection 13-5-4:: 
    - CXXProgramInstall, 13.5.4.8*Note Subsection 13-5-4:: 
-   - c-escaped, 9.3.14*Note Subsection 9-3-14:: 
-   - capitalize, 9.3.35*Note Subsection 9-3-35:: 
+   - c-escaped, 9.3.15*Note Subsection 9-3-15:: 
+   - capitalize, 9.3.37*Note Subsection 9-3-37:: 
    - case, 9.2.6*Note Subsection 9-2-6:: 
    - cat, 10.11.2*Note Subsection 10-11-2::,
    12.1.22*Note Subsection 12-1-22:: 
@@ -1310,7 +1354,7 @@ Appendix C     Index
    - DynamicCXXLibraryCopy, 13.5.4.9*Note Subsection 13-5-4:: 
    - DynamicCXXLibraryInstall, 13.5.4.9*Note Subsection 13-5-4:: 
    - declare, 5.7*Note Section 5-7:: 
-   - decode-uri, 9.3.15*Note Subsection 9-3-15:: 
+   - decode-uri, 9.3.17*Note Subsection 9-3-17:: 
    - default, 9.2.6*Note Subsection 9-2-6:: 
    - defined, 9.2.10*Note Subsection 9-2-10:: 
    - defined-env, 9.2.11*Note Subsection 9-2-11:: 
@@ -1322,6 +1366,7 @@ Appendix C     Index
    - digest-in-path, 10.2.7*Note Subsection 10-2-7:: 
    - digest-in-path-optional, 10.2.7*Note Subsection 10-2-7:: 
    - digest-optional, 10.2.5*Note Subsection 10-2-5:: 
+   - digest-string, 10.2.5*Note Subsection 10-2-5:: 
    - dir, 10.1.1*Note Subsection 10-1-1:: 
    - dirname, 10.1.5*Note Subsection 10-1-5:: 
    - dirof, 10.1.7*Note Subsection 10-1-7:: 
@@ -1342,7 +1387,7 @@ Appendix C     Index
    
    - elseif, 9.2.5*Note Subsection 9-2-5::,
    B.2.2.1*Note Subsection B-2-2:: 
-   - encode-uri, 9.3.15*Note Subsection 9-3-15:: 
+   - encode-uri, 9.3.17*Note Subsection 9-3-17:: 
    - eprint, 10.9*Note Section 10-9:: 
    - eprintln, 10.9*Note Section 10-9:: 
    - eprintv, 10.10*Note Section 10-10:: 
@@ -1352,7 +1397,7 @@ Appendix C     Index
    - exists-in-path, 10.2.4*Note Subsection 10-2-4:: 
    - exit, 9.2.9*Note Subsection 9-2-9::, 12.1.22*Note Subsection 12-1-22::
    
-   - export, 6.3*Note Section 6-3::, 9.3.41*Note Subsection 9-3-41::,
+   - export, 6.3*Note Section 6-3::, 9.3.43*Note Subsection 9-3-43::,
    B.2.2.1*Note Subsection B-2-2:: 
    - extends, B.2.2.1*Note Subsection B-2-2:: 
  
@@ -1366,9 +1411,9 @@ Appendix C     Index
    - file-check-sort, 10.3.7*Note Subsection 10-3-7:: 
    - file-exists, 10.3.1*Note Subsection 10-3-1:: 
    - file-sort, 10.3.6*Note Subsection 10-3-6:: 
-   - filter, 9.3.33*Note Subsection 9-3-33:: 
+   - filter, 9.3.35*Note Subsection 9-3-35:: 
    - filter-exists, 10.3.3*Note Subsection 10-3-3:: 
-   - filter-out, 9.3.34*Note Subsection 9-3-34:: 
+   - filter-out, 9.3.36*Note Subsection 9-3-36:: 
    - filter-proper-targets, 10.3.3*Note Subsection 10-3-3:: 
    - filter-targets, 10.3.3*Note Subsection 10-3-3:: 
    - find, 10.7.2*Note Subsection 10-7-2::,
@@ -1425,19 +1470,20 @@ Appendix C     Index
    - HOME, 9.1*Note Section 9-1:: 
    - HOST, 9.1*Note Section 9-1:: 
    - Host, 10.8.22*Note Subsection 10-8-22:: 
+   - hexify, 9.3.16*Note Subsection 9-3-16:: 
    - history, 11.11.1*Note Subsection 11-11-1::,
    12.1.22*Note Subsection 12-1-22:: 
    - homename, 10.1.10*Note Subsection 10-1-10:: 
    - html-escaped, 9.3.14*Note Subsection 9-3-14:: 
    - html-pre-escaped, 9.3.14*Note Subsection 9-3-14:: 
-   - html-string, 9.3.18*Note Subsection 9-3-18:: 
+   - html-string, 9.3.20*Note Subsection 9-3-20:: 
  
    - INCLUDES, 13.5.2*Note Subsection 13-5-2:: 
    - INSTALL, 13.4.2*Note Subsection 13-4-2:: 
    - InChannel, 12.1.16*Note Subsection 12-1-16:: 
    - InetAddr, 10.8.21*Note Subsection 10-8-21:: 
    - Int, 12.1.4*Note Subsection 12-1-4:: 
-   - id-escaped, 9.3.14*Note Subsection 9-3-14:: 
+   - id-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - if, 4.10*Note Section 4-10::, 9.2.5*Note Subsection 9-2-5::,
    B.2.2.1*Note Subsection B-2-2:: 
    - ignoreeof, 15.1*Note Section 15-1:: 
@@ -1447,8 +1493,8 @@ Appendix C     Index
    - inheritance, 4.14*Note Section 4-14:: 
    - input-line, 10.8.6*Note Subsection 10-8-6:: 
    - int, 9.4.1*Note Subsection 9-4-1:: 
-   - intersection, 9.3.30*Note Subsection 9-3-30:: 
-   - intersects, 9.3.31*Note Subsection 9-3-31:: 
+   - intersection, 9.3.32*Note Subsection 9-3-32:: 
+   - intersects, 9.3.33*Note Subsection 9-3-33:: 
  
    - jobs, 11.10.1*Note Subsection 11-10-1::,
    12.1.22*Note Subsection 12-1-22:: 
@@ -1488,7 +1534,7 @@ Appendix C     Index
    - localtime, 10.11.29*Note Subsection 10-11-29:: 
    - lockf, 10.8.20*Note Subsection 10-8-20:: 
    - lor, 9.4.3*Note Subsection 9-4-3:: 
-   - lowercase, 9.3.38*Note Subsection 9-3-38:: 
+   - lowercase, 9.3.40*Note Subsection 9-3-40:: 
    - ls, 10.4.2*Note Subsection 10-4-2:: 
    - lseek, 10.8.8*Note Subsection 10-8-8:: 
    - lsl, 9.4.3*Note Subsection 9-4-3:: 
@@ -1503,12 +1549,12 @@ Appendix C     Index
    - MENHIR_AVAILABLE, 13.6.1*Note Subsection 13-6-1:: 
    - MENHIR_ENABLED, 13.6.2*Note Subsection 13-6-2:: 
    - MENHIR_FLAGS, 13.6.3*Note Subsection 13-6-3:: 
-   - mapprefix, 9.3.26*Note Subsection 9-3-26:: 
-   - mapsuffix, 9.3.20*Note Subsection 9-3-20:: 
+   - mapprefix, 9.3.28*Note Subsection 9-3-28:: 
+   - mapsuffix, 9.3.22*Note Subsection 9-3-22:: 
    - match, 4.11*Note Section 4-11::, 9.2.6*Note Subsection 9-2-6::,
    B.2.2.1*Note Subsection B-2-2:: 
    - max, 9.4.3*Note Subsection 9-4-3:: 
-   - mem, 9.3.29*Note Subsection 9-3-29:: 
+   - mem, 9.3.31*Note Subsection 9-3-31:: 
    - min, 9.4.3*Note Subsection 9-4-3:: 
    - mkdir, 10.5.1*Note Subsection 10-5-1::,
    12.1.22*Note Subsection 12-1-22:: 
@@ -1623,8 +1669,8 @@ Appendix C     Index
    - pwd, 12.1.22*Note Subsection 12-1-22:: 
  
    - quotations, 4.4*Note Section 4-4:: 
-   - quote, 9.3.16*Note Subsection 9-3-16:: 
-   - quote-argv, 9.3.17*Note Subsection 9-3-17:: 
+   - quote, 9.3.18*Note Subsection 9-3-18:: 
+   - quote-argv, 9.3.19*Note Subsection 9-3-19:: 
    - quoted strings, 7.2*Note Section 7-2:: 
  
    - READLINE_AVAILABLE, 14.3.2*Note Subsection 14-3-2:: 
@@ -1636,8 +1682,8 @@ Appendix C     Index
    - RunCProg, 14.1.5*Note Subsection 14-1-5:: 
    - RuntimeException, 12.1.20*Note Subsection 12-1-20:: 
    - raise, 9.2.8*Note Subsection 9-2-8:: 
-   - random, 9.3.44*Note Subsection 9-3-44:: 
-   - random-init, 9.3.44*Note Subsection 9-3-44:: 
+   - random, 9.3.46*Note Subsection 9-3-46:: 
+   - random-init, 9.3.46*Note Subsection 9-3-46:: 
    - read, 10.8.6*Note Subsection 10-8-6:: 
    - readlink, 10.5.8*Note Subsection 10-5-8:: 
    - readlink-raw, 10.5.8*Note Subsection 10-5-8:: 
@@ -1645,11 +1691,11 @@ Appendix C     Index
    - rehash, 10.2.3*Note Subsection 10-2-3::,
    12.1.22*Note Subsection 12-1-22:: 
    - remove-project-directories, 10.6.3*Note Subsection 10-6-3:: 
-   - removeprefix, 9.3.22*Note Subsection 9-3-22:: 
-   - removesuffix, 9.3.23*Note Subsection 9-3-23:: 
+   - removeprefix, 9.3.24*Note Subsection 9-3-24:: 
+   - removesuffix, 9.3.25*Note Subsection 9-3-25:: 
    - rename, 10.5.5*Note Subsection 10-5-5:: 
    - replace-nth, 9.3.6*Note Subsection 9-3-6:: 
-   - replacesuffixes, 9.3.24*Note Subsection 9-3-24:: 
+   - replacesuffixes, 9.3.26*Note Subsection 9-3-26:: 
    - return, 4.5*Note Section 4-5::, B.2.2.1*Note Subsection B-2-2::
    
    - rev, 9.3.10*Note Subsection 9-3-10:: 
@@ -1688,16 +1734,17 @@ Appendix C     Index
    - select, 10.8.19*Note Subsection 10-8-19:: 
    - sequence-forall, 9.7.1*Note Subsection 9-7-1:: 
    - sequence-sort, 9.7.3*Note Subsection 9-7-3:: 
-   - set, 9.3.28*Note Subsection 9-3-28:: 
+   - set, 9.3.30*Note Subsection 9-3-30:: 
    - set-close-on-exec-mode, 10.8.16*Note Subsection 10-8-16:: 
-   - set-diff, 9.3.32*Note Subsection 9-3-32:: 
+   - set-diff, 9.3.34*Note Subsection 9-3-34:: 
    - set-nonblock, 10.8.15*Note Subsection 10-8-15:: 
    - setenv, 9.2.13*Note Subsection 9-2-13:: 
    - setvar, 9.2.17*Note Subsection 9-2-17:: 
-   - shell, 9.3.40*Note Subsection 9-3-40:: 
+   - shell, 9.3.42*Note Subsection 9-3-42:: 
    - socket, 10.8.28*Note Subsection 10-8-28:: 
    - sorting (link-order), 10.3.6*Note Subsection 10-3-6:: 
    - split, 9.3.2*Note Subsection 9-3-2:: 
+   - sql-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - stat, 10.5.3*Note Subsection 10-5-3:: 
    - stat-reset, 10.3.2*Note Subsection 10-3-2:: 
    - static., 4.15*Note Section 4-15:: 
@@ -1716,7 +1763,7 @@ Appendix C     Index
    - switch, 4.11*Note Section 4-11::, 9.2.6*Note Subsection 9-2-6:: 
    - symlink, 10.5.7*Note Subsection 10-5-7:: 
    - symlink-raw, 10.5.7*Note Subsection 10-5-7:: 
-   - system, 9.3.39*Note Subsection 9-3-39:: 
+   - system, 9.3.41*Note Subsection 9-3-41:: 
  
    - TARGETS, 9.1*Note Section 9-1:: 
    - Target, 12.1.11*Note Subsection 12-1-11:: 
@@ -1759,10 +1806,12 @@ Appendix C     Index
    - ule, 9.4.4*Note Subsection 9-4-4:: 
    - ult, 9.4.4*Note Subsection 9-4-4:: 
    - umask, 10.5.13*Note Subsection 10-5-13:: 
-   - uncapitalize, 9.3.36*Note Subsection 9-3-36:: 
+   - uncapitalize, 9.3.38*Note Subsection 9-3-38:: 
+   - unhexify, 9.3.16*Note Subsection 9-3-16:: 
    - unlink, 10.5.4*Note Subsection 10-5-4:: 
    - unsetenv, 9.2.14*Note Subsection 9-2-14:: 
-   - uppercase, 9.3.37*Note Subsection 9-3-37:: 
+   - uppercase, 9.3.39*Note Subsection 9-3-39:: 
+   - uri-escaped, 9.3.15*Note Subsection 9-3-15:: 
    - utimes, 10.5.11*Note Subsection 10-5-11:: 
  
    - VERBOSE, 9.1*Note Section 9-1:: 
@@ -1778,7 +1827,7 @@ Appendix C     Index
    12.1.22*Note Subsection 12-1-22:: 
    - which, 10.2.1*Note Subsection 10-2-1::,
    12.1.22*Note Subsection 12-1-22:: 
-   - while, 9.3.42*Note Subsection 9-3-42::,
+   - while, 9.3.44*Note Subsection 9-3-44::,
    B.2.2.1*Note Subsection B-2-2:: 
    - write, 10.8.7*Note Subsection 10-8-7:: 
  

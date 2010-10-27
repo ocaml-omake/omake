@@ -24,7 +24,7 @@
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc185">Chapter&#XA0;10</A>&#XA0;&#XA0;File, I/O and system operations</H1><UL>
+<H1 CLASS="chapter"><A NAME="htoc187">Chapter&#XA0;10</A>&#XA0;&#XA0;File, I/O and system operations</H1><UL>
 <LI><A HREF="omake-system.html#toc74">File names</A>
 </LI><LI><A HREF="omake-system.html#toc75">Path search</A>
 </LI><LI><A HREF="omake-system.html#toc76">File stats</A>
@@ -39,7 +39,7 @@
 </LI></UL>
 <P>
 <A NAME="chapter:system"></A>
-</P><H2 CLASS="section"><A NAME="toc74"></A><A NAME="htoc186">10.1</A>&#XA0;&#XA0;File names</H2><H3 CLASS="subsection"><A NAME="htoc187">10.1.1</A>&#XA0;&#XA0;file, dir</H3><P><A NAME="fun:file"></A><A NAME="function:file"></A><A NAME="@default190"></A><A NAME="@fun109"></A><A NAME="fun:dir"></A><A NAME="function:dir"></A><A NAME="@default191"></A><A NAME="@fun110"></A></P><PRE CLASS="verbatim">   $(file sequence) : File Sequence
+</P><H2 CLASS="section"><A NAME="toc74"></A><A NAME="htoc188">10.1</A>&#XA0;&#XA0;File names</H2><H3 CLASS="subsection"><A NAME="htoc189">10.1.1</A>&#XA0;&#XA0;file, dir</H3><P><A NAME="fun:file"></A><A NAME="function:file"></A><A NAME="@default195"></A><A NAME="@fun114"></A><A NAME="fun:dir"></A><A NAME="function:dir"></A><A NAME="@default196"></A><A NAME="@fun115"></A></P><PRE CLASS="verbatim">   $(file sequence) : File Sequence
       sequence : Sequence
    $(dir sequence) : Dir Sequence
       sequence : Sequence
@@ -56,13 +56,13 @@ top-level directories, so that build commands may refer to these directories as 
 </PRE><P>Once these variables are defined, they can be used in build commands in subdirectories as follows, where
 <CODE>$(BIN)</CODE> will expand to the location of the <CODE>bin</CODE> directory relative to the command being executed.</P><PRE CLASS="verbatim">   install: hello
  cp hello $(BIN)
-</PRE><H3 CLASS="subsection"><A NAME="htoc188">10.1.2</A>&#XA0;&#XA0;tmpfile</H3><P><A NAME="fun:tmpfile"></A><A NAME="function:tmpfile"></A><A NAME="@default192"></A><A NAME="@fun111"></A></P><PRE CLASS="verbatim">    $(tmpfile prefix) : File
+</PRE><H3 CLASS="subsection"><A NAME="htoc190">10.1.2</A>&#XA0;&#XA0;tmpfile</H3><P><A NAME="fun:tmpfile"></A><A NAME="function:tmpfile"></A><A NAME="@default197"></A><A NAME="@fun116"></A></P><PRE CLASS="verbatim">    $(tmpfile prefix) : File
     $(tmpfile prefix, suffix) : File
         prefix : String
         suffix : String
 </PRE><P>The <CODE>tmpfile</CODE> function returns the name of a fresh temporary file in
 the temporary directory.
-</P><H3 CLASS="subsection"><A NAME="htoc189">10.1.3</A>&#XA0;&#XA0;in</H3><P><A NAME="fun:in"></A><A NAME="function:in"></A><A NAME="@default193"></A><A NAME="@fun112"></A></P><PRE CLASS="verbatim">   $(in dir, exp) : String Array
+</P><H3 CLASS="subsection"><A NAME="htoc191">10.1.3</A>&#XA0;&#XA0;in</H3><P><A NAME="fun:in"></A><A NAME="function:in"></A><A NAME="@default198"></A><A NAME="@fun117"></A></P><PRE CLASS="verbatim">   $(in dir, exp) : String Array
       dir : Dir
       exp : expression
 </PRE><P>The <CODE>in</CODE> function is closely related to the <CODE>dir</CODE> and
@@ -74,12 +74,12 @@ value of the link is relative to the directory where the link is created.</P><P>
        ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
 </PRE><P>Note that the <CODE>in</CODE> function only affects the expansion of <CODE>Node</CODE>
 (<CODE>File</CODE> and <CODE>Dir</CODE>) values.
-</P><H3 CLASS="subsection"><A NAME="htoc190">10.1.4</A>&#XA0;&#XA0;basename</H3><P><A NAME="fun:basename"></A><A NAME="function:basename"></A><A NAME="@default194"></A><A NAME="@fun113"></A></P><PRE CLASS="verbatim">   $(basename files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc192">10.1.4</A>&#XA0;&#XA0;basename</H3><P><A NAME="fun:basename"></A><A NAME="function:basename"></A><A NAME="@default199"></A><A NAME="@fun118"></A></P><PRE CLASS="verbatim">   $(basename files) : String Sequence
       files : String Sequence
 </PRE><P>The <CODE>basename</CODE> function returns the base names for a list of files.
 The basename is the filename with any leading directory components removed.</P><P>For example, the expression <CODE>$(basename dir1/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates to
 <CODE>a.out modules.conf foo.ml</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc191">10.1.5</A>&#XA0;&#XA0;dirname</H3><P><A NAME="fun:dirname"></A><A NAME="function:dirname"></A><A NAME="@default195"></A><A NAME="@fun114"></A></P><PRE CLASS="verbatim">   $(dirname files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc193">10.1.5</A>&#XA0;&#XA0;dirname</H3><P><A NAME="fun:dirname"></A><A NAME="function:dirname"></A><A NAME="@default200"></A><A NAME="@fun119"></A></P><PRE CLASS="verbatim">   $(dirname files) : String Sequence
       files : String Sequence
 </PRE><P>The <CODE>dirname</CODE> function returns the directory name for a list of files.
 The directory name is the filename with the basename removed. If a name
@@ -87,64 +87,67 @@ does not have a directory part, the directory is &#X201C;.&#X201D;</P><P>For exa
 <CODE>dir1/dir2 /etc / .</CODE>.</P><P><B>Note</B>: this function is different from the <CODE>dirof</CODE> function.
 The function <CODE>dirname</CODE> is simple a function over strings, while
 <CODE>dirof</CODE> is a function on filenames.
-</P><H3 CLASS="subsection"><A NAME="htoc192">10.1.6</A>&#XA0;&#XA0;rootname</H3><P><A NAME="fun:rootname"></A><A NAME="function:rootname"></A><A NAME="@default196"></A><A NAME="@fun115"></A></P><PRE CLASS="verbatim">   $(rootname files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc194">10.1.6</A>&#XA0;&#XA0;rootname</H3><P><A NAME="fun:rootname"></A><A NAME="function:rootname"></A><A NAME="@default201"></A><A NAME="@fun120"></A></P><PRE CLASS="verbatim">   $(rootname files) : String Sequence
       files : String Sequence
 </PRE><P>The <CODE>rootname</CODE> function returns the root name for a list of files.
 The rootname is the filename with the final suffix removed.</P><P>For example, the expression <CODE>$(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml)</CODE> evaluates to
 <CODE>dir1/dir2/a /etc/a.b /foo</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc193">10.1.7</A>&#XA0;&#XA0;dirof</H3><P><A NAME="fun:dirof"></A><A NAME="function:dirof"></A><A NAME="@default197"></A><A NAME="@fun116"></A></P><PRE CLASS="verbatim">   $(dirof files) : Dir Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc195">10.1.7</A>&#XA0;&#XA0;dirof</H3><P><A NAME="fun:dirof"></A><A NAME="function:dirof"></A><A NAME="@default202"></A><A NAME="@fun121"></A></P><PRE CLASS="verbatim">   $(dirof files) : Dir Sequence
       files : File Sequence
 </PRE><P>The <CODE>dirof</CODE> function returns the directory for each of the listed files.</P><P>For example, the expression <CODE>$(dirof dir/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates
 to the directories <CODE>dir1/dir2 /etc /</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc194">10.1.8</A>&#XA0;&#XA0;fullname</H3><P><A NAME="fun:fullname"></A><A NAME="function:fullname"></A><A NAME="@default198"></A><A NAME="@fun117"></A></P><PRE CLASS="verbatim">   $(fullname files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc196">10.1.8</A>&#XA0;&#XA0;fullname</H3><P><A NAME="fun:fullname"></A><A NAME="function:fullname"></A><A NAME="@default203"></A><A NAME="@fun122"></A></P><PRE CLASS="verbatim">   $(fullname files) : String Sequence
       files : File Sequence
 </PRE><P>The <CODE>fullname</CODE> function returns the pathname relative to the project root
 for each of the files or directories.
-</P><H3 CLASS="subsection"><A NAME="htoc195">10.1.9</A>&#XA0;&#XA0;absname</H3><P><A NAME="fun:absname"></A><A NAME="function:absname"></A><A NAME="@default199"></A><A NAME="@fun118"></A></P><PRE CLASS="verbatim">   $(absname files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc197">10.1.9</A>&#XA0;&#XA0;absname</H3><P><A NAME="fun:absname"></A><A NAME="function:absname"></A><A NAME="@default204"></A><A NAME="@fun123"></A></P><PRE CLASS="verbatim">   $(absname files) : String Sequence
       files : File Sequence
 </PRE><P>The <CODE>absname</CODE> function returns the absolute pathname for each of the files
 or directories.
-</P><H3 CLASS="subsection"><A NAME="htoc196">10.1.10</A>&#XA0;&#XA0;homename</H3><P><A NAME="fun:homename"></A><A NAME="function:homename"></A><A NAME="@default200"></A><A NAME="@fun119"></A></P><PRE CLASS="verbatim">   $(homename files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc198">10.1.10</A>&#XA0;&#XA0;homename</H3><P><A NAME="fun:homename"></A><A NAME="function:homename"></A><A NAME="@default205"></A><A NAME="@fun124"></A></P><PRE CLASS="verbatim">   $(homename files) : String Sequence
       files : File Sequence
 </PRE><P>The <CODE>homename</CODE> function returns the name of a file in
 tilde form, if possible. The unexpanded forms are computed
 lazily: the <CODE>homename</CODE> function will usually evaluate to an absolute
 pathname until the first tilde-expansion for the same directory.
-</P><H3 CLASS="subsection"><A NAME="htoc197">10.1.11</A>&#XA0;&#XA0;suffix</H3><P><A NAME="fun:suffix"></A><A NAME="function:suffix"></A><A NAME="@default201"></A><A NAME="@fun120"></A></P><PRE CLASS="verbatim">   $(suffix files) : String Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc199">10.1.11</A>&#XA0;&#XA0;suffix</H3><P><A NAME="fun:suffix"></A><A NAME="function:suffix"></A><A NAME="@default206"></A><A NAME="@fun125"></A></P><PRE CLASS="verbatim">   $(suffix files) : String Sequence
       files : StringSequence
 </PRE><P>The <CODE>suffix</CODE> function returns the suffixes for a list of files.
 If a file has no suffix, the function returns the empty string.</P><P>For example, the expression <CODE>$(suffix dir1/dir2/a.out /etc/a /foo.ml)</CODE> evaluates
 to <CODE>.out .ml</CODE>.
-</P><H2 CLASS="section"><A NAME="toc75"></A><A NAME="htoc198">10.2</A>&#XA0;&#XA0;Path search</H2><H3 CLASS="subsection"><A NAME="htoc199">10.2.1</A>&#XA0;&#XA0;which</H3><P><A NAME="fun:which"></A><A NAME="function:which"></A><A NAME="@default202"></A><A NAME="@fun121"></A></P><PRE CLASS="verbatim">   $(which files) : File Sequence
+</P><H2 CLASS="section"><A NAME="toc75"></A><A NAME="htoc200">10.2</A>&#XA0;&#XA0;Path search</H2><H3 CLASS="subsection"><A NAME="htoc201">10.2.1</A>&#XA0;&#XA0;which</H3><P><A NAME="fun:which"></A><A NAME="function:which"></A><A NAME="@default207"></A><A NAME="@fun126"></A></P><PRE CLASS="verbatim">   $(which files) : File Sequence
       files : String Sequence
 </PRE><P>The <CODE>which</CODE> function searches for executables in the
 current command search path, and returns <CODE>file</CODE> values
 for each of the commands. It is an error if a command is
 not found.
-</P><H3 CLASS="subsection"><A NAME="htoc200">10.2.2</A>&#XA0;&#XA0;where</H3><P><A NAME="fun:where"></A><A NAME="function:where"></A><A NAME="@default203"></A><A NAME="@fun122"></A></P><P>The <CODE>where</CODE> function is similar to which, except it returns the list of
+</P><H3 CLASS="subsection"><A NAME="htoc202">10.2.2</A>&#XA0;&#XA0;where</H3><P><A NAME="fun:where"></A><A NAME="function:where"></A><A NAME="@default208"></A><A NAME="@fun127"></A></P><P>The <CODE>where</CODE> function is similar to which, except it returns the list of
 all the locations of the given executable (in the order in which the
 corresponding directories appear in <CODE>$PATH</CODE>). In case a command is handled
 internally by the <CODE>Shell</CODE> object, the first string in the output will
 describe the command as a built-in function.</P><PRE CLASS="verbatim">    % where echo
     echo is a Shell object method (a built-in function)
     /bin/echo
-</PRE><H3 CLASS="subsection"><A NAME="htoc201">10.2.3</A>&#XA0;&#XA0;rehash</H3><P><A NAME="fun:rehash"></A><A NAME="function:rehash"></A><A NAME="@default204"></A><A NAME="@fun123"></A></P><PRE CLASS="verbatim">    rehash()
+</PRE><H3 CLASS="subsection"><A NAME="htoc203">10.2.3</A>&#XA0;&#XA0;rehash</H3><P><A NAME="fun:rehash"></A><A NAME="function:rehash"></A><A NAME="@default209"></A><A NAME="@fun128"></A></P><PRE CLASS="verbatim">    rehash()
 </PRE><P>The <CODE>rehash</CODE> function resets all search paths.
-</P><H3 CLASS="subsection"><A NAME="htoc202">10.2.4</A>&#XA0;&#XA0;exists-in-path</H3><P><A NAME="fun:exists-in-path"></A><A NAME="function:exists-in-path"></A><A NAME="@default205"></A><A NAME="@fun124"></A></P><PRE CLASS="verbatim">   $(exists-in-path files) : String
+</P><H3 CLASS="subsection"><A NAME="htoc204">10.2.4</A>&#XA0;&#XA0;exists-in-path</H3><P><A NAME="fun:exists-in-path"></A><A NAME="function:exists-in-path"></A><A NAME="@default210"></A><A NAME="@fun129"></A></P><PRE CLASS="verbatim">   $(exists-in-path files) : String
       files : String Sequence
 </PRE><P>The <CODE>exists-in-path</CODE> function tests whether all executables
 are present in the current search path.
-</P><H3 CLASS="subsection"><A NAME="htoc203">10.2.5</A>&#XA0;&#XA0;digest, digest-optional</H3><P><A NAME="fun:digest"></A><A NAME="function:digest"></A><A NAME="@default206"></A><A NAME="@fun125"></A><A NAME="fun:digest-optional"></A><A NAME="function:digest-optional"></A><A NAME="@default207"></A><A NAME="@fun126"></A></P><PRE CLASS="verbatim">     $(digest files) : String Array
+</P><H3 CLASS="subsection"><A NAME="htoc205">10.2.5</A>&#XA0;&#XA0;digest, digest-optional, digest-string</H3><P><A NAME="fun:digest"></A><A NAME="function:digest"></A><A NAME="@default211"></A><A NAME="@fun130"></A><A NAME="fun:digest-optional"></A><A NAME="function:digest-optional"></A><A NAME="@default212"></A><A NAME="@fun131"></A><A NAME="fun:digest-string"></A><A NAME="function:digest-string"></A><A NAME="@default213"></A><A NAME="@fun132"></A></P><PRE CLASS="verbatim">     $(digest files) : String Array
         file : File Array
      raises RuntimeException
 
      $(digest-optional files) : String Array
         file : File Array
+
+     $(digest-string s) : String
+        s : String
 </PRE><P>The <CODE>digest</CODE> and <CODE>digest-optional</CODE> functions compute MD5 digests
 of files. The <CODE>digest</CODE> function raises an exception if a file
 does no exist. The <CODE>digest-optional</CODE> returns <CODE>false</CODE> if a
 file does no exist. MD5 digests are cached.
-</P><H3 CLASS="subsection"><A NAME="htoc204">10.2.6</A>&#XA0;&#XA0;find-in-path, find-in-path-optional</H3><P><A NAME="fun:find-in-path"></A><A NAME="function:find-in-path"></A><A NAME="@default208"></A><A NAME="@fun127"></A><A NAME="fun:find-in-path-optional"></A><A NAME="function:find-in-path-optional"></A><A NAME="@default209"></A><A NAME="@fun128"></A></P><PRE CLASS="verbatim">    $(find-in-path path, files) : File Array
+</P><H3 CLASS="subsection"><A NAME="htoc206">10.2.6</A>&#XA0;&#XA0;find-in-path, find-in-path-optional</H3><P><A NAME="fun:find-in-path"></A><A NAME="function:find-in-path"></A><A NAME="@default214"></A><A NAME="@fun133"></A><A NAME="fun:find-in-path-optional"></A><A NAME="function:find-in-path-optional"></A><A NAME="@default215"></A><A NAME="@fun134"></A></P><PRE CLASS="verbatim">    $(find-in-path path, files) : File Array
        path : Dir Array
        files : String Array
     raises RuntimeException
@@ -155,7 +158,7 @@ path. Only the tail of the filename is significant. The <CODE>find-in-path</CODE
 function raises an exception if the file can&#X2019;t be found.
 The <CODE>find-in-path-optional</CODE> function silently removes
 files that can&#X2019;t be found.
-</P><H3 CLASS="subsection"><A NAME="htoc205">10.2.7</A>&#XA0;&#XA0;digest-in-path, digest-in-path-optional</H3><P><A NAME="fun:digest-in-path"></A><A NAME="function:digest-in-path"></A><A NAME="@default210"></A><A NAME="@fun129"></A><A NAME="fun:digest-in-path-optional"></A><A NAME="function:digest-in-path-optional"></A><A NAME="@default211"></A><A NAME="@fun130"></A></P><PRE CLASS="verbatim">    $(digest-in-path path, files) : String/File Array
+</P><H3 CLASS="subsection"><A NAME="htoc207">10.2.7</A>&#XA0;&#XA0;digest-in-path, digest-in-path-optional</H3><P><A NAME="fun:digest-in-path"></A><A NAME="function:digest-in-path"></A><A NAME="@default216"></A><A NAME="@fun135"></A><A NAME="fun:digest-in-path-optional"></A><A NAME="function:digest-in-path-optional"></A><A NAME="@default217"></A><A NAME="@fun136"></A></P><PRE CLASS="verbatim">    $(digest-in-path path, files) : String/File Array
        path : Dir Array
        files : String Array
     raises RuntimeException
@@ -166,7 +169,7 @@ path and returns the file and digest for each file. Only the tail of the
 filename is significant. The <CODE>digest-in-path</CODE> function raises an exception
 if the file can&#X2019;t be found. The <CODE>digest-in-path-optional</CODE>
 function silently removes elements that can&#X2019;t be found.
-</P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc206">10.3</A>&#XA0;&#XA0;File stats</H2><H3 CLASS="subsection"><A NAME="htoc207">10.3.1</A>&#XA0;&#XA0;file-exists, target-exists, target-is-proper</H3><P><A NAME="fun:file-exists"></A><A NAME="function:file-exists"></A><A NAME="@default212"></A><A NAME="@fun131"></A><A NAME="fun:target-exists"></A><A NAME="function:target-exists"></A><A NAME="@default213"></A><A NAME="@fun132"></A><A NAME="fun:target-is-proper"></A><A NAME="function:target-is-proper"></A><A NAME="@default214"></A><A NAME="@fun133"></A></P><PRE CLASS="verbatim">   $(file-exists files) : String
+</P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc208">10.3</A>&#XA0;&#XA0;File stats</H2><H3 CLASS="subsection"><A NAME="htoc209">10.3.1</A>&#XA0;&#XA0;file-exists, target-exists, target-is-proper</H3><P><A NAME="fun:file-exists"></A><A NAME="function:file-exists"></A><A NAME="@default218"></A><A NAME="@fun137"></A><A NAME="fun:target-exists"></A><A NAME="function:target-exists"></A><A NAME="@default219"></A><A NAME="@fun138"></A><A NAME="fun:target-is-proper"></A><A NAME="function:target-is-proper"></A><A NAME="@default220"></A><A NAME="@fun139"></A></P><PRE CLASS="verbatim">   $(file-exists files) : String
    $(target-exists files) : String
    $(target-is-proper files) : String
        files : File Sequence
@@ -175,12 +178,12 @@ The <CODE>target-exists</CODE> function is similar to the <CODE>file-exists</COD
 However, it returns true if the file exists <EM>or</EM> if it can be built
 by the current project. The <CODE>target-is-proper</CODE> returns true only
 if the file can be generated in the current project.
-</P><H3 CLASS="subsection"><A NAME="htoc208">10.3.2</A>&#XA0;&#XA0;stat-reset</H3><P><A NAME="fun:stat-reset"></A><A NAME="function:stat-reset"></A><A NAME="@default215"></A><A NAME="@fun134"></A></P><PRE CLASS="verbatim">   $(stat-reset files) : String
+</P><H3 CLASS="subsection"><A NAME="htoc210">10.3.2</A>&#XA0;&#XA0;stat-reset</H3><P><A NAME="fun:stat-reset"></A><A NAME="function:stat-reset"></A><A NAME="@default221"></A><A NAME="@fun140"></A></P><PRE CLASS="verbatim">   $(stat-reset files) : String
        files : File Sequence
 </PRE><P>OMake uses a stat-cache. The <CODE>stat-reset</CODE> function reset the <CODE>stat</CODE>
 information for the given files, forcing the <CODE>stat</CODE> information to
 be recomputed the next time it is requested.
-</P><H3 CLASS="subsection"><A NAME="htoc209">10.3.3</A>&#XA0;&#XA0;filter-exists, filter-targets, filter-proper-targets</H3><P><A NAME="fun:filter-exists"></A><A NAME="function:filter-exists"></A><A NAME="@default216"></A><A NAME="@fun135"></A><A NAME="fun:filter-targets"></A><A NAME="function:filter-targets"></A><A NAME="@default217"></A><A NAME="@fun136"></A><A NAME="fun:filter-proper-targets"></A><A NAME="function:filter-proper-targets"></A><A NAME="@default218"></A><A NAME="@fun137"></A></P><PRE CLASS="verbatim">   $(filter-exists files) : File Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc211">10.3.3</A>&#XA0;&#XA0;filter-exists, filter-targets, filter-proper-targets</H3><P><A NAME="fun:filter-exists"></A><A NAME="function:filter-exists"></A><A NAME="@default222"></A><A NAME="@fun141"></A><A NAME="fun:filter-targets"></A><A NAME="function:filter-targets"></A><A NAME="@default223"></A><A NAME="@fun142"></A><A NAME="fun:filter-proper-targets"></A><A NAME="function:filter-proper-targets"></A><A NAME="@default224"></A><A NAME="@fun143"></A></P><PRE CLASS="verbatim">   $(filter-exists files) : File Sequence
    $(filter-targets files) : File Sequence
    $(filter-proper-targets) : File Sequence
       files : File Sequence
@@ -222,7 +225,7 @@ be interactive by default, you can write the following:</P><PRE CLASS="verbatim"
     distclean: clean
         svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
 </PRE><P>See also the <A HREF="omake-build.html#fun:dependencies-proper"><CODE>dependencies-proper</CODE> function</A> for an alternate method for removing intermediate files.
-</P><H3 CLASS="subsection"><A NAME="htoc210">10.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><P><A NAME="fun:find-targets-in-path"></A><A NAME="function:find-targets-in-path"></A><A NAME="@default219"></A><A NAME="@fun138"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="function:find-targets-in-path-optional"></A><A NAME="@default220"></A><A NAME="@fun139"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
+</P><H3 CLASS="subsection"><A NAME="htoc212">10.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><P><A NAME="fun:find-targets-in-path"></A><A NAME="function:find-targets-in-path"></A><A NAME="@default225"></A><A NAME="@fun144"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="function:find-targets-in-path-optional"></A><A NAME="@default226"></A><A NAME="@fun145"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
     $(find-targets-in-path-optional path, files) : File Array
         path : Dir Array
         files : File Sequence
@@ -244,18 +247,18 @@ targets that can&#X2019;t be found.</P><PRE CLASS="verbatim">    $(find-targets-
 
     # Evaluates to
     src/fee.o src/foo.o
-</PRE><H3 CLASS="subsection"><A NAME="htoc211">10.3.5</A>&#XA0;&#XA0;find-ocaml-targets-in-path-optional</H3><P><A NAME="fun:find-ocaml-targets-in-path-optional"></A><A NAME="function:find-ocaml-targets-in-path-optional"></A><A NAME="@default221"></A><A NAME="@fun140"></A>
+</PRE><H3 CLASS="subsection"><A NAME="htoc213">10.3.5</A>&#XA0;&#XA0;find-ocaml-targets-in-path-optional</H3><P><A NAME="fun:find-ocaml-targets-in-path-optional"></A><A NAME="function:find-ocaml-targets-in-path-optional"></A><A NAME="@default227"></A><A NAME="@fun146"></A>
 The <CODE>find-ocaml-targets-in-path-optional</CODE> function is very similar to the
 <CODE><A HREF="#fun:find-targets-in-path-optional">find-targets-in-path-optional</A></CODE> one, except an OCaml-style search
 is used, where for every element of the search path and for every name being
 searched for, first the uncapitalized version is tried and if it is not buildable,
 then the capitalized version is tried next.
-</P><H3 CLASS="subsection"><A NAME="htoc212">10.3.6</A>&#XA0;&#XA0;file-sort</H3><P><A NAME="fun:file-sort"></A><A NAME="function:file-sort"></A><A NAME="@default222"></A><A NAME="@fun141"></A>
-<A NAME="@default223"></A>
-<A NAME="@default224"></A></P><PRE CLASS="verbatim">   $(file-sort order, files) : File Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc214">10.3.6</A>&#XA0;&#XA0;file-sort</H3><P><A NAME="fun:file-sort"></A><A NAME="function:file-sort"></A><A NAME="@default228"></A><A NAME="@fun147"></A>
+<A NAME="@default229"></A>
+<A NAME="@default230"></A></P><PRE CLASS="verbatim">   $(file-sort order, files) : File Sequence
       order : String
       files : File Sequence
-</PRE><P><A NAME="@default225"></A><A NAME="@target12"></A><A NAME="target:.ORDER"></A><A NAME="@default226"></A><A NAME="@target13"></A><A NAME="target:.BUILDORDER"></A>The <CODE>file-sort</CODE> function sorts a list of filenames by
+</PRE><P><A NAME="@default231"></A><A NAME="@target12"></A><A NAME="target:.ORDER"></A><A NAME="@default232"></A><A NAME="@target13"></A><A NAME="target:.BUILDORDER"></A>The <CODE>file-sort</CODE> function sorts a list of filenames by
 build order augmented by a set of sort rules. Sort
 rules are declared using the <CODE>.ORDER</CODE> target.
 The <CODE>.BUILDORDER</CODE> defines the default order.</P><P><CODE>$(file-sort &lt;order&gt;, &lt;files&gt;)</CODE></P><P>For example, suppose we have the following set of rules.</P><PRE CLASS="verbatim">   a: b c
@@ -275,7 +278,7 @@ must be known before the sort is performed.
 </LI><LI CLASS="li-itemize">The sorter can only sort files that are buildable
 in the current project.
 </LI><LI CLASS="li-itemize">The sorter will fail if the dependencies are cyclic.
-</LI></UL><H4 CLASS="subsubsection"><A NAME="htoc213">10.3.6.1</A>&#XA0;&#XA0;sort rule</H4><P>It is possible to further constrain the sorter through the use of
+</LI></UL><H4 CLASS="subsubsection"><A NAME="htoc215">10.3.6.1</A>&#XA0;&#XA0;sort rule</H4><P>It is possible to further constrain the sorter through the use of
 sort rules. A sort rule is declared in two steps. The
 target must be listed as an <CODE>.ORDER</CODE> target; and then
 a set of sort rules must be given. A sort rule defines
@@ -290,13 +293,13 @@ a pattern constraint.</P><PRE CLASS="verbatim">   .ORDER: .MYORDER
 file with a suffix <CODE>.foo</CODE> should be placed after any file with
 suffix <CODE>.bar</CODE>, and any file with suffix <CODE>.bar</CODE> should be
 placed after a file with suffix <CODE>.baz</CODE>.</P><P>In this example, the result of the sort is <CODE>d.baz c.baz b.bar a.foo</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc214">10.3.7</A>&#XA0;&#XA0;file-check-sort</H3><P><A NAME="fun:file-check-sort"></A><A NAME="function:file-check-sort"></A><A NAME="@default227"></A><A NAME="@fun142"></A></P><PRE CLASS="verbatim">   file-check-sort(files)
+</P><H3 CLASS="subsection"><A NAME="htoc216">10.3.7</A>&#XA0;&#XA0;file-check-sort</H3><P><A NAME="fun:file-check-sort"></A><A NAME="function:file-check-sort"></A><A NAME="@default233"></A><A NAME="@fun148"></A></P><PRE CLASS="verbatim">   file-check-sort(files)
       files : File Sequence
    raises RuntimeException
 </PRE><P>The <CODE>file-check-sort</CODE> function checks whether a list of files
 is in sort order. If so, the list is returned unchanged.
 If not, the function raises an exception.</P><P><CODE>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</CODE>
-</P><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc215">10.4</A>&#XA0;&#XA0;Globbing and file listings</H2><P>
+</P><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc217">10.4</A>&#XA0;&#XA0;Globbing and file listings</H2><P>
 <A NAME="section:globbing"></A></P><P>OMake commands are &#X201C;glob-expanded&#X201D; before being executed. That is,
 names may contain <EM>patterns</EM> that are expanded to sequences of
 file and directory names. The syntax follows the standard bash(1), csh(1),
@@ -360,7 +363,7 @@ to <CODE>\</CODE> in the output).</P><DIV CLASS="center">
 <TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>c:/Program Files/[A-z]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>c:\Program Files\WindowsUpdate ...</CODE></TD></TR>
 </TABLE>
-</DIV></DD></DL></LI></UL><H3 CLASS="subsection"><A NAME="htoc216">10.4.1</A>&#XA0;&#XA0;glob</H3><P><A NAME="fun:glob"></A><A NAME="function:glob"></A><A NAME="@default228"></A><A NAME="@fun143"></A></P><PRE CLASS="verbatim">   $(glob strings) : Node Array
+</DIV></DD></DL></LI></UL><H3 CLASS="subsection"><A NAME="htoc218">10.4.1</A>&#XA0;&#XA0;glob</H3><P><A NAME="fun:glob"></A><A NAME="function:glob"></A><A NAME="@default234"></A><A NAME="@fun149"></A></P><PRE CLASS="verbatim">   $(glob strings) : Node Array
       strings : String Sequence
    $(glob options, strings) : Node Array
       options : String
@@ -384,7 +387,7 @@ behavior of <CODE>glob</CODE>.</P><DL CLASS="description"><DT CLASS="dt-descript
 </DD><DT CLASS="dt-description"><B>GLOB_ALLOW</B></DT><DD CLASS="dd-description"> A list of shell patterns. If a file does not match a pattern in
 <CODE>GLOB_ALLOW</CODE>, it is ignored.
 </DD></DL><P>The returned files are sorted by name.
-</P><H3 CLASS="subsection"><A NAME="htoc217">10.4.2</A>&#XA0;&#XA0;ls</H3><P><A NAME="fun:ls"></A><A NAME="function:ls"></A><A NAME="@default229"></A><A NAME="@fun144"></A></P><PRE CLASS="verbatim">   $(ls files) : Node Array
+</P><H3 CLASS="subsection"><A NAME="htoc219">10.4.2</A>&#XA0;&#XA0;ls</H3><P><A NAME="fun:ls"></A><A NAME="function:ls"></A><A NAME="@default235"></A><A NAME="@fun150"></A></P><PRE CLASS="verbatim">   $(ls files) : Node Array
       files : String Sequence
    $(ls options, files) : Node Array
       files : String Sequence
@@ -395,7 +398,7 @@ plus the following.</P><DL CLASS="description"><DT CLASS="dt-description">
 </DD></DL><P>The <CODE>GLOB_ALLOW</CODE> and <CODE>GLOB_IGNORE</CODE> variables can be defined
 to control the globbing behavior.
 The returned files are sorted by name.
-</P><H3 CLASS="subsection"><A NAME="htoc218">10.4.3</A>&#XA0;&#XA0;subdirs</H3><P><A NAME="fun:subdirs"></A><A NAME="function:subdirs"></A><A NAME="@default230"></A><A NAME="@fun145"></A></P><PRE CLASS="verbatim">   $(subdirs dirs) : Dir Array
+</P><H3 CLASS="subsection"><A NAME="htoc220">10.4.3</A>&#XA0;&#XA0;subdirs</H3><P><A NAME="fun:subdirs"></A><A NAME="function:subdirs"></A><A NAME="@default236"></A><A NAME="@fun151"></A></P><PRE CLASS="verbatim">   $(subdirs dirs) : Dir Array
       dirs : String Sequence
    $(subdirs options, dirs) : Dir Array
       options : String
@@ -406,7 +409,7 @@ of a list of directories, recursively.</P><P>The possible options are the follow
 <B>A</B></DT><DD CLASS="dd-description"> Return directories that begin with a .
 </DD><DT CLASS="dt-description"><B>C</B></DT><DD CLASS="dd-description"> Ignore files according to <TT>.cvsignore</TT> rules.
 </DD><DT CLASS="dt-description"><B>P</B></DT><DD CLASS="dd-description"> Include only proper subdirectories.
-</DD></DL><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc219">10.5</A>&#XA0;&#XA0;Filesystem operations</H2><H3 CLASS="subsection"><A NAME="htoc220">10.5.1</A>&#XA0;&#XA0;mkdir</H3><P><A NAME="fun:mkdir"></A><A NAME="function:mkdir"></A><A NAME="@default231"></A><A NAME="@fun146"></A></P><PRE CLASS="verbatim">   mkdir(mode, node...)
+</DD></DL><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc221">10.5</A>&#XA0;&#XA0;Filesystem operations</H2><H3 CLASS="subsection"><A NAME="htoc222">10.5.1</A>&#XA0;&#XA0;mkdir</H3><P><A NAME="fun:mkdir"></A><A NAME="function:mkdir"></A><A NAME="@default237"></A><A NAME="@fun152"></A></P><PRE CLASS="verbatim">   mkdir(mode, node...)
       mode : Int
       node : Node
    raises RuntimeException
@@ -420,7 +423,7 @@ The following options are supported.
 <B>-m mode</B></DT><DD CLASS="dd-description"> Specify the permissions of the created directory.
 </DD><DT CLASS="dt-description"><B>-p</B></DT><DD CLASS="dd-description"> Create parent directories if they do not exist.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining names literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc221">10.5.2</A>&#XA0;&#XA0;Stat</H3><P><A NAME="obj:Stat"></A><A NAME="object:Stat"></A><A NAME="@default232"></A><A NAME="@obj0"></A></P><P>The <CODE>Stat</CODE> object represents an information about a filesystem node,
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc223">10.5.2</A>&#XA0;&#XA0;Stat</H3><P><A NAME="obj:Stat"></A><A NAME="object:Stat"></A><A NAME="@default238"></A><A NAME="@obj0"></A></P><P>The <CODE>Stat</CODE> object represents an information about a filesystem node,
 as returned by the <CODE>stat</CODE> and <CODE>lstat</CODE> functions.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>dev</B></DT><DD CLASS="dd-description">: the device number.
@@ -442,7 +445,7 @@ It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-descr
 </DD><DT CLASS="dt-description"><B>atime</B></DT><DD CLASS="dd-description">: last access time, as a floating point number.
 </DD><DT CLASS="dt-description"><B>mtime</B></DT><DD CLASS="dd-description">: last modification time, as a floating point number.
 </DD><DT CLASS="dt-description"><B>ctime</B></DT><DD CLASS="dd-description">: last status change time, as a floating point number.
-</DD></DL><P>Not all of the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc222">10.5.3</A>&#XA0;&#XA0;stat, lstat</H3><P><A NAME="fun:stat"></A><A NAME="function:stat"></A><A NAME="@default233"></A><A NAME="@fun147"></A><A NAME="fun:lstat"></A><A NAME="function:lstat"></A><A NAME="@default234"></A><A NAME="@fun148"></A></P><PRE CLASS="verbatim">    $(stat node...) : Stat
+</DD></DL><P>Not all of the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc224">10.5.3</A>&#XA0;&#XA0;stat, lstat</H3><P><A NAME="fun:stat"></A><A NAME="function:stat"></A><A NAME="@default239"></A><A NAME="@fun153"></A><A NAME="fun:lstat"></A><A NAME="function:lstat"></A><A NAME="@default240"></A><A NAME="@fun154"></A></P><PRE CLASS="verbatim">    $(stat node...) : Stat
        node : Node or Channel
     $(lstat node...) : Stat
        node : Node or Channel
@@ -451,7 +454,7 @@ It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-descr
 If the file is a symbolic link, the <CODE>stat</CODE> function refers to the
 destination of the link; the <CODE>lstat</CODE> function refers to the link
 itself.
-</P><H3 CLASS="subsection"><A NAME="htoc223">10.5.4</A>&#XA0;&#XA0;unlink</H3><P><A NAME="fun:unlink"></A><A NAME="function:unlink"></A><A NAME="@default235"></A><A NAME="@fun149"></A></P><PRE CLASS="verbatim">   $(unlink file...)
+</P><H3 CLASS="subsection"><A NAME="htoc225">10.5.4</A>&#XA0;&#XA0;unlink</H3><P><A NAME="fun:unlink"></A><A NAME="function:unlink"></A><A NAME="@default241"></A><A NAME="@fun155"></A></P><PRE CLASS="verbatim">   $(unlink file...)
       file : File
    #(rm file...)
       file : File
@@ -466,7 +469,7 @@ The <CODE>rmdir</CODE> function removes a directory.</P><P>The following options
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> remove the contents of directories recursively.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> explain what is going on.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> the rest of the values are interpreted literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc224">10.5.5</A>&#XA0;&#XA0;rename</H3><P><A NAME="fun:rename"></A><A NAME="function:rename"></A><A NAME="@default236"></A><A NAME="@fun150"></A></P><PRE CLASS="verbatim">    rename(old, new)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc226">10.5.5</A>&#XA0;&#XA0;rename</H3><P><A NAME="fun:rename"></A><A NAME="function:rename"></A><A NAME="@default242"></A><A NAME="@fun156"></A></P><PRE CLASS="verbatim">    rename(old, new)
        old : Node
        new : Node
     mv(nodes... dir)
@@ -487,13 +490,13 @@ is similar, but the original file is not removed.</P><P>The <CODE>mv</CODE> and 
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what it happening.
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Copy the contents of directories recursively.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining arguments literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc225">10.5.6</A>&#XA0;&#XA0;link</H3><P><A NAME="fun:link"></A><A NAME="function:link"></A><A NAME="@default237"></A><A NAME="@fun151"></A></P><PRE CLASS="verbatim">   link(src, dst)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc227">10.5.6</A>&#XA0;&#XA0;link</H3><P><A NAME="fun:link"></A><A NAME="function:link"></A><A NAME="@default243"></A><A NAME="@fun157"></A></P><PRE CLASS="verbatim">   link(src, dst)
       src : Node
       dst : Node
    raises RuntimeException
 </PRE><P>The <CODE>link</CODE> function creates a hard link named <CODE>dst</CODE> to the file
 or directory <CODE>src</CODE>.</P><P>Hard links may work under Win32 when NTFS is used.</P><P>Normally, only the superuser can create hard links to directories.
-</P><H3 CLASS="subsection"><A NAME="htoc226">10.5.7</A>&#XA0;&#XA0;symlink, symlink-raw</H3><P><A NAME="fun:symlink"></A><A NAME="function:symlink"></A><A NAME="@default238"></A><A NAME="@fun152"></A><A NAME="fun:symlink-raw"></A><A NAME="function:symlink-raw"></A><A NAME="@default239"></A><A NAME="@fun153"></A></P><PRE CLASS="verbatim">   symlink(src, dst)
+</P><H3 CLASS="subsection"><A NAME="htoc228">10.5.7</A>&#XA0;&#XA0;symlink, symlink-raw</H3><P><A NAME="fun:symlink"></A><A NAME="function:symlink"></A><A NAME="@default244"></A><A NAME="@fun158"></A><A NAME="fun:symlink-raw"></A><A NAME="function:symlink-raw"></A><A NAME="@default245"></A><A NAME="@fun159"></A></P><PRE CLASS="verbatim">   symlink(src, dst)
       src : Node
       dst : Node
    symlink-raw(src, dst)
@@ -507,12 +510,12 @@ the target directory. For example, the expression
 <CODE>c/d -&gt; ../a/b</CODE>.</P><P>The function <CODE>symlink-raw</CODE> performs no translation.
 The symbolic link is set to the <CODE>src</CODE> string.</P><P>Symbolic links are not supported in Win32. Consider using the <CODE>ln-or-cp</CODE>
 <CODE>Shell</CODE> alias for cross-platform portable linking/copying.
-</P><H3 CLASS="subsection"><A NAME="htoc227">10.5.8</A>&#XA0;&#XA0;readlink, readlink-raw</H3><P><A NAME="fun:readlink"></A><A NAME="function:readlink"></A><A NAME="@default240"></A><A NAME="@fun154"></A><A NAME="fun:readlink-raw"></A><A NAME="function:readlink-raw"></A><A NAME="@default241"></A><A NAME="@fun155"></A></P><PRE CLASS="verbatim">   $(readlink node...) : Node
+</P><H3 CLASS="subsection"><A NAME="htoc229">10.5.8</A>&#XA0;&#XA0;readlink, readlink-raw</H3><P><A NAME="fun:readlink"></A><A NAME="function:readlink"></A><A NAME="@default246"></A><A NAME="@fun160"></A><A NAME="fun:readlink-raw"></A><A NAME="function:readlink-raw"></A><A NAME="@default247"></A><A NAME="@fun161"></A></P><PRE CLASS="verbatim">   $(readlink node...) : Node
       node : Node
    $(readlink-raw node...) : String
       node : Node
 </PRE><P>The <CODE>readlink</CODE> function reads the value of a symbolic link.
-</P><H3 CLASS="subsection"><A NAME="htoc228">10.5.9</A>&#XA0;&#XA0;chmod</H3><P><A NAME="fun:chmod"></A><A NAME="function:chmod"></A><A NAME="@default242"></A><A NAME="@fun156"></A></P><PRE CLASS="verbatim">   chmod(mode, dst...)
+</P><H3 CLASS="subsection"><A NAME="htoc230">10.5.9</A>&#XA0;&#XA0;chmod</H3><P><A NAME="fun:chmod"></A><A NAME="function:chmod"></A><A NAME="@default248"></A><A NAME="@fun162"></A></P><PRE CLASS="verbatim">   chmod(mode, dst...)
       mode : Int
       dst : Node or Channel
    chmod(mode dst...)
@@ -525,7 +528,7 @@ The symbolic link is set to the <CODE>src</CODE> string.</P><P>Symbolic links ar
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Change files and directories recursively.
 </DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining argument literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc229">10.5.10</A>&#XA0;&#XA0;chown</H3><P><A NAME="fun:chown"></A><A NAME="function:chown"></A><A NAME="@default243"></A><A NAME="@fun157"></A></P><PRE CLASS="verbatim">   chown(uid, gid, node...)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc231">10.5.10</A>&#XA0;&#XA0;chown</H3><P><A NAME="fun:chown"></A><A NAME="function:chown"></A><A NAME="@default249"></A><A NAME="@fun163"></A></P><PRE CLASS="verbatim">   chown(uid, gid, node...)
       uid : Int
       gid : Int
       node : Node or Channel
@@ -536,25 +539,25 @@ The symbolic link is set to the <CODE>src</CODE> string.</P><P>Symbolic links ar
 </PRE><P>The <CODE>chown</CODE> function changes the user and group id of the file.
 If the <CODE>gid</CODE> is not specified, it is not changed. If either
 id is -1, that id is not changed.
-</P><H3 CLASS="subsection"><A NAME="htoc230">10.5.11</A>&#XA0;&#XA0;utimes</H3><P><A NAME="fun:utimes"></A><A NAME="function:utimes"></A><A NAME="@default244"></A><A NAME="@fun158"></A></P><PRE CLASS="verbatim">   utimes(atime, mtime, node...)
+</P><H3 CLASS="subsection"><A NAME="htoc232">10.5.11</A>&#XA0;&#XA0;utimes</H3><P><A NAME="fun:utimes"></A><A NAME="function:utimes"></A><A NAME="@default250"></A><A NAME="@fun164"></A></P><PRE CLASS="verbatim">   utimes(atime, mtime, node...)
       atime : Float
       mtime : Float
       node : Node
    raises RuntimeException
 </PRE><P>The <CODE>utimes</CODE> function changes the access and modification
 times of the files.
-</P><H3 CLASS="subsection"><A NAME="htoc231">10.5.12</A>&#XA0;&#XA0;truncate</H3><P><A NAME="fun:truncate"></A><A NAME="function:truncate"></A><A NAME="@default245"></A><A NAME="@fun159"></A></P><PRE CLASS="verbatim">   truncate(length, node...)
+</P><H3 CLASS="subsection"><A NAME="htoc233">10.5.12</A>&#XA0;&#XA0;truncate</H3><P><A NAME="fun:truncate"></A><A NAME="function:truncate"></A><A NAME="@default251"></A><A NAME="@fun165"></A></P><PRE CLASS="verbatim">   truncate(length, node...)
        length : Int
        node : Node or Channel
    raises RuntimeException
 </PRE><P>The <CODE>truncate</CODE> function truncates a file to the given length.
-</P><H3 CLASS="subsection"><A NAME="htoc232">10.5.13</A>&#XA0;&#XA0;umask</H3><P><A NAME="fun:umask"></A><A NAME="function:umask"></A><A NAME="@default246"></A><A NAME="@fun160"></A></P><PRE CLASS="verbatim">    $(umask mode) : Int
+</P><H3 CLASS="subsection"><A NAME="htoc234">10.5.13</A>&#XA0;&#XA0;umask</H3><P><A NAME="fun:umask"></A><A NAME="function:umask"></A><A NAME="@default252"></A><A NAME="@fun166"></A></P><PRE CLASS="verbatim">    $(umask mode) : Int
        mode : Int
     raises RuntimeException
 </PRE><P>Sets the file mode creation mask.
 The previous mask is returned.
 This value is not scoped, changes have global effect.
-</P><H2 CLASS="section"><A NAME="toc79"></A><A NAME="htoc233">10.6</A>&#XA0;&#XA0;vmount</H2><H3 CLASS="subsection"><A NAME="htoc234">10.6.1</A>&#XA0;&#XA0;vmount</H3><P><A NAME="fun:vmount"></A><A NAME="function:vmount"></A><A NAME="@default247"></A><A NAME="@fun161"></A></P><PRE CLASS="verbatim">    vmount(src, dst)
+</P><H2 CLASS="section"><A NAME="toc79"></A><A NAME="htoc235">10.6</A>&#XA0;&#XA0;vmount</H2><H3 CLASS="subsection"><A NAME="htoc236">10.6.1</A>&#XA0;&#XA0;vmount</H3><P><A NAME="fun:vmount"></A><A NAME="function:vmount"></A><A NAME="@default253"></A><A NAME="@fun167"></A></P><PRE CLASS="verbatim">    vmount(src, dst)
        src, dst : Dir
     vmount(flags, src, dst)
        flags : String
@@ -569,17 +572,17 @@ builds with separate configurations or architectures.</P><P>The options are as f
 <B>l</B></DT><DD CLASS="dd-description"> Create symbolic links to files in the <CODE>src</CODE> directory.
 </DD><DT CLASS="dt-description"><B>c</B></DT><DD CLASS="dd-description"> Copy files from the <CODE>src</CODE> directory.
 </DD></DL><P>Mount operations are scoped.
-</P><H3 CLASS="subsection"><A NAME="htoc235">10.6.2</A>&#XA0;&#XA0;add-project-directories</H3><P><A NAME="fun:add-project-directories"></A><A NAME="function:add-project-directories"></A><A NAME="@default248"></A><A NAME="@fun162"></A></P><PRE CLASS="verbatim">    add-project-directories(dirs)
+</P><H3 CLASS="subsection"><A NAME="htoc237">10.6.2</A>&#XA0;&#XA0;add-project-directories</H3><P><A NAME="fun:add-project-directories"></A><A NAME="function:add-project-directories"></A><A NAME="@default254"></A><A NAME="@fun168"></A></P><PRE CLASS="verbatim">    add-project-directories(dirs)
        dirs : Dir Array
 </PRE><P>Add the directories to the set of directories that omake considers to be part
 of the project. This is mainly used to avoid omake complaining that the
 current directory is not part of the project.
-</P><H3 CLASS="subsection"><A NAME="htoc236">10.6.3</A>&#XA0;&#XA0;remove-project-directories</H3><P><A NAME="fun:remove-project-directories"></A><A NAME="function:remove-project-directories"></A><A NAME="@default249"></A><A NAME="@fun163"></A></P><PRE CLASS="verbatim">    remove-project-directories(dirs)
+</P><H3 CLASS="subsection"><A NAME="htoc238">10.6.3</A>&#XA0;&#XA0;remove-project-directories</H3><P><A NAME="fun:remove-project-directories"></A><A NAME="function:remove-project-directories"></A><A NAME="@default255"></A><A NAME="@fun169"></A></P><PRE CLASS="verbatim">    remove-project-directories(dirs)
        dirs : Dir Array
 </PRE><P>Removed the directories from the set of directories that omake considers to be part
 of the project. This is mainly used to cancel a <CODE>.SUBDIRS</CODE> from including
 a directory if it is determined that the directory does not need to be compiled.
-</P><H2 CLASS="section"><A NAME="toc80"></A><A NAME="htoc237">10.7</A>&#XA0;&#XA0;File predicates</H2><H3 CLASS="subsection"><A NAME="htoc238">10.7.1</A>&#XA0;&#XA0;test</H3><P><A NAME="fun:test"></A><A NAME="function:test"></A><A NAME="@default250"></A><A NAME="@fun164"></A></P><PRE CLASS="verbatim">   test(exp) : Bool
+</P><H2 CLASS="section"><A NAME="toc80"></A><A NAME="htoc239">10.7</A>&#XA0;&#XA0;File predicates</H2><H3 CLASS="subsection"><A NAME="htoc240">10.7.1</A>&#XA0;&#XA0;test</H3><P><A NAME="fun:test"></A><A NAME="function:test"></A><A NAME="@default256"></A><A NAME="@fun170"></A></P><PRE CLASS="verbatim">   test(exp) : Bool
       exp : String Sequence
 </PRE><P>The <EM>expression</EM> grammar is as follows:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>!</CODE> <EM>expression</EM> : <EM>expression</EM> is not true
@@ -613,7 +616,7 @@ same name.
 </LI><LI CLASS="li-itemize"><CODE>-O</CODE> <EM>file</EM> : The file&#X2019;s owner is the current effective user
 </LI><LI CLASS="li-itemize"><CODE>-p</CODE> <EM>file</EM> : The file is a named pipe
 </LI><LI CLASS="li-itemize"><CODE>-r</CODE> <EM>file</EM> : The file is readable
-</LI><LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file is empty
+</LI><LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file has a non-zero size
 </LI><LI CLASS="li-itemize"><CODE>-S</CODE> <EM>file</EM> : The file is a socket
 </LI><LI CLASS="li-itemize"><CODE>-u</CODE> <EM>file</EM> : The set<CODE>-user-id</CODE> bit is set on the file
 </LI><LI CLASS="li-itemize"><CODE>-w</CODE> <EM>file</EM> : The file is writable
@@ -640,7 +643,7 @@ explains more. Here are some examples.</P><PRE CLASS="verbatim">    # Create an 
     # boo is newer than foo, and foo is empty
     osh&gt; test(\( boo -nt foo \) -a -e foo)
     - : true
-</PRE><H3 CLASS="subsection"><A NAME="htoc239">10.7.2</A>&#XA0;&#XA0;find</H3><P><A NAME="fun:find"></A><A NAME="function:find"></A><A NAME="@default251"></A><A NAME="@fun165"></A></P><PRE CLASS="verbatim">   find(exp) : Node Array
+</PRE><H3 CLASS="subsection"><A NAME="htoc241">10.7.2</A>&#XA0;&#XA0;find</H3><P><A NAME="fun:find"></A><A NAME="function:find"></A><A NAME="@default257"></A><A NAME="@fun171"></A></P><PRE CLASS="verbatim">   find(exp) : Node Array
       exp : String Sequence
 </PRE><P>The <CODE>find</CODE> function searches a directory recursively, returning the
 files for which the expression evaluates to true.</P><P>The expression argument uses the same syntax as the <CODE>test</CODE> function,
@@ -667,23 +670,23 @@ or symbolic links.</P><PRE CLASS="verbatim">    osh&gt; find(. -name fo* -a \( -
             /home/jyh/.../omake/RPM/.svn/format
             ...
             /home/jyh/.../omake/osx_resources/installer_files/.svn/format&gt;
-</PRE><H2 CLASS="section"><A NAME="toc81"></A><A NAME="htoc240">10.8</A>&#XA0;&#XA0;IO functions</H2><H3 CLASS="subsection"><A NAME="htoc241">10.8.1</A>&#XA0;&#XA0;Standard channels</H3><P>The following variables define the standard channels.</P><H5 CLASS="paragraph">stdin</H5><P><A NAME="var:stdin"></A><A NAME="@default252"></A><A NAME="@var20"></A></P><PRE CLASS="verbatim">stdin : InChannel
-</PRE><P>The standard input channel, open for reading.</P><H5 CLASS="paragraph">stdout</H5><P><A NAME="var:stdout"></A><A NAME="@default253"></A><A NAME="@var21"></A>
+</PRE><H2 CLASS="section"><A NAME="toc81"></A><A NAME="htoc242">10.8</A>&#XA0;&#XA0;IO functions</H2><H3 CLASS="subsection"><A NAME="htoc243">10.8.1</A>&#XA0;&#XA0;Standard channels</H3><P>The following variables define the standard channels.</P><H5 CLASS="paragraph">stdin</H5><P><A NAME="var:stdin"></A><A NAME="@default258"></A><A NAME="@var20"></A></P><PRE CLASS="verbatim">stdin : InChannel
+</PRE><P>The standard input channel, open for reading.</P><H5 CLASS="paragraph">stdout</H5><P><A NAME="var:stdout"></A><A NAME="@default259"></A><A NAME="@var21"></A>
 </P><PRE CLASS="verbatim">stdout : OutChannel
-</PRE><P>The standard output channel, open for writing.</P><H5 CLASS="paragraph">stderr</H5><P><A NAME="var:stderr"></A><A NAME="@default254"></A><A NAME="@var22"></A>
+</PRE><P>The standard output channel, open for writing.</P><H5 CLASS="paragraph">stderr</H5><P><A NAME="var:stderr"></A><A NAME="@default260"></A><A NAME="@var22"></A>
 </P><PRE CLASS="verbatim">stderr : OutChannel
 </PRE><P>The standard error channel, open for writing.
-</P><H3 CLASS="subsection"><A NAME="htoc242">10.8.2</A>&#XA0;&#XA0;open-in-string</H3><P><A NAME="fun:open-in-string"></A><A NAME="function:open-in-string"></A><A NAME="@default255"></A><A NAME="@fun166"></A>
+</P><H3 CLASS="subsection"><A NAME="htoc244">10.8.2</A>&#XA0;&#XA0;open-in-string</H3><P><A NAME="fun:open-in-string"></A><A NAME="function:open-in-string"></A><A NAME="@default261"></A><A NAME="@fun172"></A>
 The <CODE>open-in-string</CODE> treats a string as if it were a file
 and returns a channel for reading.</P><PRE CLASS="verbatim">   $(open-in-string s) : Channel
        s : String
-</PRE><H3 CLASS="subsection"><A NAME="htoc243">10.8.3</A>&#XA0;&#XA0;open-out-string, out-contents</H3><P><A NAME="fun:open-out-string"></A><A NAME="function:open-out-string"></A><A NAME="@default256"></A><A NAME="@fun167"></A><A NAME="fun:out-contents"></A><A NAME="function:out-contents"></A><A NAME="@default257"></A><A NAME="@fun168"></A>
+</PRE><H3 CLASS="subsection"><A NAME="htoc245">10.8.3</A>&#XA0;&#XA0;open-out-string, out-contents</H3><P><A NAME="fun:open-out-string"></A><A NAME="function:open-out-string"></A><A NAME="@default262"></A><A NAME="@fun173"></A><A NAME="fun:out-contents"></A><A NAME="function:out-contents"></A><A NAME="@default263"></A><A NAME="@fun174"></A>
 The <CODE>open-out-string</CODE> creates a channel that writes to a
 string instead of a file. The string may be retrieved with the
 <CODE>out-contents</CODE> function.</P><PRE CLASS="verbatim">   $(open-out-string) : Channel
    $(out-contents chan) : String
        chan : OutChannel
-</PRE><H3 CLASS="subsection"><A NAME="htoc244">10.8.4</A>&#XA0;&#XA0;fopen</H3><P><A NAME="fun:fopen"></A><A NAME="function:fopen"></A><A NAME="@default258"></A><A NAME="@fun169"></A></P><P>The <CODE>fopen</CODE> function opens a file for reading or writing.</P><PRE CLASS="verbatim">   $(fopen file, mode) : Channel
+</PRE><H3 CLASS="subsection"><A NAME="htoc246">10.8.4</A>&#XA0;&#XA0;fopen</H3><P><A NAME="fun:fopen"></A><A NAME="function:fopen"></A><A NAME="@default264"></A><A NAME="@fun175"></A></P><P>The <CODE>fopen</CODE> function opens a file for reading or writing.</P><PRE CLASS="verbatim">   $(fopen file, mode) : Channel
       file : File
       mode : String
 </PRE><P>The <CODE>file</CODE> is the name of the file to be opened.
@@ -699,11 +702,11 @@ The <CODE>mode</CODE> is a combination of the following characters.
 </DD><DT CLASS="dt-description"><B>x</B></DT><DD CLASS="dd-description"> Fail if the file already exists.
 </DD></DL><P>Binary mode is not significant on Unix systems, where
 text and binary modes are equivalent.
-</P><H3 CLASS="subsection"><A NAME="htoc245">10.8.5</A>&#XA0;&#XA0;close</H3><P><A NAME="fun:close"></A><A NAME="function:close"></A><A NAME="@default259"></A><A NAME="@fun170"></A></P><PRE CLASS="verbatim">    $(close channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc247">10.8.5</A>&#XA0;&#XA0;close</H3><P><A NAME="fun:close"></A><A NAME="function:close"></A><A NAME="@default265"></A><A NAME="@fun176"></A></P><PRE CLASS="verbatim">    $(close channel...)
        channel : Channel
 </PRE><P>The <CODE>close</CODE> function closes a file that was previously opened
 with <CODE>fopen</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc246">10.8.6</A>&#XA0;&#XA0;read, input-line</H3><P><A NAME="fun:read"></A><A NAME="function:read"></A><A NAME="@default260"></A><A NAME="@fun171"></A><A NAME="fun:input-line"></A><A NAME="function:input-line"></A><A NAME="@default261"></A><A NAME="@fun172"></A></P><PRE CLASS="verbatim">   $(read channel, amount) : String
+</P><H3 CLASS="subsection"><A NAME="htoc248">10.8.6</A>&#XA0;&#XA0;read, input-line</H3><P><A NAME="fun:read"></A><A NAME="function:read"></A><A NAME="@default266"></A><A NAME="@fun177"></A><A NAME="fun:input-line"></A><A NAME="function:input-line"></A><A NAME="@default267"></A><A NAME="@fun178"></A></P><PRE CLASS="verbatim">   $(read channel, amount) : String
    $(input-line channel) : String
       channel : InChannel
       amount  : Int
@@ -713,7 +716,7 @@ bytes from an input channel, and returns
 the data that was read. The <CODE>input-line</CODE> function reads a line from the file and returns the line read, without
 the line terminator. If an end-of-file condition is reached, both functions raise a <CODE>RuntimeException</CODE>
 exception.
-</P><H3 CLASS="subsection"><A NAME="htoc247">10.8.7</A>&#XA0;&#XA0;write</H3><P><A NAME="fun:write"></A><A NAME="function:write"></A><A NAME="@default262"></A><A NAME="@fun173"></A></P><PRE CLASS="verbatim">   $(write channel, buffer, offset, amount) : String
+</P><H3 CLASS="subsection"><A NAME="htoc249">10.8.7</A>&#XA0;&#XA0;write</H3><P><A NAME="fun:write"></A><A NAME="function:write"></A><A NAME="@default268"></A><A NAME="@fun179"></A></P><PRE CLASS="verbatim">   $(write channel, buffer, offset, amount) : String
       channel : OutChannel
       buffer  : String
       offset  : Int
@@ -729,7 +732,7 @@ are written. The function returns the number of bytes that were
 written.</P><P>The 3-argument form is similar, but the <CODE>offset</CODE> is 0.</P><P>In the 2-argument form, the <CODE>offset</CODE> is 0, and the <CODE>amount</CODE>
 if the length of the <CODE>buffer</CODE>.</P><P>If an end-of-file condition is reached,
 the function raises a <CODE>RuntimeException</CODE> exception.
-</P><H3 CLASS="subsection"><A NAME="htoc248">10.8.8</A>&#XA0;&#XA0;lseek</H3><P><A NAME="fun:lseek"></A><A NAME="function:lseek"></A><A NAME="@default263"></A><A NAME="@fun174"></A></P><PRE CLASS="verbatim">    $(lseek channel, offset, whence) : Int
+</P><H3 CLASS="subsection"><A NAME="htoc250">10.8.8</A>&#XA0;&#XA0;lseek</H3><P><A NAME="fun:lseek"></A><A NAME="function:lseek"></A><A NAME="@default269"></A><A NAME="@fun180"></A></P><PRE CLASS="verbatim">    $(lseek channel, offset, whence) : Int
        channel : Channel
        offset  : Int
        whence  : String
@@ -741,56 +744,56 @@ follows:</P><DL CLASS="description"><DT CLASS="dt-description">
 </DD><DT CLASS="dt-description"><B>SEEK_CUR</B></DT><DD CLASS="dd-description"> The offset is set to its current position plus <CODE>offset</CODE> bytes.
 </DD><DT CLASS="dt-description"><B>SEEK_END</B></DT><DD CLASS="dd-description"> The offset is set to the size of the file plus <CODE>offset</CODE> bytes.
 </DD></DL><P>The <CODE>lseek</CODE> function returns the new position in the file.
-</P><H3 CLASS="subsection"><A NAME="htoc249">10.8.9</A>&#XA0;&#XA0;rewind</H3><P><A NAME="fun:rewind"></A><A NAME="function:rewind"></A><A NAME="@default264"></A><A NAME="@fun175"></A></P><PRE CLASS="verbatim">   rewind(channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc251">10.8.9</A>&#XA0;&#XA0;rewind</H3><P><A NAME="fun:rewind"></A><A NAME="function:rewind"></A><A NAME="@default270"></A><A NAME="@fun181"></A></P><PRE CLASS="verbatim">   rewind(channel...)
       channel : Channel
 </PRE><P>The <CODE>rewind</CODE> function set the current file position to the
 beginning of the file.
-</P><H3 CLASS="subsection"><A NAME="htoc250">10.8.10</A>&#XA0;&#XA0;tell</H3><P><A NAME="fun:tell"></A><A NAME="function:tell"></A><A NAME="@default265"></A><A NAME="@fun176"></A></P><PRE CLASS="verbatim">    $(tell channel...) : Int...
+</P><H3 CLASS="subsection"><A NAME="htoc252">10.8.10</A>&#XA0;&#XA0;tell</H3><P><A NAME="fun:tell"></A><A NAME="function:tell"></A><A NAME="@default271"></A><A NAME="@fun182"></A></P><PRE CLASS="verbatim">    $(tell channel...) : Int...
        channel : Channel
     raises RuntimeException
 </PRE><P>The <CODE>tell</CODE> function returns the current position of the <CODE>channel</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc251">10.8.11</A>&#XA0;&#XA0;flush</H3><P><A NAME="fun:flush"></A><A NAME="function:flush"></A><A NAME="@default266"></A><A NAME="@fun177"></A></P><PRE CLASS="verbatim">   $(flush channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc253">10.8.11</A>&#XA0;&#XA0;flush</H3><P><A NAME="fun:flush"></A><A NAME="function:flush"></A><A NAME="@default272"></A><A NAME="@fun183"></A></P><PRE CLASS="verbatim">   $(flush channel...)
       channel : OutChannel
 </PRE><P>The <CODE>flush</CODE> function can be used only on files that are open for writing.
 It flushes all pending data to the file.
-</P><H3 CLASS="subsection"><A NAME="htoc252">10.8.12</A>&#XA0;&#XA0;channel-name</H3><P><A NAME="fun:channel-name"></A><A NAME="function:channel-name"></A><A NAME="@default267"></A><A NAME="@fun178"></A></P><PRE CLASS="verbatim">   $(channel-name channel...) : String
+</P><H3 CLASS="subsection"><A NAME="htoc254">10.8.12</A>&#XA0;&#XA0;channel-name</H3><P><A NAME="fun:channel-name"></A><A NAME="function:channel-name"></A><A NAME="@default273"></A><A NAME="@fun184"></A></P><PRE CLASS="verbatim">   $(channel-name channel...) : String
       channel : Channel
 </PRE><P>The <CODE>channel-name</CODE> function returns the name that is associated with the channel.
-</P><H3 CLASS="subsection"><A NAME="htoc253">10.8.13</A>&#XA0;&#XA0;dup</H3><P><A NAME="fun:dup"></A><A NAME="function:dup"></A><A NAME="@default268"></A><A NAME="@fun179"></A></P><PRE CLASS="verbatim">    $(dup channel) : Channel
+</P><H3 CLASS="subsection"><A NAME="htoc255">10.8.13</A>&#XA0;&#XA0;dup</H3><P><A NAME="fun:dup"></A><A NAME="function:dup"></A><A NAME="@default274"></A><A NAME="@fun185"></A></P><PRE CLASS="verbatim">    $(dup channel) : Channel
        channel : Channel
     raises RuntimeException
 </PRE><P>The <CODE>dup</CODE> function returns a new channel referencing the
 same file as the argument.
-</P><H3 CLASS="subsection"><A NAME="htoc254">10.8.14</A>&#XA0;&#XA0;dup2</H3><P><A NAME="fun:dup2"></A><A NAME="function:dup2"></A><A NAME="@default269"></A><A NAME="@fun180"></A></P><PRE CLASS="verbatim">   dup2(channel1, channel2)
+</P><H3 CLASS="subsection"><A NAME="htoc256">10.8.14</A>&#XA0;&#XA0;dup2</H3><P><A NAME="fun:dup2"></A><A NAME="function:dup2"></A><A NAME="@default275"></A><A NAME="@fun186"></A></P><PRE CLASS="verbatim">   dup2(channel1, channel2)
       channel1 : Channel
       channel2 : Channel
    raises RuntimeException
 </PRE><P>The <CODE>dup2</CODE> function causes <CODE>channel2</CODE> to refer to the same
 file as <CODE>channel1</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc255">10.8.15</A>&#XA0;&#XA0;set-nonblock</H3><P><A NAME="fun:set-nonblock"></A><A NAME="function:set-nonblock"></A><A NAME="@default270"></A><A NAME="@fun181"></A></P><PRE CLASS="verbatim">   set-nonblock-mode(mode, channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc257">10.8.15</A>&#XA0;&#XA0;set-nonblock</H3><P><A NAME="fun:set-nonblock"></A><A NAME="function:set-nonblock"></A><A NAME="@default276"></A><A NAME="@fun187"></A></P><PRE CLASS="verbatim">   set-nonblock-mode(mode, channel...)
       channel : Channel
       mode : String
 </PRE><P>The <CODE>set-nonblock-mode</CODE> function sets the nonblocking flag on the
 given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a <CODE>RuntimeException</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc256">10.8.16</A>&#XA0;&#XA0;set-close-on-exec-mode</H3><P><A NAME="fun:set-close-on-exec-mode"></A><A NAME="function:set-close-on-exec-mode"></A><A NAME="@default271"></A><A NAME="@fun182"></A></P><PRE CLASS="verbatim">   set-close-on-exec-mode(mode, channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc258">10.8.16</A>&#XA0;&#XA0;set-close-on-exec-mode</H3><P><A NAME="fun:set-close-on-exec-mode"></A><A NAME="function:set-close-on-exec-mode"></A><A NAME="@default277"></A><A NAME="@fun188"></A></P><PRE CLASS="verbatim">   set-close-on-exec-mode(mode, channel...)
       channel : Channel
       mode : String
    raises RuntimeException
 </PRE><P>The <CODE>set-close-on-exec-mode</CODE> function sets the close-on-exec
 flags for the given channels. If the close-on-exec flag is set, the channel
 is not inherited by child processes. Otherwise it is.
-</P><H3 CLASS="subsection"><A NAME="htoc257">10.8.17</A>&#XA0;&#XA0;pipe</H3><P><A NAME="fun:pipe"></A><A NAME="function:pipe"></A><A NAME="@default272"></A><A NAME="@fun183"></A></P><PRE CLASS="verbatim">   $(pipe) : Pipe
+</P><H3 CLASS="subsection"><A NAME="htoc259">10.8.17</A>&#XA0;&#XA0;pipe</H3><P><A NAME="fun:pipe"></A><A NAME="function:pipe"></A><A NAME="@default278"></A><A NAME="@fun189"></A></P><PRE CLASS="verbatim">   $(pipe) : Pipe
    raises RuntimeException
 </PRE><P>The <CODE>pipe</CODE> function creates a <CODE>Pipe</CODE> object, which has two
 fields. The <CODE>read</CODE> field is a channel that is opened for
 reading, and the <CODE>write</CODE> field is a channel that is opened
 for writing.
-</P><H3 CLASS="subsection"><A NAME="htoc258">10.8.18</A>&#XA0;&#XA0;mkfifo</H3><P><A NAME="fun:mkfifo"></A><A NAME="function:mkfifo"></A><A NAME="@default273"></A><A NAME="@fun184"></A></P><PRE CLASS="verbatim">   mkfifo(mode, node...)
+</P><H3 CLASS="subsection"><A NAME="htoc260">10.8.18</A>&#XA0;&#XA0;mkfifo</H3><P><A NAME="fun:mkfifo"></A><A NAME="function:mkfifo"></A><A NAME="@default279"></A><A NAME="@fun190"></A></P><PRE CLASS="verbatim">   mkfifo(mode, node...)
       mode : Int
       node : Node
 </PRE><P>The <CODE>mkfifo</CODE> function creates a named pipe.
-</P><H3 CLASS="subsection"><A NAME="htoc259">10.8.19</A>&#XA0;&#XA0;select</H3><P><A NAME="fun:select"></A><A NAME="function:select"></A><A NAME="@default274"></A><A NAME="@fun185"></A></P><PRE CLASS="verbatim">   $(select rfd..., wfd..., wfd..., timeout) : Select
+</P><H3 CLASS="subsection"><A NAME="htoc261">10.8.19</A>&#XA0;&#XA0;select</H3><P><A NAME="fun:select"></A><A NAME="function:select"></A><A NAME="@default280"></A><A NAME="@fun191"></A></P><PRE CLASS="verbatim">   $(select rfd..., wfd..., wfd..., timeout) : Select
       rfd : InChannel
       wfd : OutChannel
       efd : Channel
@@ -806,7 +809,7 @@ which has the following fields:
 <B>read</B></DT><DD CLASS="dd-description"> An array of channels available for reading.
 </DD><DT CLASS="dt-description"><B>write</B></DT><DD CLASS="dd-description"> An array of channels available for writing.
 </DD><DT CLASS="dt-description"><B>error</B></DT><DD CLASS="dd-description"> An array of channels on which an error has occurred.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc260">10.8.20</A>&#XA0;&#XA0;lockf</H3><P><A NAME="fun:lockf"></A><A NAME="function:lockf"></A><A NAME="@default275"></A><A NAME="@fun186"></A></P><PRE CLASS="verbatim">    lockf(channel, command, len)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc262">10.8.20</A>&#XA0;&#XA0;lockf</H3><P><A NAME="fun:lockf"></A><A NAME="function:lockf"></A><A NAME="@default281"></A><A NAME="@fun192"></A></P><PRE CLASS="verbatim">    lockf(channel, command, len)
        channel : Channel
        command : String
        len : Int
@@ -821,43 +824,43 @@ bytes.</P><P>The possible values for <CODE>command</CODE> are the following.
 </DD><DT CLASS="dt-description"><B>F_TEST</B></DT><DD CLASS="dd-description"> Test a region for other locks.
 </DD><DT CLASS="dt-description"><B>F_RLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; block if already locked.
 </DD><DT CLASS="dt-description"><B>F_TRLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; fail is already locked.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc261">10.8.21</A>&#XA0;&#XA0;InetAddr</H3><P><A NAME="obj:InetAddr"></A><A NAME="object:InetAddr"></A><A NAME="@default276"></A><A NAME="@obj1"></A></P><P>The <CODE>InetAddr</CODE> object describes an Internet address.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc263">10.8.21</A>&#XA0;&#XA0;InetAddr</H3><P><A NAME="obj:InetAddr"></A><A NAME="object:InetAddr"></A><A NAME="@default282"></A><A NAME="@obj1"></A></P><P>The <CODE>InetAddr</CODE> object describes an Internet address.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>addr</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the Internet address.
 </DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc262">10.8.22</A>&#XA0;&#XA0;Host</H3><P><A NAME="obj:Host"></A><A NAME="object:Host"></A><A NAME="@default277"></A><A NAME="@obj2"></A></P><P>A <CODE>Host</CODE> object contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc264">10.8.22</A>&#XA0;&#XA0;Host</H3><P><A NAME="obj:Host"></A><A NAME="object:Host"></A><A NAME="@default283"></A><A NAME="@obj2"></A></P><P>A <CODE>Host</CODE> object contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the host.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: other names by which the host is known.
 </DD><DT CLASS="dt-description"><B>addrtype</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the preferred socket domain.
 </DD><DT CLASS="dt-description"><B>addrs</B></DT><DD CLASS="dd-description"> <CODE>InetAddr Array</CODE>: an array of Internet addresses belonging to the host.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc263">10.8.23</A>&#XA0;&#XA0;gethostbyname</H3><P><A NAME="fun:gethostbyname"></A><A NAME="function:gethostbyname"></A><A NAME="@default278"></A><A NAME="@fun187"></A></P><PRE CLASS="verbatim">   $(gethostbyname host...) : Host...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc265">10.8.23</A>&#XA0;&#XA0;gethostbyname</H3><P><A NAME="fun:gethostbyname"></A><A NAME="function:gethostbyname"></A><A NAME="@default284"></A><A NAME="@fun193"></A></P><PRE CLASS="verbatim">   $(gethostbyname host...) : Host...
       host : String
    raises RuntimeException
 </PRE><P>The <CODE>gethostbyname</CODE> function returns a <CODE>Host</CODE> object
 for the specified host. The <CODE>host</CODE> may specify a domain name
-or an Internet address.</P><H3 CLASS="subsection"><A NAME="htoc264">10.8.24</A>&#XA0;&#XA0;Protocol</H3><P><A NAME="obj:Protocol"></A><A NAME="object:Protocol"></A><A NAME="@default279"></A><A NAME="@obj3"></A></P><P>The <CODE>Protocol</CODE> object represents a protocol entry.
+or an Internet address.</P><H3 CLASS="subsection"><A NAME="htoc266">10.8.24</A>&#XA0;&#XA0;Protocol</H3><P><A NAME="obj:Protocol"></A><A NAME="object:Protocol"></A><A NAME="@default285"></A><A NAME="@obj3"></A></P><P>The <CODE>Protocol</CODE> object represents a protocol entry.
 It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the canonical name of the protocol.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the protocol.
 </DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the protocol number.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc265">10.8.25</A>&#XA0;&#XA0;getprotobyname</H3><P><A NAME="fun:getprotobyname"></A><A NAME="function:getprotobyname"></A><A NAME="@default280"></A><A NAME="@fun188"></A></P><PRE CLASS="verbatim">   $(getprotobyname name...) : Protocol...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc267">10.8.25</A>&#XA0;&#XA0;getprotobyname</H3><P><A NAME="fun:getprotobyname"></A><A NAME="function:getprotobyname"></A><A NAME="@default286"></A><A NAME="@fun194"></A></P><PRE CLASS="verbatim">   $(getprotobyname name...) : Protocol...
       name : Int or String
    raises RuntimeException
 </PRE><P>The <CODE>getprotobyname</CODE> function returns a <CODE>Protocol</CODE> object for the
 specified protocol. The <CODE>name</CODE> may be a protocol name, or a
 protocol number.
-</P><H3 CLASS="subsection"><A NAME="htoc266">10.8.26</A>&#XA0;&#XA0;Service</H3><P><A NAME="obj:Service"></A><A NAME="object:Service"></A><A NAME="@default281"></A><A NAME="@obj4"></A></P><P>The <CODE>Service</CODE> object represents a network service.
+</P><H3 CLASS="subsection"><A NAME="htoc268">10.8.26</A>&#XA0;&#XA0;Service</H3><P><A NAME="obj:Service"></A><A NAME="object:Service"></A><A NAME="@default287"></A><A NAME="@obj4"></A></P><P>The <CODE>Service</CODE> object represents a network service.
 It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the service.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the service.
 </DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number of the service.
 </DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Protocol</CODE>: the protocol for the service.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc267">10.8.27</A>&#XA0;&#XA0;getservbyname</H3><P><A NAME="fun:getservbyname"></A><A NAME="function:getservbyname"></A><A NAME="@default282"></A><A NAME="@fun189"></A></P><PRE CLASS="verbatim">   $(getservbyname service...) : Service...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc269">10.8.27</A>&#XA0;&#XA0;getservbyname</H3><P><A NAME="fun:getservbyname"></A><A NAME="function:getservbyname"></A><A NAME="@default288"></A><A NAME="@fun195"></A></P><PRE CLASS="verbatim">   $(getservbyname service...) : Service...
       service : String or Int
    raises RuntimeException
 </PRE><P>The <CODE>getservbyname</CODE> function gets the information for a network service.
 The <CODE>service</CODE> may be specified as a service name or number.
-</P><H3 CLASS="subsection"><A NAME="htoc268">10.8.28</A>&#XA0;&#XA0;socket</H3><P><A NAME="fun:socket"></A><A NAME="function:socket"></A><A NAME="@default283"></A><A NAME="@fun190"></A></P><PRE CLASS="verbatim">   $(socket domain, type, protocol) : Channel
+</P><H3 CLASS="subsection"><A NAME="htoc270">10.8.28</A>&#XA0;&#XA0;socket</H3><P><A NAME="fun:socket"></A><A NAME="function:socket"></A><A NAME="@default289"></A><A NAME="@fun196"></A></P><PRE CLASS="verbatim">   $(socket domain, type, protocol) : Channel
       domain : String
       type : String
       protocol : String
@@ -875,7 +878,7 @@ The <CODE>service</CODE> may be specified as a service name or number.
 </DD><DT CLASS="dt-description"><B>SOCK_SEQPACKET or seqpacket</B></DT><DD CLASS="dd-description"> Sequenced packets socket
 </DD></DL><P>The <CODE>protocol</CODE> is an <CODE>Int</CODE> or <CODE>String</CODE> that specifies
 a protocol in the protocols database.
-</P><H3 CLASS="subsection"><A NAME="htoc269">10.8.29</A>&#XA0;&#XA0;bind</H3><P><A NAME="fun:bind"></A><A NAME="function:bind"></A><A NAME="@default284"></A><A NAME="@fun191"></A></P><PRE CLASS="verbatim">   bind(socket, host, port)
+</P><H3 CLASS="subsection"><A NAME="htoc271">10.8.29</A>&#XA0;&#XA0;bind</H3><P><A NAME="fun:bind"></A><A NAME="function:bind"></A><A NAME="@default290"></A><A NAME="@fun197"></A></P><PRE CLASS="verbatim">   bind(socket, host, port)
       socket : InOutChannel
       host : String
       port : Int
@@ -886,17 +889,17 @@ a protocol in the protocols database.
 </PRE><P>The <CODE>bind</CODE> function binds a socket to an address.</P><P>The 3-argument form specifies an Internet connection, the <CODE>host</CODE> specifies a host name
 or IP address, and the <CODE>port</CODE> is a port number.</P><P>The 2-argument form is for <CODE>Unix</CODE> sockets. The <CODE>file</CODE> specifies the filename
 for the address.
-</P><H3 CLASS="subsection"><A NAME="htoc270">10.8.30</A>&#XA0;&#XA0;listen</H3><P><A NAME="fun:listen"></A><A NAME="function:listen"></A><A NAME="@default285"></A><A NAME="@fun192"></A></P><PRE CLASS="verbatim">   listen(socket, requests)
+</P><H3 CLASS="subsection"><A NAME="htoc272">10.8.30</A>&#XA0;&#XA0;listen</H3><P><A NAME="fun:listen"></A><A NAME="function:listen"></A><A NAME="@default291"></A><A NAME="@fun198"></A></P><PRE CLASS="verbatim">   listen(socket, requests)
       socket : InOutChannel
       requests : Int
    raises RuntimeException
 </PRE><P>The <CODE>listen</CODE> function sets up the socket for receiving up to <CODE>requests</CODE> number
 of pending connection requests.
-</P><H3 CLASS="subsection"><A NAME="htoc271">10.8.31</A>&#XA0;&#XA0;accept</H3><P><A NAME="fun:accept"></A><A NAME="function:accept"></A><A NAME="@default286"></A><A NAME="@fun193"></A></P><PRE CLASS="verbatim">   $(accept socket) : InOutChannel
+</P><H3 CLASS="subsection"><A NAME="htoc273">10.8.31</A>&#XA0;&#XA0;accept</H3><P><A NAME="fun:accept"></A><A NAME="function:accept"></A><A NAME="@default292"></A><A NAME="@fun199"></A></P><PRE CLASS="verbatim">   $(accept socket) : InOutChannel
       socket : InOutChannel
    raises RuntimeException
 </PRE><P>The <CODE>accept</CODE> function accepts a connection on a socket.
-</P><H3 CLASS="subsection"><A NAME="htoc272">10.8.32</A>&#XA0;&#XA0;connect</H3><P><A NAME="fun:connect"></A><A NAME="function:connect"></A><A NAME="@default287"></A><A NAME="@fun194"></A></P><PRE CLASS="verbatim">    connect(socket, addr, port)
+</P><H3 CLASS="subsection"><A NAME="htoc274">10.8.32</A>&#XA0;&#XA0;connect</H3><P><A NAME="fun:connect"></A><A NAME="function:connect"></A><A NAME="@default293"></A><A NAME="@fun200"></A></P><PRE CLASS="verbatim">    connect(socket, addr, port)
        socket : InOutChannel
        addr : String
        port : int
@@ -909,21 +912,21 @@ The <CODE>addr</CODE> argument is the Internet address of the remote host,
 specified as a domain name or IP address. The <CODE>port</CODE> argument
 is the port number.</P><P>The 2-argument form is for Unix sockets. The <CODE>name</CODE> argument
 is the filename of the socket.
-</P><H3 CLASS="subsection"><A NAME="htoc273">10.8.33</A>&#XA0;&#XA0;getchar</H3><P><A NAME="fun:getchar"></A><A NAME="function:getchar"></A><A NAME="@default288"></A><A NAME="@fun195"></A></P><PRE CLASS="verbatim">    $(getc) : String
+</P><H3 CLASS="subsection"><A NAME="htoc275">10.8.33</A>&#XA0;&#XA0;getchar</H3><P><A NAME="fun:getchar"></A><A NAME="function:getchar"></A><A NAME="@default294"></A><A NAME="@fun201"></A></P><PRE CLASS="verbatim">    $(getc) : String
     $(getc file) : String
        file : InChannel or File
     raises RuntimeException
 </PRE><P>The <CODE>getc</CODE> function returns the next character of a file.
 If the argument is not specified, <CODE>stdin</CODE> is used as input.
 If the end of file has been reached, the function returns <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc274">10.8.34</A>&#XA0;&#XA0;gets</H3><P><A NAME="fun:gets"></A><A NAME="function:gets"></A><A NAME="@default289"></A><A NAME="@fun196"></A></P><PRE CLASS="verbatim">   $(gets) : String
+</P><H3 CLASS="subsection"><A NAME="htoc276">10.8.34</A>&#XA0;&#XA0;gets</H3><P><A NAME="fun:gets"></A><A NAME="function:gets"></A><A NAME="@default295"></A><A NAME="@fun202"></A></P><PRE CLASS="verbatim">   $(gets) : String
    $(gets channel) : String
       channel : InChannel or File
    raises RuntimeException
 </PRE><P>The <CODE>gets</CODE> function returns the next line from a file.
 The function returns the empty string if the end of file has been reached.
 The line terminator is removed.
-</P><H3 CLASS="subsection"><A NAME="htoc275">10.8.35</A>&#XA0;&#XA0;fgets</H3><P><A NAME="fun:fgets"></A><A NAME="function:fgets"></A><A NAME="@default290"></A><A NAME="@fun197"></A></P><PRE CLASS="verbatim">   $(fgets) : String
+</P><H3 CLASS="subsection"><A NAME="htoc277">10.8.35</A>&#XA0;&#XA0;fgets</H3><P><A NAME="fun:fgets"></A><A NAME="function:fgets"></A><A NAME="@default296"></A><A NAME="@fun203"></A></P><PRE CLASS="verbatim">   $(fgets) : String
    $(fgets channel) : String
       channel : InChannel or File
    raises RuntimeException
@@ -931,13 +934,13 @@ The line terminator is removed.
 opened for reading with <CODE>fopen</CODE>. The function returns the empty string
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed.
-</P><H2 CLASS="section"><A NAME="toc82"></A><A NAME="htoc276">10.9</A>&#XA0;&#XA0;Printing functions</H2><P>
-<A NAME="fun:fprint"></A><A NAME="function:fprint"></A><A NAME="@default291"></A><A NAME="@fun198"></A>
-<A NAME="fun:print"></A><A NAME="function:print"></A><A NAME="@default292"></A><A NAME="@fun199"></A>
-<A NAME="fun:eprint"></A><A NAME="function:eprint"></A><A NAME="@default293"></A><A NAME="@fun200"></A>
-<A NAME="fun:fprintln"></A><A NAME="function:fprintln"></A><A NAME="@default294"></A><A NAME="@fun201"></A>
-<A NAME="fun:println"></A><A NAME="function:println"></A><A NAME="@default295"></A><A NAME="@fun202"></A>
-<A NAME="fun:eprintln"></A><A NAME="function:eprintln"></A><A NAME="@default296"></A><A NAME="@fun203"></A></P><P>Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
+</P><H2 CLASS="section"><A NAME="toc82"></A><A NAME="htoc278">10.9</A>&#XA0;&#XA0;Printing functions</H2><P>
+<A NAME="fun:fprint"></A><A NAME="function:fprint"></A><A NAME="@default297"></A><A NAME="@fun204"></A>
+<A NAME="fun:print"></A><A NAME="function:print"></A><A NAME="@default298"></A><A NAME="@fun205"></A>
+<A NAME="fun:eprint"></A><A NAME="function:eprint"></A><A NAME="@default299"></A><A NAME="@fun206"></A>
+<A NAME="fun:fprintln"></A><A NAME="function:fprintln"></A><A NAME="@default300"></A><A NAME="@fun207"></A>
+<A NAME="fun:println"></A><A NAME="function:println"></A><A NAME="@default301"></A><A NAME="@fun208"></A>
+<A NAME="fun:eprintln"></A><A NAME="function:eprintln"></A><A NAME="@default302"></A><A NAME="@fun209"></A></P><P>Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
 The <CODE>println</CODE> function adds a terminating newline to the value being
 printed, the <CODE>print</CODE> function does not.</P><PRE CLASS="verbatim">    fprint(&lt;file&gt;, &lt;string&gt;)
     print(&lt;string&gt;)
@@ -948,13 +951,13 @@ printed, the <CODE>print</CODE> function does not.</P><PRE CLASS="verbatim">    
 </PRE><P>The <CODE>fprint</CODE> functions print to a file that has been previously opened with
 <CODE>fopen</CODE>. The <CODE>print</CODE> functions print to the standard output channel, and
 the <CODE>eprint</CODE> functions print to the standard error channel.
-</P><H2 CLASS="section"><A NAME="toc83"></A><A NAME="htoc277">10.10</A>&#XA0;&#XA0;Value printing functions</H2><P>
-<A NAME="fun:fprintv"></A><A NAME="function:fprintv"></A><A NAME="@default297"></A><A NAME="@fun204"></A>
-<A NAME="fun:printv"></A><A NAME="function:printv"></A><A NAME="@default298"></A><A NAME="@fun205"></A>
-<A NAME="fun:eprintv"></A><A NAME="function:eprintv"></A><A NAME="@default299"></A><A NAME="@fun206"></A>
-<A NAME="fun:fprintvln"></A><A NAME="function:fprintvln"></A><A NAME="@default300"></A><A NAME="@fun207"></A>
-<A NAME="fun:printvln"></A><A NAME="function:printvln"></A><A NAME="@default301"></A><A NAME="@fun208"></A>
-<A NAME="fun:eprintvln"></A><A NAME="function:eprintvln"></A><A NAME="@default302"></A><A NAME="@fun209"></A></P><P>Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
+</P><H2 CLASS="section"><A NAME="toc83"></A><A NAME="htoc279">10.10</A>&#XA0;&#XA0;Value printing functions</H2><P>
+<A NAME="fun:fprintv"></A><A NAME="function:fprintv"></A><A NAME="@default303"></A><A NAME="@fun210"></A>
+<A NAME="fun:printv"></A><A NAME="function:printv"></A><A NAME="@default304"></A><A NAME="@fun211"></A>
+<A NAME="fun:eprintv"></A><A NAME="function:eprintv"></A><A NAME="@default305"></A><A NAME="@fun212"></A>
+<A NAME="fun:fprintvln"></A><A NAME="function:fprintvln"></A><A NAME="@default306"></A><A NAME="@fun213"></A>
+<A NAME="fun:printvln"></A><A NAME="function:printvln"></A><A NAME="@default307"></A><A NAME="@fun214"></A>
+<A NAME="fun:eprintvln"></A><A NAME="function:eprintvln"></A><A NAME="@default308"></A><A NAME="@fun215"></A></P><P>Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
 The <CODE>printvln</CODE> function adds a terminating newline to the value being
 printed, the <CODE>printv</CODE> function does not.</P><PRE CLASS="verbatim">    fprintv(&lt;file&gt;, &lt;string&gt;)
     printv(&lt;string&gt;)
@@ -965,13 +968,13 @@ printed, the <CODE>printv</CODE> function does not.</P><PRE CLASS="verbatim">   
 </PRE><P>The <CODE>fprintv</CODE> functions print to a file that has been previously opened with
 <CODE>fopen</CODE>. The <CODE>printv</CODE> functions print to the standard output channel, and
 the <CODE>eprintv</CODE> functions print to the standard error channel.
-</P><H3 CLASS="subsection"><A NAME="htoc278">10.10.1</A>&#XA0;&#XA0;Miscellaneous functions</H3><H4 CLASS="subsubsection"><A NAME="htoc279">10.10.1.1</A>&#XA0;&#XA0;set-channel-line</H4><PRE CLASS="verbatim">    set-channel-line(channel, filename, line)
+</P><H3 CLASS="subsection"><A NAME="htoc280">10.10.1</A>&#XA0;&#XA0;Miscellaneous functions</H3><H4 CLASS="subsubsection"><A NAME="htoc281">10.10.1.1</A>&#XA0;&#XA0;set-channel-line</H4><PRE CLASS="verbatim">    set-channel-line(channel, filename, line)
         channel : Channel
         filename : File
         line : int
 </PRE><P>Set the line number information for the channel.
-</P><H2 CLASS="section"><A NAME="toc84"></A><A NAME="htoc280">10.11</A>&#XA0;&#XA0;Higher-level IO functions</H2><H3 CLASS="subsection"><A NAME="htoc281">10.11.1</A>&#XA0;&#XA0;Regular expressions</H3><P>
-<A NAME="@default303"></A></P><P>Many of the higher-level functions use regular expressions.
+</P><H2 CLASS="section"><A NAME="toc84"></A><A NAME="htoc282">10.11</A>&#XA0;&#XA0;Higher-level IO functions</H2><H3 CLASS="subsection"><A NAME="htoc283">10.11.1</A>&#XA0;&#XA0;Regular expressions</H3><P>
+<A NAME="@default309"></A></P><P>Many of the higher-level functions use regular expressions.
 Regular expressions are defined by strings with syntax nearly identical
 to <TT>awk</TT>(1).</P><P>Strings may contain the following character constants.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>\\</CODE> : a literal backslash.
@@ -1033,11 +1036,11 @@ abstractly. Some of these sequences can change depending on your LOCALE.</P><UL 
 </LI><LI CLASS="li-itemize"><CODE>[:punct:]</CODE> Punctuation characters.
 </LI><LI CLASS="li-itemize"><CODE>[:blank:]</CODE> Space or tab characters.
 </LI><LI CLASS="li-itemize"><CODE>[:space:]</CODE> Whitespace characters.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc282">10.11.2</A>&#XA0;&#XA0;cat</H3><P><A NAME="fun:cat"></A><A NAME="function:cat"></A><A NAME="@default304"></A><A NAME="@fun210"></A></P><PRE CLASS="verbatim">    cat(files) : Sequence
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc284">10.11.2</A>&#XA0;&#XA0;cat</H3><P><A NAME="fun:cat"></A><A NAME="function:cat"></A><A NAME="@default310"></A><A NAME="@fun216"></A></P><PRE CLASS="verbatim">    cat(files) : Sequence
        files : File or InChannel Sequence
 </PRE><P>The <CODE>cat</CODE> function concatenates the output from multiple files
 and returns it as a string.
-</P><H3 CLASS="subsection"><A NAME="htoc283">10.11.3</A>&#XA0;&#XA0;grep</H3><P><A NAME="fun:grep"></A><A NAME="function:grep"></A><A NAME="@default305"></A><A NAME="@fun211"></A></P><PRE CLASS="verbatim">   grep(pattern) : String  # input from stdin, default options
+</P><H3 CLASS="subsection"><A NAME="htoc285">10.11.3</A>&#XA0;&#XA0;grep</H3><P><A NAME="fun:grep"></A><A NAME="function:grep"></A><A NAME="@default311"></A><A NAME="@fun217"></A></P><PRE CLASS="verbatim">   grep(pattern) : String  # input from stdin, default options
       pattern : String
    grep(pattern, files) : String  # default options
       pattern : String
@@ -1058,7 +1061,7 @@ is given).
 </DD><DT CLASS="dt-description"><B>v</B></DT><DD CLASS="dd-description"> If specified, search for lines without a match instead of lines with a match,
 </DD></DL><P>The <CODE>pattern</CODE> is a regular expression.</P><P>If successful (<CODE>grep</CODE> found a match), the function returns <CODE>true</CODE>.
 Otherwise, it returns <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc284">10.11.4</A>&#XA0;&#XA0;scan</H3><P><A NAME="fun:scan"></A><A NAME="function:scan"></A><A NAME="@default306"></A><A NAME="@fun212"></A></P><PRE CLASS="verbatim">   scan(input-files)
+</P><H3 CLASS="subsection"><A NAME="htoc286">10.11.4</A>&#XA0;&#XA0;scan</H3><P><A NAME="fun:scan"></A><A NAME="function:scan"></A><A NAME="@default312"></A><A NAME="@fun218"></A></P><PRE CLASS="verbatim">   scan(input-files)
    case string1
       body1
    case string2
@@ -1114,7 +1117,7 @@ same way as other variables, so this definition does not affect the meaning of
         scan(script.in)
            ...
         close($(stdout))
-</PRE><H3 CLASS="subsection"><A NAME="htoc285">10.11.5</A>&#XA0;&#XA0;awk</H3><P><A NAME="fun:awk"></A><A NAME="function:awk"></A><A NAME="@default307"></A><A NAME="@fun213"></A></P><PRE CLASS="verbatim">   awk(input-files)
+</PRE><H3 CLASS="subsection"><A NAME="htoc287">10.11.5</A>&#XA0;&#XA0;awk</H3><P><A NAME="fun:awk"></A><A NAME="function:awk"></A><A NAME="@default313"></A><A NAME="@fun219"></A></P><PRE CLASS="verbatim">   awk(input-files)
    case pattern1:
       body1
    case pattern2:
@@ -1178,7 +1181,7 @@ same way as other variables, so this definition does not affect the meaning of
 <B>b</B></DT><DD CLASS="dd-description"> &#X201C;Break&#X201D; when evaluating cases. Only the first case that matches will be selected.
 </DD></DL><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop,
 exiting the <CODE>awk</CODE> function immediately.
-</P><H3 CLASS="subsection"><A NAME="htoc286">10.11.6</A>&#XA0;&#XA0;fsubst</H3><P><A NAME="fun:fsubst"></A><A NAME="function:fsubst"></A><A NAME="@default308"></A><A NAME="@fun214"></A></P><PRE CLASS="verbatim">   fsubst(files)
+</P><H3 CLASS="subsection"><A NAME="htoc288">10.11.6</A>&#XA0;&#XA0;fsubst</H3><P><A NAME="fun:fsubst"></A><A NAME="function:fsubst"></A><A NAME="@default314"></A><A NAME="@fun220"></A></P><PRE CLASS="verbatim">   fsubst(files)
    case pattern1 [options]
       body1
    case pattern2 [options]
@@ -1202,7 +1205,7 @@ an expression <CODE>word.</CODE> with its capitalized form.</P><PRE CLASS="verba
        case $"\&lt;\([[:alnum:]]+\)\." g
           value $(capitalize $1).
        close($(stdout))
-</PRE><H3 CLASS="subsection"><A NAME="htoc287">10.11.7</A>&#XA0;&#XA0;lex</H3><P><A NAME="fun:lex"></A><A NAME="function:lex"></A><A NAME="@default309"></A><A NAME="@fun215"></A></P><PRE CLASS="verbatim">   lex(files)
+</PRE><H3 CLASS="subsection"><A NAME="htoc289">10.11.7</A>&#XA0;&#XA0;lex</H3><P><A NAME="fun:lex"></A><A NAME="function:lex"></A><A NAME="@default315"></A><A NAME="@fun221"></A></P><PRE CLASS="verbatim">   lex(files)
    case pattern1
       body1
    case pattern2
@@ -1227,7 +1230,7 @@ words in an input file.</P><PRE CLASS="verbatim">    collect-words($(files)) =
           words[] += $0
           export
 </PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
-</P><H3 CLASS="subsection"><A NAME="htoc288">10.11.8</A>&#XA0;&#XA0;lex-search</H3><P><A NAME="fun:lex-search"></A><A NAME="function:lex-search"></A><A NAME="@default310"></A><A NAME="@fun216"></A></P><PRE CLASS="verbatim">   lex-search(files)
+</P><H3 CLASS="subsection"><A NAME="htoc290">10.11.8</A>&#XA0;&#XA0;lex-search</H3><P><A NAME="fun:lex-search"></A><A NAME="function:lex-search"></A><A NAME="@default316"></A><A NAME="@fun222"></A></P><PRE CLASS="verbatim">   lex-search(files)
    case pattern1
       body1
    case pattern2
@@ -1247,7 +1250,7 @@ words in an input file, skipping any other text.</P><PRE CLASS="verbatim">    co
           words[] += $0
           export
 </PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
-</P><H3 CLASS="subsection"><A NAME="htoc289">10.11.9</A>&#XA0;&#XA0;Lexer</H3><P><A NAME="obj:Lexer"></A><A NAME="object:Lexer"></A><A NAME="@default311"></A><A NAME="@obj5"></A></P><P>The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
+</P><H3 CLASS="subsection"><A NAME="htoc291">10.11.9</A>&#XA0;&#XA0;Lexer</H3><P><A NAME="obj:Lexer"></A><A NAME="object:Lexer"></A><A NAME="@default317"></A><A NAME="@obj5"></A></P><P>The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
 <TT>lex</TT>(1) and <TT>flex</TT>(1) programs.</P><P>In <TT>omake</TT>, lexical analyzers can be constructed dynamically by extending
 the <CODE>Lexer</CODE> class. A lexer definition consists of a set of directives specified
 with method calls, and set of clauses specified as rules.</P><P>For example, consider the following lexer definition, which is intended
@@ -1306,12 +1309,12 @@ and a default value.</P><P>The <CODE>number</CODE> clause matches nonnegative in
 The <CODE>Token.pair($(loc), name, value)</CODE> constructs a token with the
 given name and value.</P><P>Lexer object operate on <CODE>InChannel</CODE> objects.
 The method <CODE>lexer1.lex-channel(channel)</CODE> reads the next
-token from the channel argument.</P><H3 CLASS="subsection"><A NAME="htoc290">10.11.10</A>&#XA0;&#XA0;Lexer matching</H3><P>During lexical analysis, clauses are selected by longest match.
+token from the channel argument.</P><H3 CLASS="subsection"><A NAME="htoc292">10.11.10</A>&#XA0;&#XA0;Lexer matching</H3><P>During lexical analysis, clauses are selected by longest match.
 That is, the clause that matches the longest sequence of input
 characters is chosen for evaluation. If no clause matches, the
 lexer raises a <CODE>RuntimeException</CODE>. If more than one clause
 matches the same amount of input, the first one is chosen
-for evaluation.</P><H3 CLASS="subsection"><A NAME="htoc291">10.11.11</A>&#XA0;&#XA0;Extending lexer definitions</H3><P>Suppose we wish to augment the lexer example so that it ignores
+for evaluation.</P><H3 CLASS="subsection"><A NAME="htoc293">10.11.11</A>&#XA0;&#XA0;Extending lexer definitions</H3><P>Suppose we wish to augment the lexer example so that it ignores
 comments. We will define comments as any text that begins with
 the string <CODE>(*</CODE>, ends with <CODE>*)</CODE>, and comments may
 be nested.</P><P>One convenient way to do this is to define a separate lexer
@@ -1343,13 +1346,13 @@ that we just created.</P><PRE CLASS="verbatim">   lexer1. +=
          lex-comment.lex-channel($(channel))
          lex()
 </PRE><P>The body for the comment clause calls the <CODE>lex-comment</CODE> lexer when
-a comment is encountered, and continues lexing when that lexer returns.</P><H3 CLASS="subsection"><A NAME="htoc292">10.11.12</A>&#XA0;&#XA0;Threading the lexer object</H3><P>Clause bodies may also end with an <CODE>export</CODE> directive. In this case
+a comment is encountered, and continues lexing when that lexer returns.</P><H3 CLASS="subsection"><A NAME="htoc294">10.11.12</A>&#XA0;&#XA0;Threading the lexer object</H3><P>Clause bodies may also end with an <CODE>export</CODE> directive. In this case
 the lexer object itself is used as the returned token. If used with
 the <CODE>Parser</CODE> object below, the lexer should define the <CODE>loc</CODE>, <CODE>name</CODE>
 and <CODE>value</CODE> fields in each <CODE>export</CODE> clause. Each time
 the <CODE>Parser</CODE> calls the lexer, it calls it with the lexer returned
 from the previous lex invocation.
-</P><H3 CLASS="subsection"><A NAME="htoc293">10.11.13</A>&#XA0;&#XA0;Parser</H3><P><A NAME="obj:Parser"></A><A NAME="object:Parser"></A><A NAME="@default312"></A><A NAME="@obj6"></A></P><P>The <CODE>Parser</CODE> object provides a facility for syntactic analysis based
+</P><H3 CLASS="subsection"><A NAME="htoc295">10.11.13</A>&#XA0;&#XA0;Parser</H3><P><A NAME="obj:Parser"></A><A NAME="object:Parser"></A><A NAME="@default318"></A><A NAME="@obj6"></A></P><P>The <CODE>Parser</CODE> object provides a facility for syntactic analysis based
 on context-free grammars.</P><P><CODE>Parser</CODE> objects are specified as a sequence of directives,
 specified with method calls; and productions, specified as rules.</P><P>For example, let&#X2019;s finish building the desktop calculator started
 in the <CODE>Lexer</CODE> example.</P><PRE CLASS="verbatim">   parser1. =
@@ -1411,10 +1414,10 @@ is recognized as part of the input.</P><P>In this example, these are the product
 expressions recognized by the desktop calculator. The semantic
 action performs the calculation. The variables <CODE>$1, $2, ...</CODE>
 correspond to the values associated with each of the variables
-on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc294">10.11.14</A>&#XA0;&#XA0;Calling the parser</H3><P>The parser is called with the <CODE>$(parser1.parse-channel start, channel)</CODE>
+on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc296">10.11.14</A>&#XA0;&#XA0;Calling the parser</H3><P>The parser is called with the <CODE>$(parser1.parse-channel start, channel)</CODE>
 or <CODE>$(parser1.parse-file start, file)</CODE> functions. The <CODE>start</CODE>
 argument is the start symbol, and the <CODE>channel</CODE> or <CODE>file</CODE>
-is the input to the parser.</P><H3 CLASS="subsection"><A NAME="htoc295">10.11.15</A>&#XA0;&#XA0;Parsing control</H3><P>The parser generator generates a pushdown automation based on LALR(1)
+is the input to the parser.</P><H3 CLASS="subsection"><A NAME="htoc297">10.11.15</A>&#XA0;&#XA0;Parsing control</H3><P>The parser generator generates a pushdown automation based on LALR(1)
 tables. As usual, if the grammar is ambiguous, this may generate shift/reduce
 or reduce/reduce conflicts. These conflicts are printed to standard
 output when the automaton is generated.</P><P>By default, the automaton is not constructed until the parser is
@@ -1422,7 +1425,7 @@ first used.</P><P>The <CODE>build(debug)</CODE> method forces the construction o
 While not required, it is wise to finish each complete parser with
 a call to the <CODE>build(debug)</CODE> method. If the <CODE>debug</CODE> variable
 is set, this also prints with parser table together with any conflicts.</P><P>The <CODE>loc</CODE> variable is defined within action bodies, and represents
-the input range for all tokens on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc296">10.11.16</A>&#XA0;&#XA0;Extending parsers</H3><P>Parsers may also be extended by inheritance.
+the input range for all tokens on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc298">10.11.16</A>&#XA0;&#XA0;Extending parsers</H3><P>Parsers may also be extended by inheritance.
 For example, let&#X2019;s extend the grammar so that it also recognizes
 the <CODE>&lt;&lt;</CODE> and <CODE>&gt;&gt;</CODE> shift operations.</P><P>First, we extend the lexer so that it recognizes these tokens.
 This time, we choose to leave <CODE>lexer1</CODE> intact, instead of
@@ -1451,86 +1454,86 @@ of the <CODE>left</CODE> method accomplishes this.</P><PRE CLASS="verbatim">   p
          asr($1, $3)
 </PRE><P>In this case, we use the new lexer <CODE>lexer2</CODE>, and we add productions
 for the new shift operations.
-</P><H3 CLASS="subsection"><A NAME="htoc297">10.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="object:Passwd"></A><A NAME="@default313"></A><A NAME="@obj7"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system&#X2019;s user database.
+</P><H3 CLASS="subsection"><A NAME="htoc299">10.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="object:Passwd"></A><A NAME="@default319"></A><A NAME="@obj7"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system&#X2019;s user database.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
-</DT><DD CLASS="dd-description"><CODE>pw_name</CODE><A NAME="@default314"></A>: the login name.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_passwd</CODE><A NAME="@default315"></A>: the encrypted password.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_uid</CODE><A NAME="@default316"></A>: user id of the user.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gid</CODE><A NAME="@default317"></A>: group id of the user.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gecos</CODE><A NAME="@default318"></A>: the user name or comment field.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default319"></A>: the user&#X2019;s home directory.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default320"></A>: the user&#X2019;s default shell.
-</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc298">10.11.18</A>&#XA0;&#XA0;getpwnam, getpwuid</H3><P><A NAME="fun:getpwnam"></A><A NAME="function:getpwnam"></A><A NAME="@default321"></A><A NAME="@fun217"></A><A NAME="fun:getpwuid"></A><A NAME="function:getpwuid"></A><A NAME="@default322"></A><A NAME="@fun218"></A></P><PRE CLASS="verbatim">    $(getpwnam name...) : Passwd
+</DT><DD CLASS="dd-description"><CODE>pw_name</CODE><A NAME="@default320"></A>: the login name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_passwd</CODE><A NAME="@default321"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_uid</CODE><A NAME="@default322"></A>: user id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gid</CODE><A NAME="@default323"></A>: group id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gecos</CODE><A NAME="@default324"></A>: the user name or comment field.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default325"></A>: the user&#X2019;s home directory.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default326"></A>: the user&#X2019;s default shell.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc300">10.11.18</A>&#XA0;&#XA0;getpwnam, getpwuid</H3><P><A NAME="fun:getpwnam"></A><A NAME="function:getpwnam"></A><A NAME="@default327"></A><A NAME="@fun223"></A><A NAME="fun:getpwuid"></A><A NAME="function:getpwuid"></A><A NAME="@default328"></A><A NAME="@fun224"></A></P><PRE CLASS="verbatim">    $(getpwnam name...) : Passwd
        name : String
     $(getpwuid uid...) : Passwd
        uid : Int
     raises RuntimeException
 </PRE><P>The <CODE>getpwnam</CODE> function looks up an entry by the user&#X2019;s login and the <CODE>getpwuid</CODE>
 function looks up an entry by user&#X2019;s numerical id (uid). If no entry is found, an exception
-will be raised.</P><H3 CLASS="subsection"><A NAME="htoc299">10.11.19</A>&#XA0;&#XA0;getpwents</H3><P><A NAME="fun:getpwents"></A><A NAME="function:getpwents"></A><A NAME="@default323"></A><A NAME="@fun219"></A></P><PRE CLASS="verbatim">    $(getpwents) : Array
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc301">10.11.19</A>&#XA0;&#XA0;getpwents</H3><P><A NAME="fun:getpwents"></A><A NAME="function:getpwents"></A><A NAME="@default329"></A><A NAME="@fun225"></A></P><PRE CLASS="verbatim">    $(getpwents) : Array
 </PRE><P>The <CODE>getpwents</CODE> function returns an array of <CODE>Passwd</CODE> objects, one for every user
 fund in the system user database. Note that depending on the operating system and on the setup
 of the user database, the returned array may be incomplete or even empty.
-</P><H3 CLASS="subsection"><A NAME="htoc300">10.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="object:Group"></A><A NAME="@default324"></A><A NAME="@obj8"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system&#X2019;s user group database.
+</P><H3 CLASS="subsection"><A NAME="htoc302">10.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="object:Group"></A><A NAME="@default330"></A><A NAME="@obj8"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system&#X2019;s user group database.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
-</DT><DD CLASS="dd-description"><CODE>gr_name</CODE><A NAME="@default325"></A>: the group name.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_group</CODE><A NAME="@default326"></A>: the encrypted password.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_gid</CODE><A NAME="@default327"></A>: group id of the group.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default328"></A>: the group member&#X2019;s user names.
-</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc301">10.11.21</A>&#XA0;&#XA0;getgrnam, getgrgid</H3><P><A NAME="fun:getgrnam"></A><A NAME="function:getgrnam"></A><A NAME="@default329"></A><A NAME="@fun220"></A><A NAME="fun:getgrgid"></A><A NAME="function:getgrgid"></A><A NAME="@default330"></A><A NAME="@fun221"></A></P><PRE CLASS="verbatim">    $(getgrnam name...) : Group
+</DT><DD CLASS="dd-description"><CODE>gr_name</CODE><A NAME="@default331"></A>: the group name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_group</CODE><A NAME="@default332"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_gid</CODE><A NAME="@default333"></A>: group id of the group.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default334"></A>: the group member&#X2019;s user names.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc303">10.11.21</A>&#XA0;&#XA0;getgrnam, getgrgid</H3><P><A NAME="fun:getgrnam"></A><A NAME="function:getgrnam"></A><A NAME="@default335"></A><A NAME="@fun226"></A><A NAME="fun:getgrgid"></A><A NAME="function:getgrgid"></A><A NAME="@default336"></A><A NAME="@fun227"></A></P><PRE CLASS="verbatim">    $(getgrnam name...) : Group
        name : String
     $(getgrgid gid...) : Group
        gid : Int
     raises RuntimeException
 </PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group&#X2019;s name and the <CODE>getgrgid</CODE>
 function looks up an entry by groups&#X2019;s numerical id (gid). If no entry is found, an exception
-will be raised.</P><H3 CLASS="subsection"><A NAME="htoc302">10.11.22</A>&#XA0;&#XA0;tgetstr</H3><P><A NAME="fun:tgetstr"></A><A NAME="function:tgetstr"></A><A NAME="@default331"></A><A NAME="@fun222"></A></P><PRE CLASS="verbatim">   $(tgetstr id) : String
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc304">10.11.22</A>&#XA0;&#XA0;tgetstr</H3><P><A NAME="fun:tgetstr"></A><A NAME="function:tgetstr"></A><A NAME="@default337"></A><A NAME="@fun228"></A></P><PRE CLASS="verbatim">   $(tgetstr id) : String
       id : String
 </PRE><P>The <CODE>tgetstr</CODE> function looks up the terminal capability with the indicated <CODE>id</CODE>.
 This assumes the terminfo to lookup is given in the <CODE>TERM</CODE> environment variable. This
 function returns an empty value if the given terminal capability is not defined.</P><P>Note: if you intend to use the value returned by <CODE>tgetstr</CODE> inside the shell
 <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
-</P><H3 CLASS="subsection"><A NAME="htoc303">10.11.23</A>&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</H3><P><A NAME="fun:xterm-escape-begin"></A><A NAME="function:xterm-escape-begin"></A><A NAME="@default332"></A><A NAME="@fun223"></A><A NAME="fun:xterm-escape-end"></A><A NAME="function:xterm-escape-end"></A><A NAME="@default333"></A><A NAME="@fun224"></A></P><PRE CLASS="verbatim">   $(xterm-escape-begin) : String
+</P><H3 CLASS="subsection"><A NAME="htoc305">10.11.23</A>&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</H3><P><A NAME="fun:xterm-escape-begin"></A><A NAME="function:xterm-escape-begin"></A><A NAME="@default338"></A><A NAME="@fun229"></A><A NAME="fun:xterm-escape-end"></A><A NAME="function:xterm-escape-end"></A><A NAME="@default339"></A><A NAME="@fun230"></A></P><PRE CLASS="verbatim">   $(xterm-escape-begin) : String
    $(xterm-escape-end) : String
 </PRE><P>The <CODE>xterm-escape-begin</CODE> and <CODE>xterm-escape-end</CODE> functions return the escape sequences
 that can be used to set the XTerm window title. Will return empty values if this capability is
 not available.</P><P>Note: if you intend to use these strings inside the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to use
 <CODE>$(prompt_invisible_begin)$(xterm-escape-begin)</CODE> and
 <CODE>$(xterm-escape-end)$(prompt_invisible_end)</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc304">10.11.24</A>&#XA0;&#XA0;xterm-escape</H3><P><A NAME="fun:xterm-escape"></A><A NAME="function:xterm-escape"></A><A NAME="@default334"></A><A NAME="@fun225"></A></P><PRE CLASS="verbatim">   $(xterm-escape s) : Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc306">10.11.24</A>&#XA0;&#XA0;xterm-escape</H3><P><A NAME="fun:xterm-escape"></A><A NAME="function:xterm-escape"></A><A NAME="@default340"></A><A NAME="@fun231"></A></P><PRE CLASS="verbatim">   $(xterm-escape s) : Sequence
 </PRE><P>When the <CODE>TERM</CODE> environment variable indicates that the XTerm title setting capability is available,
 <CODE>$(xterm-escape s)</CODE> is equivalent to <CODE>$(xterm-escape-begin)s$(xterm-escape-end)</CODE>. Otherwise, it
 returns an empty value.</P><P>Note: if you intend to use the value returned by <CODE>xterm-escape</CODE> inside the shell
 <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
-</P><H3 CLASS="subsection"><A NAME="htoc305">10.11.25</A>&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</H3><P><A NAME="fun:prompt-invisible-begin"></A><A NAME="function:prompt-invisible-begin"></A><A NAME="@default335"></A><A NAME="@fun226"></A><A NAME="fun:prompt-invisible-end"></A><A NAME="function:prompt-invisible-end"></A><A NAME="@default336"></A><A NAME="@fun227"></A></P><PRE CLASS="verbatim">   $(prompt-invisible-begin) : String
+</P><H3 CLASS="subsection"><A NAME="htoc307">10.11.25</A>&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</H3><P><A NAME="fun:prompt-invisible-begin"></A><A NAME="function:prompt-invisible-begin"></A><A NAME="@default341"></A><A NAME="@fun232"></A><A NAME="fun:prompt-invisible-end"></A><A NAME="function:prompt-invisible-end"></A><A NAME="@default342"></A><A NAME="@fun233"></A></P><PRE CLASS="verbatim">   $(prompt-invisible-begin) : String
    $(prompt-invisible-end) : String
 </PRE><P>The <CODE>prompt-invisible-begin</CODE> and <CODE>prompt-invisible-end</CODE> functions return the escape sequences
 that must used to mark the &#X201C;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various escape sequences).
-</P><H3 CLASS="subsection"><A NAME="htoc306">10.11.26</A>&#XA0;&#XA0;prompt-invisible</H3><P><A NAME="fun:prompt-invisible"></A><A NAME="function:prompt-invisible"></A><A NAME="@default337"></A><A NAME="@fun228"></A></P><PRE CLASS="verbatim">   $(prompt-invisible s) : Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc308">10.11.26</A>&#XA0;&#XA0;prompt-invisible</H3><P><A NAME="fun:prompt-invisible"></A><A NAME="function:prompt-invisible"></A><A NAME="@default343"></A><A NAME="@fun234"></A></P><PRE CLASS="verbatim">   $(prompt-invisible s) : Sequence
 </PRE><P>The <CODE>prompt-invisible</CODE> will wrap its argument with <CODE>$(prompt-invisible-begin)</CODE> and
 <CODE>$(prompt-invisible-end)</CODE>. All the &#X2018;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various
 escape sequences) must be wrapped this way.
-</P><H3 CLASS="subsection"><A NAME="htoc307">10.11.27</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="function:gettimeofday"></A><A NAME="@default338"></A><A NAME="@fun229"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
+</P><H3 CLASS="subsection"><A NAME="htoc309">10.11.27</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="function:gettimeofday"></A><A NAME="@default344"></A><A NAME="@fun235"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
 </PRE><P>The <CODE>gettimeofday</CODE> function returns the time of day in seconds
-since January 1, 1970.</P><H3 CLASS="subsection"><A NAME="htoc308">10.11.28</A>&#XA0;&#XA0;Tm</H3><P><A NAME="obj:Tm"></A><A NAME="object:Tm"></A><A NAME="@default339"></A><A NAME="@obj9"></A>
+since January 1, 1970.</P><H3 CLASS="subsection"><A NAME="htoc310">10.11.28</A>&#XA0;&#XA0;Tm</H3><P><A NAME="obj:Tm"></A><A NAME="object:Tm"></A><A NAME="@default345"></A><A NAME="@obj9"></A>
 The <CODE>Tm</CODE> object is a structure that represents the time and date.</P><DL CLASS="description"><DT CLASS="dt-description">
-</DT><DD CLASS="dd-description"><CODE>tm_sec</CODE><A NAME="@default340"></A> <CODE>: Int</CODE> Seconds (0&#X2013;59).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_min</CODE><A NAME="@default341"></A> <CODE>: Int</CODE> Minutes (0&#X2013;59).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_hour</CODE><A NAME="@default342"></A> <CODE>: Int</CODE> Hours (0&#X2013;23).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_mday</CODE><A NAME="@default343"></A> <CODE>: Int</CODE> Day of the month (0&#X2013;31).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_mon</CODE><A NAME="@default344"></A> <CODE>: Int</CODE> Month (0&#X2013;11).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_year</CODE><A NAME="@default345"></A> <CODE>: Int</CODE> Year (minus 1900).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_wday</CODE><A NAME="@default346"></A> <CODE>: Int</CODE> Day of the week (0&#X2013;6, Sunday is 0).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_yday</CODE><A NAME="@default347"></A> <CODE>: Int</CODE> Day of the year (0&#X2013;365).
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_isdst</CODE><A NAME="@default348"></A> <CODE>: Bool</CODE> True iff daylight savings time is in effect.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc309">10.11.29</A>&#XA0;&#XA0;gmtime, localtime</H3><P><A NAME="fun:gmtime"></A><A NAME="function:gmtime"></A><A NAME="@default349"></A><A NAME="@fun230"></A><A NAME="fun:localtime"></A><A NAME="function:localtime"></A><A NAME="@default350"></A><A NAME="@fun231"></A>
+</DT><DD CLASS="dd-description"><CODE>tm_sec</CODE><A NAME="@default346"></A> <CODE>: Int</CODE> Seconds (0&#X2013;59).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_min</CODE><A NAME="@default347"></A> <CODE>: Int</CODE> Minutes (0&#X2013;59).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_hour</CODE><A NAME="@default348"></A> <CODE>: Int</CODE> Hours (0&#X2013;23).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_mday</CODE><A NAME="@default349"></A> <CODE>: Int</CODE> Day of the month (0&#X2013;31).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_mon</CODE><A NAME="@default350"></A> <CODE>: Int</CODE> Month (0&#X2013;11).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_year</CODE><A NAME="@default351"></A> <CODE>: Int</CODE> Year (minus 1900).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_wday</CODE><A NAME="@default352"></A> <CODE>: Int</CODE> Day of the week (0&#X2013;6, Sunday is 0).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_yday</CODE><A NAME="@default353"></A> <CODE>: Int</CODE> Day of the year (0&#X2013;365).
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>tm_isdst</CODE><A NAME="@default354"></A> <CODE>: Bool</CODE> True iff daylight savings time is in effect.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc311">10.11.29</A>&#XA0;&#XA0;gmtime, localtime</H3><P><A NAME="fun:gmtime"></A><A NAME="function:gmtime"></A><A NAME="@default355"></A><A NAME="@fun236"></A><A NAME="fun:localtime"></A><A NAME="function:localtime"></A><A NAME="@default356"></A><A NAME="@fun237"></A>
 </P><PRE CLASS="verbatim">   $(gmtime time) : tm
    $(localtime time) : tm
        time : Float
 </PRE><P>Convert the time in seconds since the Unix epoch to calendar format.
 The function <CODE>gmtime</CODE> assumes UTC (Coordinated Universal Time);
 the function <CODE>localtime</CODE> uses the local time zone.
-</P><H3 CLASS="subsection"><A NAME="htoc310">10.11.30</A>&#XA0;&#XA0;mktime, normalize-time</H3><P><A NAME="fun:mktime"></A><A NAME="function:mktime"></A><A NAME="@default351"></A><A NAME="@fun232"></A><A NAME="fun:normalize-time"></A><A NAME="function:normalize-time"></A><A NAME="@default352"></A><A NAME="@fun233"></A>
+</P><H3 CLASS="subsection"><A NAME="htoc312">10.11.30</A>&#XA0;&#XA0;mktime, normalize-time</H3><P><A NAME="fun:mktime"></A><A NAME="function:mktime"></A><A NAME="@default357"></A><A NAME="@fun238"></A><A NAME="fun:normalize-time"></A><A NAME="function:normalize-time"></A><A NAME="@default358"></A><A NAME="@fun239"></A>
 </P><PRE CLASS="verbatim">   $(mktime tm) : Float
    $(normalize-time tm) : Tm
        tm : Tm

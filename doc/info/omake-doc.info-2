@@ -420,7 +420,7 @@ Node: Subsection 4-5-1,	Next: Section 4-6,	Prev: Section 4-5,	Up: Section 4-5
 4.5.1   Keyword arguments
 =========================
     
-  This feature will be introduced in version 0.9.8.6.
+  This feature was introduced in version 0.9.8.6.
   Functions can also have keyword parameters and arguments. The syntax
 of a keyword parameter/argument is '[~|?]<id> [= <expression>]', where
 the keyword name '<id>' is preceeded by the character '~' (for required
@@ -478,7 +478,7 @@ Node: Section 4-6,	Next: Section 4-7,	Prev: Section 4-5,	Up: Chapter 4
 *=*=*=*=*=*=*=*=*=*=*=*
 
   
-  This feature will be introduced in version 0.9.8.6.
+  This feature was introduced in version 0.9.8.6.
   Functions that are marked with the classifier 'curry' can be called
 with "too many" arguments. It is expected that a curried function
 returns a function that consumes the remaining arguments. All arguments
@@ -1177,7 +1177,7 @@ here.
                    add($i, $j)
          >>
        
-         - (This feature will be introduced in version 0.9.8.6.) As an
+         - (This feature was introduced in version 0.9.8.6.) As an
          anonymous function argument. 
          <<    osh>foreach(i => $(add $i, 1), 1 2 3)
                - : <array 2 3 4> : Array
