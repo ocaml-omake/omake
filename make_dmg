@@ -65,7 +65,7 @@ clean () {
 
 upload () {
     set -x
-    scp $OMAKE_BASE.dmg mojave.caltech.edu:~mojave/public_html/download/omake/
+    scp $OMAKE_BASE.dmg n0bu.com:/home/mojave/public_html/download/omake/
 }
 
 if [ "$#" -lt "1" ]; then

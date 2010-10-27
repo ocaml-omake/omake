@@ -174,7 +174,7 @@ osxclean: version.txt
     ./make_dmg clean
 
 publish: download/$(BASENAME).src.zip download/$(BASENAME).tar.gz
-   rsync --progress --stats -lrt $^ mojave.caltech.edu\:/home/mojave/public_html/download/omake
+   rsync --progress --stats -lrt $^ n0bu.com\:/home/mojave/public_html/download/omake
 
 omake.spec: omake.spec.in
     echo $"%define index $(RELEASE)" > $@
