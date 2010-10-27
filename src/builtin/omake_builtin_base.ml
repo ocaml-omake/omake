@@ -1869,7 +1869,7 @@ let mapsuffix venv pos loc args =
  * Add all suffixes.
  *
  * \begin{doc}
- * \twofuns{addsuffixes, addprefixes}
+ * \twofuns{addsuffixes}{addprefixes}
  *
  * \begin{verbatim}
  *    $(addsuffixes suffixes, sequence) : Array
