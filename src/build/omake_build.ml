@@ -2455,11 +2455,6 @@ let create_env exec options cache targets =
       if opt_print_dir options then
          printf "make[0]: Entering directory `%s'@." (Dir.absname cwd);
       if opt_print_status options then begin
-         printf "*** omake: THIS VERSION OF OMAKE IS UNDERGOING CHANGES!
-*** omake: It may act differently from what you expect.
-*** omake: If you encounter problems,
-*** omake: consider using a released version,
-*** omake: ---@.";
          printf "*** omake: reading %ss@." makefile_name
       end
    in

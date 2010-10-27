@@ -108,7 +108,11 @@ let read_version () =
       else if (String.contains version '-') then
          let dash = String.index version '-' in
          let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
-            sprintf "%s (release %s)" (String.sub version 0 dash) release
+            if String.length release > 4 && String.sub release 0 4 = "0.rc" then
+               let release = String.sub release 4 ((String.length release) - 4) in
+                  sprintf "%s (release candidate %s)" (String.sub version 0 dash) release
+            else
+               sprintf "%s (release %s)" (String.sub version 0 dash) release
       else
          version ^ " (development snapshot)"
 
