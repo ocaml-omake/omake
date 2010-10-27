@@ -1,0 +1,283 @@
+########################################################################
+# Utilities
+#
+private.Items. =
+    items[] =
+
+    new(contents) =
+        this.items = $(contents)
+	value $(this)
+
+########################################################################
+# Elements
+#
+public.Text. =
+    class Text
+
+    declare text
+
+    new(text) =
+        this.text = $(text)
+	value $(this)
+
+    to-string() =
+        value $(text)
+
+    is-tagged(tag) =
+        equal($(tag), text)
+
+public.Element. =
+    class Element
+
+    declare name
+    args = $(Map)
+    contents[] =
+
+    new(name, args) =
+        this.name = $(name)
+	this.args = $(args)
+	this.contents[] =
+	value $(this)
+
+    new-doc(contents) =
+        this.name = doc
+        this.contents = $(contents)
+	value $(this)
+
+    add-contents(contents) =
+        this.contents = $(contents)
+	value $(this)
+
+    ################################################
+    # Predicates
+    #
+    is-tagged(tag) =
+        equal($(name), $(tag))
+
+    ################################################
+    # Printable output
+    #
+    body-string() =
+        text[] =
+        foreach(elem => ..., $(contents))
+	    text[] += $(elem.to-string)
+	    export
+        concat($(nl), $(text))
+
+    to-string() =
+        text[] = $"<$(name)"
+	args.foreach(key, val) =>
+	    text[] += $"""$(key)="$(c-escaped $(val))"$(EMPTY)"""
+	    export
+        if $(contents)
+            text[] = $"$(text)>"
+	    foreach(elem => ..., $(contents))
+	        text[] += $(elem.to-string)
+	        export
+	    text[] += $"</$(name)>"
+	    concat($(EMPTY), $(text))
+	else
+	    value $"$(text)/>"
+
+    ########################################################################
+    # Searching for an element
+    #
+    find-param(tag) =
+        args.find($(tag))
+
+    find-next(tag) =
+        foreach(elem => ..., $(contents))
+	    if $(elem.is-tagged $(tag))
+	        return $(elem)
+        value
+
+    find-all(tag) =
+        elems[] =
+        foreach(elem => ..., $(contents))
+	    if $(elem.is-tagged $(tag))
+	        elems[] += $(elem)
+		export
+            export
+        value $(elems)
+
+    find(path) =
+        path = $(split ., $(path))
+	elem = $(this)
+	prefix[] =
+	while $(path)
+	    next = $(nth 0, $(path))
+	    path = $(nth-tl 1, $(path))
+	    elem = $(elem.find-next $(next))
+	    prefix[] += $(next)
+	    if $(not $(elem))
+	        raise $"bogus path: $(concat ., $(prefix))"
+        value $(elem)
+
+    find-string(path) =
+        elem = $(find $(path))
+	elem.to-string()
+
+    find-body-string(path) =
+        elem = $(find $(path))
+	elem.body-string()
+
+########################################################################
+# XML lexers
+#
+private.name-regex = $'[-?:_[:alnum:]]+'
+
+#
+# This is for lexing -within- a tag.
+# <photoset id="72157605472829391" primary="2548671231" secret="26bc2f69f5" server="3140" farm="4" photos="9">
+#
+private.xml-tag-lexer. =
+    extends $(Lexer)
+
+    #
+    # Need the entity name and its arguments.
+    #
+    declare name
+    declare args
+
+    new(channel, name) =
+        this.channel = $(channel)
+        this.name = $(name)
+	this.args = $(Map)
+	value $(this)
+
+    #
+    # If all else fails, its a syntax error
+    #
+    other: .
+        eprintln(Illegal character: $0)
+        this.lex()
+
+    #
+    # Whitespace
+    #
+    white: $'[[:space:]]+'
+        this.lex()
+
+    #
+    # Parameters
+    #
+    param: $"""\($(name-regex)\)="\([^"]*\)"$(EMPTY)"""
+        args = $(args.add $1, $2)
+        this.lex()
+
+    #
+    # Closing
+    #
+    close1: $'>'
+        Token.pair(element-start, $(Element.new $(name), $(args)))
+    close2: $'[/?]>'
+        Token.pair(element, $(Element.new $(name), $(args)))
+
+    #
+    # Be sloppy on EOF
+    #
+    eof: $"\'"
+        Token.pair(element, $(Element.new $(name), $(args)))
+
+#
+# XML lexing.
+#
+public.xml-lexer. =
+    extends $(Lexer)
+
+    #
+    # If all else fails, it is a syntax error
+    #
+    other: .
+        eprintln(Illegal character: $0)
+        this.lex()
+
+    #
+    # Ignore comments, but whitespace is significant
+    #
+    normal-comment: $'<!--([^-]|-[^-]|--[^>])*-->'
+        this.lex()
+
+    #
+    # Character entity.
+    #
+    entity: $'&#?[[:alnum:]]+;'
+        Token.pair(entity, $1)
+
+    #
+    # Element
+    #
+    element: $"<[[:space:]]*$(name-regex)+"
+        match $0
+        case $"<[[:space:]]*\($(name-regex)+\)"
+            element = $(xml-tag-lexer.new $(this.channel), $1)
+	    element.lex()
+
+    element-close: $"</[[:space:]]*\($(name-regex)+\)[[:space:]]*>"
+        Token.pair(element-close, $1)
+
+    #
+    # Other stuff
+    #
+    other: $'[^<]+'
+        Token.pair(text, $0)
+
+    #
+    # End of file
+    #
+    eof: $"\'"
+        Token.unit(eof)
+
+#
+# Parser is very simple, no need for a CFG.
+#
+xml-parse(filename) =
+    inx = $(fopen $(filename), r)
+    lex = $(xml-lexer.from-channel $(inx))
+    stack[] =
+    current[] =
+    while true
+        token = $(lex.lex)
+        switch $(token.name)
+        case text
+	    current[] += $(Text.new $(token.val))
+	    export
+	case element
+	    current[] += $(token.val)
+	    export
+	case element-start
+	    stack[] =
+	        $(Items.new $(current))
+		$(stack)
+	    current[] = $(token.val)
+	    export
+	case element-close
+	    name = $(token.val)
+            element = $(nth 0, $(current))
+	    contents = $(nth-tl 1, $(current))
+	    if $(not $(equal $(element.name), $(name)))
+	        eprintln($"mismatched element: <$(element.name)>...</$(name)>")
+            element = $(element.add-contents $(contents))
+	    current = $(nth 0, $(stack))
+	    current[] =
+	        $(current.items)
+		$(element)
+	    stack = $(nth-tl 1, $(stack))
+	    export
+	case eof
+	    break()
+	default
+            eprintln($"Unknown token: $(token.name)")
+            break()
+    close($(inx))
+
+    #
+    # Stack should now be empty
+    #
+    if $(stack)
+        eprintln($"unbalanced XML: $(length $(stack))")
+
+    Element.new-doc($(current))
+
+########################################################################
+#

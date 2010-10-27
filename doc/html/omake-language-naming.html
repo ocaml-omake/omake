@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>Variables and Naming</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc51">Chapter&#XA0;5</A>&#XA0;&#XA0;Variables and Naming</H1><UL>
+<LI><A HREF="omake-language-naming.html#toc32">private.</A>
+</LI><LI><A HREF="omake-language-naming.html#toc33">this.</A>
+</LI><LI><A HREF="omake-language-naming.html#toc34">global.</A>
+</LI><LI><A HREF="omake-language-naming.html#toc35">protected.</A>
+</LI><LI><A HREF="omake-language-naming.html#toc36">public.</A>
+</LI><LI><A HREF="omake-language-naming.html#toc37">Qualified blocks</A>
+</LI><LI><A HREF="omake-language-naming.html#toc38">declare</A>
+</LI></UL>
+<P>
+<A NAME="chapter:naming"></A>
+</P><P>During evaluation, there are three different kinds of namespaces. Variables can be <EM>private</EM>,
+or they may refer to fields in the current <EM>this</EM> object, or they can be part of the
+<EM>global</EM> namespace. The namespace can be specified directly by including an explicit qualifier
+before the variable name. The three namespaces are separate; a variable can be bound in one or more
+simultaneously.</P><PRE CLASS="verbatim">    # private namespace
+    private.X = 1
+    # current object
+    this.X = 2
+    # public, globally defined
+    global.X = 3
+</PRE><H2 CLASS="section"><A NAME="toc32"></A><A NAME="htoc52">5.1</A>&#XA0;&#XA0;private.</H2><P>
+<A NAME="section:private"></A><A NAME="@default32"></A></P><P>The <CODE>private.</CODE> qualifier is used to define variables that are private to the current file/scope.
+The values are not accessible outside the scope. Private variables are statically (lexically) scoped.</P><PRE CLASS="verbatim">    Obj. =
+       private.X = 1
+
+       print() =
+          println(The value of X is: $X)
+
+    # Prints:
+    #    The private value of X is: 1
+    Obj.print()
+
+    # This is an error--X is private in Obj
+    y = $(Obj.X)
+</PRE><P>In addition, private definitions do not affect the global value of a variable.</P><PRE CLASS="verbatim">   # The public value of x is 1
+   x = 1
+
+   # This object uses a private value of x
+   Obj. =
+       private.x = 2
+
+       print() =
+          x = 3
+          println(The private value of x is: $x)
+          println(The public value of x is: $(public.x))
+          f()
+
+   # Prints:
+   #    The private value of x is: 3
+   #    The public value of x is: 1
+   Obj.print()
+</PRE><P>Private variables have two additional properties.</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+Private variables are local to the file in which they are defined.
+</LI><LI CLASS="li-enumerate">Private variables are not exported by the <CODE>export</CODE> directive, unless they are
+mentioned explicitly in the <CODE>export</CODE> directive.<PRE CLASS="verbatim">       private. =
+          FLAG = true
+
+       section
+          FLAG = false
+          export
+
+       # FLAG is still true
+       section
+          FLAG = false
+          export FLAG
+
+       # FLAG is now false
+  </PRE></LI></OL><H2 CLASS="section"><A NAME="toc33"></A><A NAME="htoc53">5.2</A>&#XA0;&#XA0;this.</H2><P>
+<A NAME="@default33"></A></P><P>The <CODE>this.</CODE> qualifier is used to define fields that are local to an object.
+Object variables are dynamically scoped.</P><PRE CLASS="verbatim">    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    # X is a protected field in the object
+    Obj. =
+       this.X = 3
+
+       print() =
+          println(The value of this.X is: $(X))
+          f()
+
+    # Prints:
+    #    The value of this.X is: 3
+    #    The public value of X is: 1
+    Obj.print()
+
+    # This is legal, it defines Y as 3
+    Y = $(Obj.X)
+</PRE><P>In general, it is a good idea to define object variables as protected. The resulting code is more
+modular because variables in your object will not produce unexpected clashes with variables defined
+in other parts of the project.</P><H2 CLASS="section"><A NAME="toc34"></A><A NAME="htoc54">5.3</A>&#XA0;&#XA0;global.</H2><P>
+<A NAME="section:global"></A><A NAME="@default34"></A></P><P>The <CODE>global.</CODE> qualifier is used to specify global dynamically-scoped variables. In the following
+example, the <CODE>global.</CODE> definition specifies that the binding <CODE>X = 4</CODE> is to be dynamically
+scoped. Global variables <EM>are not</EM> defined as fields of an object.</P><PRE CLASS="verbatim">    X = 1
+    f() =
+       println(The global value of X is: $(X))
+
+    # Prints:
+    #    The global value of X is: 2
+    section
+       X = 2
+       f()
+
+    Obj. =
+       this.X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          global.X = 4
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The global value of X is: 4
+    Obj.print()
+</PRE><H2 CLASS="section"><A NAME="toc35"></A><A NAME="htoc55">5.4</A>&#XA0;&#XA0;protected.</H2><P>
+<A NAME="section:protected"></A><A NAME="@default35"></A></P><P>In OMake 0.9.8, <CODE>protected</CODE> is a synonym for <CODE>this</CODE>.</P><PRE CLASS="verbatim">    osh&gt;protected.x = 1
+    - : "1" : Sequence
+    osh&gt;value $(this.x)
+    - : "1" : Sequence
+</PRE><P>In 0.9.9, this will change, so that the qualifier <CODE>protected</CODE> means (in 0.9.9) that a variable
+is local to the current object or file, and may not be accessed outside it.</P><H2 CLASS="section"><A NAME="toc36"></A><A NAME="htoc56">5.5</A>&#XA0;&#XA0;public.</H2><P>
+<A NAME="section:public"></A><A NAME="@default36"></A></P><P>In OMake 0.9.8, <CODE>public</CODE> is a synonym for <CODE>global</CODE>.</P><PRE CLASS="verbatim">    osh&gt;public.x = 1
+    - : "1" : Sequence
+    osh&gt;value $(global.x)
+    - : "1" : Sequence
+</PRE><P>In 0.9.9, this will change, so that the qualifier <CODE>public</CODE> means (in 0.9.9) that a variable
+is to be accessible from outside the current file or object.</P><H2 CLASS="section"><A NAME="toc37"></A><A NAME="htoc57">5.6</A>&#XA0;&#XA0;Qualified blocks</H2><P>If several qualified variables are defined simultaneously, a block form of qualifier can be defined.
+The syntax is similar to an object definition, where the name of the object is the qualifier itself.
+For example, the following program defines two private variables <CODE>X</CODE> and <CODE>Y</CODE>.</P><PRE CLASS="verbatim">    private. =
+        X = 1
+        Y = 2
+</PRE><P>The qualifier specifies a default namespace for new definitions in the block. The contents of the
+block is otherwise general.</P><PRE CLASS="verbatim">    private. =
+        X = 1
+        Y = 2
+        public.Z = $(add $X, $Y)
+        # Prints "The value of Z is 3"
+        echo The value of Z is $Z
+</PRE><P>Stylistically, it is usually better to avoid large qualified blocks because the qualifier status can
+be easy to forget. For example, consider the following fragment.</P><PRE CLASS="verbatim">    private. =
+        # Large code sequence
+        ...
+        # build foo.o with -g option (ERROR)
+        CFLAGS = -g
+        foo.o:
+</PRE><P>In this case, the programmer probably forgot that the definition of the variable <CODE>CFLAGS</CODE> is in
+the <CODE>private</CODE> block, so a fresh variable <CODE>private.CFLAGS</CODE> is being defined, not the global
+one. The target <CODE>foo.o</CODE> does <EM>not</EM> use this definition of <CODE>CFLAGS</CODE>.</P><H2 CLASS="section"><A NAME="toc38"></A><A NAME="htoc58">5.7</A>&#XA0;&#XA0;declare</H2><P>
+<A NAME="section:declare"></A><A NAME="@default37"></A></P><P>When a variable name is unqualified, its namespace is determined by the most recent definition or
+declaration that is in scope for that variable. We have already seen this in the examples, where a
+variable definition is qualified, but the subsequent uses are not qualified explicitly. In the
+following example, the first occurrence of <CODE>$X</CODE> refers to the <EM>private</EM> definition,
+because that is the most recent. The public definition of <CODE>X</CODE> is still <CODE>0</CODE>, but the
+variable must be qualified explicitly in order to access the public value.</P><PRE CLASS="verbatim">    public.X = 0
+    private.X = 1
+
+    public.print() =
+        println(The value of private.X is: $X)
+        println(The value of public.X is: $(public.X))
+</PRE><P>Sometimes it can be useful to declare a variable without defining it. For example, we might have a
+function that uses a variable <CODE>X</CODE> that is to be defined later in the program. The
+<CODE>declare</CODE> directive can be used for this.</P><PRE CLASS="verbatim">    declare public.X
+
+    public.print() =
+        println(The value of X is $X)
+
+    # Prints "The value of X is 2"
+    X = 2
+    print()
+</PRE><P>Finally, what about variables that are used but not explicitly qualified? In this case, the following rules are used.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If the variable is a function parameter, it is private.
+</LI><LI CLASS="li-itemize">If the variable is defined in an object, it is qualified with <CODE>this.</CODE>.
+</LI><LI CLASS="li-itemize">Otherwise, the variable is public.
+</LI></UL>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

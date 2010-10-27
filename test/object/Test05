@@ -1,0 +1,17 @@
+A[] = 1 2 3
+
+A.foreach(a) =>
+   A.foreach(aa) =>
+      value $(aa)$(aa)
+   eprintln($"a: $a")
+
+M. =
+   extends $(Map)
+   $|1| = 1
+   $|2| = 2
+   $|3| = 3
+
+M.foreach(k, v) =>
+   M.foreach(kk, vv) =>
+      value $(vv)$(vv)
+   eprintln($"k: $k; v: $v")

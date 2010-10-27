@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+        <title>The OMake build system: Publications</title>
+    </head>
+
+    <body bgcolor="#ffffff" text="#000000">
+        <table><tr><td><img src="images/omake.gif" alt="" width="300" height="137" border="0"></td>
+            <td width="50px" valign="top"></td>
+            <td valign="top">
+              <a href="index.html">OMake Home</a><br>
+              <a href="manual/omake.html">Documentation</a><br>
+              <a href="download.html">Download</a><br>
+              <u>Publications</u></br>
+              <a href="omake_lists.html">Mailing lists</a><br>
+              <a href="omake_users.html">Users and projects</a><br>
+              <a href="http://bugzilla.metaprl.org/">Bugzilla</a><br>
+              <a href="http://svn.metaprl.org/viewcvs/mojave/omake-branches/0.9.8.x/">Browse sources</a><br>
+              Changelog
+                  <a
+                  href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">summary</a>,
+                  <a href="changelog.html">verbose</a>
+              </td>
+
+            </tr></table>
+         <h2>OMake Publications</h2>
+         <h3>OMake: Designing a scalable build process.</h3>
+
+         <p>Jason Hickey and Aleksey Nogin.
+         <br><b>OMake: Designing a scalable build process.</b>
+         <br>In Luciano Baresi and Reiko Heckel, editors, <em>Fundamental
+         Approaches to Software Engineering, 9th International Conference,
+         FASE 2006</em>, volume 3922 of <em>Lecture Notes in Computer
+         Science</em>, pages 63&ndash;78. Springer, 2006.
+         <br>An extended version is available as California Institute of
+         Technology technical report CaltechCSTR:2006.001.
+         <br><br><em>Refereed version:</em> <a
+         href="http://mojave.cs.caltech.edu/papers/omake/fase06-final.pdf">PDF</a>,
+         <a
+         href="http://mojave.cs.caltech.edu/papers/omake/fase06-final.ps">PostScript</a>,
+         <a href="http://dx.doi.org/10.1007/11693017_7">Electronic Edition</a>
+         <br><em>Technical report version:</em> <a
+         href="http://mojave.cs.caltech.edu/papers/omake/fase06-tr.pdf">PDF</a>,
+         <a
+         href="http://mojave.cs.caltech.edu/papers/omake/fase06-tr.ps">PostScript</a>,
+         <a
+         href="http://resolver.caltech.edu/CaltechCSTR:2006.001">CaltechCSTR
+         Entry</a>
+
+         <h4>Abstract</h4>
+         <blockquote>
+         Modern software codebases are frequently large, heterogeneous, and
+         constantly evolving.  The languages and tools for software
+         construction, including code builds and configuration management,
+         have not been well-studied.  Developers are often faced with using 1)
+         older tools (like make) that do not scale well, 2) custom build
+         scripts that tend to be fragile, or 3) proprietary tools that are not
+         portable.
+
+         <p>In this paper, we study the build issue as a domain-specific
+         programming problem.  There are a number of challenges that are
+         unique to the domain of build systems.  We argue that a central goal
+         is compositionality&mdash;that is, it should be possible to specify a
+         software component in isolation and add it to a project with an
+         assurance that the global specification will not be compromised.  The
+         next important goal is to cover the full range of
+         complexity&mdash;from allowing very concise specifications for the
+         most common cases to providing the flexibility to encompass projects
+         with unusual needs.  Dependency analysis, which is a prerequisite for
+         incremental builds, must be automated in order to achieve
+         compositionality an reliability; it also spans the full range of
+         complexity.
+
+         <p>We develop a language for describing software builds and
+         configuration.  We also develop an implementation (called OMake),
+         that addresses all the above challenges efficiently and portably. It
+         also provides a number of features that help streamline the
+         edit/compile development cycle.
+
+         <p>OMake is freely available under the GNU General Public License,
+         and is actively being used in several large projects.
+         </blockquote>
+
+    </body>
+
+</html>

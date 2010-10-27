@@ -1,0 +1,54 @@
+#
+# Tests of partial application
+#
+errors = false
+
+#
+# Addition
+#
+add2(i, j) =
+   add($i, $j)
+
+succ = $(apply $(add2), 1)
+
+i = $(succ 5)
+if $(equal $i, 6)
+    println($"succ(5) = 6 [SUCCESS]")
+else
+    eprintln($"succ(5) != 6 [FAILURE]")
+    errors = true
+    export
+
+#
+# Builtin function
+#
+add-c-suffix = $(apply $(addsuffix), .c)
+names = $(add-c-suffix A B C)
+if $(equal $(names), A.c B.c C.c)
+    println($"add-c-suffix(A B C) = $(names) [SUCCESS]")
+else
+    eprintln($"add-c-suffix(A B C) = $(names) [FAILURE]")
+    errors = true
+    export
+
+#
+# Keyword arguments
+#
+f(~A = 1, x) =
+   g(~B = 2, y) =
+      add($A, $B, $x, $y)
+
+i = $(apply $f, ~B = 10, 20, 30)
+if $(equal $i, 61)
+    println($"f(~B = 10, 20, 30) = $i [SUCCESS]")
+else
+    eprintln($"f(~B = 10, 20, 30) = $i [FAILURE]")
+    errors = true
+    export
+
+#
+# Exit code
+#
+if $(errors)
+    exit 1
+

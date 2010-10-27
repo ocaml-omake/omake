@@ -1,0 +1,76 @@
+#
+# Config
+#
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../magic
+    ../ast
+    ../ir
+    ../env
+    ../exec
+    ../eval
+    ../shell
+    ../build
+    ../builtin
+
+#
+# Helper programs
+#
+OCAML_LIBS[] =
+    ../libmojave/lm
+
+MakeOCamlProgram(cvs_realclean, cvs_realclean)
+
+#
+# Main programs
+#
+FILES[] =
+    omake_shell
+    omake_main
+
+OCAML_LIBS[] =
+    ../libmojave/lm
+    ../util/util
+    ../magic/magic
+    ../ast/ast
+    ../ir/ir
+    ../env/env
+    ../exec/exec
+    ../eval/eval
+    ../shell/shell
+    ../build/build
+    ../builtin/builtin
+
+OCAML_CLIBS[] =
+    ../clib/clib
+
+MakeOCamlProgram(omake, $(FILES))
+
+osh$(EXE): omake$(EXE)
+    ln-or-cp $< $@
+
+.DEFAULT: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
+all: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
+
+#
+# Install into the binaries
+#
+install: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
+    mkdir -p $(INSTALL_BINDIR)
+    cp -f -m 555 cvs_realclean$(EXE) omake$(EXE) $(INSTALL_BINDIR)/
+    ln-or-cp $(INSTALL_BINDIR)/omake$(EXE) $(INSTALL_BINDIR)/osh$(EXE)
+
+clean:
+    $(CLEAN) $(addsuffixes $(array $(EXE), $(string $(EMPTY)), .opt, .run), cvs_realclean omake osh)
+
+#
+# Generate a Makefile
+#
+MakeOCamlDepend($(FILES), magic.cma)
+MakeMakefile()
+
+#
+# For the initial boot, just make omake
+#
+main: omake$(EXE)

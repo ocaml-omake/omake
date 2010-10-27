@@ -1,0 +1,13 @@
+#!/bin/sh -x
+
+#
+# Check out a fresh copy of omake
+#
+. make_checkout
+
+#
+# Make a source zip
+#
+mkdir -p $OMAKE/download
+rm -f $OMAKE/download/$SRC_ZIP
+zip -r $OMAKE/download/$SRC_ZIP omake-$VERSION

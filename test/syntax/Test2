@@ -1,0 +1,62 @@
+#!/usr/bin/env osh
+
+.LANGUAGE: program
+
+errors = false
+
+################################################
+# Test all the operators
+#
+check(exp, e, r) =
+    if e = r
+        println($"$(exp) = $e [SUCCESS]")
+    else
+        eprintln($"$(exp) = $e, should be $r [FAILURE]")
+	errors = true
+	export
+    export
+
+x = 11
+y = 22
+z = 33
+check($"x + y", x + y, 33)
+check($"x - y", x - y, -11)
+check($"x * y", x * y, 242)
+check($"x / y", x / y, 0)
+check($"x + y * z", x + y * z, 737)
+check($"(x + y) * z", (x + y) * z, 1089)
+check($"x < y", x < y, true)
+check($"x > y", x > y, false)
+check($"x = y", x = y, false)
+check($"x & y", x & y, 2)
+check($"x | y", x | y, 31)
+check($"x ^ y", x ^ y, 29)
+check($"1 << 2", 1 << 2, 4)
+check($"8 >> 2", 8 >> 2, 2)
+check($"-8 >> 2", -8 >> 2, -2)
+check($"(-1 >>> 1) < 0", (-1 >>> 1) < 0, false)
+check($"1 > 2 && (1 / 0) = 1", 1 > 2 && (1 / 0) = 1, false)
+check($"2 > 1 || (1 / 0) = 1", 2 > 1 || (1 / 0) = 1, true)
+
+X[] =
+    10
+    20
+    30
+    40
+
+check($"X[0]", X[0], 10)
+i = 2
+check($"X[i]", X[i], 30)
+check($"X[i] + i", X[i] + i, 32)
+
+Y = [100; 200; 300; 400 + 1]
+check($"Y[3]", Y[3], 401)
+
+Z = [1000 + 17, 120 * 10, 200 << 2]
+check($"Z[2]", Z[2], 800)
+
+################################################
+# Program exit
+#
+if errors
+    exit 1

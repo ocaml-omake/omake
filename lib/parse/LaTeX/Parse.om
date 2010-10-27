@@ -1,0 +1,496 @@
+open parse/LaTeX/Macros
+open parse/LaTeX/Lex
+
+########################################################################
+# Private functions
+#
+# The function scan-macro takes a list of items
+# and collects the parts that belong to the macro.
+#
+private.Pair. =
+    class Pair
+
+    declare fst
+    declare snd
+    new(a, b) =
+        fst = $a
+        snd = $b
+        return $(this)
+
+private.Triple. =
+    class Triple
+    extends $(Pair)
+
+    declare thd
+    new(a, b, c) =
+        this = $(Pair::new $a, $b)
+	thd = $c
+        return $(this)
+
+private.scan-args(name, arity, l) =
+    public.l = $l
+    public.arity = $(arity)
+    public.args[] =
+    while $(and $(gt $(arity), 0), $(l.is-nonempty))
+        export
+        h = $(l.nth 0)
+	l = $(l.nth-tl 1)
+	if $(not $(h.instanceof White))
+	    args[] += $h
+	    arity = $(sub $(arity), 1)
+    Pair.new($(args), $l)
+
+private.scan-opt-rest(l) =
+    public.l = $l
+    public.items[] =
+    while $(l.is-nonempty)
+        h = $(l.nth 0)
+	l = $(l.nth-tl 1)
+	if $(h.instanceof RBrack)
+	    break()
+        items[] += $h
+    Pair.new($(items), $l)
+
+private.scan-opt-args(name, opt-arity, l) =
+    public.l = $l
+    public.opt-arity = $(opt-arity)
+    public.opt-args[] =
+    while $(and $(gt $(opt-arity), 0), $(l.is-nonempty))
+        export
+        h = $(l.nth 0)
+	t = $(l.nth-tl 1)
+	if $(h.instanceof White)
+	    l = $t
+        elseif $(h.instanceof LBrack)
+	    p = $(scan-opt-rest $t)
+	    opt-args[] += $(p.fst)
+	    l = $(p.snd)
+	    opt-arity = $(sub $(opt-arity), 1)
+	else
+	    break()
+    Pair.new($(opt-args), $l)
+
+private.scan-macro(name, l) =
+    info = $(MACROS.find-arity $(name))
+    arity = $(info.arity)
+    opt-arity = $(info.opt-arity)
+    p = $(scan-opt-args $(name), $(opt-arity), $l)
+    opt-args = $(p.fst)
+    l = $(p.snd)
+    p = $(scan-args $(name), $(arity), $l)
+    args = $(p.fst)
+    l = $(p.snd)
+    Triple.new($(opt-args), $(args), $l)
+
+################################################
+# Nodes in the AST.
+#
+Item. =
+    class Item
+
+    declare loc
+
+    is-macro = false
+
+    new() =
+        loc = $(parse-loc)
+        return $(this)
+
+    scan() =
+        return $(this)
+
+    spell-check(words) =
+        value $(words)
+
+################################################
+# Items that represent small text.
+#
+Text. =
+    class Text
+    extends $(Item)
+
+    declare text
+
+    new(s) =
+        this = $(Item::new)
+        text = $"$s"
+        return $(this)
+
+    to-string() =
+        value $(text)
+
+    to-debug() =
+        value $"""(text "$(c-escaped $(text))")"""
+
+Word. =
+    class Word
+    extends $(Text)
+
+    declare loc
+
+    to-debug() =
+        value $"(word $(text))"
+
+    spell-check(words) =
+        words.check($(text), $(loc))
+
+White. =
+    class White
+    extends $(Text)
+
+    to-debug() =
+        value $"""(white "$(c-escaped $(text))")"""
+
+Comment. =
+    class Comment
+    extends $(Text)
+
+    to-debug() =
+        value $"""(comment "$(c-escaped $(text))")"""
+
+Macro. =
+    class Macro
+    extends $(Text)
+
+    opt-args[] =
+    args[] =
+    is-macro = true
+
+    add-args(o, a) =
+        opt-args[] = $o
+	args[] = $a
+	return $(this)
+
+    scan() =
+        # opt-args have to be scanned for macros
+        public.l = $(opt-args)
+	public.scanned[] =
+        while $(l.is-nonempty)
+	    export
+            h = $(l.nth 0)
+            l = $(l.nth-tl 1)
+            if $(h.is-macro)
+                p = $(scan-macro $(h.text), $l)
+		item = $(h.add-args $(p.fst), $(p.snd))
+		scanned[] += $(item.scan)
+		l = $(p.thd)
+            else
+                scanned[] += $(h.scan)
+        opt-args = $(scanned)
+	args = $(args.map item => $(item.scan))
+	return $(this)
+
+    to-string() =
+        buf[] = $(text)
+	foreach(o => ..., $(opt-args))
+	    buf[] += $"[$(o.to-string)]"
+	    export
+	foreach(a => ..., $(args))
+	    buf[] += $(a.to-string)
+	    export
+	concat($(EMPTY), $(buf))
+
+    to-debug() =
+        value $"""(macro $(to-string))$(nl)"""
+
+    spell-check(words) =
+        public.words = $(words)
+        p = $(MACROS.find-arity $(text))
+	mask = $(p.mask)
+	opt-mask = $(p.opt-mask)
+	i = 0
+	foreach(arg => ..., $(opt-args))
+	    if $(gt $(land $(mask), $(lsl 1, $i)), 0)
+	        words = $(arg.spell-check $(words))
+		export
+            i = $(add $i, 1)
+	    export
+        i = 0
+	foreach(arg => ..., $(args))
+	    if $(gt $(land $(mask), $(lsl 1, $i)), 0)
+	        words = $(arg.spell-check $(words))
+		export
+            i = $(add $i, 1)
+	    export
+	value $(words)
+
+LBrack. =
+    class LBrack
+    extends $(Text)
+
+    to-debug() =
+        value $"""(lbrack "$(c-escaped $(text))")"""
+
+RBrack. =
+    class RBrack
+    extends $(Text)
+
+    to-debug() =
+        value $"""(rbrack "$(c-escaped $(text))")"""
+
+################################################
+# Blocks and sequences
+#
+Block. =
+    class Block
+    extends $(Item)
+
+    declare items
+
+    new(l) =
+        this = $(Item::new)
+        items[] = $l
+        return $(this)
+
+    scan() =
+        l = $(items)
+	scanned[] =
+        while $(l.is-nonempty)
+	    export
+            h = $(l.nth 0)
+            l = $(l.nth-tl 1)
+            if $(h.is-macro)
+                p = $(scan-macro $(h.text), $l)
+		item = $(h.add-args $(p.fst), $(p.snd))
+		scanned[] += $(item.scan)
+		l = $(p.thd)
+            else
+                scanned[] += $(h.scan)
+        items = $(scanned)
+	return $(this)
+
+    to-string() =
+        concat($(EMPTY), $(items.map item => $(item.to-string)))
+
+    to-debug() =
+        concat($(EMPTY), $(items.map item => $(item.to-debug)))
+
+    spell-check(words) =
+        public.words = $(words)
+        foreach(item => ..., $(items))
+	    words = $(item.spell-check $(words))
+	    export
+	value $(words)
+
+Paragraph. =
+    class Paragraph
+    extends $(Block)
+
+Program. =
+    class Program
+    extends $(Block)
+
+Math. =
+    class Math
+    extends $(Block)
+
+    declare delim
+
+    new(d, l) =
+        this = $(Block::new $l)
+        delim = $d
+        return $(this)
+
+    to-string() =
+        value $"$(delim)$(Block::to-string)$(delim)"
+
+    to-debug() =
+        value $"$(delim)<$(Block::to-debug)>$(delim)"
+
+    spell-check(words) =
+        value $(words)
+
+#
+# { ... } block
+#
+BracesBlock. =
+    class BracesBlock
+    extends $(Block)
+
+    to-string() =
+        value $"{$(Block::to-string)}"
+
+#
+# \begin ... \end block
+#
+BeginBlock. =
+    class BeginBlock
+    extends $(Macro)
+    extends $(Block)
+
+    declare loc
+    declare items
+    declare text
+    is-macro = false
+
+    new(start, items, end) =
+        this = $(Block::new $(items))
+        if $(not $(equal $(start), $(end)))
+            eprintln($"$(loc.to-string): \\begin{$(start)} ended by \\end{$(end)}")
+	    raise Failure
+        text = $"$(start)"
+        return $(this)
+
+    scan() =
+	# Check for our own arguments first
+	p = $(scan-macro $(text), $(items))
+	this = $(add-args $(p.fst), $(p.snd))
+	this = $(Macro::scan)
+	items = $(p.thd)
+	Block::scan()
+
+    to-string() =
+        value $"""\begin{$(text)}
+""""""""""""$(Block::to-string)
+""""""""""""\end{$(text)}"""
+
+    to-debug() =
+        value $"""\begin{$(text)}
+""""""""""""$(Block::to-debug)
+""""""""""""\end{$(text)}"""
+
+    spell-check(words) =
+        public.words = $(words)
+        words = $(Macro::spell-check $(words))
+	info = $(MACROS.find-arity $(text))
+	if $(not $(info.verbatim))
+	    words = $(Block::spell-check $(words))
+	    export
+        value $(words)
+
+########################################################################
+# For collecting paragraphs
+#
+private.Collection. =
+    class Collection
+
+    paragraphs[] =
+    items[] =
+
+    add-item(item) =
+        items[] += $(item)
+        return $(this)
+
+    term(nl) =
+        paragraphs[] += $(Term $(Paragraph.new $(items)), $(nl))
+        items[] =
+        return $(this)
+
+    blocks() =
+        if $(items)
+            paragraphs[] += $(Paragraph.new $(items))
+            export
+        value $(paragraphs)
+
+    contents() =
+        if $(paragraphs)
+            blocks()
+        else
+            value $(items)
+
+########################################################################
+# Parser
+#
+private.parser. =
+    extends $(Parser)
+
+    #
+    # Use the main lexer
+    #
+    lexer = $(latex_lexer)
+
+    #
+    # A program is just a sequence of text.
+    #
+    start(prog)
+
+    prog: blocks eof
+       Program.new($(1.blocks))
+
+    blocks: # empty
+       value $(Collection)
+
+    blocks: blocks item
+       1.add-item($2)
+
+    blocks: blocks block_item
+       1.add-item($2)
+
+    blocks: blocks nonmath_item
+       1.add-item($2)
+
+    blocks: blocks nl
+       1.term($1)
+
+    #
+    # Inner sequence doesn't have to be a paragraph.
+    #
+    sequence: # empty
+        value $(Collection)
+
+    sequence: sequence item
+        1.add-item($2)
+
+    sequence: sequence block_item
+        1.add-item($2)
+
+    sequence: sequence nonmath_item
+        1.add-item($2)
+
+    sequence: sequence nl
+        1.term($2)
+
+    nonmath_sequence: # empty
+        value $(Collection)
+
+    nonmath_sequence: nonmath_sequence nonmath_item
+        1.add-item($2)
+
+    nonmath_sequence: nonmath_sequence block_item
+        1.add-item($2)
+
+    nonmath_sequence: nonmath_sequence nl
+        1.term($2)
+
+    #
+    # Individual items
+    #
+    nonmath_item: word
+        Word.new($1)
+
+    nonmath_item: white
+        White.new($1)
+
+    nonmath_item: text
+        Text.new($1)
+
+    nonmath_item: comment
+        Comment.new($1)
+
+    nonmath_item: lbrack
+        LBrack.new($1)
+
+    nonmath_item: rbrack
+        RBrack.new($1)
+
+    nonmath_item: macro
+        Macro.new($1)
+
+    block_item: lbrace sequence rbrace
+        BracesBlock.new($(2.contents))
+
+    block_item: begin sequence end
+        BeginBlock.new($1, $(2.contents), $3)
+
+    item: math1 nonmath_sequence math1
+        Math.new($1, $(2.contents))
+
+    item: math2 nonmath_sequence math2
+        Math.new($1, $(2.contents))
+
+########################################################################
+# Outer interface
+#
+parse-tex-file(filename) =
+    prog = $(parser.parse-file prog, $(filename))
+    prog.scan()

@@ -1,0 +1,10 @@
+f(x,y) =
+   x += x
+   y += y
+   private.z = 5
+   println($x $y $z)
+
+x = 1
+z = 1
+
+f(2,3)

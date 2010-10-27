@@ -1,0 +1,972 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Description
+%
+\chapter{\OMake{} concepts and syntax}
+\label{chapter:language}
+\cutname{omake-language.html}
+
+Projects are specified to \Prog{omake} with \File{OMakefile}s.  The \File{OMakefile} has a format
+similar to a \File{Makefile}.  An \File{OMakefile} has three main kinds of syntactic objects:
+variable definitions, function definitions, and rule definitions.
+
+\section{Variables}
+\label{section:variables}
+
+Variables are defined with the following syntax.  The name is any sequence of alphanumeric
+characters, underscore \verb+_+, and hyphen \verb+-+.
+
+\begin{verbatim}
+   <name> = <value>
+\end{verbatim}
+
+Values are defined as a sequence of literal characters and variable expansions.  A variable
+expansion has the form \verb+$(<name>)+, which represents the value of the \verb+<name>+
+variable in the current environment.  Some examples are shown below.
+
+\begin{verbatim}
+   CC = gcc
+   CFLAGS = -Wall -g
+   COMMAND = $(CC) $(CFLAGS) -O2
+\end{verbatim}
+
+In this example, the value of the \verb+COMMAND+ variable is the string \verb+gcc -Wall -g -O2+.
+
+Unlike \Cmd{make}{1}, variable expansion is \emph{eager} and \emph{pure} (see also the section
+on Scoping).  That is, variable values are expanded immediately and new variable definitions do not
+affect old ones.  For example, suppose we extend the previous example with following variable
+definitions.
+
+\begin{verbatim}
+   X = $(COMMAND)
+   COMMAND = $(COMMAND) -O3
+   Y = $(COMMAND)
+\end{verbatim}
+
+In this example, the value of the \verb+X+ variable is the string \verb+gcc -Wall -g -O2+ as
+before, and the value of the \verb+Y+ variable is \verb+gcc -Wall -g -O2 -O3+.
+
+\section{Adding to a variable definition}
+
+Variables definitions may also use the += operator, which adds the new text to an existing
+definition.  The following two definitions are equivalent.
+
+\begin{verbatim}
+   # Add options to the CFLAGS variable
+   CFLAGS = $(CFLAGS) -Wall -g
+
+   # The following definition is equivalent
+   CFLAGS += -Wall -g
+\end{verbatim}
+
+\section{Arrays}
+\index{arrays}
+
+Arrays can be defined by appending the \verb+[]+ sequence to the variable name and defining initial
+values for the elements as separate lines.  Whitespace on each line is
+taken literally.  The following code sequence prints \verb+c d e+.
+
+\begin{verbatim}
+    X[] =
+        a b
+        c d e
+        f
+
+    println($(nth 2, $(X)))
+\end{verbatim}
+
+\section{Special characters and quoting}
+\index{quotations}
+
+The following characters are special to \Prog{omake}: \verb+$():,=#\+.  To treat
+any of these characters as normal text, they should be escaped with the backslash
+character \verb+\+.
+
+\begin{verbatim}
+    DOLLAR = \$
+\end{verbatim}
+
+Newlines may also be escaped with a backslash to concatenate several lines.
+
+\begin{verbatim}
+    FILES = a.c\
+            b.c\
+            c.c
+\end{verbatim}
+
+Note that the backslash is \emph{not} an escape for any other character, so the following
+works as expected (that is, it preserves the backslashes in the string).
+
+\begin{verbatim}
+    DOSTARGET = C:\WINDOWS\control.ini
+\end{verbatim}
+
+An alternative mechanism for quoting special text is the use \verb+$"..."+ escapes.  The number of
+double-quotations is arbitrary.  The outermost quotations are not included in the text.
+
+\begin{verbatim}
+    A = $""String containing "quoted text" ""
+    B = $"""Multi-line
+        text.
+        The # character is not special"""
+\end{verbatim}
+
+\section{Function definitions}
+\label{section:functions}
+\index{functions}
+
+Functions are defined using the following syntax.
+
+\begin{verbatim}
+   <name>(<params>) =
+      <indented-body>
+\end{verbatim}
+
+The parameters are a comma-separated list of identifiers, and the body must be placed on a separate
+set of lines that are indented from the function definition itself.  For example, the following text
+defines a function that concatenates its arguments, separating them with a colon.
+
+\begin{verbatim}
+    ColonFun(a, b) =
+        return($(a):$(b))
+\end{verbatim}
+
+\index{return}%
+The \verb+return+ expression can be used to return a value from the function.  A \verb+return+
+statement is not required; if it is omitted, the returned value is the value of the last expression
+in the body to be evaluated.  NOTE: as of version \verb+0.9.6+, \verb+return+ is a control
+operation, causing the function to immediately return.  In the following example, when the argument
+\verb+a+ is true, the function \verb+f+ immediately returns the value 1 without evaluating the print
+statement.
+
+\begin{verbatim}
+    f(a) =
+       if $(a)
+          return 1
+       println(The argument is false)
+       return 0
+\end{verbatim}
+
+\index{value}%
+In many cases, you may wish to return a value from a section or code block without returning from
+the function.  In this case, you would use the \verb+value+ operator.  In fact, the \verb+value+
+operator is not limited to functions, it can be used any place where a value is required.  In the
+following definition, the variable \verb+X+ is defined as $1$ or $2$, depending on the value of $a$,
+then result is printed, and returned from the function.
+
+\begin{verbatim}
+    f_value(a) =
+       X =
+          if $(a)
+             value 1
+          else
+             value 2
+       println(The value of X is $(X))
+       value $(X)
+\end{verbatim}
+
+Functions are called using the GNU-make syntax, \verb+$(<name> <args))+,
+where \verb+<args>+ is a comma-separated list of values.  For example,
+in the following program, the variable \verb+X+ contains the
+value \verb+foo:bar+.
+
+\begin{verbatim}
+   X = $(ColonFun foo, bar)
+\end{verbatim}
+
+If the value of a function is not needed, the function may also be called
+using standard function call notation.  For example, the following program
+prints the string ``She says: Hello world''.
+
+\begin{verbatim}
+    Printer(name) =
+        println($(name) says: Hello world)
+
+    Printer(She)
+\end{verbatim}
+
+\subsection{Keyword arguments}
+\label{section:keyword-arguments}
+\index{keyword arguments}
+
+\newinkeyword
+
+Functions can also have keyword parameters and arguments.  The syntax of a keyword
+parameter/argument is \verb+[~|?]<id> [= <expression>]+, where the keyword name \verb+<id>+
+is preceeded by the character \verb+~+ (for required arguments), or \verb+?+ (for optional
+arguments).  If a default value \verb+= <expression>+ is provided, the argument is
+always optional.
+
+Keyword arguments and normal anonymous arguments are completely separate.  Also, it is an error to
+pass a keyword argument to a function that does not define it as a keyword parameter.
+
+\begin{verbatim}
+    osh>f(x, ?y = 1, z) =
+           add($(mul $x, 100), $(mul $y, 10), $z)
+    - : <fun 0>
+    osh>f(1, ~y = 2, 3)
+    - : 123 : Int
+    osh>f(1, 3, ~y = 2)
+    - : 123 : Int
+    osh>f(1, 3)
+    - : 113 : Int
+    osh>f(1, 2, 3)
+    *** omake error:
+       File -: line 11, characters 0-10
+       arity mismatch: expected 2 args, got 3
+    osh>f(~z = 7)
+    *** omake error:
+       File -: line 12, characters 0-8
+       no such keyword: z
+\end{verbatim}
+
+An optional keyword argument defaults to the empty value.
+
+\begin{verbatim}
+    osh> g(?x) =
+             println($">>>$x<<<")
+    - : <fun 0>
+    osh> g()
+    >>><<<
+    osh> g(~x = xxx)
+    >>>xxx<<<
+\end{verbatim}
+
+It is an error to omit a required keyword argument.
+
+\begin{verbatim}
+    osh> h(~x, ~y) =
+             println(x = $x; y = $y)
+    - : <fun 0>
+    osh> h(~y = 2, ~x = 1)
+    x = 1; y = 2
+    osh> h(~y = 2)
+    *** omake error:
+       File -: line 11, characters 0-9
+       keyword argument is required: x
+\end{verbatim}
+
+\section{Curried functions}
+
+\newinkeyword
+
+Functions that are marked with the classifier \verb+curry+ can be called with ``too many'' arguments.
+It is expected that a curried function returns a function that consumes the remaining arguments.
+All arguments must be specified.
+
+\begin{verbatim}
+    osh>curry.f(x, y) =
+            println($"Got two arguments: x = $x, y = $y")
+            g(z) =
+               add($x, $y, $z)
+    osh> f(1, 2, 3)
+    Got two arguments: x = 1, y = 2
+    - : 6 : Int
+    osh> f(1, 2)
+    Got two arguments: x = 1, y = 2
+    *** omake error:
+       File -: line 62, characters 0-7
+       arity mismatch: expected 1 args, got 0
+\end{verbatim}
+
+The function \verb+apply+ can be used to compute partial applications, whether or not the function
+is labeled as a curried function.
+
+\begin{verbatim}
+    osh> f1(a, ~b = 2, ~c = 3, d) =
+            println($"a = $a, b = $b, c = $c, d = $d")
+    - : <fun 0>
+    osh> f2 = $(apply $(f1), ~c = 13, 11)
+    - : <curry 0>
+    osh> f2(14, ~b = 12)
+    a = 11, b = 12, c = 13, d = 14
+    osh> f2(24)
+    a = 11, b = 2, c = 13, d = 24
+\end{verbatim}
+
+\section{Comments}
+
+Comments begin with the \verb+#+ character and continue to the end of the line.
+
+\section{File inclusion}
+\label{section:include}
+\index{include}\index[fun]{include}\index{open}
+
+Files may be included with the \verb+include+ or \verb+open+ form.  The included file must use
+the same syntax as an \File{OMakefile}.
+
+\begin{verbatim}
+    include $(Config_file)
+\end{verbatim}
+
+The \verb+open+ operation is similar to an \verb+include+, but the file is included at most once.
+\begin{verbatim}
+    open Config
+
+    # Repeated opens are ignored, so this
+    # line has no effect.
+    open Config
+\end{verbatim}
+
+If the file specified is not an absolute filenmame, both \verb+include+ and
+\verb+open+ operations search for the file based on the
+\hypervar{OMAKEPATH}. In case of the \verb+open+ directive, the search is
+performed at \emph{parse} time, and the argument to \verb+open+ may not
+contain any expressions.
+
+\section{Scoping, sections}
+\label{section:section}
+\index{section}
+
+Scopes in \Prog{omake} are defined by indentation level.  When indentation is
+increased, such as in the body of a function, a new scope is introduced.
+
+The \verb+section+ form can also be used to define a new scope.  For example, the following code
+prints the line \verb+X = 2+, followed by the line \verb+X = 1+.
+
+\begin{verbatim}
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+
+    println(X = $(X))
+\end{verbatim}
+
+This result may seem surprising--the variable definition within the
+\verb+section+ is not visible outside the scope of the \verb+section+.
+
+The \verb+export+ form, which will be described in detail in
+Section~\ref{section:export}, can be used to circumvent this restriction by
+exporting variable values from an inner scope.
+For example, if we modify the previous example
+by adding an \verb+export+ expression, the new value for the \verb+X+
+variable is retained, and the code prints the line \verb+X = 2+ twice.
+
+\begin{verbatim}
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+        export
+
+    println(X = $(X))
+\end{verbatim}
+
+There are also cases where separate scoping is quite important.  For example,
+each \File{OMakefile} is evaluated in its own scope.  Since each part of a project
+may have its own configuration, it is important that variable definitions in one
+\File{OMakefile} do not affect the definitions in another.
+
+To give another example, in some cases it is convenient to specify a
+separate set of variables for different build targets.  A frequent
+idiom in this case is to use the \verb+section+ command to define a
+separate scope.
+
+\begin{verbatim}
+   section
+      CFLAGS += -g
+      %.c: %.y
+          $(YACC) $<
+      .SUBDIRS: foo
+
+   .SUBDIRS: bar baz
+\end{verbatim}
+
+In this example, the \verb+-g+ option is added to the \verb+CFLAGS+
+variable by the \verb+foo+ subdirectory, but not by the \verb+bar+ and
+\verb+baz+ directories. The implicit rules are scoped as well and in this
+example, the newly added yacc rule will be inherited by the \verb+foo+
+subdirectory, but not by the \verb+bar+ and \verb+baz+ ones; furthermore
+this implicit rule will not be in scope in the current directory.
+
+\section{Conditionals}
+\label{section:conditionals}
+\index{conditionals}
+\index{if}
+
+Top level conditionals have the following form.
+
+\begin{verbatim}
+    if <test>
+       <true-clause>
+    elseif <test2>
+       <elseif-clause>
+    else
+       <else-clause>
+\end{verbatim}
+
+The \verb+<test>+ expression is evaluated, and if it evaluates to a \emph{true} value (see
+Section~\ref{section:logic} for more information on logical values, and Boolean functions), the code
+for the \verb+<true-clause>+ is evaluated; otherwise the remaining clauses are evaluated.  There may
+be multiple \verb+elseif+ clauses; both the \verb+elseif+ and \verb+else+ clauses are optional.
+Note that the clauses are indented, so they introduce new scopes.
+
+When viewed as a predicate, a value corresponds to the Boolean \emph{false}, if its string
+representation is the empty string, or one of the strings \verb+false+, \verb+no+, \verb+nil+,
+\verb+undefined+, or \verb+0+.  All other values are \emph{true}.
+
+The following example illustrates a typical use of a conditional.  The
+\verb+OSTYPE+ variable is the current machine architecture.
+
+\begin{verbatim}
+    # Common suffixes for files
+    if $(equal $(OSTYPE), Win32)
+       EXT_LIB = .lib
+       EXT_OBJ = .obj
+       EXT_ASM = .asm
+       EXE = .exe
+       export
+    elseif $(mem $(OSTYPE), Unix Cygwin)
+       EXT_LIB = .a
+       EXT_OBJ = .o
+       EXT_ASM = .s
+       EXE =
+       export
+    else
+       # Abort on other architectures
+       eprintln(OS type $(OSTYPE) is not recognized)
+       exit(1)
+\end{verbatim}
+
+\section{Matching}
+\label{section:match}
+\index{match}\index[fun]{match}
+\index{switch}\index[fun]{switch}
+
+Pattern matching is performed with the \verb+switch+ and \verb+match+ forms.
+
+\begin{verbatim}
+    switch <string>
+    case <pattern1>
+        <clause1>
+    case <pattern2>
+        <clause2>
+    ...
+    default
+       <default-clause>
+\end{verbatim}
+
+The number of cases is arbitrary.
+The \verb+default+ clause is optional; however, if it is used it should
+be the last clause in the pattern match.
+
+For \verb+switch+, the string is compared with the patterns literally.
+
+\begin{verbatim}
+    switch $(HOST)
+    case mymachine
+        println(Building on mymachine)
+    default
+        println(Building on some other machine)
+\end{verbatim}
+
+Patterns need not be constant strings.  The following function tests
+for a literal match against \verb+pattern1+, and a match against
+\verb+pattern2+ with \verb+##+ delimiters.
+
+\begin{verbatim}
+   Switch2(s, pattern1, pattern2) =
+      switch $(s)
+      case $(pattern1)
+          println(Pattern1)
+      case $"##$(pattern2)##"
+          println(Pattern2)
+      default
+          println(Neither pattern matched)
+\end{verbatim}
+
+For \verb+match+ the patterns are \Cmd{egrep}{1}-style regular expressions.
+The numeric variables \verb+$1, $2, ...+ can be used to retrieve values
+that are matched by \verb+\(...\)+ expressions.
+
+\begin{verbatim}
+    match $(NODENAME)@$(SYSNAME)@$(RELEASE)
+    case $"mymachine.*@\(.*\)@\(.*\)"
+        println(Compiling on mymachine; sysname $1 and release $2 are ignored)
+
+    case $".*@Linux@.*2\.4\.\(.*\)"
+        println(Compiling on a Linux 2.4 system; subrelease is $1)
+
+    default
+        eprintln(Machine configuration not implemented)
+        exit(1)
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Objects
+%
+\section{Objects}
+\label{section:objects}
+\index{objects}
+
+\OMake{} is an object-oriented language.  Generally speaking, an object is a value that contains fields
+and methods.  An object is defined with a \verb+.+ suffix for a variable.  For example, the
+following object might be used to specify a point $(1, 5)$ on the two-dimensional plane.
+
+\begin{verbatim}
+    Coord. =
+        x = 1
+        y = 5
+        print(message) =
+           println($"$(message): the point is ($(x), $(y)")
+
+    # Define X to be 5
+    X = $(Coord.x)
+
+    # This prints the string, "Hi: the point is (1, 5)"
+    Coord.print(Hi)
+\end{verbatim}
+
+The fields \verb+x+ and \verb+y+ represent the coordinates of the point.  The method \verb+print+
+prints out the position of the point.
+
+\section{Classes}
+\index{classes}
+
+We can also define \emph{classes}.  For example, suppose we wish to define a generic \verb+Point+
+class with some methods to create, move, and print a point.  A class is really just an object with
+a name, defined with the \verb+class+ directive.
+
+\begin{verbatim}
+    Point. =
+        class Point
+
+        # Default values for the fields
+        x = 0
+        y = 0
+
+        # Create a new point from the coordinates
+        new(x, y) =
+           this.x = $(x)
+           this.y = $(y)
+           return $(this)
+
+        # Move the point to the right
+        move-right() =
+           x = $(add $(x), 1)
+           return $(this)
+
+        # Print the point
+        print() =
+           println($"The point is ($(x), $(y)")
+
+    p1 = $(Point.new 1, 5)
+    p2 = $(p1.move-right)
+
+    # Prints "The point is (1, 5)"
+    p1.print()
+
+    # Prints "The point is (2, 5)"
+    p2.print()
+\end{verbatim}
+
+Note that the variable \verb+$(this)+ is used to refer to the current object.  Also, classes and
+objects are \emph{functional}---the \verb+new+ and \verb+move-right+ methods return new objects.  In
+this example, the object \verb+p2+ is a different object from \verb+p1+, which retains the original
+$(1, 5)$ coordinates.
+
+\section{Inheritance}
+\index{inheritance}
+
+Classes and objects support inheritance (including multiple inheritance) with the \verb+extends+
+directive.  The following definition of \verb+Point3D+ defines a point with \verb+x+, \verb+y+, and
+\verb+z+ fields.  The new object inherits all of the methods and fields of the parent classes/objects.
+
+\begin{verbatim}
+    Z. =
+       z = 0
+
+    Point3D. =
+       extends $(Point)
+       extends $(Z)
+       class Point3D
+
+       print() =
+          println($"The 3D point is ($(x), $(y), $(z))")
+
+    # The "new" method was not redefined, so this
+    # defines a new point (1, 5, 0).
+    p = $(Point3D.new 1, 5)
+\end{verbatim}
+
+\section{static.}
+\label{section:static.}
+\index{static.}
+
+The \verb+static.+ object is used to specify values that are persistent across runs of \OMake{}.  They
+are frequently used for configuring a project.  Configuring a project can be expensive, so the
+\verb+static.+ object ensure that the configuration is performed just once.  In the following
+(somewhat trivial) example, a \verb+static+ section is used to determine if the \LaTeX\ command is
+available.  The \verb+$(where latex)+ function returns the full pathname for \verb+latex+, or
+\verb+false+ if the command is not found.
+
+\begin{verbatim}
+   static. =
+      LATEX_ENABLED = false
+      print(--- Determining if LaTeX is installed )
+      if $(where latex)
+          LATEX_ENABLED = true
+          export
+
+      if $(LATEX_ENABLED)
+         println($'(enabled)')
+      else
+         println($'(disabled)')
+\end{verbatim}
+
+The \OMake standard library provides a number of useful functions for
+programming the \verb+static.+ tests, as described in
+Chapter~\ref{chapter:autoconf}. Using the standard library, the above can
+be rewritten as
+
+\begin{verbatim}
+   open configure/Configure
+   static. =
+      LATEX_ENABLED = $(CheckProg latex)
+\end{verbatim}
+
+As a matter of style, a \verb+static.+ section that is used for configuration should print what it
+is doing using the \hyperfunn{ConfMsgChecking} and
+\hyperfunn{ConfMsgResult} functions (of course, most of helper functions in
+the standard library would do that automatically).
+
+\subsection{.STATIC}
+\label{section:.STATIC}
+\index{.STATIC}
+\index[target]{.STATIC}
+
+\newinreorg
+
+There is also a rule form of static section.  The syntax can be any of the following three forms.
+
+\begin{verbatim}
+    # Export all variables defined by the body
+    .STATIC:
+        <body>
+
+    # Specify file-dependencies
+    .STATIC: <dependencies>
+        <body>
+
+    # Specify which variables to export, as well as file dependencies
+    .STATIC: <vars>: <dependencies>
+        <body>
+\end{verbatim}
+
+The \verb+<vars>+ are the variable names to be defined, the \verb+<dependencies>+ are file
+dependencies---the rule is re-evaluated if one of the dependencies is changed.  The \verb+<vars>+
+and \verb+<dependencies>+ can be omitted; if so, all variables defined in the \verb+<body>+ are
+exported.
+
+For example, the final example of the previous section can also be implemented as follows.
+
+\begin{verbatim}
+    open configure/Configure
+    .STATIC:
+        LATEX_ENABLED = $(CheckProg latex)
+\end{verbatim}
+%
+The effect is much the same as using \verb+static.+ (instead of \verb+.STATIC+).  However, in most
+cases \verb+.STATIC+ is preferred, for two reasons.
+
+First, a \verb+.STATIC+ section is lazy, meaning that it is not evaluated until one of its variables
+is resolved.  In this example, if \verb+$(LATEX_ENABLED)+ is never evaluated, the section need never
+be evaluated either.  This is in contrast to the \verb+static.+ section, which always evaluates its
+body at least once.
+
+A second reason is that a \verb+.STATIC+ section allows for file dependencies, which are useful when
+the \verb+.STATIC+ section is used for memoization.  For example, suppose we wish to create a
+dictionary from a table that has key-value pairs.  By using a \verb+.STATIC+ section, we can perform
+this computation only when the input file changes (not on every fun of \verb+omake+).  In the
+following example the \hyperfun{awk} is used to parse the file \verb+table-file+.
+When a line is encountered with the form \textit{key}\verb+ = +\textit{value}, the key/value pair is
+added the the \verb+TABLE+.
+
+\begin{verbatim}
+    .STATIC: table-file
+        TABLE = $(Map)
+        awk(table-file)
+        case $'^\([[:alnum:]]+\) *= *\(.*\)'
+            TABLE = $(TABLE.add $1, $2)
+            export
+\end{verbatim}
+
+It is appropriate to think of a \verb+.STATIC+ section as a rule that must be recomputed whenever
+the dependencies of the rule change.  The targets of the rule are the variables it exports (in this
+case, the \verb+TABLE+ variable).
+
+\subsubsection{.MEMO}
+\label{section:.MEMO}
+\index{.MEMO}
+\index[target]{.MEMO}
+
+A \verb+.MEMO+ rule is just like a \verb+.STATIC+ rule, except that the results are not saved
+between independent runs of \verb+omake+.
+
+\subsubsection{:key:}
+\index{:key:}
+
+The \verb+.STATIC+ and \verb+.MEMO+ rules also accept a \verb+:key:+ value, which specifies a
+``key'' associated with the values being computed.  It is useful to think of a \verb+.STATIC+ rule
+as a dictionary that associates keys with their values.  When a \verb+.STATIC+ rule is evaluated,
+the result is saved in the table with the \verb+:key:+ defined by the rule (if a \verb+:key:+ is not
+specified, a default key is used instead).  In other words, a rule is like a function.  The
+\verb+:key:+ specifies the function ``argument'', and the rule body computes the result.
+
+To illustrate, let's use a \verb+.MEMO+ rule to implement a Fibonacci function.
+
+\begin{verbatim}
+    fib(i) =
+        i = $(int $i)
+        .MEMO: :key: $i
+            println($"Computing fib($i)...")
+            result =
+                if $(or $(eq $i, 0), $(eq $i, 1))
+                    value $i
+                else
+                    add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+        value $(result)
+
+    println($"fib(10) = $(fib 10)")
+    println($"fib(12) = $(fib 12)")
+\end{verbatim}
+%
+When this script is run, it produces the following output.
+
+\begin{verbatim}
+    Computing fib(10)...
+    Computing fib(9)...
+    Computing fib(8)...
+    Computing fib(7)...
+    Computing fib(6)...
+    Computing fib(5)...
+    Computing fib(4)...
+    Computing fib(3)...
+    Computing fib(2)...
+    Computing fib(1)...
+    Computing fib(0)...
+    fib(10) = 55
+    Computing fib(12)...
+    Computing fib(11)...
+    fib(12) = 144
+\end{verbatim}
+%
+Note that the Fibonacci computation is performed just once for each value of the argument, rather
+than an exponential number of times.  In other words, the \verb+.MEMO+ rule has performed a
+memoization, hence the name.  Note that if \verb+.STATIC+ were used instead, the values would be
+saved across runs of \verb+omake+.
+
+As a general guideline, whenever you use a \verb+.STATIC+ or \verb+.MEMO+ rule within a function
+body, you will usually want to use a \verb+:key:+ value to index the rule by the function argument.
+However, this is not required.  In the following, the \verb+.STATIC+ rule is used to perform some
+expensive computation once.
+
+\begin{verbatim}
+    f(x) =
+        .STATIC:
+            y = $(expensive-computation)
+        add($x, $y)
+\end{verbatim}
+
+Additonal care should be taken for recursive functions, like the Fibonacci function.  If the
+\verb+:key:+ is omitted, then the rule would be defined in terms of itself, resulting in a cyclic
+dependency.  Here is the output of the Fibonacci program with an omitted \verb+:key:+.
+
+\begin{verbatim}
+    Computing fib(10)...
+    Computing fib(8)...
+    Computing fib(6)...
+    Computing fib(4)...
+    Computing fib(2)...
+    Computing fib(0)...
+    fib(10) = 0
+    fib(12) = 0
+\end{verbatim}
+%
+The reason for this behavior is that the \verb+result+ value is not saved until the base case
+\verb+i = 0 || i = 1+ is reached, so \verb+fib+ calls itself recursively until reaching
+\verb+fib(0)+, whereupon the \verb+result+ value is fixed at 0.
+
+In any case, recursive definitions are perfectly acceptable, but you will usually want a
+\verb+:key:+ argument so that each recursive call has a different \verb+:key:+.  In most cases, this
+means that the \verb+:key:+ should include all arguments to the function.
+
+\section{Constants}
+\index{constants}
+
+Internally, OMake represents values in several forms, which we list here.
+
+\begin{itemize}
+\item int
+
+\begin{itemize}
+\item Constructor: \verb+$(int <i>)+~\ref{function:int}.
+\item Object: \verb+Int+~\ref{object:Int}.
+\item An integer is a represented with finite precision using the OCaml representation (31 bits on a
+  32 platform, and 63 bits on a 64 bit platform).
+\item See also: arithmetic~\ref{function:add}.
+\end{itemize}
+
+\item float
+
+\begin{itemize}
+\item Constructor: \verb+$(float <x>)+~\ref{function:float}.
+\item Object: \verb+Float+~\ref{object:Float}.
+\item A float is a floating-point value, represented in IEEE 64-bit format.
+\item See also: arithmetic~\ref{function:add}.
+\end{itemize}
+
+\item array
+
+\begin{itemize}
+\item Constructor: \verb+$(array <v1>, ..., <vn>)+~\ref{function:array}.
+\item Object: \verb+Array+~\ref{object:Array}.
+\item An array is a finite list of values.
+  Arrays are also defined with an array definition
+\begin{verbatim}
+    X[] =
+        <v1>
+        ...
+        <vn>
+\end{verbatim}
+\item See also: \verb+nth+~\ref{function:nth}, \verb+nth-tl+~\ref{function:nth-tl},
+  \verb+length+~\ref{function:length}, $\ldots$
+\end{itemize}
+
+\item string
+
+\begin{itemize}
+\item Object: \verb+String+~\ref{object:String}.
+\item By default, all constant character sequences represent strings, so the simple way to construct
+  a string is to write it down.  Internally, the string may be parsed as several pieces.
+  A string often represents an array of values separated by whitespace.
+\begin{verbatim}
+    osh>S = This is a string
+    - : <sequence
+       "This" : Sequence
+       ' ' : White
+       "is" : Sequence
+       ' ' : White
+       "a" : Sequence
+       ' ' : White
+       "string" : Sequence>
+       : Sequence
+    osh>length($S)
+    - : 4 : Int
+\end{verbatim}
+
+\item A \emph{data} string is a string where whitespace is taken literally.  It represents a single value,
+  not an array.  The constructors are the quotations \verb+$"..."+ and \verb+$'...'+.
+
+\begin{verbatim}
+    osh>S = $'''This is a string'''
+    - : <data "This is a string"> : String
+\end{verbatim}
+
+\item See also: Quoted strings~\ref{section:quoted-strings}.
+\end{itemize}
+
+\item file
+
+\begin{itemize}
+\item Constructor: \verb+$(file <names>)+~\ref{function:file}.
+\item Object: \verb+File+~\ref{object:File}.
+\item A file object represents the abstract name for a file.  The file object can be viewed as an
+  absolute name; the string representation depends on the current directory.
+
+\begin{verbatim}
+    osh>name = $(file foo)
+    - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+    osh>echo $(name)
+    foo
+    osh>cd ..
+    - : /Users/jyh/projects/omake : Dir
+    osh>echo $(name)
+    0.9.8.x/foo
+\end{verbatim}
+
+\item See also: \verb+vmount+~\ref{function:vmount}.
+\end{itemize}
+
+\item directory
+
+\begin{itemize}
+\item Constructor: \verb+$(dir <names>)+~\ref{function:dir}.
+\item Object: \verb+Dir+~\ref{object:Dir}.
+\item A directory object is like a file object, but it represents a directory.
+\end{itemize}
+
+\item map (dictionary)
+\begin{itemize}
+\item Object: \verb+Map+~\ref{object:Map}.
+\item A map/dictionary is a table that maps values to values.  The \verb+Map+ object is the empty
+  map.  The data structure is persistent, and all operations are pure and functional.  The special syntax
+  \verb+$|key|+ can be used for keys that are strings.
+
+\begin{verbatim}
+    osh>table = $(Map)
+    osh>table = $(table.add x, int)
+    osh>table. +=
+            $|y| = int
+    osh>table.find(y)
+    - : "int" : Sequence
+\end{verbatim}
+\end{itemize}
+
+\item channel
+
+\begin{itemize}
+\item Constructor: \verb+$(fopen <filename>, <mode>)+~\ref{function:fopen}.
+\item Objects: \verb+InChannel+~\ref{object:InChannel}, \verb+OutChannel+~\ref{object:OutChannel}.
+\item Channels are used for buffered input/output.
+\end{itemize}
+
+\item function
+
+\begin{itemize}
+\item Constructor: \verb+$(fun <params> => <body>)+~\ref{function:fun}.
+\item Object: \verb+Fun+~\ref{object:Fun}.
+\item Functions can be defined in several ways.
+\begin{itemize}
+\item As an anonymous function,
+\begin{verbatim}
+    $(fun i, j => $(add $i, $j))
+\end{verbatim}
+\item As a named function,
+\begin{verbatim}
+    f(i, j) =
+        add($i, $j)
+\end{verbatim}
+\item
+(\newinkeyword)
+As an anonymous function argument.
+\begin{verbatim}
+    osh>foreach(i => $(add $i, 1), 1 2 3)
+    - : <array 2 3 4> : Array
+\end{verbatim}
+\end{itemize}
+\end{itemize}
+
+\item lexer
+
+\begin{itemize}
+\item Object: \verb+Lexer+~\ref{object:Lexer}.
+\item This object represents a lexer.
+\end{itemize}
+
+\item parser
+
+\begin{itemize}
+\item Object: \verb+Parser+~\ref{object:Parser}.
+\item This object represents a parser.
+\end{itemize}
+\end{itemize}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

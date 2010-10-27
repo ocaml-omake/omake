@@ -1,0 +1,48 @@
+#
+# Keep track of the arities of macros.
+#
+public.Arity. =
+    declare opt-arity
+    declare opt-mask
+    declare arity
+    declare mask
+    declare verbatim
+
+    new(~opt-arity = 0, ~opt-mask = 0, ~arity = 0, ~mask = 0xffff, ~verbatim = false) =
+        this.opt-arity = $(opt-arity)
+	this.opt-mask = $(opt-mask)
+	this.arity = $(arity)
+	this.mask = $(mask)
+	this.verbatim = $(verbatim)
+	return $(this)
+
+private.default-arity = $(Arity.new)
+
+public.MACROS. =
+    extends $(Map)
+
+    # flags
+    $|\chapter|         = $(Arity.new ~arity = 1)
+    $|\section|         = $(Arity.new ~arity = 1)
+    $|\newcommand|      = $(Arity.new ~opt-arity = 1, ~arity = 2, ~mask = 0b10)
+    $|\item|            = $(Arity.new ~opt-arity = 1, ~opt-mask = 1)
+    $|\email|           = $(Arity.new ~arity = 1, ~mask = 0)
+    $|\url|             = $(Arity.new ~arity = 1, ~mask = 0)
+    $|\ref|             = $(Arity.new ~arity = 1, ~mask = 0)
+    $|\cite|            = $(Arity.new ~arity = 1, ~mask = 0)
+    $|\pageref|         = $(Arity.new ~arity = 1, ~mask = 0)
+    $|array|            = $(Arity.new ~opt-arity = 1, ~arity = 1, ~mask = 0)
+    $|tabular|          = $(Arity.new ~opt-arity = 1, ~arity = 1, ~mask = 0)
+    $|\includegraphics| = $(Arity.new ~opt-arity = 1, ~arity = 1, ~mask = 0)
+    $|\lstset|          = $(Arity.new ~arity = 1, ~mask = 0)
+    $|\usepackage|      = $(Arity.new ~arity = 1, ~mask = 0)
+
+    find-arity(name) =
+        try
+            this.find($(name))
+        default
+            value $(default-arity)
+
+    is-verbatim(name) =
+        info = $(find-arity $(name))
+        value $(info.verbatim)

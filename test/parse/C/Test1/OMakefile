@@ -1,0 +1,15 @@
+open parse/C/Lex
+open parse/C/Parse
+
+Print(outname, inname) =
+    prog = $(parser.parse-file prog, $(inname))
+
+    fprintln($(outname), $(prog.to-string))
+
+%.i: %.c
+    $(CPP) $< > $@
+
+%.dump: %.i
+    Print($@, $<)
+
+.DEFAULT: test.dump

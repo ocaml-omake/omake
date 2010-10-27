@@ -1,0 +1,37 @@
+# The "exit" command should abort the current shell alias, but not the whole
+# execution.
+
+Shell. +=
+   true(argv) =
+      println($'Running internal "true"')
+      exit 0
+
+   false(argv) =
+      println($'Running internal "false"')
+      exit 1
+
+   false_five(argv) =
+      exit 5
+
+   false_or1(argv) =
+      false_five || exit 10
+
+   false_or2(argv) =
+      false_five || exit 10
+      exit 0
+
+ABORT_ON_COMMAND_ERROR = false
+false || true
+
+test(prog, val) =
+   code = $(shell-code $(prog))
+   OK = $(eq $(code), $(val))
+   eprintln($"$(prog): expected $(val), got $(code) - $(if $(OK), OK, FAILED!)")
+   if $(not $(OK))
+      exit 1
+
+test(true, 0)
+test(false, 1)
+test(false_five, 5)
+test(false_or1, 10)
+test(false_or2, 10)

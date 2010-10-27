@@ -1,0 +1,22 @@
+ROOT = $(dir .)
+
+rm -rf A
+mkdir A
+rm -rf B
+mkdir B
+
+.PHONY: all
+
+.SUBDIRS: A
+    Copy(f) =
+        println(Copy $(f) in $(fullname $(CWD)))
+	f = $(ROOT)/A/$(f)
+	$(f) :
+	    echo $(f) >  $@
+        all : $(f)
+    export Copy
+
+.SUBDIRS: B
+    Copy(x)
+
+.DEFAULT: all

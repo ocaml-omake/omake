@@ -1,0 +1,16 @@
+*** curry branch
+
+- What happens to exports from curried functions?
+
+  curry.f() =
+     export
+     public.X = 1
+     fun() =>
+        println($X)
+
+- The arity of a ValPrim is used for partial application,
+  but the arities are often wrong.
+
+- It is assumed that a primitive function, when partially
+  applied, takes -all- the keyword arguments.  Nearly
+  all the primitives will choke if passed a keyword.

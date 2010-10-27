@@ -1,0 +1,83 @@
+#
+# Test for placement of return expressions
+#
+errors = false
+
+########################################################################
+# return within foreach.
+#
+# This one will generate a warning, "statement not reached".
+#
+f() =
+   foreach(x => ..., 1 2 3)
+      return $x
+
+i = $f
+
+if $(equal $i, 1)
+    println($"f() = $i [SUCCESS]")
+else
+    eprintln($"f() = $i [FAILURE]")
+    errors = true
+    export
+
+########################################################################
+# Another version, should not generate a warning.
+#
+f() =
+    foreach(x => ..., 1 2 3)
+        if $(ge $x, 2)
+            return $x
+
+i = $f
+
+if $(equal $i, 2)
+    println($"f() = $i [SUCCESS]")
+else
+    eprintln($"f() = $i [FAILURE]")
+    errors = true
+    export
+
+########################################################################
+# Follow by another return.
+#
+f() =
+    foreach(x => ..., 1 2 3)
+        if $(ge $x, 2)
+            return $x
+    return 0
+
+i = $f
+
+if $(equal $i, 2)
+    println($"f() = $i [SUCCESS]")
+else
+    eprintln($"f() = $i [FAILURE]")
+    errors = true
+    export
+
+########################################################################
+# Nathan's example
+#
+a: b
+  section
+    targs[] = 1 2 3
+    any-output-file(targs) =
+        foreach(x => ..., $(targs))
+            if $(ge $x, 2)
+                return $x
+        return 0
+    i = $(any-output-file $(targs))
+
+    if $(equal $i, 2)
+        println($"f() = $i [SUCCESS]")
+    else
+        eprintln($"f() = $i [FAILURE]")
+        errors = true
+        export
+
+########################################################################
+# Exit code
+#
+if $(errors)
+    exit 1

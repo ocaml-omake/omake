@@ -1,0 +1,17 @@
+open configure/Configure
+
+# \begin{doc}
+# \subsection{Snprintf configuration}
+# Add \verb+open configure/snprintf+ line to your \verb+OMakefile+ to get access to the following
+# autoconfiguration variables.
+# \varlabel{SNPRINTF_AVAILABLE}{SNPRINTF\_AVAILABLE} A boolean flag telling whether the snprintf
+# function is available in the standard C library.
+#
+# \end{doc}
+#
+
+.STATIC:
+    SNPRINTF_AVAILABLE = false
+    section
+        SNPRINTF_AVAILABLE = $(VerboseCheckLib $(EMPTY), snprintf)
+        export SNPRINTF_AVAILABLE

@@ -1,0 +1,17 @@
+g(x) =
+    println($"g($x)")
+    add($x, 1)
+
+f(x) =
+    .STATIC: :key: $x
+        y = $(g $x)
+    value $y
+
+println($(f 1))
+println($(f 1))
+println($(f 2))
+println($(f 1))
+println($(f 2))
+
+.SUBDIRS: .
+    value

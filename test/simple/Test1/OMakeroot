@@ -1,0 +1,4 @@
+#
+# Include the OMakefile
+#
+.SUBDIRS: .

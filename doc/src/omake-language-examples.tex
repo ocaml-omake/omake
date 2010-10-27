@@ -1,0 +1,516 @@
+%
+% Some examples.
+%
+\chapter{Additional language examples}
+\label{chapter:language-examples}
+\cutname{omake-language-examples.html}
+
+In this section, we'll explore the core language through a series of examples (examples of the build
+system are the topic of the Chapter~\ref{chapter:build-examples}).
+
+For most of these examples, we'll use the \verb+osh+ command interpreter.  For simplicity, the
+values printed by \verb+osh+ have been abbreviated.
+
+\section{Strings and arrays}
+
+The basic \OMake{} values are strings, sequences, and arrays of values.  Sequences are like arrays of
+values separated by whitespace; the sequences are split on demand by functions that expect arrays.
+
+\begin{verbatim}
+   osh> X = 1 2
+   - : "1 2" : Sequence
+   osh> addsuffix(.c, $X)
+   - : <array 1.c 2.c> : Array
+\end{verbatim}
+
+Sometimes you want to define an array explicitly.  For this, use the \verb+[]+ brackets after the
+variable name, and list each array entry on a single indented line.
+
+\begin{verbatim}
+   osh> A[] =
+           Hello world
+           $(getenv HOME)
+   - : <array "Hello world" "/home/jyh"> : Array
+\end{verbatim}
+
+One central property of arrays is that whitespace in the elements is taken literally.  This can be
+useful, especially for filenames that contain whitespace. 
+
+\begin{verbatim}
+   # List the current files in the directory
+    osh> ls -Q
+    "fee"  "fi"  "foo"  "fum"
+    osh> NAME[] = 
+            Hello world
+    - : <array "Hello world"> : Array
+    osh> touch $(NAME)
+    osh> ls -Q
+    "fee"  "fi"  "foo"  "fum"  "Hello world"
+\end{verbatim}     
+
+\section{Quoted strings}
+\label{section:quoted-strings}
+\index{quoted strings}
+
+A \verb+String+ is a single value; whitespace is taken literally in a string.  Strings are introduced
+with quotes.  There are four kinds of quoted elements; the kind is determined by the opening quote.
+The symbols \verb+'+ (single-quote) and \verb+"+ (double-quote) introduce the normal shell-style
+quoted elements.  The quotation symbols are \emph{included} in the result string.  Variables are
+always expanded within a quote of this kind.  Note that the \Cmd{osh}{1}
+(Chapter~\ref{chapter:osh}) printer
+escapes double-quotes within the string; these are only for printing, they are not part of the
+string itself.
+
+\begin{verbatim}
+    osh> A = 'Hello "world"'
+    - : "'Hello \"world\"'" : String
+    osh> B = "$(A)"
+    - : "\"'Hello \"world\"'\"" : String
+    osh> C = 'Hello \'world\''
+    - : "'Hello 'world''" : String
+\end{verbatim}
+
+A second kind of quote is introduced with the \verb+$'+ and \verb+$"+
+quotes.  The number of opening and closing quote symbols is arbitrary.
+These quotations have several properties:
+\begin{itemize}
+\item The quote delimiters are not part of the string.
+\item Backslash \verb+\+ symbols within the string are treated as normal characters.
+\item The strings may span several lines.
+\item Variables are expanded within \verb+$"+ sequences, but not within \verb+$'+
+  sequences.
+\end{itemize}
+
+\begin{verbatim}
+    osh> A = $'''Here $(IS) an '''' \(example\) string['''
+    - : "Here $(IS) an '''' \\(example\\) string[" : String
+    osh> B = $""""A is "$(A)" """"
+    - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+    osh> value $(A.length)
+    - : 38 : Int
+    osh> value $(A.nth 5)
+    - : "$" : String
+    osh> value $(A.rev)
+    - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+\end{verbatim}
+
+Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.
+
+\begin{verbatim}
+    osh> A = a b c
+    - : "a b c" : Sequence
+    osh> B = $(A).c
+    - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
+    osh> value $(nth 2, $(B))
+    - : "c.c" : String
+    osh> value $(length $(B))
+    - : 3 : Int
+\end{verbatim}
+
+Arrays are different.  The elements of an array are never merged with
+adjacent text of any kind.  Arrays are defined by adding square
+brackets \verb+[]+ after a variable name and defining the elements
+with an indented body.  The elements may include whitespace.
+
+\begin{verbatim}
+    osh> A[] =
+            a b
+            foo bar
+    - : <array
+           "a b" : Sequence
+           "foo bar" : Sequence>
+           : Array
+    osh> echo $(A).c
+    a b foo bar .c
+    osh> value $(A.length)
+    - : 2 : Int
+    osh> value $(A.nth 1)
+    - : "foo bar" : Sequence
+\end{verbatim}
+
+Arrays are quite helpful on systems where filenames often contain whitespace.
+
+\begin{verbatim}
+    osh> FILES[] =
+             c:\Documents and Settings\jyh\one file
+             c:\Program Files\omake\second file
+
+    osh> CFILES = $(addsuffix .c, $(FILES))
+    osh> echo $(CFILES)
+    c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
+\end{verbatim}
+
+\section{Files and directories}
+
+\OMake{} projects usually span multiple directories, and different parts of the project execute
+commands in different directories.  There is a need to define a location-independent name for a file
+or directory.
+
+This is done with the \verb+$(file <names>)+ and \verb+$(dir <names>)+ functions.
+
+\begin{verbatim}
+   osh> mkdir tmp
+   osh> F = $(file fee)
+   osh> section:
+            cd tmp
+            echo $F
+   ../fee
+   osh> echo $F
+   fee
+\end{verbatim}
+
+Note the use of a \verb+section:+ to limit the scope of the \verb+cd+ command.  The section
+temporarily changes to the \verb+tmp+ directory where the name of the file is \verb+../fee+.  Once
+the section completes, we are still in the current directory, where the name of the file is
+\verb+fee+.
+
+One common way to use the file functions is to define proper file names in your project
+\verb+OMakefile+, so that references within the various parts of the project will refer to the same
+file.
+
+\begin{verbatim}
+    osh> cat OMakefile
+    ROOT = $(dir .)
+    TMP  = $(dir tmp)
+    BIN  = $(dir bin)
+    ...
+\end{verbatim}
+
+\section{Iteration, mapping, and foreach}
+
+Most builtin functions operate transparently on arrays.
+
+\begin{verbatim}
+    osh> addprefix(-D, DEBUG WIN32)
+    - : -DDEBUG -DWIN32 : Array
+    osh> mapprefix(-I, /etc /tmp)
+    - : -I /etc -I /tmp : Array
+    osh> uppercase(fee fi foo fum)
+    - : FEE FI FOO FUM : Array
+\end{verbatim}
+
+The \verb+mapprefix+ and \verb+addprefix+ functions are slightly different (the \verb+addsuffix+ and
+\verb+mapsuffix+ functions are similar).  The \verb+addprefix+ adds the prefex to each array
+element.  The \verb+mapprefix+ doubles the length of the array, adding the prefix as a new array
+element before each of the original elements.
+
+Even though most functions work on arrays, there are times when you will want to do it yourself.
+The \verb+foreach+ function is the way to go.  The \verb+foreach+ function has two forms, but the
+form with a body is most useful.  In this form, the function takes two arguments and a body.  The
+second argument is an array, and the first is a variable.  The body is evaluated once for each
+element of the array, where the variable is bound to the element.  Let's define a function to add 1
+to each element of an array of numbers.
+
+\begin{verbatim}
+   osh> add1(l) =
+            foreach(i => $l):
+                add($i, 1)
+   osh> add1(7 21 75)
+   - : 8 22 76 : Array
+\end{verbatim}
+
+Sometimes you have an array of filenames, and you want to define a rule for each of them.  Rules are
+not special, you can define them anywhere a statement is expected.  Say we want to write a function
+that describes how to process each file, placing the result in the \verb+tmp/+ directory.
+
+\begin{verbatim}
+   TMP = $(dir tmp)
+
+   my-special-rule(files) =
+      foreach(name => $(files))
+         $(TMP)/$(name): $(name)
+            process $< > $@
+\end{verbatim}
+
+Later, in some other part of the project, we may decide that we want to use this function to process some files.
+
+\begin{verbatim}
+   # These are the files to process in src/lib
+   MY_SPECIAL_FILES[] =
+       fee.src
+       fi.src
+       file with spaces in its name.src
+   my-special-rule($(MY_SPECIAL_FILES))
+\end{verbatim}
+
+The result of calling \verb+my-special-rule+ is
+exactly the same as if we had written the following three rules explicitly.
+
+\begin{verbatim}
+    $(TMP)/fee.src: fee.src
+        process fee > $@
+    $(TMP)/fi.src: fi.src
+        process fi.src > $@
+    $(TMP)/$"file with spaces in its name.src": $"file with spaces in its name.src"
+        process $< > $@
+\end{verbatim}
+
+Of course, writing these rules is not nearly as pleasant as calling the function.  The usual
+properties of function abstraction give us the usual benefits.  The code is less redundant, and
+there is a single location (the \verb+my-special-rule+ function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one location.
+
+\section{Lazy expressions}
+\label{section:lazy}
+
+Evaluation in \Prog{omake} is normally eager.  That is, expressions
+are evaluated as soon as they are encountered by the evaluator.  One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+
+There are two ways to control this behavior.  The \verb+$`(v)+ form
+introduces lazy behavior, and the \verb+$,(v)+ form restores
+eager behavior.  Consider the following sequence.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1" : Sequence
+    osh> B = 2
+    - : "2" : Sequence
+    osh> C = $`(add $(A), $,(B))
+    - : $(apply add $(apply A) "2" : Sequence)
+    osh> println(C = $(C))
+    C = 3
+    osh> A = 5
+    - : "5" : Sequence
+    osh> B = 6
+    - : "6" : Sequence
+    osh> println(C = $(C))
+    C = 7
+\end{verbatim}
+
+The definition \verb+C = $`(add $(A), $,(B))+ defines a lazy application.
+The \verb+add+ function is not applied in this case until its value is needed.
+Within this expression, the value \verb+$,(B)+ specifies that \verb+B+ is
+to be evaluated immediately, even though it is defined in a lazy expression.
+
+The first time that we print the value of \verb+C+, it evaluates to 3
+since \verb+A+ is 1 and \verb+B+ is 2.  The second time we evaluate \verb+C+,
+it evaluates to 7 because \verb+A+ has been redefined to \verb+5+.  The second
+definition of \verb+B+ has no effect, since it was evaluated at definition time.
+
+\subsection{A larger example of lazy expressions}
+
+Lazy expressions are not evaluated until their result is needed.  Some people,
+including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
+when evaluation actually happens.  However, there are cases where they pay off.
+
+One example comes from option processing.  Consider the specification of ``include'' directories on
+the command line for a C compiler.  If we want to include files from /home/jyh/include and ../foo,
+we specify it on the command line with the options \verb+-I/home/jyh/include -I../foo+.
+
+Suppose we want to define a generic rule for building C files.  We could define a \verb+INCLUDES+
+array to specify the directories to be included, and then define a generic implicit rule in our root
+OMakefile.
+
+\begin{verbatim}
+    # Generic way to compile C files.
+    CFLAGS = -g
+    INCLUDES[] =
+    %.o: %.c
+       $(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += -I../include
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) -o $@ $(OFILES)
+\end{verbatim}
+
+But this is not quite right.  The problem is that INCLUDES is an array of options, not directories.
+If we later wanted to recover the directories, we would have to strip the leading \verb+-I+ prefix,
+which is a hassle.  Furthermore, we aren't using proper names for the directories.  The solution
+here is to use a lazy expression.  We'll define INCLUDES as a directory array, and a new variable
+\verb+PREFIXED_INCLUDES+ that adds the -I prefix.  The \verb+PREFIXED_INCLUDES+ is computed lazily,
+ensuring that the value uses the most recent value of the INCLUDES variable.
+
+\begin{verbatim}
+    # Generic way to compile C files.
+    CFLAGS = -g
+    INCLUDES[] =
+    PREFIXED_INCLUDES[] = $`(addprefix -I, $(INCLUDES))
+    %.o: %.c
+       $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $<
+
+    # For this example, we define a proper name for the include directory
+    STDINCLUDE = $(dir include)
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += $(STDINCLUDE)
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) -o $@ $(OFILES)
+\end{verbatim}
+
+Note that there is a close connection between lazy values and functions.  In the example above, we
+could equivalently define \verb+PREFIXED_INCLUDES+ as a function with zero arguments.
+
+\begin{verbatim}
+    PREFIXED_INCLUDES() =
+        addprefix(-I, $(INCLUDES))
+\end{verbatim}
+
+\section{Scoping and exports}
+
+The \OMake{} language is functional (apart from IO and shell commands).  This comes in two parts:
+functions are first-class, and variables are immutable (there is no assignment operator).  The
+latter property may seem strange to users used to GNU make, but it is actually a central point of
+\OMake{}.  Since variables can't be modified, it is impossible (or at least hard) for one part of the
+project to interfere with another.
+
+To be sure, pure functional programming can be awkward.  In \OMake{}, each new indentation level
+introduces a new scope, and new definitions in that scope are lost when the scope ends.  If \OMake{}
+were overly strict about scoping, we would wind up with a lot of convoluted code.
+
+\begin{verbatim}
+   osh> X = 1
+   osh> setenv(BOO, 12)
+   osh> if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+   osh> println($X $(getenv BOO))
+   1 12
+\end{verbatim}
+
+The \verb+export+ command presents a way out.  It takes care of ``exporting'' a value (or the entire
+variable environment) from an inner scope to an outer one.
+
+\begin{verbatim}
+   osh> X = 1
+   osh> setenv(BOO, 12)
+   osh> if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+            export
+   osh> println($X $(getenv BOO))
+   2 17
+\end{verbatim}
+
+Exports are especially useful in loop to export values from one iteration of a loop to the next.
+
+\begin{verbatim}
+   # Ok, let's try to add up the elements of the array
+   osh>sum(l) =
+           total = 0
+           foreach(i => $l)
+               total = $(add $(total), $i)
+           value $(total)
+   osh>sum(1 2 3)
+   - : 0 : Int
+
+   # Oops, that didn't work!
+   osh>sum(l) =
+           total = 0
+           foreach(i => $l)
+               total = $(add $(total), $i)
+               export
+           value $(total)
+   osh>sum(1 2 3)
+   - : 6 : Int
+\end{verbatim}
+
+A \verb+while+ loop is another form of loop, with an auto-export.
+
+\begin{verbatim}
+    osh>i = 0
+    osh>total = 0
+    osh>while $(lt $i, 10)
+            total = $(add $(total), $i)
+            i = $(add $i, 1)
+    osh>println($(total))
+    45
+\end{verbatim}
+
+\section{Shell aliases}
+
+Sometimes you may want to define an \emph{alias}, an \OMake{} command that masquerades as a real shell
+command.  You can do this by adding your function as a method to the \verb+Shell+ object.
+
+For an example, suppose we use the \verb+awk+ function to print out all the comments in a file.
+
+\begin{verbatim}
+    osh>cat comment.om
+    # Comment function
+    comments(filename) =
+        awk($(filename))
+        case $'^#'
+            println($0)
+    # File finished
+    osh>include comment
+    osh>comments(comment.om)
+    # Comment function
+    # File finished
+\end{verbatim}
+
+To add it as an alias, add the method (using += to preserve the existing entries in the Shell).
+
+\begin{verbatim}
+   osh>Shell. +=
+           printcom(argv) =
+               comments($(nth 0, $(argv)))
+   osh>printcom comment.om > output.txt
+   osh>cat output.txt
+   # Comment function
+   # File finished
+\end{verbatim}
+
+A shell command is passed an array of arguments \verb+argv+.  This does \emph{not} include the name
+of the alias.
+
+\section{Input/output redirection on the cheap}
+
+As it turns out, scoping also provides a nice alternate way to perform redirection.  Suppose you
+have already written a lot of code that prints to the standard output channel, but now you decide
+you want to redirect it.  One way to do it is using the technique in the previous example: define
+your function as an alias, and then use shell redirection to place the output where you want.
+
+There is an alternate method that is easier in some cases.  The variables \verb+stdin+,
+\verb+stdout+, and \verb+stderr+ define the standard I/O channels.  To redirect output, redefine
+these variables as you see fit.  Of course, you would normally do this in a nested scope, so that
+the outer channels are not affected.
+
+\begin{verbatim}
+    osh>f() =
+            println(Hello world)
+    osh>f()
+    Hello world
+    osh>section:
+            stdout = $(fopen output.txt, w)
+            f()
+            close($(stdout))
+    osh>cat output.txt
+    Hello world
+\end{verbatim}
+
+This also works for shell commands.  If you like to gamble, you can try the following example.
+
+\begin{verbatim}
+    osh>f() =
+            println(Hello world)
+    osh>f()
+    Hello world
+    osh>section:
+            stdout = $(fopen output.txt, w)
+            f()
+            cat output.txt
+            close($(stdout))
+    osh>cat output.txt
+    Hello world
+    Hello world
+\end{verbatim}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

@@ -1,0 +1,34 @@
+OMake test suite
+================
+
+This directory contains number of automatic tests for OMake, spread
+out over a number of subdirectories.  Each subdirectory constitutes a
+"test group" and contains a number of individual tests.
+
+To run the tests, run "omake check", either in the top omake directory
+or in the tests directory.  The test logs will be written to a file
+called "result.log" in each log group.
+
+Mechanics
+=========
+
+Each individual test has a name "TestN", where N is a number, and is
+written either as a simple osh script with that name, or as a
+subdirectory.  If it is a script, it will be run and the exit status
+is used to indicate success or failure (0 for success).
+
+If the test is written as a directory, it should contain either a
+"run.osh" file or an "OMakeroot" file.  If the "run.osh" file exists,
+it will be run in the same way as if he test had been written as a
+single script.  If no script is found, "omake" will be run in the test
+directory, which will use the "OMakeroot".  The exit status of omake
+is used to indicate success or failure.
+
+Writing test cases
+==================
+
+If you have a test test that can be written as a self-contained osh
+script, you don't have to use a subdirectory for the test, and instead
+write it to a file called "TestN". But for other cases, where you have
+other files, or where you are checking for correct output, you should
+create a subdirectory for your test.

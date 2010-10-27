@@ -1,0 +1,12 @@
+#
+# Simple, no keywords
+#
+curry.f() =
+   println(Curried function was called)
+   badd(i, j) =
+      add($i, $j)  
+
+i = $(f 1, 2)
+if $(not $(equal $i, 3))
+   eprintln($"Error: result is $i, expected 3")
+   exit 1

@@ -1,0 +1,40 @@
+#
+# We should support old-style foreach.
+# As of rev 11849, this does not work.
+#
+
+########################################################################
+# Argument arrow.
+#
+# Proper syntax:
+#
+# foreach(i => ..., $A)
+#    println($i)
+#
+A[] = 1 2 3
+foreach(i, $A)
+   println($i)
+
+########################################################################
+# Final =>
+#
+# Proper syntax:
+#
+# A.foreach(i) =>
+#    println($i)
+#
+# A.foreach(i => ...)
+#    println($i)
+#
+# M.foreach(key, value => ...)
+#    println(...)
+#
+A.foreach(i)
+   println($i)
+
+M. =
+   extends $(Map)
+   $|aaa| = 1
+
+M.foreach(key, value)
+   println($'$|'$"$(key)| = $(value)")

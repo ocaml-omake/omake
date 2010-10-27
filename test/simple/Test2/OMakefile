@@ -1,0 +1,7 @@
+.SUBDIRS: a
+    .SUBDIRS: x
+        X = 1
+        export
+    .SUBDIRS: y
+        Y = 1
+        export

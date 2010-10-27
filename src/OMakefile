@@ -1,0 +1,52 @@
+#
+# The order needs to be right in order for the bootstrapping Makefile to work.
+#
+ABORT_ON_DEPENDENCY_ERRORS = true
+
+#
+# Makefile.tmp care about the generated files.
+#
+.PHONY: MakefileDeps
+Makefile.tmp%: OCamlGeneratedFilesTarget MakefileDeps
+OldLocalOCamlGeneratedFiles = $(LocalOCamlGeneratedFiles)
+LocalOCamlGeneratedFiles(files) =
+    MakefileDeps: $(files)
+    OldLocalOCamlGeneratedFiles($(files))
+    export
+
+#
+# Subdirectories
+#
+.SUBDIRS: clib libmojave util magic
+
+LocalOCamlGeneratedFiles(magic/omake_magic.ml)
+
+.SUBDIRS: ir exec ast env
+
+LocalOCamlGeneratedFiles(env/omake_ast_lex.ml env/omake_ast_parse.mly env/omake_ast_parse.ml env/omake_ast_parse.mli)
+
+.SUBDIRS: shell eval build builtin main
+
+#
+# Generate a Makefile
+#
+MakeRootMakefiles([...])
+    clib
+    libmojave
+    util
+    magic
+    ir
+    exec
+    ast
+    env
+    shell
+    eval
+    build
+    builtin
+    main
+
+#
+# Clean up
+#
+clean:
+    $(CLEAN) Makefile.tmp*

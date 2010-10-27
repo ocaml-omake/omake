@@ -1,0 +1,168 @@
+#
+# Link all the files from the external reference to libmojave.
+#
+EXTERNAL = ../libmojave-external
+
+STDLIB_FILES[] =
+    lm_printf.ml
+    lm_debug.ml
+    lm_heap.ml
+    lm_list_util.ml
+    lm_array_util.ml
+    lm_set_sig.ml
+    lm_set.ml
+    lm_map_sig.ml
+    lm_map.ml
+    lm_int_set.ml
+    lm_index.ml
+    lm_thread_sig.ml
+    lm_thread.ml
+    lm_string_util.ml
+    lm_string_set.ml
+    lm_printf.mli
+    lm_debug.mli
+    lm_list_util.mli
+    lm_array_util.mli
+    lm_set.mli
+    lm_map.mli
+    lm_int_set.mli
+    lm_index.mli
+    lm_thread_core.mli
+    lm_thread.mli
+    lm_string_util.mli
+    lm_string_set.mli
+    lm_thread_pool.mli
+
+UTIL_FILES[] =
+    lm_arg.ml
+    lm_hash_sig.ml
+    lm_hash.ml
+    lm_location.ml
+    lm_position.ml
+    lm_channel.ml
+    lm_lexer.ml
+    lm_parser.ml
+    lm_glob.ml
+    lm_db.ml
+    lm_arg.mli
+    lm_hash.mli
+    lm_location.mli
+    lm_position.mli
+    lm_channel.mli
+    lm_lexer.mli
+    lm_parser.mli
+    lm_glob.mli
+    lm_db.mli
+    lm_termsize.ml
+    lm_termsize.mli
+    lm_terminfo.ml
+    lm_terminfo.mli
+    lm_filename_util.ml
+    lm_filename_util.mli
+
+UNIX_FILES[] =
+    lm_uname.ml
+    lm_unix_util.ml
+    lm_uname.mli
+    lm_unix_util.mli
+    lm_notify.ml
+    lm_notify.mli
+    lm_fs_case_sensitive.ml
+    lm_fs_case_sensitive.mli
+
+EXTERNAL_FILES[] =
+    $(STDLIB_FILES)
+    $(UTIL_FILES)
+    $(UNIX_FILES)
+    lm_symbol.ml
+    lm_symbol.mli
+
+MakeLinkExternal($(EXTERNAL)/stdlib, $(STDLIB_FILES))
+MakeLinkExternal($(EXTERNAL)/util, $(UTIL_FILES))
+MakeLinkExternal($(EXTERNAL)/unix, $(UNIX_FILES))
+MakeLinkExternalFile(lm_symbol.ml, $(EXTERNAL)/util/lm_symbol_hash.ml)
+MakeLinkExternalFile(lm_symbol.mli, $(EXTERNAL)/util/lm_symbol_hash.mli)
+
+OCamlGeneratedFiles($(EXTERNAL_FILES))
+
+########################################################################
+# These are all the files we care about
+#
+FILES[] =
+    lm_printf
+    lm_debug
+    lm_heap
+    lm_list_util
+    lm_array_util
+    lm_set_sig
+    lm_set
+    lm_map_sig
+    lm_map
+    lm_int_set
+    lm_termsize
+    lm_terminfo
+    lm_arg
+    lm_index
+    lm_thread_sig
+    lm_thread_core
+    lm_thread
+    lm_string_util
+    lm_string_set
+    lm_hash_sig
+    lm_hash
+    lm_symbol
+    lm_location
+    lm_position
+    lm_filename_util
+    lm_uname
+    lm_thread_pool
+    lm_channel
+    lm_lexer
+    lm_parser
+    lm_unix_util
+    lm_glob
+    lm_db
+    lm_notify
+    lm_fs_case_sensitive
+
+#
+# Generated filed
+#
+GENERATED_FILES[] =
+    lm_thread_pool.ml
+    lm_thread_core.ml
+
+if $(THREADS_ENABLED)
+    OMAKE_THREAD_POOL = $(EXTERNAL)/stdlib/lm_thread_pool_system.ml
+    OMAKE_THREAD_CORE = $(EXTERNAL)/stdlib/lm_thread_core_system.ml
+    export
+else
+    OMAKE_THREAD_POOL = $(EXTERNAL)/stdlib/lm_thread_pool_null.ml
+    OMAKE_THREAD_CORE = $(EXTERNAL)/stdlib/lm_thread_core_null.ml
+    export
+
+lm_thread_pool.ml: $(OMAKE_THREAD_POOL)
+    ln-or-cp $< $@
+
+lm_thread_core.ml: $(OMAKE_THREAD_CORE)
+    ln-or-cp $< $@
+
+OCamlGeneratedFiles($(GENERATED_FILES))
+
+#
+# Build the library
+#
+MakeOCamlLibrary(lm, $(FILES))
+
+#
+# Cleanup
+#
+clean:
+    $(CLEAN) $(EXTERNAL_FILES) $(GENERATED_FILES)
+
+#
+# Generate a Makefile
+#
+MakeLinkFile(lm_thread_pool.ml, $(EXTERNAL)/stdlib/lm_thread_pool_$'$(system)'.ml)
+MakeLinkFile(lm_thread_core.ml, $(EXTERNAL)/stdlib/lm_thread_core_$'$(system)'.ml)
+MakeMakefile()

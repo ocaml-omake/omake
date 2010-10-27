@@ -1,0 +1,385 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Usage
+%
+\chapter{Synopsis}
+\label{chapter:options}
+\cutname{omake-options.html}
+
+\Prog{omake}
+    \oOptArg{-j}{count}
+    \oOpt{-k}
+    \oOpt{-p}
+    \oOpt{-P}
+    \oOpt{-n}
+    \oOpt{-s} \oOpt{-S}
+    \oOpt{-w}
+    \oOpt{-t}
+    \oOpt{-u}
+    \oOpt{-U}
+    \oOpt{-R}
+    \oOpt{-{}-verbose}
+    \oOpt{-{}-project}
+    \oOpt{-{}-depend}
+    \oOpt{-{}-progress}
+    \oOpt{-{}-print-status}
+    \oOpt{-{}-print-exit}
+    \oOpt{-{}-print-dependencies}
+    \oOptArg{-{}-show-dependencies}{target}
+    \oOpt{-{}-all-dependencies}
+    \oOpt{-{}-verbose-dependencies}
+    \oOpt{-{}-force-dotomake}
+    \oOptArg{-{}-dotomake}{dir}
+    \oOpt{-{}-flush-includes}
+    \oOpt{-{}-configure}
+    \oOptArg{-{}-save-interval}{seconds}
+    \oOpt{-{}-install}
+    \oOpt{-{}-install-all}
+    \oOpt{-{}-install-force}
+    \oOpt{-{}-version}
+    \oOpt{-{}-absname}
+    \oOpt{-{}-output-normal}
+    \oOpt{-{}-output-postpone}
+    \oOpt{-{}-output-only-errors}
+    \oOpt{-{}-output-at-end}
+    \oArg{filename...}
+    \oOpt{var-definition...}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Options
+%
+\section{General usage}
+
+For Boolean options (for example, \verb+-s+, \verb+--progress+, etc.) the option can include a
+prefix \verb+--no+, which inverts the usual sense of the option.  For example, the option
+\verb+--progress+ means ``print a progress bar,''  while the option \verb+--no--progress+ means
+``do not print a progress bar.''
+
+If multiple instances of an option are specified, the final option determines the behavior of \OMake{}.
+In the following command line, the final \verb+--no-S+ cancels the earlier \verb+-S+.
+
+\begin{verbatim}
+    % omake -S --progress --no-S
+\end{verbatim}
+
+\section{Output control}
+
+\option{-s} \verb+-s+
+
+Never not print commands as they are executed (be ``silent'').
+
+
+\option{-S} \verb+-S+
+
+Do not print commands as they are executed \emph{unless} they produce output and/or
+fail. This is the default.
+
+\option{-w} \verb+-w+
+
+Print directory information in \Prog{make} format as commands are executed.
+This is mainly useful for editors that expect \Prog{make}-style
+directory information for determining the location of errors.
+
+\option{--progress} \verb+--progress+
+
+Print a progress indicator. This option is enabled by default when the \OMake's output
+(\verb+stdout+) is on a terminal and disabled by default (except on Windows) when the \OMake's
+output is redirected.
+
+\option{--print-status} \verb+--print-status+
+
+Print status lines (the \verb/+/ and \verb/-/ lines).
+
+\option{--print-exit} \verb+--print-exit+
+
+Print termination codes when commands complete.
+
+\option{--verbose} \verb+--verbose+
+
+Make \OMake{} very verbose. This option is equivalent to
+\verb+--no-S --print-status --print-exit VERBOSE=true+
+
+\option{--output-normal} \verb+--output-normal+
+
+As rule commands are executed, relay their output to the \OMake{} output right away. This is enabled
+by default, unless \verb+--output-postpone+ or \verb+--output-only-errors+ is enabled.
+
+\option{--output-postpone} \verb+--output-postpone+
+
+When a rule finishes, print the output as a single block.  This is useful in combination \verb+-j+
+option (see Section~\ref{option:-j}), where the output of multiple subprocesses can be garbled.  The
+diversion is printed as a single coherent unit.
+
+Note that enabling \verb+--output-postpone+ will by default disable the \verb+--output-normal+
+option. This might be problematic if you have a command that decides to ask for interactive input.
+If the \verb+--output-postpone+ is enabled, but the \verb+--output-normal+ is not, the prompt of
+such a command will not be visible and it may be hard to figure out why the build appears ``stuck''.
+You might also consider using the \verb+--progress+ flag (see Section~\ref{option:--progress}) so
+that you can see when the build is active. 
+
+\option{--output-only-errors} \verb+--output-only-errors+ 
+
+Similar to \verb+--output-postpone+, except that the postponed output from commands that were
+successful will be discarded. This can be useful in reducing unwanted output so that you can
+concentrate on any errors.
+
+\option{--output-at-end} \verb+--output-at-end+
+
+If any rules/commands fail, re-print the output of the failed commands when \OMake{} finishes the
+build. This is especially useful when any of the \verb+-k+, \verb+-p+, or \verb+-P+ options are
+enabled.
+
+This option is off by default. However, when \verb+-k+ is enabled --- either explicitly or via one
+of the \verb+-p+/\verb+-P+ options --- \verb+--output-at-end+ will be enabled by default.
+
+\option{-o} \verb+-o [01jwWpPxXsS]+
+
+For brevity, the \verb+-o+ option is also provided to duplicate the above output options.  The
+\verb+-o+ option takes a argument consisting of a sequence of characters.  The characters are read
+from left-to-right; each specifies a set of output options.  In general, an uppercase character turns
+the option \emph{on}; a lowercase character turns the option \emph{off}.
+
+\begin{description}
+\item[0] Equivalent to \verb+-s --output-only-errors --no-progress+
+
+This option specifies that \verb+omake+ should be as quiet as possible.  If any errors occur
+during the build, the output is delayed until the build terminates.  Output from successful commands
+is discarded.
+
+\item[1] Equivalent to \verb+-S --progress --output-only-errors+
+
+This is a slightly more relaxed version of ``quiet'' output.  The output from successful commands is
+discarded.  The output from failed commands is printed immediately after the command complete.  The
+output from failed commands is displayed twice: once immediately after the command completes, and
+again when the build completes.  A progress bar is displayed so that you know when the build is
+active.  Include the `\verb+p+' option if you want to turn off the progress bar (for example
+\verb+omake -o 1p+).
+
+\item[2] Equivalent to \verb+--progress --output-postpone+
+
+The is even more relaxed, output from successful commands is printed.
+This is often useful for deinterleaving the output when using \verb+-j+.
+
+\item[W] Equivalent to \verb+-w+
+\item[w] Equivalent to \verb+--no-w+
+\item[P] Equivalent to \verb+--progress+
+\item[p] Equivalent to \verb+--no--progress+
+\item[X] Equivalent to \verb+--print-exit+
+\item[x] Equivalent to \verb+--no-print-exit+
+\item[S] Equivalent to \verb+-S+
+\item[s] Equivalent to \verb+--no-S+
+\end{description}
+
+\section{Build options}
+
+\option{-k} \verb+-k+
+
+Do not abort when a build command fails; continue to build as much of the project as possible. This
+option is implied by both \verb+-p+ and \verb+-P+ options. In turn, this option would imply the
+\verb+--output-at-end+ option.
+
+\option{-n} \verb+-n+
+
+This can be used to see what would happen if the project were to be built.
+
+\option{-p} \verb+-p+
+
+Watch the filesystem for changes, and continue the build until it succeeds.  If this
+option is specified, \Prog{omake} will restart the build whenever source files are modified. Implies
+\texttt{-k}.
+
+\option{-P} \verb+-P+
+
+Watch the filesystem for changes forever.  If this option is specified, \Prog{omake}
+will restart the build whenever source files are modified. Implies
+\texttt{-k}.
+
+\option{-R} \verb+-R+
+
+Ignore the current directory and build the project from its root directory.  When \Prog{omake} is
+run in a subdirectory of a project and no explicit targets are given on the command line, it would
+normally only build files within the current directory and its subdirectories (more precisely, it
+builds all the \verb+.DEFAULT+ targets in the current directory and its subdirectories).  If the
+\Opt{-R} option is specified, the build is performed as if \Prog{omake} were run in the project
+root.
+
+In other words, with the \verb+-R+ option, all the relative targets specified on the command line
+will be taken relative to the project root (instead of relative to the current directory). When no
+targets are given on the command line, all the \verb+.DEFAULT+ targets in the project will be built
+(regardless of the current directory).
+
+\option{-t} \verb+-t+
+
+Update the \Prog{omake} database to force the project to be considered up-to-date.
+
+\option{-U} \verb+-U+
+
+Do not trust cached build information.  This will force the entire project to be rebuilt.
+
+\option{--depend} \verb+--depend+
+
+Do not trust cached dependency information.  This will force files to be rescanned
+for dependency information.
+
+\option{--configure} \verb+--configure+
+
+Re-run \verb+static.+ sections of the included omake files, instead of
+trusting the cached results.
+
+\option{--force-dotomake} \verb+--force-dotomake+
+
+Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
+
+\option{--dotomake} \verb+--dotomake <dir>+
+
+Use the specified directory instead of the \verb+$HOME/.omake+
+for the placement of the \verb+.omc+ cache files.
+
+\option{-j} \verb+-j <count>+
+
+Run multiple build commands in parallel.  The \Arg{count} specifies a
+bound on the number of commands to run simultaneously.  In addition, the count may specify servers
+for remote execution of commands in the form \verb+server=count+.  For example, the option
+\verb+-j 2:small.host.org=1:large.host.org=4+ would specify that up to 2 jobs can be executed
+locally, 1 on the server \verb+small.host.org+ and 4 on \verb+large.host.org+.  Each remote server
+must use the same filesystem location for the project.
+
+Remote execution is currently an experimental feature.  Remote filesystems like NFS do not provide
+adequate file consistency for this to work.
+
+\option{--print-dependencies} \verb+--print-dependencies+
+
+Print dependency information for the targets on the command line.
+
+\option{--show-dependencies} \verb+--show-dependencies <target>+
+
+Print dependency information \emph{if} the \verb+target+ is built.
+
+\option{--all-dependencies} \verb+--all-dependencies+
+
+If either of the options \texttt{-{}-print-dependencies} or
+\texttt{-{}-show-dependencies} is in effect, print transitive dependencies.  That is, print all
+dependencies recursively.  If neither option \texttt{-{}-print-dependencies},
+\texttt{-{}-show-dependencies} is specified, this option has no effect.
+
+\option{--verbose-dependencies} \verb+--verbose-dependencies+
+
+If either of the options \texttt{-{}-print-dependencies} or
+\texttt{-{}-show-dependencies} is in effect, also print listings for each dependency.  The output is
+very verbose, consider redirecting to a file.  If neither option \texttt{-{}-print-dependencies},
+\texttt{-{}-show-dependencies} is specified, this option has no effect.
+
+\option{--install} \verb+--install+
+
+Install default files \File{OMakefile} and \File{OMakeroot} into the current directory.  You would
+typically do this to start a project in the current directory.
+
+\option{--install-all} \verb+--install-all+
+
+In addition to installing files \File{OMakefile} and \File{OMakeroot}, install default
+\File{OMakefile}s into each subdirectory of the current directory.  \Cmd{cvs}{1} rules are used for
+filtering the subdirectory list.  For example, \File{OMakefile}s are not copied into directories
+called \verb+CVS+, \verb+RCCS+, etc.
+
+\option{--install-force} \verb+--install-force+
+
+Normally, \Prog{omake} will prompt before it overwrites any existing \File{OMakefile}.  If this
+option is given, all files are forcibly overwritten without prompting.
+
+\option{--absname} \verb+--absname+
+
+Filenames should expand to absolute pathnames.
+
+\textbf{N.B.} This is an experimental option. It may become deprecated.
+
+\option{variable definition} \verb+name=[value]+
+
+\Prog{omake} variables can also be defined on the command line in the form \verb+name=value+.  For
+example, the \verb+CFLAGS+ variable might be defined on the command line with the argument
+\verb+CFLAGS="-Wall -g"+.
+
+\section{Additional options}
+
+In addition, \Prog{omake} supports a number of debugging flags on the command line. Run
+\verb+omake --help+ to get a summary of these flags.
+
+\section{Environment variables}
+
+\subsection{\texttt{OMAKEFLAGS}}
+\index{OMAKEFLAGS}
+
+If defines, the \verb+OMAKEFLAGS+ should specify a set of options exactly as they are specified on
+the command line.
+
+\subsection{\texttt{OMAKELIB}}
+\index{OMAKELIB}
+
+If defined, the \verb+OMAKELIB+ environment variable should refer to the installed location of the
+\OMake{} standard library.  This is the directory that contains \verb+Pervasives.om+ etc.  On a Unix
+system, this is often \verb+/usr/lib/omake+ or \verb+/usr/local/lib/omake+, and on Win32 systems it
+is often \verb+c:\Program Files\OMake\lib+.
+
+If not defined, \verb+omake+ uses the default configured location.  You should normally leave this
+unset.
+
+\section{Functions}
+
+\subsection{\texttt{OMakeFlags}}
+
+The \verb+OMakeFlags+ function can be used within an \verb+OMakefile+ to modify
+the set of options.  The options should be specified exactly as they are on the command line.  For
+example, if you want some specific project to be silent and display a progress bar, you can add the
+following line to your \verb+OMakefile+.
+
+\begin{verbatim}
+    OMakeFlags(-S --progress)
+\end{verbatim}
+
+For options where it makes sense, the options are scoped like variables.  For example, if you want
+\OMake{} to be silent for a single rule (instead of for the entire project), you can use scoping the
+restrict the range of the option.
+
+\begin{verbatim}
+    section
+        # Do not display command output when foo is constructed
+        OMakeFlags(-S)
+
+        foo: fee
+           echo "This is a generated file" > foo
+           cat fee >> foo
+           chmod 555 foo
+\end{verbatim}
+
+\section{Option processing}
+
+When \verb+omake+ is invoked, the options are processed in the following order.
+
+\begin{enumerate}
+\item All options specified by the \verb+OMAKEFLAGS+ environment variable are defined globally.
+\item All options from the command line are defined globally.
+\item Any individual calls the the \verb+OMakeFlags+ function modify the options locally.
+\end{enumerate}
+
+\section{.omakerc}
+\label{section:.omakerc}
+\index{.omakerc}
+
+If the \verb+$(HOME)/.omakerc+ exists, it is read before any of the \verb+OMakefiles+ in your
+project.  The \verb+.omakerc+ file is frequently used for user-specific customization.
+For example, instead of defining the \verb+OMAKEFLAGS+ environment variable, you could add
+a line to your \verb+.omakerc+.
+
+\begin{verbatim}
+    $(HOME)/.omakerc:
+        # My private options
+        OMakeFlags(-S --progress)
+\end{verbatim}    
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% vim:tw=100:fo=tcq:
+% -*-

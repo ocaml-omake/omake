@@ -1,0 +1,31 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../magic
+    ../ir
+    ../env
+    ../exec
+    ../shell
+    ../eval
+
+FILES[] =
+    omake_rule
+    omake_build_type
+    omake_build_util
+    omake_builtin_type
+    omake_builtin_util
+    omake_target
+    omake_builtin
+    omake_build_tee
+    omake_build
+
+MakeOCamlLibrary(build, $(FILES))
+
+clean:
+    $(CLEAN)
+
+#
+# Generate a Makefile
+#
+MakeOCamlDepend($(FILES), magic.cma)
+MakeMakefile()

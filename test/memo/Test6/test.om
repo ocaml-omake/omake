@@ -1,0 +1,8 @@
+.MEMO:
+    LOCK = $(file $(ROOT)/lock)
+    if $(test -e $(LOCK))
+        eprintln($"Error: the .MEMO rule is being called twice")
+        exit 2
+    touch $(LOCK)
+    println($"$(in $(ROOT), $(LOCK)) created")
+    STATIC_TEST = true

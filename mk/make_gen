@@ -1,0 +1,379 @@
+#
+# Wrap the standard commands so that we can
+# produce a standard Makefile for bootstrapping.
+#
+BOOT = $(dir $(ROOT)/boot)
+
+MAKEFILE_TEXT =
+MAKEFILE_LINK =
+MAKEFILE_DONT_LINK =
+MAKEFILE_EXPLICIT_LINK =
+
+private.slash = $'$(slash)'
+private.ext_obj = $'$(EXT_OBJ)'
+private.ext_lib = $'$(EXT_LIB)'
+
+########################################################################
+# Linking
+#
+
+#
+# Specify explicit linking.
+#
+MakeDontLink(files) =
+    MAKEFILE_DONT_LINK += $(files)
+    export
+
+MakeLinkFile(dst, src) =
+    private.cwd = $(in $(BOOT), $(CWD))
+    private.cwd = $(split \/, $(private.cwd))
+    private.cwd = $(concat $(slash), $(private.cwd))
+
+    private.src = $(split \/, $(src))
+    private.src = $(concat $(slash), $(private.src))
+
+    private.srcfile = $"$(cwd)$(slash)$(private.src)"
+    MAKEFILE_TEXT += $"""
+$(dst): $(srcfile)
+	$$(LN) $(srcfile) $(dst)
+"""
+    MAKEFILE_EXPLICIT_LINK += $(dst)
+    export
+
+MakeLinkExternalFile(dst, src) =
+    # Record the link
+    MakeLinkFile($(dst), $(src))
+
+    # Perform the link
+    $(dst): $(src)
+        ln-or-cp $< $@
+
+    export
+
+MakeLinkFiles(files) =
+    foreach(name => ..., $(files))
+        MakeLinkFile($(name), $(name))
+        export
+    export
+
+MakeLinkExternal(srcdir, files) =
+    foreach(name => ..., $(files))
+        # Record the link
+        MakeLinkFile($(name), $(srcdir)/$(name))
+
+        # Perform the link
+        $(name): $(srcdir)/$(name)
+            ln-or-cp $< $@
+
+        export
+    export
+
+########################################################################
+# C
+#
+MakeStaticCLibrary(name, files) =
+    StaticCLibrary($(name), $(files))
+
+    private.cfiles = $(addsuffix .c, $(files))
+    private.hfiles = $(filter-exists $(addsuffix .h, $(files)))
+    private.ofiles = $(addsuffix $(ext_obj), $(files))
+    MAKEFILE_LINK += $(cfiles) $(hfiles)
+    MAKEFILE_TEXT += $"""
+OFILES_$(name) = $(ofiles)
+
+$(name)$$(EXT_LIB): $$(OFILES_$(name))
+	-$$(RM) $$@
+	$$(AR) $$(AROUT)$$@ $$(OFILES_$(name))
+"""
+    export
+
+########################################################################
+# OCaml
+#
+
+#
+# Generate a program.
+#
+MakeOCamlProgram(name, files) =
+    OCamlProgram($(name), $(files))
+
+    private.mlfiles = $(addsuffix .ml, $(files))
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
+    private.ocaml_libs = $(addsuffix .cma, $(basename $(OCAML_LIBS)))
+    private.ocaml_other_libs = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+    private.ocaml_other_libs = $(set-diff $(ocaml_other_libs), threads.cma)
+    private.ocaml_clibs = $(addsuffix $(ext_lib), $(basename $(OCAML_CLIBS)))
+    private.ocaml_cclibs = $(mapprefix -cclib, $(ocaml_clibs))
+    MAKEFILE_LINK += $(mlfiles) $(mlifiles)
+    MAKEFILE_TEXT += $"""
+CMOFILES_$(name) = $(cmofiles)
+OCAML_LIBS_$(name) = $(ocaml_libs)
+OCAML_OTHER_LIBS_$(name) = $(ocaml_other_libs)
+OCAML_CLIBS_$(name) = $(ocaml_clibs)
+OCAML_CCLIBS_$(name) = $(ocaml_cclibs)
+
+$(name)$$(EXE): $$(CMOFILES_$(name)) $$(OCAML_LIBS_$(name)) $$(OCAML_CLIBS_$(name))
+	$$(OCAMLC) $$(OCAMLFLAGS) -custom -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_$(name)) $$(THREADSLIB) $$(OCAML_LIBS_$(name)) $$(CMOFILES_$(name))
+"""
+    export
+
+#
+# Generate a library.
+#
+MakeOCamlLibrary(name, files) =
+    OCamlLibrary($(name), $(files))
+
+    private.mlfiles = $(addsuffix .ml, $(files))
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
+    MAKEFILE_LINK += $(mlfiles) $(mlifiles)
+    MAKEFILE_TEXT += $"""
+CMOFILES_$(name) = $(cmofiles)
+OCAML_LIB_FLAGS_$(name) = $(OCAML_LIB_FLAGS)
+
+$(name).cma: $$(CMOFILES_$(name))
+	$$(OCAMLC) $$(OCAMLFLAGS) $$(OCAML_LIB_FLAGS_$(name)) -a -o $$@ $$(CMOFILES_$(name))
+"""
+    export
+
+#
+# Add some dependencies (the make version of depend is rough)
+#
+MakeOCamlDepend(files, deps) =
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
+    private.cmifiles = $(addsuffix .cmi, $(removesuffix $(mlifiles)))
+    MAKEFILE_TEXT += $"""
+$(cmofiles) $(cmifiles): $(deps)
+"""
+    export
+
+#
+# Finish generating the Makefile text.
+#
+MakeText() =
+    private.cwd = $(in $(BOOT), $(CWD))
+    private.base = $(basename $(cwd))
+    private.cwd = $(split \/, $(cwd))
+    private.cwd = $(concat $(slash), $(cwd))
+    private.links = $(set $(MAKEFILE_LINK))
+    private.implicit-links = $(set-diff $(links), $(MAKEFILE_DONT_LINK) $(MAKEFILE_EXPLICIT_LINK))
+    private.makefiledep_deps = $(set-diff $(MAKEFILE_DONT_LINK), omake_magic.ml)
+
+    if $(makefiledep_deps)
+        MAKEFILE_TEXT += $"""
+Makefile.dep: $(makefiledep_deps)
+"""
+        export
+
+    MAKEFILE_TEXT += $"""
+SRC_$(base) = $(cwd)
+"""
+
+    #
+    # Link all the files
+    #
+    foreach(name => ..., $(implicit-links))
+        srcfile = $"$$(SRC_$(base))$$(slash)$(name)"
+        MAKEFILE_TEXT += $"""
+$(name): $(srcfile)
+	$$(LN) $(srcfile) $(name)
+"""
+        export
+
+    #
+    # Save the link listing
+    #
+    MAKEFILE_TEXT += $"""
+ALLFILES_$(base) = $(implicit-links) $(MAKEFILE_EXPLICIT_LINK)
+"""
+    return $(MAKEFILE_TEXT)
+
+#
+# Write to the Makefile
+#
+MakeMakefile() =
+    private.text = $(MakeText)
+
+    Makefile.tmp: :value: $(text)
+        @echo $(text) > $@
+
+########################################################################
+# Global Makefile generation
+#
+
+#
+# Header file for Unix
+#
+private.MAKEFILE_HEAD_UNIX = $'''#
+# !!!THIS IS A GENERATED FILE!!!
+# !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
+#
+.PHONY: depend clean
+
+#
+# System config
+#
+LN = ln -sf
+RM = rm -f
+DOT = ./
+slash = /
+
+win32 = unix
+system = null
+
+#
+# C configuration
+#
+CC = cc
+CFLAGS =
+AR = ar cq
+AROUT =
+EXT_OBJ = .o
+EXT_LIB = .a
+EXE =
+
+OCAMLFLAGS = -g
+THREADSLIB =
+
+.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
+
+.c.o:
+	$(CC) $(CFLAGS) -I"`ocamlc -where`" -c $*.c
+'''
+
+private.MAKEFILE_HEAD_NT = $'''#
+# !!!THIS IS A GENERATED FILE!!!
+# !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
+#
+#
+# Generic "nmake" configuration for bootstrapping.
+#
+LN = copy /Y
+RM = del /F
+DOT =
+slash = \\
+
+win32 = win32
+system = system
+
+#
+# C configuration
+#
+CC = cl
+CFLAGS = /nologo /MT -I"$(OCAMLLIB)" /DWIN32 /DFAM_ENABLED /DFAM_PSEUDO
+AR = lib /nologo /debugtype:CV
+AROUT = /out:
+EXT_OBJ = .obj
+EXT_LIB = .lib
+EXE = .exe
+
+OCAMLFLAGS = -thread
+THREADSLIB = threads.cma
+
+.SUFFIXES: .mll .mly .mli .ml .cmi .cmo
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $*.c
+'''
+
+private.MAKEFILE_HEAD_COMMON = $'''
+#
+# OCaml configuration
+#
+OCAMLC = ocamlc
+OCAMLYACC = ocamlyacc
+OCAMLLEX = ocamllex
+OCAMLDEP = ocamldep
+
+.mly.ml:
+	$(OCAMLYACC) $*.mly
+
+.mly.mli:
+	$(OCAMLYACC) $*.mly
+
+.mll.ml:
+	$(OCAMLLEX) $*.mll
+
+.mli.cmi:
+	$(OCAMLC) $(OCAMLFLAGS) -c $*.mli
+
+.ml.cmo:
+	$(OCAMLC) $(OCAMLFLAGS) -c $*.ml
+
+#
+# The version.txt file
+#
+version.txt:
+	@echo 0.0.boot > $@
+'''
+
+private.MAKEFILE_TAIL_COMMON = $'''
+#
+# Create a dependency file
+#
+Makefile.dep: $(ALLFILES)
+	$(OCAMLDEP) $(OCAMLINCLUDES) *.ml *.mli > Makefile.dep
+
+#
+# Clean up
+#
+clean:
+	$(RM) *.cmo *.cmx *.cma *.cmxa *.o *.obj *.a *.lib *.exe
+	$(RM) $(ALLFILES)
+	$(RM) omake
+'''
+
+private.MAKEFILE_TAIL_UNIX = $'''
+include Makefile.dep
+'''
+
+private.MAKEFILE_TAIL_NT = $'''
+!INCLUDE Makefile.dep
+'''
+
+MakeRootMakefiles(dirs) =
+    MAKEFILES = $(addsuffix /Makefile.tmp, $(dirs))
+    ALLFILES_names = $(add-wrapper $'$(ALLFILES_', $')', $(dirs))
+    ALLFILES = $"ALLFILES = $(ALLFILES_names)"
+
+    #
+    # Fix up output from latex2man so that it does
+    # not have trailing whitespace.
+    #
+    remove-trailing-whitespace(src, dst) =
+       stdout = $(fopen $(dst), wb)
+       fsubst($(src))
+       case $'[ \t]+$'
+          value
+       close($(stdout))
+
+    tmp1 = Makefile.tmp1
+    tmp2 = Makefile.tmp2
+    tmp3 = Makefile.tmp3
+    tmp4 = Makefile.tmp4
+
+    Makefile: $(MAKEFILES)
+        @echo $(MAKEFILE_HEAD_UNIX) > $(tmp1)
+        @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp1)
+        @cat $(MAKEFILES) >> $(tmp1)
+        @echo $(ALLFILES) >> $(tmp1)
+        @echo $(MAKEFILE_TAIL_COMMON) >> $(tmp1)
+        @echo $(MAKEFILE_TAIL_UNIX) >> $(tmp1)
+	remove-trailing-whitespace($(tmp1), $(tmp2))
+	@mv -f $(tmp2) $@
+	@chmod 444 $@
+
+    Makefile.nt: $(MAKEFILES)
+        @echo $(MAKEFILE_HEAD_NT) > $(tmp3)
+        @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp3)
+        @cat $(MAKEFILES) >> $(tmp3)
+        @echo $(ALLFILES) >> $(tmp3)
+        @echo $(MAKEFILE_TAIL_COMMON) >> $(tmp3)
+        @echo $(MAKEFILE_TAIL_NT) >> $(tmp3)
+	remove-trailing-whitespace($(tmp3), $(tmp4))
+	@mv -f $(tmp4) $@
+	@chmod 444 $@
+
+    .DEFAULT: Makefile Makefile.nt

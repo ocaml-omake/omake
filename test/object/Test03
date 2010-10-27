@@ -1,0 +1,13 @@
+A[] = $(set 1 2 3)
+B[] =
+
+A.foreach(v) =>
+   B[] +=
+      $v
+   export
+
+if $(not $(equal $(A), $(B)))
+   eprintln($"Bug: the Array.foreach function does not preserve exports!")
+   eprintln($"Expected: $A")
+   eprintln($"Actual: $B")
+   exit 1

@@ -1,0 +1,18 @@
+Please read the INSTALL file.
+
+To summarize, you need to build a bootstrap version of omake, then use
+the bootstrap executable to complete the build.  Run the following
+from a console window (you may need to use the Visual Studio Console Window).
+
+   nmake -f Makefile.nt bootstrap
+
+Next, open the .config file in a text editor and tweak the build parameters
+(including the installation directory) if needed. Now, run the following 
+from a console window (again, you may need to use the Visual Studio Console
+Window).
+
+   nmake -f Makefile.nt install
+
+If you have already created the .config or if you are happy to use the default
+build parameters and the default installation directory, you can skip all the
+steps except for the very last one.

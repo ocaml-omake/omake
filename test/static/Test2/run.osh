@@ -1,0 +1,4 @@
+open ../../diff
+omake --configure > stdout
+omake >> stdout
+diff -u stdout stdout.expected

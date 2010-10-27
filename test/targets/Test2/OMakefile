@@ -1,0 +1,9 @@
+d = $(CWD)
+.PHONY: foo
+foo:
+    section
+        cd ..
+        if $(equal $(CWD), $(d))
+            eprintln(Ineffective cd)
+            exit(1)
+.DEFAULT: foo

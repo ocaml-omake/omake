@@ -1,0 +1,13 @@
+fib(i) =
+    i = $(int $i)
+    .MEMO: :key: $i
+        println($"Computing fib($i)...")
+        result = 
+            if $(or $(eq $i, 0), $(eq $i, 1))
+                value $i
+            else
+                add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+    value $(result)
+
+println($"fib(10) = $(fib 10)")
+println($"fib(12) = $(fib 12)")

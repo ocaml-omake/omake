@@ -1,0 +1,8 @@
+rm -f a b c .omakedb
+if $(not $(shell-success omake a b))
+   println($"Omake has correctly reported an error")
+   exit 0
+
+if $(not $(test -e a -a -e b))
+   eprintln($"Error: omake call was successful, but target was not created")
+   exit 2

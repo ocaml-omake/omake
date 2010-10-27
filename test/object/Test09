@@ -1,0 +1,16 @@
+o. =
+   val = 0
+   incr(x) =
+      val = $(add $(val), $(x))
+      export 
+
+printvln($o)
+o.incr(2)
+o.incr(3)
+printvln($o)
+
+if $(not $(eq $(o.val), 5))
+   eprintln($"Object hoisting test failed!")
+   eprintln($"Expected: 5")
+   eprintln($"Actual: $(o.val)")
+   exit 1

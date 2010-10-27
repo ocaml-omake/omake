@@ -1,0 +1,25 @@
+A[] = key
+
+#
+# XXX: Note that if map is private, then the export will not work.
+# This is because Sequence.foreach contains an unqualified export,
+# and unqualified exports do not export the static/private environment.
+#
+Test(map) =
+   public.map = $(map)
+   A.foreach(key) =>
+      map = $(map.add $(key), new)
+      export map
+
+   new = $(map.find key)
+   if $(equal $(new), new)
+      println($"export map worked [SUCCESS]")
+   else
+      eprintln($"export map had no effect [FAILURE]")
+      exit 1
+
+X. =
+   extends $(Map)
+   $|key| = old
+
+Test($X)

@@ -1,0 +1,6 @@
+if $(not $(file-exists a))
+    mkdir -p a
+
+.SUBDIRS: a
+    pwd
+    export

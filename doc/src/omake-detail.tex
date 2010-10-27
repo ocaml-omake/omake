@@ -1,0 +1,469 @@
+%
+% Extra detail.
+%
+\chapter{Expressions and values}
+\label{chapter:extra}
+\cutname{omake-detail.html}
+
+\Prog{omake} provides a full programming-language including many
+system and IO functions.  The language is object-oriented -- everything is
+an object, including the base values like numbers and strings.  However,
+the \Prog{omake} language differs from other scripting languages in
+three main respects.
+
+\begin{itemize}
+\item Scoping is dynamic.
+\item Apart from IO, the language is entirely functional -- there is no
+  assignment operator in the language.
+\item Evaluation is normally eager -- that is, expressions are evaluated as soon
+  as they are encountered.
+\end{itemize}
+
+To illustrate these features, we will use the \Cmd{osh}{1} omake program shell.
+The \Cmd{osh}{1} program provides a toploop, where expressions can be entered
+and the result printed.  \Cmd{osh}{1} normally interprets input as command text
+to be executed by the shell, so in many cases we will use the \verb+value+
+form to evaluate an expression directly.
+
+\begin{verbatim}
+    osh> 1
+    *** omake error: File -: line 1, characters 0-1 command not found: 1
+    osh> value 1
+    - : "1" : Sequence
+    osh> ls -l omake
+    -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
+\end{verbatim}
+
+\section{Dynamic scoping}
+
+Dynamic scoping means that the value of a variable is determined by the most
+recent binding of the variable in scope at runtime.  Consider the following
+program.
+
+\begin{verbatim}
+    OPTIONS = a b c
+    f() =
+       println(OPTIONS = $(OPTIONS))
+    g() =
+       OPTIONS = d e f
+       f()
+\end{verbatim}
+
+If \verb+f()+ is called without redefining the \verb+OPTIONS+ variable,
+the function should print the string \verb+OPTIONS = a b c+.
+
+In contrast, the function \verb+g()+ redefines the \verb+OPTIONS+
+variable and evaluates \verb+f()+ in that scope, which now prints the
+string \verb+OPTIONS = d e f+.
+
+The body of \verb+g+ defines a local scope -- the redefinition of the
+\verb+OPTIONS+ variable is local to \verb+g+ and does not persist
+after the function terminates.
+
+\begin{verbatim}
+    osh> g()
+    OPTIONS = d e f
+    osh> f()
+    OPTIONS = a b c
+\end{verbatim}
+
+Dynamic scoping can be tremendously helpful for simplifying the code
+in a project.  For example, the \File{OMakeroot} file defines a set of
+functions and rules for building projects using such variables as
+\verb+CC+, \verb+CFLAGS+, etc.  However, different parts of a project
+may need different values for these variables.  For example, we may
+have a subdirectory called \verb+opt+ where we want to use the
+\verb+-03+ option, and a subdirectory called \verb+debug+ where we
+want to use the \verb+-g+ option.  Dynamic scoping allows us to redefine
+these variables in the parts of the project without having to
+redefine the functions that use them.
+
+\begin{verbatim}
+    section
+       CFLAGS = -O3
+       .SUBDIRS: opt
+    section
+       CFLAGS = -g
+       .SUBDIRS: debug
+\end{verbatim}
+
+However, dynamic scoping also has drawbacks.  First, it can become
+confusing: you might have a variable that is intended to be private,
+but it is accidentally redefined elsewhere.  For example, you might
+have the following code to construct search paths.
+
+\begin{verbatim}
+   PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+\end{verbatim}
+
+However, elsewhere in the project, the \verb+PATHSEP+ variable is
+redefined as a directory separator \verb+/+, and your function
+suddenly returns the string \verb+/bin//usr/bin//usr/X11R6/bin+,
+obviously not what you want.
+
+The \verb+private+ block is used to solve this problem.  Variables
+that are defined in a \verb+private+ block use static scoping -- that
+is, the value of the variable is determined by the most recent
+definition in scope in the source text.
+
+\begin{verbatim}
+   private
+      PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   PATHSEP = /
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+\end{verbatim}
+
+\section{Functional evaluation}
+
+Apart from I/O, \Prog{omake} programs are entirely functional.  This has two parts:
+
+\begin{itemize}
+\item There is no assignment operator.
+\item Functions are values, and may be passed as arguments, and returned from
+      functions just like any other value.
+\end{itemize}
+
+The second item is straightforward.  For example, the following program defines
+an increment function by returning a function value.
+
+\begin{verbatim}
+   incby(n) =
+      g(i) =
+         return $(add $(i), $(n))
+      return $(g)
+
+   f = $(incby 5)
+
+   value $(f 3)
+   - : 8 : Int
+\end{verbatim}
+
+The first item may be the most confusing initially.  Without assignment, how is
+it possible for a subproject to modify the global behavior of the project?  In fact,
+the omission is intentional.  Build scripts are much easier to write when there
+is a guarantee that subprojects do not interfere with one another.
+
+However, there are times when a subproject needs to propagate
+information back to its parent object, or when an inner scope needs to
+propagate information back to the outer scope.
+
+\section{Exporting the environment}
+\label{section:export}\index{export}
+The \verb+export+ directive can be used to propagate all or part of an inner scope back to its
+parent.  If used without
+arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
+part of the environment to propagate.  The most common usage is to export some or all of the definitions in a
+conditional block.  In the following example, the variable \verb+B+ is bound to 2 after the
+conditional.  The \verb+A+ variable is not redefined.
+
+\begin{verbatim}
+    if $(test)
+       A = 1
+       B = $(add $(A), 1)
+       export B
+    else
+       B = 2
+       export
+\end{verbatim}
+
+If the \verb+export+ directive is used without an argument, all of the following is exported:
+\begin{itemize}
+\item The values of all the dynamically scoped variables (as described in
+Section~\ref{section:public}).
+\item The current working directory.
+\item The current Unix environment.
+\item The current implicit rules and implicit dependencies (see also
+Section~\ref{section:implicit-scoping}).
+\item The current set of ``phony'' target declarations (see Sections~\ref{target:.PHONY}
+and~\ref{section:PHONY-scoping}).
+\end{itemize}
+
+If the \verb+export+ directive is used with an argument, the argument expression is evaluated
+and the resulting value is interpreted as follows:
+\begin{itemize}
+\item If the value is empty, everything is exported, as described above.
+\item If the value represents a environment (or a partial environment) captured using the
+\hyperfun{export}, then the corresponding environment or partial
+environment is exported.
+\item Otherwise, the value must be a sequence of strings specifying which items are to be propagated
+back. The following strings have special meaning:
+\begin{itemize}
+\item \index{.RULE}\verb+.RULE+ --- implicit rules and implicit dependencies.
+\item \index{.PHONY}\verb+.PHONY+ --- the set of ``phony'' target declarations.
+\end{itemize}
+All other strings are interpreted as names of the variables that need to be propagated back.
+\end{itemize}
+
+For example, in the following (somewhat artificial) example, the variables \verb+A+ and \verb+B+
+will be exported, and the implicit rule will remain in the environment after the section ends, but
+the variable \verb+TMP+ and the target \verb+tmp_phony+ will remain unchanged.
+
+\begin{verbatim}
+section
+   A = 1
+   B = 2
+   TMP = $(add $(A), $(B))
+
+   .PHONY: tmp_phony
+
+   tmp_phony:
+      prepare_foo
+
+   %.foo: %.bar tmp_phony
+      compute_foo $(TMP) $< $@
+   export A B .RULE
+\end{verbatim}
+
+\subsection{Export regions}
+
+\newinreorg
+
+The \verb+export+ directive does not need to occur at the end of a block.  An export is valid from
+the point where it is specified to the end of the block in which it is contained.  In other words,
+the export is used in the program that follows it.  This can be especially useful for reducing the
+amount of code you have to write.  In the following example, the variable \verb+CFLAGS+ is exported
+from the both branches of the conditional.
+
+\begin{verbatim}
+    export CFLAGS
+    if $(equal $(OSTYPE), Win32)
+        CFLAGS += /DWIN32
+    else
+        CFLAGS += -UWIN32
+\end{verbatim}
+
+\subsection{Returning values from exported regions}
+
+\newinreorg
+
+The use of export does not affect the value returned by a block.  The value is computed as usual, as
+the value of the last statement in the block, ignoring the export.  For example, suppose we wish to
+implement a table that maps strings to unique integers.  Consider the following program.
+
+\begin{verbatim}
+    # Empty map
+    table = $(Map)
+
+    # Add an entry to the table
+    intern(s) =
+        export
+        if $(table.mem $s)
+            table.find($s)
+        else
+            private.i = $(table.length)
+            table = $(table.add $s, $i)
+            value $i
+
+    intern(foo)
+    intern(boo)
+    intern(moo)
+    # Prints "boo = 1"
+    println($"boo = $(intern boo)")
+\end{verbatim}
+%
+Given a string \verb+s+, the function \verb+intern+ returns either the value already associated with
+\verb+s+, or assigns a new value.  In the latter case, the table is updated with the new value.  The
+\verb+export+ at the beginning of the function means that the variable \verb+table+ is to be
+exported.  The bindings for \verb+s+ and \verb+i+ are not exported, because they are private.
+
+\label{section:eager}
+
+Evaluation in \Prog{omake} is eager.  That is, expressions are evaluated as soon as they are
+encountered by the evaluator.  One effect of this is that the right-hand-side of a variable
+definition is expanded when the variable is defined.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1"
+    osh> A = $(A)$(A)
+    - : "11"
+\end{verbatim}
+
+In the second definition, \verb+A = $(A)$(A)+, the right-hand-side is evaluated first, producing the
+sequence \verb+11+.  Then the variable \verb+A+ is \emph{redefined} as the new value.  When combined
+with dynamic scoping, this has many of the same properties as conventional imperative programming.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1"
+    osh> printA() =
+        println($"A = $A")
+    osh> A = $(A)$(A)
+    - : "11"
+    osh> printA()
+    11
+\end{verbatim}
+
+In this example, the print function is defined in the scope of \verb+A+.  When it is called on
+the last line, the dynamic value of \verb+A+ is \verb+11+, which is what is printed.
+
+However, dynamic scoping and imperative programming should not be confused.  The following example
+illustrates a difference.  The second \verb+printA+ is not in the scope of the definition
+\verb+A = x$(A)$(A)x+, so it prints the original value, \verb+1+.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1"
+    osh> printA() =
+        println($"A = $A")
+    osh> section
+             A = x$(A)$(A)x
+             printA()
+    x11x
+    osh> printA()
+    1
+\end{verbatim}
+
+See also Section~\ref{section:lazy} for further ways to control the evaluation order through the use
+of ``lazy'' expressions.
+
+\section{Objects}
+
+\Prog{omake} is an object-oriented language.  Everything is an object, including
+base values like numbers and strings.  In many projects, this may not be so apparent
+because most evaluation occurs in the default toplevel object, the \verb+Pervasives+
+object, and few other objects are ever defined.
+
+However, objects provide additional means for data structuring, and in some cases
+judicious use of objects may simplify your project.
+
+Objects are defined with the following syntax.  This defines \verb+name+
+to be an object with several methods an values.
+
+\begin{verbatim}
+    name. =                     # += may be used as well
+       extends parent-object    # optional
+       class class-name         # optional
+
+       # Fields
+       X = value
+       Y = value
+
+       # Methods
+       f(args) =
+          body
+       g(arg) =
+          body
+\end{verbatim}
+
+An \verb+extends+ directive specifies that this object inherits from
+the specified \verb+parent-object+.  The object may have any number of
+\verb+extends+ directives.  If there is more than on \verb+extends+
+directive, then fields and methods are inherited from all parent
+objects.  If there are name conflicts, the later definitions override
+the earlier definitions.
+
+The \verb+class+ directive is optional.  If specified, it defines a name
+for the object that can be used in \verb+instanceof+ operations, as well
+as \verb+::+ scoping directives discussed below.
+
+The body of the object is actually an arbitrary program.  The
+variables defined in the body of the object become its fields, and the
+functions defined in the body become its methods.
+
+\section{Field and method calls}
+
+The fields and methods of an object are named using \verb+object.name+ notation.
+For example, let's define a one-dimensional point value.
+
+\begin{verbatim}
+   Point. =
+      class Point
+
+      # Default value
+      x = $(int 0)
+
+      # Create a new point
+      new(x) =
+         x = $(int $(x))
+         return $(this)
+
+      # Move by one
+      move() =
+         x = $(add $(x), 1)
+         return $(this)
+
+   osh> p1 = $(Point.new 15)
+   osh> value $(p1.x)
+   - : 15 : Int
+
+   osh> p2 = $(p1.move)
+   osh> value $(p2.x)
+   - : 16 : Int
+\end{verbatim}
+
+The \verb+$(this)+ variable always represents the current object.
+The expression \verb+$(p1.x)+ fetches the value of the \verb+x+ field
+in the \verb+p1+ object.  The expression \verb+$(Point.new 15)+
+represents a method call to the \verb+new+ method of the \verb+Point+
+object, which returns a new object with 15 as its initial value.  The
+expression \verb+$(p1.move)+ is also a method call, which returns a
+new object at position 16.
+
+Note that objects are functional --- it is not possible to modify the fields
+or methods of an existing object in place.  Thus, the \verb+new+ and \verb+move+
+methods return new objects.
+
+\section{Method override}
+
+Suppose we wish to create a new object that moves by 2 units, instead of
+just 1.  We can do it by overriding the \verb+move+ method.
+
+\begin{verbatim}
+   Point2. =
+      extends $(Point)
+
+      # Override the move method
+      move() =
+         x = $(add $(x), 2)
+         return $(this)
+
+   osh> p2 = $(Point2.new 15)
+   osh> p3 = $(p2.move)
+   osh> value $(p3.x)
+   - : 17 : Int
+\end{verbatim}
+
+However, by doing this, we have completely replaced the old \verb+move+ method.
+
+\section{Super calls}
+
+Suppose we wish to define a new \verb+move+ method that just calls the old one twice.
+We can refer to the old definition of move using a super call, which uses the notation
+\verb+$(classname::name <args>)+.  The \verb+classname+ should be the name of the
+superclass, and \verb+name+ the field or method to be referenced.  An alternative
+way of defining the \verb+Point2+ object is then as follows.
+
+\begin{verbatim}
+   Point2. =
+      extends $(Point)
+
+      # Call the old method twice
+      move() =
+         this = $(Point::move)
+         return $(Point::move)
+\end{verbatim}
+
+Note that the first call to \verb+$(Point::move)+ redefines the
+current object (the \verb+this+ variable).  This is because the method
+returns a new object, which is re-used for the second call.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-
+% vim:tw=100:fo=tcq:
+

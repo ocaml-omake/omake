@@ -1,0 +1,129 @@
+-*- Mode: text; fill-column: 70 -*-
+
+omake is designed to build itself.  Of course you must be wondering
+how we build in the first place!
+
+If you already have a working copy of omake (for instance, by
+downloading and installing it from somewhere else like
+omake.metaprl.org), then you should use your working copy to do the
+bootstrap.
+
+Otherwise, let's assume you do don't have omake already installed and
+you want to build it.
+
+-- Bootstrapping --
+
+Bootstrapping is setup to use "make" or "nmake".  By using one of
+these other tools, you can build a limited byte-code version of omake
+that you can then use to complete the install.
+
+   NOTE: The bootstrap uses the file src/Makefile and src/Makefile.nt
+   with default options, like CC=cc.  If something goes wrong, you can
+   edit these files by hand to suit your taste.  However, the
+   src/Makefiles are generated, and they will be clobbered when you
+   run omake for the first time.  To be safe, if you decide to modify
+   them, save your changes in some safe place, not /tmp.
+
+-- Unix, MacOS X, Cygwin bootstrap --
+
+You can use "make" to build a bootstrap version of omake.  Run
+
+   % make bootstrap
+
+to build the omake-boot executable.  This should work with classic
+make; there should be no need to use GNU make.  If you have it, GNU
+make will work fine.
+
+If you are going to compile OMake with the default options, you can
+use make to both bootstrap and build omake: 
+
+   % make all
+
+or even bootstrap, build, and install it:
+
+   % make install
+
+Environment variables:
+ - PREFIX (make all, make install) specifies the prefix for OMake
+   installation (defaults to /usr/local)
+ - LIBDIR (make all, make install) specifies the location for OMake
+   library directory (defaults to $PREFIX/lib)
+ - BINDIR (make install) specifies the location for OMake binaries
+   (defaults to $PREFIX/bin)
+ - INSTALL_ROOT (make install) specifies a "packaging root" for the
+   installation. Namely, omake will be installed under 
+   $INSTALL_ROOT/$LIBDIR and $INSTALL_ROOT/$BINDIR, but the omake binary
+   will be compiled to look for its files under $LIBDIR.
+
+Please note that the first time OMake is built, the PREFIX, LIBDIR and
+BINDIR variables are wrtten into the .config file in the root of the 
+sources tree. If the .config file exists, then the variables present there
+have precedence over the environment variables.
+
+-- Win32 bootstrap --
+
+The native Win32 build is faster than a Cygwin executable; it is
+recommended.  However, no matter what you do, execution times on Win32
+will be substantially longer than on Unix (I'm not sure why; I'm
+guessing that Win32 is a pig).
+
+   NOTE: Note that if you call any native executable from a Cygwin
+   shell, and you signal it (for example, with control-C), Cygwin
+   immediately terminates the process.  This is a well-known problem
+   with Cygwin.  It also means that when you abort omake from a Cygwin
+   shell, it will not have a chance to save its work.  Next time you
+   run omake, it will have forgotten everything it did before you
+   aborted it.  Please complain to the Cygwin people at www.cygwin.com
+   if you would like this to change.  Please be nice.  They already
+   know about this issue.
+
+   One way to avoid this problem is to run omake from a dos-prompt.
+   You can also run osh in a console window if you want a usable
+   shell.
+
+For a native Win32 build, you will need the native Win32 version of
+OCaml, Visual C++, and the Microsoft macro assembler.  See
+www.ocaml.org if you want to know where to get the macro assembler
+"ml".  It once came with Visual C++, but as far as I know, this is no
+longer true.
+
+"nmake" is Microsoft's attempt at a build tool.  It is part of Visual
+C++.  To run it, use the following command from a dos prompt.
+
+   dos> nmake -f Makefile.nt bootstrap
+
+This will build the omake-boot executable, which you can use to finish
+the installation.
+
+-- Finishing the install --
+
+Let's assume that you have successfully created the omake-boot
+executable.  To complete the install, run
+
+   % ./omake-boot
+or
+   dos> omake-boot
+
+After some configuration message, you should now get a message telling
+you that a .config file was just created, and you should edit it.
+
+You should either edit the .config, or leave it like it is.  The
+defaults should be pretty reasonable for your machine, but take a look
+if you are curious.
+
+When you are ready, run omake-boot again to build the real version of
+omake.
+
+If you like, you can run
+
+   % ./omake-boot install
+or
+   dos> omake-boot install
+
+to install it.  At this point, you are done.
+
+    NOTE: You can continue to use omake-boot for building omake, but
+    you are probably better off using an installed version, or
+    src/main/omake.  This is mainly for Win32, where the byte-code
+    omake-boot is not nearly as fast as the native-code
+    src/main/omake.

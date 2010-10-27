@@ -1,0 +1,86 @@
+#
+# Spell check a LaTeX file
+#
+open build/Common
+open parse/LaTeX/Parse
+
+private.tab = $"	"
+
+#
+# Read a file of words
+#
+Dict. =
+    extends $(Map)
+
+    misspelled = $(Map)
+
+    add-misspelled(word, loc) =
+        if $(not $(misspelled.mem $(word)))
+            misspelled = $(misspelled.add $(word), $(loc))
+	    export
+        return $(this)
+
+    check(word, loc) =
+        if $(not $(this.mem $(word)))
+	    lword = $(uncapitalize $(word))
+            if $(not $(this.mem $(lword)))
+                add-misspelled($(word), $(loc))
+            else
+	        value $(this)
+        else
+	    value $(this)
+
+    print-misspelled() =
+        has-misspelled = $(gt $(misspelled.length), 0)
+        if $(has-misspelled)
+	    eprintln($"The following words are misspelled:")
+            misspelled.map(word, loc) =>
+	        eprintln($(tab)$(word) : $(loc.to-string))
+        value $(has-misspelled)
+
+private.load-files(words, filenames) =
+    foreach(filename => ..., $(filenames))
+        export
+        if $(file-exists $(filename))
+	    print($"--- Loading dictionary $(filename)... ")
+            inx = $(fopen $(filename), r)
+            while true
+                try 
+		    word = $(input-line $(inx))
+                    words = $(words.add $(word), true)
+		default
+		    break()
+            close($(inx))
+            println($"(done)")
+    value $(words)
+
+#
+# Load the dictionaries
+#
+private.HOME = $(getenv HOME, /)
+
+private.FILES[] =
+    /usr/dict/words
+    /usr/share/dict/words
+    /opt/share/dict/words
+    $(HOME)/.words
+    $(ROOT)/.words
+
+.STATIC: :exists: $(FILES)
+    WORDS = $(load-files $(Dict), $(FILES))
+
+#
+# Spell checker
+#
+load-dictionaries() =
+    WORDS.mem(_)
+    WORDS = $(load-files $(WORDS), $(ROOT)/.spelling)
+    export
+   
+Shell. +=
+    spell(argv) =	
+        foreach(filename => ..., $(argv))
+            prog = $(parse-tex-file $(filename))
+            words = $(prog.spell-check $(WORDS))
+            if $(words.print-misspelled)
+	        exit(1)

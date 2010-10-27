@@ -1,0 +1,36 @@
+.MEMO:
+    println($"BUG: Variable assignments should not force .MEMO evaluation")
+    X = 1
+
+println($"---")
+
+Y = $(X)
+
+f(msg) =
+    .MEMO: :key: $(msg)
+        println($"BUG: $(msg) should not force .MEMO evaluation")
+        X = 1
+    return $X
+
+f(Function return)
+
+Y = $(f Function return to a variable)
+
+println($"---")
+
+g(msg) =
+    println($"BUG: $(msg) should not force lazy evaluation")
+
+XX = $`(g $"Variable assignments")
+
+println($"---")
+
+YY = $(XX)
+
+h(msg) =
+    return $`(g $(msg))
+
+h(Function return)
+
+YY = $(h Function return to a variable)
+

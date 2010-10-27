@@ -1,0 +1,20 @@
+A[] = key
+
+Test(M) =
+   public.M = $M
+   A.foreach(key) =>
+      M = $(M.add $(key), new)
+      export M
+
+   new = $(M.find key)
+   if $(equal $(new), new)
+      println($"export M worked [SUCCESS]")
+   else
+      eprintln($"export M had no effect [FAILURE]")
+      exit 1
+
+X. =
+   extends $(Map)
+   $|key| = old
+
+Test($X)

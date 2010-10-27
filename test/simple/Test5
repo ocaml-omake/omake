@@ -1,0 +1,7 @@
+expected = $"a:b:c:d:e"
+actual = $(concat $':', $(filter-out $(string $(EMPTY)), $(split $', ', $"a,b, c d    e")))
+
+if $(not $(equal $(actual), $(expected)))
+   eprintln($"Expected: $(expected)")
+   eprintln($"Actual: $(actual)")
+   exit 1

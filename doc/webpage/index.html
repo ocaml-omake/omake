@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+        <meta name="generator" content="Adobe GoLive 6">
+        <title>The OMake build system</title>
+    </head>
+
+    <body bgcolor="#ffffff" text="#000000">
+		<table><tr><td><img src="images/omake.gif" alt="" width="300" height="137" border="0"></td>
+            <td width="50px" valign="top"></td>
+            <td valign="top">
+              <u>OMake Home</u><br>
+              <a href="manual/omake.html">Documentation</a><br>
+              <a href="download.html">Download</a><br>
+              <a href="omake_papers.html">Publications</a></br>
+              <a href="omake_lists.html">Mailing lists</a><br>
+              <a href="omake_users.html">Users and projects</a><br>
+              <a href="http://bugzilla.metaprl.org/">Bugzilla</a><br>
+              <a href="http://svn.metaprl.org/viewcvs/mojave/omake-branches/0.9.8.x/">Browse sources</a><br>
+              Changelog
+                  <a
+                  href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">summary</a>,
+                  <a href="changelog.html">verbose</a>
+              </td>
+
+            </tr></table>
+		<h3>News</h3>
+		<ul>
+         <li><a href="changelog.html#0.9.8.5">Version 0.9.8.5 Released</a> (August 7, 2007)
+			<li><a href="http://omake.metaprl.org/prerelease/index.html">Version 0.9.9 Prerelease</a> (June 20, 2007)
+		</ul>
+		<h3>Overview</h3>
+		<p>OMake is a build system designed for scalability and portability.  It uses a syntax similar
+           to <tt>make</tt> utilities you may have used, but it features many additional enhancements,
+           including the following.</p>
+		<ul>
+          <li>Support for projects spanning several directories or directory hierarchies.
+          <li>Fast, reliable, automated, scriptable dependency analysis using MD5 digests, with full
+              support for incremental builds.
+          <li>Dependency analysis takes the command lines into account &mdash;
+          whenever the command line used to build a target changes, the target
+          is considered out-of-date.
+          <li>Fully scriptable, includes a library that providing support for standard tasks in
+               C, C++, OCaml, and LaTeX projects, or a mixture thereof.
+               <p> Often, a configuration file is as simple as a single line
+                   <pre>.DEFAULT: $(CProgram prog, foo bar baz)</pre>
+               which states that the program "<tt>prog</tt>" is built from the files <tt>foo.c</tt>,
+               <tt>bar.c</tt>, and <tt>baz.c</tt>. This one line will also invoke the default
+               standard library scripts for discovering implicit dependencies in C files (such as
+               dependencies on included header files).
+          </li>
+          <li>Full native support for rules that build several files at once.
+          <li>Portability: <tt>omake</tt> provides a uniform interface on Linux/Unix (including
+          64-bit architectures), Win32, Cygwin, Mac OS X, and other platforms that are supported by
+          <a href="http://www.ocaml.org/">OCaml</a>.
+
+          <li>Built-in functions that provide the most common features of programs
+          like <tt>grep</tt>, <tt>sed</tt>, and <tt>awk</tt>.  These are especially useful on Win32.
+
+          <li>Active filesystem monitoring, where the build automatically restarts whenever you
+          modify a source file.  This can be very useful during the edit/compile cycle.
+
+          <li>A built-in command-interpreter <tt>osh</tt> that can be used interactively.
+
+        </ul>
+        <p>OMake preserves the style of syntax and rule definitions used in <tt>Makefile</tt>s,
+        making it easy to port your project to OMake.  There is no need to code in Perl (cons), or
+        Python (scons).  However, there are a few things to keep in mind:
+        <ol>
+          <li>Indentation is significant, but tabs are not required.
+          <li>The OMake language is functional: functions are first-class and there are no
+          side-effects apart from I/O.
+          <li>Scoping is dynamic.
+        </ol>
+
+        <p>OMake is licensed under a mixture of the GNU GPL license (OMake engine itself) and the
+        MIT-like license (default configuration files).</p>
+        <p>OMake is part of the <a href="http://mojave.cs.caltech.edu/">Mojave</a> and <a
+          href="http://metaprl.org/">MetaPRL</a> projects.</p>
+        <p></p>
+    </body>
+
+</html>

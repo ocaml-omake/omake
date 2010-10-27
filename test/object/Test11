@@ -1,0 +1,7 @@
+private.xyz = 1
+X[] = 1 2
+Y =
+X.foreach(foo) =>
+   Y = $(foo)
+   export Y
+println($(xyz))

@@ -1,0 +1,3 @@
+open ../../diff
+osh awk.osh > stdout
+diff -u stdout stdout.expected

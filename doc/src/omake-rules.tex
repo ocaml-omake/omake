@@ -1,0 +1,774 @@
+%
+%
+%
+\chapter{Rules}
+\label{chapter:rules}
+\cutname{omake-rules.html}
+
+Rules are used by \OMake{} to specify how to build files.  At its simplest, a rule has the following
+form.
+
+\begin{verbatim}
+    <target>: <dependencies>
+        <commands>
+\end{verbatim}
+
+The \verb+<target>+ is the name of a file to be built.  The \verb+<dependencies>+ are a list of
+files that are needed before the \verb+<target>+ can be built.  The \verb+<commands>+ are a list of
+indented lines specifying commands to build the target.  For example, the following rule specifies
+how to compile a file \verb+hello.c+.
+
+\begin{verbatim}
+    hello.o: hello.c
+        $(CC) $(CFLAGS) -c -o hello.o hello.c
+\end{verbatim}
+
+This rule states that the \File{hello.o} file depends on the \File{hello.c} file.  If the
+\File{hello.c} file has changed, the command \verb+$(CC) $(CFLAGS) -c -o hello.o hello.c+ is to
+be executed to update the target file \verb+hello.o+.
+
+A rule can have an arbitrary number of commands.  The individual command lines are executed
+independently by the command shell.  The commands do not have to begin with a tab, but they must be
+indented from the dependency line.
+
+In addition to normal variables, the following special variables may be used in the body of a rule.
+
+% We use \char* even for printable chars for consistency.
+\begin{itemize}
+\item \verb+$*+\index{\char36\char42}\index[var]{\char42}: the target name, without a suffix.
+\item \verb+$@+\index{\char36\char64}\index[var]{\char64}: the target name.
+\item \verb+$^+\index{\char36\char94}\index[var]{\char94}: a list of the sources, in alphabetical order, with
+duplicates removed.
+\item \verb.$+.\index{\char36\char43}\index[var]{\char43}: all the sources, in the original order.
+\item \verb+$<+\index{\char36\char60}\index[var]{\char60}: the first source.
+\end{itemize}
+
+For example, the above \verb+hello.c+ rule may be simplified as follows.
+
+\begin{verbatim}
+    hello.o: hello.c
+        $(CC) $(CFLAGS) -c -o $@ $<
+\end{verbatim}
+
+Unlike normal values, the variables in a rule body are expanded lazily, and binding is dynamic.  The
+following function definition illustrates some of the issues.
+
+\begin{verbatim}
+    CLibrary(name, files) =
+        OFILES = $(addsuffix .o, $(files))
+
+        $(name).a: $(OFILES)
+            $(AR) cq $@ $(OFILES)
+\end{verbatim}
+
+This function defines a rule to build a program called \verb+$(name)+ from a list of \verb+.o+
+files.  The files in the argument are specified without a suffix, so the first line of the function
+definition defines a variable \verb+OFILES+ that adds the \verb+.o+ suffix to each of the file
+names.  The next step defines a rule to build a target library \verb+$(name).a+ from the
+\verb+$(OFILES)+ files. The expression \verb+$(AR)+ is evaluated when the function is called, and
+the value of the variable \verb+AR+ is taken from the caller's scope (see also the section on
+Scoping).
+
+\section{Implicit rules}
+\index{rules, implicit}
+
+Rules may also be implicit.  That is, the files may be specified by wildcard patterns.
+The wildcard character is \verb+%+.  For example, the following rule specifies a default
+rule for building \verb+.o+ files.
+
+\begin{verbatim}
+    %.o: %.c
+        $(CC) $(CFLAGS) -c -o $@ $*.c
+\end{verbatim}
+
+This rule is a template for building an arbitrary \verb+.o+ file from
+a \verb+.c+ file.
+
+By default, implicit rules are only used for the targets in the current
+directory. However subdirectories included via the \verb+.SUBDIRS+ rules
+inherit all the implicit rules that are in scope (see also the section on
+Scoping).
+
+\section{Bounded implicit rules}
+\index{rules, bounded implicit}
+
+Implicit rules may specify the set of files they apply to.  The following syntax is used.
+
+\begin{verbatim}
+    <targets>: <pattern>: <dependencies>
+        <commands>
+\end{verbatim}
+
+For example, the following rule applies only to the files \verb+a.o+ and \verb+b.o+.
+
+\begin{verbatim}
+   a.o b.o: %.o: %.c
+        $(CC) $(CFLAGS) -DSPECIAL -c $*.c
+\end{verbatim}
+
+\section{section}
+\formref{section}
+
+Frequently, the commands in a rule body are expressions to be evaluated by the shell.  \Prog{omake}
+also allows expressions to be evaluated by \Prog{omake} itself.
+
+The syntax of these ``computed rules'' uses the \verb+section+ expression.  The following rule uses
+the \Prog{omake} IO functions to produce the target \verb+hello.c+.
+
+\begin{verbatim}
+    hello.c:
+        section
+            FP = fopen(hello.c, w)
+            fprintln($(FP), $""#include <stdio.h> int main() { printf("Hello world\n"); }"")
+            close($(FP))
+\end{verbatim}
+
+This example uses the quotation \verb+$""...""+ (see also Section~\ref{section:quotes}) to quote the text being
+printed.  These quotes are not included in the output file.  The \verb+fopen+, \verb+fprintln+, and
+\verb+close+ functions perform file IO as discussed in the IO section.
+
+In addition, commands that are function calls, or special expressions, are interpreted correctly.
+Since the \verb+fprintln+ function can take a file directly, the above rule can be abbreviated as
+follows.
+
+\begin{verbatim}
+    hello.c:
+       fprintln($@, $""#include <stdio.h> int main() { printf("Hello world\n"); }"")
+\end{verbatim}
+
+\section{section rule}
+\formref{section rule}
+
+Rules can also be computed using the \verb+section rule+ form, where a rule body is expected instead
+of an expression.  In the following rule, the file \verb+a.c+ is copied onto the \verb+hello.c+ file
+if it exists, otherwise \verb+hello.c+ is created from the file \verb+default.c+.
+
+\begin{verbatim}
+    hello.c:
+        section rule
+           if $(target-exists a.c)
+              hello.c: a.c
+                 cat a.c > hello.c
+           else
+              hello.c: default.c
+                 cp default.c hello.c
+\end{verbatim}
+
+\section{Special dependencies}
+\index{rule, options}
+
+\subsection{:exists:}
+\index{:exists:}
+
+In some cases, the contents of a dependency do not matter, only whether the file exists or not.  In
+this case, the \verb+:exists:+ qualifier can be used for the dependency.
+
+\begin{verbatim}
+    foo.c: a.c :exists: .flag
+       if $(test -e .flag)
+           $(CP) a.c $@
+\end{verbatim}
+
+\subsection{:effects:}
+\index{:effects:}
+
+Some commands produce files by side-effect.  For example, the
+\Cmd{latex}{1} command produces a \verb+.aux+ file as a side-effect of
+producing a \verb+.dvi+ file.  In this case, the \verb+:effects:+
+qualifier can be used to list the side-effect explicitly.
+\Prog{omake} is careful to avoid simultaneously running programs that
+have overlapping side-effects.
+
+\begin{verbatim}
+    paper.dvi: paper.tex :effects: paper.aux
+        latex paper
+\end{verbatim}
+
+\subsection{:value:}
+\index{:value:}
+
+The \verb+:value:+ dependency is used to specify that the rule execution depends on the value of an
+expression.  For example, the following rule
+
+\begin{verbatim}
+    a: b c :value: $(X)
+        ...
+\end{verbatim}
+
+specifies that ``a'' should be recompiled if the value of \verb+$(X)+ changes
+(X does not have to be a filename).  This is intended to allow greater
+control over dependencies.
+
+In addition, it can be used instead of other kinds of dependencies. For example,
+the following rule:
+
+\begin{verbatim}
+    a: b :exists: c
+        commands
+\end{verbatim}
+
+is the same as
+
+\begin{verbatim}
+    a: b :value: $(target-exists c)
+        commands
+\end{verbatim}
+
+Notes:
+\begin{itemize}
+\item The values are arbitrary (they are not limited to variables)
+\item The values are evaluated at rule expansion time, so expressions
+containing variables like \verb+$@+, \verb+$^+, etc are legal.
+\end{itemize}
+
+\section{\code{.SCANNER} rules}
+\targetref{.SCANNER}
+
+Scanner rules define a way to specify automatic dependency scanning.  A \verb+.SCANNER+ rule has the
+following form.
+
+\begin{verbatim}
+    .SCANNER: target: dependencies
+        commands
+\end{verbatim}
+
+The rule is used to compute additional dependencies that might be defined in the source files for
+the specified target. The result of executing the scanner commands \emph{must} be a sequence of
+dependencies in OMake format, printed to the standard output.  For example, on GNU systems the
+\verb+gcc -MM foo.c+ produces dependencies for the file \verb+foo.c+ (based on \verb+#include+
+information).
+
+We can use this to specify a scanner for C files that adds the scanned dependencies for the
+\verb+.o+ file.  The following scanner specifies that dependencies for a file, say \verb+foo.o+ can
+be computed by running \verb+gcc -MM foo.c+.  Furthermore, \verb+foo.c+ is a dependency, so the
+scanner should be recomputed whenever the \verb+foo.c+ file changes.
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c
+        gcc -MM $<
+\end{verbatim}
+
+Let's suppose that the command \verb+gcc -MM foo.c+ prints the following line.
+
+\begin{verbatim}
+    foo.o: foo.h /usr/include/stdio.h
+\end{verbatim}
+
+The result is that the files \verb+foo.h+ and \verb+/usr/include/stdio.h+ are considered to be
+dependencies of \verb+foo.o+---that is, \verb+foo.o+ should be rebuilt if either of these files
+changes.
+
+This works, to an extent.  One nice feature is that the scanner will be re-run whenever the
+\verb+foo.c+ file changes.  However, one problem is that dependencies in C are \emph{recursive}.
+That is, if the file \verb+foo.h+ is modified, it might include other files, establishing further
+dependencies.  What we need is to re-run the scanner if \verb+foo.h+ changes too.
+
+We can do this with a \emph{value} dependency.  The variable \verb+$&+ is defined as the dependency
+results from any previous scan.  We can add these as dependencies using the \verb+digest+ function,
+which computes an MD5 digest of the files.
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c :value: $(digest $&)
+        gcc -MM $<
+\end{verbatim}
+
+Now, when the file \verb+foo.h+ changes, its digest will also change, and the scanner will be re-run
+because of the value dependency (since \verb+$&+ will include \verb+foo.h+).
+
+This still is not quite right.  The problem is that the C compiler uses a \emph{search-path} for
+include files.  There may be several versions of the file \verb+foo.h+, and the one that is chosen
+depends on the include path.  What we need is to base the dependencies on the search path.
+
+The \verb+$(digest-in-path-optional ...)+ function computes the digest based on a search path,
+giving us a solution that works.
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES), $&)
+       gcc -MM $(addprefix -I, $(INCLUDES)) $<
+\end{verbatim}
+
+The standard output of the scanner rules will be captured by OMake and is not allowed to contain any
+content that OMake will not be able to parse as a dependency. The output is allowed to contain
+dependency specifications for unrelated targets, however such dependencies will be ignored. The
+scanner rules are allowed to produce arbitrary output on the standard error channel --- such output
+will be handled in the same way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the \verb+--output-+$\ldots$ options enabled).
+
+Additional examples of the \verb+.SCANNER+ rules can be found in Section~\ref{section:scanner-exm}.
+
+\subsection{Named scanners, and the \code{:scanner:} dependencies}
+\index{:scanner:}
+
+Sometimes it may be useful to specify explicitly which scanner should be used in a rule.  For
+example, we might compile \verb+.c+ files with different options, or (heaven help us) we may be
+using both \verb+gcc+ and the Microsoft Visual C++ compiler \verb+cl+. In general, the target of a
+\verb+.SCANNER+ is not tied to a particular target, and we may name it as we like.
+
+\begin{verbatim}
+    .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional $(INCLUDES), $&)
+        gcc -MM $(addprefix -I, $(INCLUDES)) $<
+
+    .SCANNER: scan-cl-%.c: %.c :value: $(digest-in-path-optional $(INCLUDES), $&)
+        cl --scan-dependencies-or-something $(addprefix /I, $(INCLUDES)) $<
+\end{verbatim}
+
+The next step is to define explicit scanner dependencies.  The \verb+:scanner:+ dependency is used
+for this.  In this case, the scanner dependencies are specified explicitly.
+
+\begin{verbatim}
+    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
+        gcc ...
+
+    $(CL_FILES): %.obj: %.c :scanner: scan-cl-%.c
+        cl ...
+\end{verbatim}
+
+Explicit \verb+:scanner:+ scanner specification may also be used to state that a single
+\verb+.SCANNER+ rule should be used to generate dependencies for more than one target. For example,
+
+\begin{verbatim}
+    .SCANNER: scan-all-c: $(GCC_FILES) :value: $(digest-in-path-optional $(INCLUDES), $&)
+        gcc -MM $(addprefix -I, $(INCLUDES)) $(GCC_FILES)
+
+    $(GCC_FILES): %.o: %.c :scanner: scan-all-c
+        ...
+\end{verbatim}
+
+The above has the advantage of only running \Prog{gcc} once and a disadvantage that when a single
+source file changes, all the files will end up being re-scanned.
+
+\subsection{Notes}
+
+In most cases, you won't need to define scanners of your own.  The standard installation includes
+default scanners (both explicitly and implicitly named ones) for C, OCaml, and \LaTeX{} files.
+
+The \hypervarx{SCANNER_MODE}{SCANNER\_MODE} controls the usage of implicit scanner dependencies.
+
+The explicit \verb+:scanner:+ dependencies reduce the chances of scanner mis-specifications. In
+large complicated projects it might be a good idea to set \verb+SCANNER_MODE+ to \verb+error+ and
+use only the named \verb+.SCANNER+ rules and explicit \verb+:scanner:+ specifications.
+
+\section{.DEFAULT}
+\targetref{.DEFAULT}
+
+The \verb+.DEFAULT+ target specifies a target to be built by default
+if \Prog{omake} is run without explicit targets.  The following rule
+instructs \Prog{omake} to build the program \verb+hello+ by default
+
+\begin{verbatim}
+   .DEFAULT: hello
+\end{verbatim}
+
+\section{.SUBDIRS}
+\targetref{.SUBDIRS}
+
+The \verb+.SUBDIRS+ target is used to specify a set of subdirectories
+that are part of the project.  Each subdirectory should have its own
+\File{OMakefile}, which is evaluated in the context of the current
+environment.
+
+\begin{verbatim}
+   .SUBDIRS: src doc tests
+\end{verbatim}
+
+This rule specifies that the \verb+OMakefile+s in each of the \verb+src+, \verb+doc+, and
+\verb+tests+ directories should be read.
+
+In some cases, especially when the \verb+OMakefile+s are very similar in a large number of
+subdirectories, it is inconvenient to have a separate \verb+OMakefile+ for each directory.  If the
+\verb+.SUBDIRS+ rule has a body, the body is used instead of the \verb+OMakefile+.
+
+\begin{verbatim}
+   .SUBDIRS: src1 src2 src3
+      println(Subdirectory $(CWD))
+      .DEFAULT: lib.a
+\end{verbatim}
+
+In this case, the \verb+src1+, \verb+src2+, and \verb+src3+ files do not need \verb+OMakefile+s.
+Furthermore, if one exists, it is ignored.  The following includes the file if it exists.
+
+\begin{verbatim}
+   .SUBDIRS: src1 src2 src3
+       if $(file-exists OMakefile)
+          include OMakefile
+       .DEFAULT: lib.a
+\end{verbatim}
+
+\section{.INCLUDE}
+\targetref{.INCLUDE}
+
+The \verb+.INCLUDE+ target is like the \verb+include+ directive, but it specifies a rule to build
+the file if it does not exist.
+
+\begin{verbatim}
+   .INCLUDE: config
+       echo "CONFIG_READ = true" > config
+
+    echo CONFIG_READ is $(CONFIG_READ)
+\end{verbatim}
+
+You may also specify dependencies to an \verb+.INCLUDE+ rule.
+
+\begin{verbatim}
+   .INCLUDE: config: config.defaults
+      cp config.defaults config
+\end{verbatim}
+
+A word of caution is in order here.  The usual policy is used for determining when the rule is
+out-of-date.  The rule is executed if any of the following hold.
+
+\begin{itemize}
+\item the target does not exist,
+\item the rule has never been executed before,
+\item any of the following have changed since the last time the rule was executed,
+\begin{itemize}
+\item the target,
+\item the dependencies,
+\item the commands-text.
+\end{itemize}
+\end{itemize}
+
+In some of the cases, this will mean that the rule is executed even if the target file already
+exists.  If the target is a file that you expect to edit by hand (and therefore you don't want to
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.
+
+\begin{verbatim}
+   .INCLUDE: config: config.defaults
+       # Don't overwrite my carefully hand-edited file
+       if $(not $(file-exists config))
+          cp config.defaults config
+\end{verbatim}
+
+\section{.PHONY}
+\targetref{.PHONY}
+
+A ``phony'' target is a target that is not a real file, but exists to collect a set of dependencies.
+Phony targets are specified with the \verb+.PHONY+ rule.  In the following example, the
+\verb+install+ target does not correspond to a file, but it corresponds to some commands that should
+be run whenever the \verb+install+ target is built (for example, by running \verb+omake install+).
+
+\begin{verbatim}
+   .PHONY: install
+
+   install: myprogram.exe
+      cp myprogram.exe /usr/bin
+\end{verbatim}
+
+\section{Rule scoping}
+\index{rule, scoping}
+
+As we have mentioned before, \Prog{omake} is a \emph{scoped} language.  This provides great
+flexibility---different parts of the project can define different configurations without interfering
+with one another (for example, one part of the project might be compiled with \verb+CFLAGS=-O3+ and
+another with \verb+CFLAGS=-g+).
+
+But how is the scope for a target file selected?  Suppose we are building a file \verb+dir/foo.o+.
+\Prog{omake} uses the following rules to determine the scope.
+
+\begin{itemize}
+\item First, if there is an \emph{explicit} rule for building \verb+dir/foo.o+ (a rule with no
+wildcards), the context for that rule determines the scope for building the target.
+\item Otherwise, the directory \verb+dir/+ must be part of the project.  This normally means that a
+configuration file \verb+dir/OMakefile+ exists (although, see the \verb+.SUBDIRS+ section for
+another way to specify the \verb+OMakefile+).  In this case, the scope of the target is the scope at
+the end of the \verb+dir/OMakefile+.
+\end{itemize}
+
+To illustrate rule scoping, let's go back to the example of a ``Hello world'' program with two
+files.  Here is an example \verb+OMakefile+ (the two definitions of \verb+CFLAGS+ are for
+illustration).
+
+\begin{verbatim}
+    # The executable is compiled with debugging
+    CFLAGS = -g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) -o $@ $+
+
+    # Redefine CFLAGS
+    CFLAGS += -O3
+\end{verbatim}
+
+In this project, the target \verb+hello+ is \emph{explicit}.  The scope of the \verb+hello+ target
+is the line beginning with \verb+hello:+, where the value of \verb+CFLAGS+ is \verb+-g+.  The other
+two targets, \verb+hello_code.o+ and \verb+hello_lib.o+ do not appear as explicit targets, so their
+scope is at the end of the \verb+OMakefile+, where the \verb+CFLAGS+ variable is defined to be
+\verb+-g -O3+.  That is, \verb+hello+ will be linked with \verb+CFLAGS=-g+ and the \verb+.o+ files
+will be compiled with \verb+CFLAGS=-g -O3+.
+
+We can change this behavior for any of the targets by specifying them as explicit targets.  For
+example, suppose we wish to compile \verb+hello_lib.o+ with a preprocessor variable \verb+LIBRARY+.
+
+\begin{verbatim}
+    # The executable is compiled with debugging
+    CFLAGS = -g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) -o $@ $+
+
+    # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+    section
+        CFLAGS += -DLIBRARY
+        hello_lib.o:
+
+    # Redefine CFLAGS
+    CFLAGS += -O3
+\end{verbatim}
+
+In this case, \verb+hello_lib.o+ is also mentioned as an explicit target, in a scope where
+\verb+CFLAGS=-g -DLIBRARY+.  Since no rule body is specified, it is compiled using the usual
+implicit rule for building \verb+.o+ files (in a context where \verb+CFLAGS=-g -DLIBRARY+).
+
+\subsection{Scoping of implicit rules}
+\label{section:implicit-scoping}
+
+Implicit rules (rules containing wildcard patterns) are \emph{not} global, they follow the normal
+scoping convention.  This allows different parts of a project to have different sets of implicit
+rules.  If we like, we can modify the example above to provide a new implicit rule for building
+\verb+hello_lib.o+.
+
+\begin{verbatim}
+    # The executable is compiled with debugging
+    CFLAGS = -g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) -o $@ $+
+
+    # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+    section
+        %.o: %.c
+            $(CC) $(CFLAGS) -DLIBRARY -c $<
+        hello_lib.o:
+
+    # Redefine CFLAGS
+    CFLAGS += -O3
+\end{verbatim}
+
+In this case, the target \verb+hello_lib.o+ is built in a scope with a new implicit rule for
+building \verb+%.o+ files.  The implicit rule adds the \verb+-DLIBRARY+ option.  This implicit rule
+is defined only for the target \verb+hello_lib.o+; the target \verb+hello_code.o+ is built as
+normal.
+
+\subsection{Scoping of \code{.SCANNER} rules}
+\index{.SCANNER}\index[target]{.SCANNER}
+
+Scanner rules are scoped the same way as normal rules.  If the \verb+.SCANNER+ rule is explicit
+(containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
+If the \verb+.SCANNER+ rule is implicit, then the environment is taken from the \verb+:scanner:+
+dependency.
+
+\begin{verbatim}
+    # The executable is compiled with debugging
+    CFLAGS = -g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) -o $@ $+
+
+    # scanner for .c files
+    .SCANNER: scan-c-%.c: %.c
+       $(CC) $(CFLAGS) -MM $<
+
+    # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+    section
+        CFLAGS += -DLIBRARY
+        hello_lib.o: hello_lib.c :scanner: scan-c-hello_lib.c
+           $(CC) $(CFLAGS) -c $<
+
+    # Compile hello_code.c with CFLAGS = -g -O3
+    section
+        CFLAGS += -O3
+        hello_code.o: hello_code.c :scanner: scan-c-hello_code.c
+           $(CC) $(CFLAGS) -c $<
+\end{verbatim}
+
+Again, this is for illustration---it is unlikely you would need to write a complicated configuration
+like this!  In this case, the \verb+.SCANNER+ rule specifies that the C-compiler should be called
+with the \verb+-MM+ flag to compute dependencies.  For the target \verb+hello_lib.o+, the scanner
+is called with \verb+CFLAGS=-g -DLIBRARY+, and for \verb+hello_code.o+ it is called with
+\verb+CFLAGS=-g -O3+.
+
+\subsection{Scoping for \code{.PHONY} targets}
+\label{section:PHONY-scoping}\index{.PHONY}\index[target]{.PHONY}
+
+Phony targets (targets that do not correspond to files) are defined with a \verb+.PHONY:+ rule.
+Phony targets are scoped as usual.  The following illustrates a common mistake, where the
+\verb+.PHONY+ target is declared \emph{after} it is used.
+
+\begin{verbatim}
+    # !!This example is broken!!
+    all: hello
+
+    hello: hello_code.o hello_lib.o
+        $(CC) $(CFLAGS) -o $@ $+
+
+    .PHONY: all
+\end{verbatim}
+
+This doesn't work as expected because the \verb+.PHONY+ declaration occurs too late.  The proper way
+to write this example is to place the \verb+.PHONY+ declaration first.
+
+\begin{verbatim}
+    # Phony targets must be declared before being used
+    .PHONY: all
+
+    all: hello
+
+    hello: hello_code.o hello_lib.o
+        $(CC) $(CFLAGS) -o $@ $+
+\end{verbatim}
+
+Phony targets are passed to subdirectories.  As a practical matter, it is wise to declare all
+\verb+.PHONY+ targets in your root \verb+OMakefile+, before any \verb+.SUBDIRS+.  This will ensure
+that 1) they are considered as phony targets in each of the subdirectories, and 2) you can build them
+from the project root.
+
+\begin{verbatim}
+    .PHONY: all install clean
+
+    .SUBDIRS: src lib clib
+\end{verbatim}
+
+Note that when a \verb+.PHONY+ target is inherited by a subdirectory via a \verb+.SUBDIRS+, a whole
+hierarchy of \verb+.PHONY+ targets (that are a part of the global one) is created, as described in
+Section~\ref{section:PHONY-hierarchy} below.
+
+\section{Running \OMake{} from a subdirectory}
+\label{section:running-from-subdir}
+Running \verb+omake foo+ asks \OMake{} to build the file \verb+foo+ in context of the \emph{whole}
+project, even when running from a subdirectory of the project. Therefore, if \verb+bar/baz+ is a
+regular target (not a \verb+.PHONY+ one), then running \verb+omake bar/baz+ and running
+\verb+(cd bar; omake baz)+ are usually equivalent.
+
+There are two noteworthy exceptions to the above rule:
+\begin{itemize}
+\item If the subdirectory is not a part of the project (there is no \verb+.SUBDIRS+) for it, then
+\OMake{} will complain if you try to run it in that directory.
+\item If a subdirectory contains an \verb+OMakeroot+ of its own, this would designate
+the subdirectory as a separate project (which is usually a bad idea and is not recommended).
+\end{itemize}
+
+\subsection{Phony targets in a subdirectory}
+\label{section:PHONY-in-subdirs}\index{.PHONY}\index[target]{.PHONY}\index{.DEFAULT}\index[target]{.DEFAULT}
+
+Suppose you have a \verb+.PHONY: clean+ declared in your root \verb+OMakefile+ and
+both the root \verb+OMakefile+ and the \verb+OMakefile+ in some of the subdirectories contain
+\verb+clean:+ rules.  In this case
+\begin{itemize}
+\item Running \verb+omake clean+ in the root directory will execute all the rules (each in the
+appropriate directory);
+\item Running \verb+omake clean+ in the subdirectory will execute just its local one, as well as the
+ones from the subdirectories of the current directory.
+\end{itemize}
+
+The above equally applies to the built-in \verb+.PHONY+ targets, including \hypertargn{.DEFAULT}.
+Namely, if \OMake{} is executed (without argument) in the root directory of a project, all the
+\verb+.DEFAULT+ targets in the project will be built. On the other hand, when \OMake{} is executed
+(without argument) in a subdirectory, only the \verb+.DEFAULT+ targets defined in and under that
+subdirectory will be built.
+
+The following Section explains the underlying semantics that gives rise to the above behavior.
+
+\subsection{Hierarchy of \code{.PHONY} targets}
+\label{section:PHONY-hierarchy}\index{.PHONY}\index[target]{.PHONY}
+
+When the the root \verb+OMakefile+ contains a \verb+.PHONY: clean+ directive, it creates:
+\begin{itemize}
+\item A ``global'' phony target \verb+/.PHONY/clean+ (note the leading ``\verb+/+'');
+\item A ``relative'' phony target attached to the current directory --- \verb+.PHONY/clean+ (note
+the lack of the leading ``\verb+/+'');
+\item A dependency \verb+/.PHONY/clean: .PHONY/clean+.
+\end{itemize}
+
+All the \verb+clean: ...+ rules in the root \verb+OMakefile+ following this \verb+.PHONY: clean+
+declaration would be interpreted as rules for the \verb+.PHONY/clean+ target.
+
+Now when \OMake{} then comes across a \verb+.SUBDIRS: foo+ directive (when it is in scope of the above
+\verb+.PHONY: clean+ declaration), it does the following:
+\begin{itemize}
+\item Creates a new \verb+.PHONY/foo/clean+ ``relative'' phony target;
+\item Creates the dependency \verb+.PHONY/clean: .PHONY/foo/clean+;
+\item Processes the body of the \verb+.SUBDIRS: foo+ directive, or reads the \verb+foo/OMakefile+
+file, if the body is empty. While doing that, it interprets its instructions relative to the
+\verb+foo+ directory. In particular, all the \verb+clean: ...+ rules will be taken to apply to
+\verb+.PHONY/foo/clean+.
+\end{itemize}
+
+Now when you run \verb+omake clean+ in the root directory of the project, it is interpreted as
+\verb+omake .PHONY/clean+ (similar to how it happens with the normal targets), so both the rules for
+\verb+.PHONY/clean+ are executed and the rules for its dependency 
+\verb+.PHONY/foo/clean+. Running \verb+(cd foo; omake clean)+ is, as for normal targets, equivalent to running
+\verb+omake .PHONY/foo/clean+ and only those rules that apply to \verb+.PHONY/foo/clean+ will be executed.
+
+\section{Pathnames in rules}
+
+In rules, the targets and dependencies are first translated to \emph{file} values (as in the
+\hyperfun{file}).  They are then translated to strings for the command line.
+This can cause some unexpected behavior.  In the following example, the \hyperfun{absname}
+is the absolute pathname for the file \verb+a+, but the rule still prints
+the relative pathname.
+
+\begin{verbatim}
+    .PHONY: demo
+    demo: $(absname a)
+        echo $<
+
+    # omake demo
+    a
+\end{verbatim}
+
+There is arguably a good reason for this.  On Win32 systems, the \verb+/+ character is viewed as an
+``option specifier.''  The pathname separator is the \verb+\+ character.  \OMake{} translates the
+filenames automatically so that things work as expected on both systems.
+
+\begin{verbatim}
+   demo: a/b
+       echo $<
+
+   # omake demo (on a Unix system)
+   a/b
+   # omake demo (on a Win32 system)
+   a\b
+\end{verbatim}
+
+Sometimes you may wish that target strings to be passed literally to the commands in the rule.
+One way to do this is to specify them literally.
+
+\begin{verbatim}
+    SRC = a/b $(absname c/d)
+    demo: $(SRC)
+        echo $(SRC)
+
+    # omake demo (on a Win32 system)
+    a/b c:\...\c\d
+\end{verbatim}
+
+Alternately, you might wish that filenames be automatically expanded to absolute pathnames.  For
+example, this might be useful when parsing the \OMake{} output to look for errors.  For this, you can
+use the \verb+--absname+ option (Section~\ref{option:--absname}).  If you call \verb+omake+ with the
+\verb+--absname+ option, all filenames will be expanded to absolute names.
+
+\begin{verbatim}
+    # omake --absname demo (on a Unix system)
+    /home/.../a/b /home/.../c/d
+\end{verbatim}
+
+Alternately, the \verb+--absname+ option is scoped.  If you want to use it for only a few rules, you
+can use the \hyperfun{OMakeFlags} to control how it is applied.
+    
+\begin{verbatim}
+   section
+      OMakeFlags(--absname)
+      demo: a
+          echo $<
+
+   # omake demo
+   /home/.../a
+\end{verbatim}
+
+\textbf{N.B.} The \verb+--absname+ option is currently an experimental feature.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% vim:tw=100:fo=tcq:
+% -*-

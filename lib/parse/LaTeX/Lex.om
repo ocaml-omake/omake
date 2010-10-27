@@ -1,0 +1,120 @@
+#
+# Lexer for LaTeX code.
+# Actually, LaTeX parsing is not context-free,
+# so this is really only an approximation.
+#
+open parse/LaTeX/Macros
+
+#
+# Special characters
+#
+public.operators. =
+    extends $(Map)
+
+    $|{|  = lbrace
+    $|}|  = rbrace
+    $|[|  = lbrack
+    $|]|  = rbrack
+    $|$$| = math2
+    $|$|  = math1
+
+#
+# Utilities
+#
+private.arg1(s) =
+   match $s with
+   case $'[{]\([^}]+\)[}]'
+      value $"$1"
+
+########################################################################
+# The contents of verbatim blocks are not interpreted.
+#
+private.verbatim_lexer. =
+    extends $(Lexer)
+
+    declare name
+    declare text
+
+    lex-block(n, t) =
+        name = $n
+	text[] = $t
+	this.lex()
+
+    skip1: $'[^\\]+'
+        text[] += $0
+        this.lex()
+
+    skip2: $'\\'
+        text[] += $0
+        this.lex()
+
+    term: $'\\end[{][[:alpha:]]+[*]?[}]'
+        text[] += $0
+        name2 = $(arg1 $0)
+	if $(equal $(name2), $(name))
+	    Token.pair(text, $(concat $(EMPTY), $(text)))
+        else
+            this.lex()
+	
+########################################################################
+# The lexer
+#
+public.latex_lexer. =
+    extends $(Lexer)
+
+    #
+    # If all else fails, its a syntax error
+    #
+    other: .
+        loc = $(parse-loc)
+        eprintln($(loc.to-string): illegal character: $0)
+        this.lex()
+
+    #
+    # Macros.
+    #
+    macro: $'''\\([[:alpha:]@]+[*]?|[ \t\n%_'=>#$^&*}{"[:digit:]]|\\|\[|\])'''
+        Token.pair(macro, $0)
+
+    begin: $'''\\begin[{][[:alpha:]]+[*]?[}]'''
+        name = $(arg1 $0)
+	if $(MACROS.is-verbatim $(name))
+	    verbatim_lexer.lex-block($(name), $0)
+        else
+            Token.pair(begin, $(name))
+
+    end: $'''\\end[{][[:alpha:]]+[*]?[}]'''
+        Token.pair(end, $(arg1 $0))
+
+    #
+    # Operators
+    #
+    op: $'[}{$]|\[|\]|[$][$]'
+        Token.pair($(operators.find $0), $0)
+
+    word: $'[[:alpha:]]+'
+        Token.pair(word, $0)
+
+    nl: $'[[:space:]]*\n([[:space:]]*\n)+'
+        Token.pair(nl, $0)
+
+    white: $'[[:space:]]+'
+        Token.pair(white, $0)
+
+    word: $'[[:alpha:]]+'
+        Token.pair(word, $0)
+
+    text: $'[^][{}%\\$[:space:][:alpha:]]+'
+        Token.pair(text, $0)
+
+    lstinline: $'\\(lstinline|verb)(/[^/]*/|[$][^$]*[$]|+[^+]*+|![^!]*!|[]][^]]*[]]|~[^~]*~|`[^`]*`)'
+        Token.pair(text, $0)
+
+    comment: $'%[^\n]*\n'
+        Token.pair(comment, $0)
+
+    #
+    # End of file
+    #
+    eof: $"\'"
+        Token.unit(eof)

@@ -1,0 +1,5 @@
+Test1: prints the lines: '', 'Hello world', '', 'Another line'
+
+* Hello world
+
+* Another line

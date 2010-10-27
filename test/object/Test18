@@ -1,0 +1,14 @@
+M. =
+    extends $(Map)
+    $|X| = 123
+    $|Y| = 456
+    $|Z| = 789
+
+static. =
+    A = bar
+    println($"1. A=$(A)")
+    M.foreach(x,val)
+        println($"$(x)=$(val)")
+    println($"2. A=$(A)")
+
+println($"3. A=$(A)")

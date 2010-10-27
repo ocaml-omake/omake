@@ -1,0 +1,15 @@
+o. =
+   val = 0
+   incr(x) =
+      val = $(add $(val), $(x))
+      export 
+
+o.incr(2)
+o.incr(3)
+
+printvln($o)
+
+if $(o.object-mem x)
+   eprintln($"Note: function arguments are spilling into objects")
+   eprintln($"This should change in the keyword branch")
+   exit 2

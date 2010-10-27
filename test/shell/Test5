@@ -1,0 +1,15 @@
+PATH[] = $(dir .)
+
+Shell. +=
+   test(args) =
+      P = $(getenv PATH)
+      if $(equal $(P), $(absname .))
+         println(The PATH entry was correctly expanded)
+      elseif $(equal $(P), $".")
+         eprintln(The PATH node was incorrectly relativized)
+         exit 1
+      else
+         eprintln($"The PATH environment variable was not set correctly: $P")
+         exit 1
+
+test || exit 1

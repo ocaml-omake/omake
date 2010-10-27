@@ -1,0 +1,51 @@
+#
+# Readline configuration
+#
+# \begin{doc}
+# \subsection{ReadLine library configuration}
+# Add \verb+open configure/readline+ line to your \verb+OMakefile+ to get access to the following
+# autoconfiguration variables.
+# \varlabel{READLINE_AVAILABLE}{READLINE\_AVAILABLE} A boolean flag that would be set when both
+# the \verb+readline/readline.h+ header, the \verb+readline/history.h+ header, and the \verb+readline+
+# library very found.
+#
+# \varlabel{READLINE_GNU}{READLINE\_GNU} A boolean flag that would be set
+# when the GNU version of the readline library is found (as opposed to the BSD one).
+#
+# \varlabel{READLINE_CFLAGS}{READLINE\_CFLAGS} The \verb+CFLAGS+ to use when compiling readline code.
+# Will include \verb+-DREADLINE_ENABLED+ and \verb+-DREADLINE_GNU+, respectively
+# when \verb+READLINE_AVAILABLE+ and \verb+READLINE_GNU+ are true.
+#
+# \varlabel{READLINE_CLIBS}{READLINE\_CLIBS} The \verb+LDFLAGS+ to use when linking readline code.
+# Will normally contain \verb+-lncurses -lreadline+ when readline is found and remain empty otherwise.
+# \end{doc}
+#
+#
+open configure/Configure
+open configure/ncurses
+
+.STATIC:
+    READLINE_AVAILABLE = false
+    READLINE_CLIBS =
+    READLINE_CFLAGS =
+    READLINE_GNU = false
+    if $(and $(NCURSES_AVAILABLE), $(not $(equal $(OSTYPE), Win32)))
+        ConfMsgChecking(for readline)
+
+        # Test that readline exists
+        if $(and $(CheckHeader readline/readline.h readline/history.h), $(CheckLib ncurses readline, tgetent tgetstr readline))
+            READLINE_AVAILABLE = true
+            READLINE_CLIBS = -lncurses -lreadline
+            READLINE_CFLAGS += -DREADLINE_ENABLED
+
+            # Test for GNU
+            if $(CheckLib ncurses readline, rl_on_new_line)
+                READLINE_GNU = true
+                READLINE_CFLAGS += -DREADLINE_GNU
+                export
+
+            export
+
+        ConfMsgResult($(if $(READLINE_AVAILABLE), $"found, $(if $(not $(READLINE_GNU)), non-)GNU", NOT found))
+
+        export

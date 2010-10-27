@@ -1,0 +1,16 @@
+open ../../diff
+osh shell.om > stdout
+
+expected(line) =
+   if $(eq $(line), 2)
+      value $"Current directory: $(dir sub/sub)"
+   else
+      value $"Current directory: $(dir sub)"
+
+awk(stdout)
+default
+   if $(not $(equal $0, $(expected $(FNR))))
+      eprintln($"Line $(FNR) mismatch:")
+      eprintln($"Expected: $(expected $(FNR))")
+      eprintln($"Actual: $0")
+      exit 1

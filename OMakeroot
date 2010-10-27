@@ -1,0 +1,35 @@
+#
+# We want the ocamldep-omake to be accessible through the standard path.
+#
+PATH[] +=
+    $(dir ocamldep)
+
+#
+# Do not search elsewhere for standard libraries
+#
+OMAKEPATH[] =
+    .
+    $(dir lib)
+
+#
+# Include the standard configuration
+#
+include build/C
+include build/OCaml
+include build/LaTeX
+
+#
+# Include the definition functions
+#
+include boot/License
+include boot/Default
+
+#
+# Include configuration utilities
+#
+include configure/Configure
+
+#
+# Include the OMakefile
+#
+.SUBDIRS: .

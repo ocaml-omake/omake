@@ -1,0 +1,925 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+   <head>
+      <meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+      <title>The OMake CHANGELOG</title>
+   </head>
+
+<body bgcolor="#ffffff" text="#000000">
+
+
+        <table><tr><td><img src="images/omake.gif" alt="" width="300" height="137" border="0"></td>
+            <td width="50px" valign="top"></td>
+            <td valign="top">
+              <a href="index.html">OMake Home</a><br>
+              <a href="manual/omake.html">Documentation</a><br>
+              <a href="download.html">Download</a><br>
+              <a href="omake_papers.html">Publications</a></br>
+              <a href="omake_lists.html">Mailing lists</a><br>
+              <a href="omake_users.html">Users and projects</a><br>
+              <a href="http://bugzilla.metaprl.org/">Bugzilla</a><br>
+              <a href="http://svn.metaprl.org/viewcvs/mojave/omake-branches/0.9.8.x/">Browse sources</a><br>
+              Changelog
+                  <a
+                  href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">summary</a>,
+                  <u>verbose</u>
+              </td>
+
+            </tr></table>
+
+<h2> OMake Change Log</h2>
+
+<p>Jump to version
+  <a href="#0.9.8.6">0.9.8.6</a>,
+  <a href="#0.9.8.5">0.9.8.5</a>,
+  <a href="#0.9.8.4">0.9.8.4</a>,
+  <a href="#0.9.8.3">0.9.8.3</a>,
+  <a href="#0.9.8.1">0.9.8.1</a>,
+  <a href="#0.9.8">0.9.8</a>,
+  <a href="#0.9.6.9">0.9.6.9</a>,
+  <a href="#0.9.6.8">0.9.6.8</a>,
+  <a href="#0.9.6.7">0.9.6.7</a>,
+  <a href="#0.9.6.6">0.9.6.6</a>,
+  <a href="#0.9.6.5">0.9.6.5</a>,
+  <a href="#0.9.6">0.9.6</a>,
+  <a href="#0.9.4">0.9.4</a>,
+  <a href="#0.9.3">0.9.3</a>,
+  <a href="#0.9.2">0.9.2</a>.
+
+<p>See also <a
+  href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">the
+  brief summary change log</a>.
+
+<h3><a name="0.9.8.6">Version 0.9.8.6 (October 26, 2010)</a></h3>
+This is a major feature enhancement and bugfix release
+<ul>
+   <li>Added keyword and optional function arguments.<p>
+The syntax of a keyword parameter/argument is "identifier = expr".
+
+<pre>
+   Function     Application
+   -------------------------------------------
+   f(a)         f(1)
+   f(~a, b)     f(~a = 10, 11)     Required keyword argument
+   f(?a, b)     f(~a = 10, 12)     Optional keyword argument
+                f(12)              -- defaults to empty
+   f(?a = 1, b) f(~a = 10, 11)     Optional keyword argument with default value
+   f(~a = 1, b) f(11)              -- ~a is same as ?a if there is a default value
+                f(?a = 10, 11)     -- Arguments can use ?, but it means the same thing
+</pre>
+
+Keyword arguments and normal arguments are processed independently.
+Normal arguments have to appear in the same order as in the parameter
+list, but keyword arguments can go anywhere.<p>
+
+This also adds the function notation.
+
+<pre>
+    fun(x, y) =>
+       add($x, $y)
+
+    foreach(x => ..., a b c)
+       println($x)
+</pre>
+where the "<tt>...</tt>" essentially means "parse as if the indented block
+below was actually an expression in here"<p>
+
+Old-style foreach generate a warning.
+   <li>Added "program" syntax.  This provides a more standard programming
+   language, where strings must be explicit, and variables represent
+   applications.<p>
+
+   The outer syntax is normal; the program syntax is an ast to ast
+   translation.  The translation is turned on with the command
+   "<tt>.LANGUAGE: program</tt>", which is scoped like "<tt>export</tt>".
+   Here is an example:
+<pre>
+   #!/usr/bin/env osh
+   .LANGUAGE: program
+
+   f(x) =
+      return x + 1
+
+   println(f(f(1)))
+</pre>
+
+   The normal $-style expressions are always allowed, but in program-syntax
+   mode, identifiers stand for variables, function application is the
+   <tt>f(e1, ..., e2)</tt> form, and there are the standard infix
+   operators. To switch back to the default syntax, use <tt>.LANGUAGE:
+   make</tt><p> 
+
+   Note, shell commands and rules never use program syntax, except within
+   function arguments.<p>
+
+   This is not heavily tested. 
+   <li>Added support for partial and curried function applications. Normal
+funcation application still require using the correct number of arguments
+(as relaxed by the introduction of optional arguments), but <tt>apply</tt>
+function can be used to create curried and partial applications.
+<pre>
+   f(x,y) =
+      return $(add $x, $y)
+
+   g = $(apply $f, 2)      # Partial applications must use apply
+   println($(g 3))         # 5
+
+   ff(x) =
+      gg(y) =
+         return $(add $x, $y)
+
+   println($(apply $(ff), 3, 5)) # Prints 8, also need to use apply here
+</pre>
+   <tt>apply</tt> can also take keyword arguments.
+   <li>A high-quality C parser was added to OMake &mdash; see
+   <a
+href=http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/lib/parse/C/Parse.om"><tt>lib/parse/C/Parse.om</tt></a>
+   <li>Added a LaTeX parser and spellchecker - see
+<a
+href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/lib/parse/LaTeX/README.txt"><tt>lib/parse/LaTeX/README.txt</tt></a>
+   <li>New functions added:
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:localtime"><tt>localtime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:gmtime"><tt>gmtime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:mktime"><tt>mktime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:normalize-tm"><tt>normalize-tm</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:utimes"><tt>utimes</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:digest-string"><tt>digest-string</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:url-escaped"><tt>url-escaped</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:find-all"><tt>find-all</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:addprefixes"><tt>addprefixes</tt></a>
+   <li>New object added: <a
+href="http://omake.metaprl.org/manual/omake-doc.html#obj:Tm"><tt>Tm</tt></a>
+   <li>Bugs fixed:
+      <ul>
+      <li>From Bugzilla:
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=693">693</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=699">699</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=702">702</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=707">707</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=709">709</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=710">710</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=711">711</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=712">712</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=717">717</a>
+      <li><tt>find</tt> no longer follows symbolic links
+      <li>Globbing functions worked incorrectly on absolute names. Here is the
+      previous behavior.
+<pre>
+   osh> ls(R, /etc/httpd)
+   /home/jyh/omake/etc/httpd
+</pre>
+      <li><tt>chmod(mode, files)</tt> had a bug where the mode could not be an
+      integer.
+      <li>Empty mode string should be supported in cp.
+
+
+<li>Whitespace is not gobbled eagerly, so, for example, trailing comments
+work as expected.
+<pre>
+   X = abc   # 123
+      equal($X, abc)  # this is now true
+</pre>
+   </ul>
+   <li><b>[Experimental]</b> Object methods can now export their fields back into the parent object.
+For example, <pre>
+   Z. =
+       x = 1
+       f() =
+           x = 2
+           export
+   Z.f()
+   echo $(Z.x)
+   # Prints "2"
+</pre> This works with arbitrary levels of nesting.
+</ul>
+
+<h3><a name="0.9.8.5">Version 0.9.8.5 (August 7, 2007)</a></h3>
+This is a somehat major feature enhancement release
+<ul>
+   <li>Made sure that Ctrl-C would correctly stop OMake on Windows, making it
+much easier to use <tt>-p</tt> and <tt>-P</tt> on Windows.
+   <li>Added <tt>export</tt> sections.
+   <ul>
+   <li>Exports take effect for all sections within their static scope. For
+   example, <pre>
+   section
+      export
+      section
+         public.X = 1
+
+   println($X)  # Prints 1
+</pre>
+   <li>In addition, exports augment any existing exports. For example,
+<pre>
+   section
+      public.X = 1
+      public.Y = 2
+
+      export X
+      section
+         X = 3
+         Y = 4
+      export Y
+   # X is 3
+   # Y is 2
+</pre>
+   <li>Variable definitions also allow exports. For example, <pre>
+   public.X = 1
+   public.f() =
+      X = 2
+      export
+
+   public.Y = $f
+   # X is 2
+   # Y is 2
+</pre>
+Note: this is, of course, not the same as imperative programming, because
+functions can always choose not to export. In particular, the string
+"functions" do not export. <pre>
+   public.X = 1
+   export X
+   public.f() =
+      X = 2
+   Y = $"$f"
+   # X = 1
+   # Y = 2
+</pre>
+   </ul> 
+   <li>Added <tt>.STATIC</tt> and <tt>.MEMO</tt> rules - an enhanced, yet lazy
+(delayed) version of the <tt>static.</tt> sections.
+   <ul>
+      <li>Basic usage: <pre>
+   .STATIC:
+       println(foo)
+       X = 1
+   Y = $X
+</pre>
+   The variable <tt>X</tt> is exported, with a "delayed" value. The rule is
+only evaluated if the value for <tt>$X</tt> is needed, but it is lazy.  The definition of Y does not force evaluation.
+      <li><tt>.STATIC</tt> rules allow dependencies, for example:<pre>
+   .STATIC: x.input
+       X = $(expensive-function x.input)
+</pre> This is be evaluated if <tt>x.input</tt> changes and <tt>X</tt> is forced.
+      <li><tt>.STATIC</tt> rules also allow explicitly specifying which
+variables are exported, for example: <pre>
+   .STATIC: X: x.input
+       Y = 1
+       X = $Y
+</pre>Here, <tt>Y</tt> is not exported from the section.
+      <li>By default, if a <tt>.STATIC</tt> rule is evaluated several times (for example,
+if the <tt>.STATIC</tt> rule is present inside a body of a function that is
+called several times), the result is the <em>same</em> set of delayed
+variables.
+      <li><tt>.STATIC</tt> rules can have <tt>:key:</tt> dependency that
+specify whether we are getting the same set of delayed variables or not, when
+re-executing the same <tt>.STATIC</tt> rule. For example, <pre>
+    g(x) =
+        eprintln($"g($x)")
+        add($x, 1)
+
+    f(x) =
+        .STATIC: :key: $x
+            y = $(g $x)
+        value $y
+
+    println($(f 1))
+    println($(f 2))
+    println($(f 1))
+</pre> will call function <tt>g</tt> twice - only once for each argument,
+printing: <pre>
+    g(1)
+    2
+    g(2)
+    3
+    2</pre>
+      <li><tt>.STATIC</tt> rules have their values are stored in <tt>.omakedb</tt>, not in <tt>.omc</tt>, so
+they are distinct between different projects (while the <tt>static.</tt>
+sections in common library files are shared between projects).
+      <li>The <tt>.MEMO</tt> rules are very similar to the <tt>.STATIC</tt>,
+except the <tt>.MEMO</tt> values are <em>not</em> preserved across runs of
+OMake. They are, however, preserved for the duration of OMake session.
+   </ul>
+   <li>Fields in sub-objects can now be referenced directly using the
+   <tt>$(X.Y.Z)</tt> form (<a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=580">bug 580</a>). For example, <pre>
+   X. =
+      Y. =
+         Z. =
+            x = 1
+   X.Y.Z.y = 2
+   X.Y.Z.f() =
+       value $(add $x, $y)
+   echo $(X.Y.Z.f)
+   # prints "3"</pre>
+   <li>Allow functions to take their bodies as array arguments (<a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=645">bug 645</a>). The
+<tt>[...]</tt> argument to a function call stands for an array body and
+<tt>...</tt> stands for a normal body argument. For example,<pre>
+   X =
+      file([...])
+         a
+         b
+         c
+   - : <array
+       /Users/jyh/projects/omake/0.9.8.x/a : File
+       /Users/jyh/projects/omake/0.9.8.x/b : File
+       /Users/jyh/projects/omake/0.9.8.x/c : File>
+       : Array
+</pre>
+   <li>Corrected several cases where the <tt>exit</tt> shell alias would not
+do the right thing. For example, pipelines like <tt>false || exit 5</tt> will
+now return the correct exit code.
+   <li>Added a <tt>build</tt> function, so that builds can be performed from
+<tt>osh</tt> scripts (the function may be called only from <tt>osh</tt>).
+   <li><tt>build/C.om</tt>: new functions for building DLLs:
+<tt>DynamicCLibrary</tt>, <tt>DynamicCLibraryCopy</tt>,
+<tt>DynamicCLibraryInstall</tt>, <tt>DynamicCXXLibrary</tt>,
+<tt>DynamicCXXLibraryCXXopy</tt>, <tt>DynamicCXXLibraryInstall</tt>.
+   <li>New built-in functions: <tt>sort</tt> (AKA <tt>Sequence.sort</tt>), <tt>replace-nth</tt>,
+<tt>input-line</tt> (AKA <tt>InChannel.readln</tt>), <tt>channel-name</tt>
+(AKA <tt>Channel.name</tt>), <tt>sequence-sub</tt> (AKA <tt>Sequence.sub</tt>).
+   <li>New <tt>Shell</tt> alias: <tt>Shell.pwd</tt>
+   <li>The <tt>defined</tt>, <tt>getvar</tt>, <tt>setvar</tt> now allow
+   qualified names (<em>e.g</em> <tt>public.x</tt> or <tt>private.y</tt>).
+   <li>Built-in <tt>awk</tt> will now set the <tt>FILENAME</tt> and
+<tt>FNR</tt> ("line number") variables when evaluating its body.
+   <li>The run-time is now included in <tt>- exit</tt> messages (<em>e.g.</em>
+when
+<tt>--print-exit</tt> is enabled) - <a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=680">bug 680</a>. Note that
+this only indicates when OMake <em>have noticed</em> that the command have
+finished, which may be quite inaccurate in parallel builds (where OMake may be
+busy setting up parallel jobs and not paying attention).
+   <li>Significant code reorganization in preparation for OMake 0.9.9, should
+   be largely transparent to the end-users
+</ul>
+
+<h3><a name="0.9.8.4">Version 0.9.8.4 (June 4, 2007)</a></h3>
+<ul>
+   <li>Fixed a file descriptor leak
+   <li>Fixed: <tt>$(OCAMLDEPFLAGS)</tt> should be passed to "ocamldep -modules"
+   <li>Other minor bug fixes
+</ul> 
+
+<h3><a name="0.9.8.3">Version 0.9.8.3 (June 1, 2007)</a></h3>
+<ul>
+  <li>The 3-place rules are now considered implicit and will be inherited by
+  subdirectories. This makes it easier to declare default rules for common
+  targets, such as<pre>
+  clean: %:
+     rm -f ...
+</pre>
+  <li>Allow <tt>.PHONY</tt> sections to have a body. A <tt>.PHONY</tt>
+  declaration with a body would create a default (implicit) rule for the newly
+  created phony target(s).
+  <li>Detect case-insensitive filesystems on Unix-like operating systems
+  (especially common under Mac OS X). This should make it possible to use
+  <tt>OCAMLDEP_MODULES_ENABLED=true</tt> under Unix-like operating systems
+  with case-insensitive filesystems.
+  <li>Changed the default value for the <tt>OCAMLDEP_MODULES_ENABLED</tt> to
+  <tt>$(OCAMLDEP_MODULES_AVAILABLE)</tt>. In other words, <tt>ocamldep
+  -modules</tt> will be used whenever it is available (e.g. under OCaml 3.10
+  or if the bytecode executable distributed with OMake can be used).
+  <li>A number of performance improvements. In particular, the size of the
+  .omakedb should now be significantly smaller.
+  <li>Documentation improvements
+</ul>
+<h3>Version 0.9.8.2</h3>
+The version number 0.9.8.2 was skipped.
+
+<h3><a name="0.9.8.1">Version 0.9.8.1 (March 16, 2007)</a></h3>
+<ul>
+  <li>Additional &ldquo;autoconfiguration&rdquo; functionality:
+  <ul>
+    <li>New functions in <tt>configure/Configure.om</tt>, including
+    <tt>ConfMsgChecking</tt>, <tt>ConfMsgResult</tt>, <tt>ConfMsgYesNo</tt>,
+    <tt>ConfMsgWarn</tt>, <tt>ConfMsgError</tt>, <tt>ConfMsgFound</tt>,
+    <tt>TryCompileC</tt>, <tt>TryLinkC</tt>, <tt>TryRunC</tt>,
+    <tt>RunCProg</tt>.
+    <li>Added <tt>configure/X.om</tt> with some basic tests for X
+    (experimental, not very well tested).
+  </ul>
+  <li>A number of new built-in and standard library functions: <tt>join</tt>,
+  <tt>min</tt>, <tt>max</tt>, <tt>Map.keys</tt>, <tt>Map.values</tt>,
+  <tt>getpwnam<tt>, <tt>getpwuid</tt>, <tt>getpwents</tt>, <tt>getgrnam</tt>,
+  <tt>getgrgid</tt>, <tt>tgetstr</tt>, <tt>xterm-escape</tt>, <tt>prompt-invisible</tt>
+  <li>Improvements in <tt>-p</tt>/<tt>-P</tt> (&ldquo;poll&rdquo;) mode:
+  <ul>
+    <li>Various errors in <tt>OMakefile</tt>s will now cause OMake to poll for
+    <tt>OMakefile</tt> changes after reporting the error, instead of aborting.
+    <li>Will watch &ldquo;<tt>:optional:</tt>&rdquo; and
+    &ldquo;<tt>:exists:</tt>&rdquo; dependencies (but will still ignore
+    &ldquo;<tt>Delete</tt>&rdquo; events for them).
+  </ul>
+  <li>In implicit rules, allow the source files to contain more than one
+  instance of the <tt>%</tt> &ldquo;wildcard&rdquo; character.
+  <li>Significant improvements in the command line completion in the
+  interactive <tt>osh</tt> shell.
+  <li><tt>build/C.om</tt>: 
+     <ul>
+     <li>Added <tt>StaticCXXLibrary</tt> function;
+     <li>Use <tt>/Fo</tt> and <tt>/Fe</tt> flags in place of <tt>-o</tt> on
+     Windows.
+     </ul>
+  <li><tt>build/LaTeX.om</tt>: added some support for MikTeX.
+  <li>A number of documentation improvements.
+  <li>A number of other improvements and bugfixes.
+</ul>
+
+<h3><a name="0.9.8">Version 0.9.8 (December 11, 2006)</a></h3>
+<ul>
+  <li>The main change in this release is that the OMake values will now be
+  converted into the shell command lines directly (all the previous versions
+  of OMake should first "flatten" the value into a string and then perform
+  <tt>sh</tt>-like parsing of the resulting string). In particular, this means
+  that:
+  <ul>
+    <li>All the special symbols in files and directory values will be
+    preserved.
+    <li>All the spaces inside the array elements will be preserved.
+    <li>All the special symbols in OMake-quoted values
+    (<tt>$"</tt>...<tt>"</tt> and <tt>$'</tt>...<tt>'</tt>) will be preserved.
+    <li>If the first element of the command line is a file value, neither
+    PATH- nor alias-expansion will be performed. Note - there will also be no
+    alias-expansion if the executable value contains quoted parts or starts
+    with a <tt>\</tt>.
+    <li>The <tt>Shell.</tt> aliases will now receive the values passed on the
+    shell command line as is, not the string-expanded version. Also, if some
+    of the arguments are the result of a glob-expansion, the alias function
+    will receive the appropriate file values, not the strings.
+    <li>OMake 0.9.8 <b>will not be fully backwards-compatible</b> with the earlier
+    releases.
+  </ul>
+  <li>Major redesign of the OMake documentation (using <a
+    href="http://pauillac.inria.fr/~maranget/hevea/">H<FONT
+    SIZE="-1"><sup>E</sup></FONT>V<FONT SIZE="-1"><sup>E</sup></FONT>A</a>).
+  <ul>
+    <li>The documentation is significantly expanded, examples added, bugs
+    fixed.
+    <li>There are now a number of indices, including a index of variables, an
+    index of functions, and an overall index.
+  </ul>
+  <li><tt>OCaml.om</tt> improvements:
+    <ul>
+    <li>Implemented a new approach to computing the dependencies in OCaml
+    projects in OMake. In this approach a special version of <tt>ocamldep</tt>
+    is used to only extract the list of the external modules a file depends on
+    and then OMake is used to map those modules to files in the include path.
+    This eliminates the "standard" deficiency of having to generate all the
+    relevant OCaml source files before <tt>ocamldep</tt> is called. This
+    feature is considered highly experimental and is disabled by default. Use
+    the <tt>OCAMLDEP_MODULES_ENABLED</tt> variable to enable.
+    <li>Added support for the Menhir parser-generator (experimental).
+  </ul>
+  <li><tt>C.om</tt> improvements:
+     <ul>
+     <li>Changed the <tt>CProgram</tt> function to consider <tt>LIBS</tt> to be the actual
+     library files (_without_ the extension) that need to be linked in.
+     <li>Improved the C scanner rule on Windows.
+     </ul>
+  <li><tt>LaTeX.om</tt> improvements:
+     <ul><li><tt>BSTINPUTS</tt> environment variable joins <tt>TEXINPUTS</tt> and
+     <tt>BIBINPUTS</tt> in the list of variables initialized from the OMake's
+     <tt>TEXINPUTS</tt> variable.
+     <li>The list of such variables is now configurable (<tt>TEXVARS</tt> variable
+          contains an array of names).</ul>
+  <li>More control over the OMake output and verbosity.
+  <ul>
+    <li>By default, OMake is now much more silent (&quot;<tt>-S
+    --progress</tt>&quot; is enabled by default when it outputs to a terminal,
+    and &quot;<tt>-S</tt>&quot; is enabled in all other cases).
+    <li>Added a
+    <tt>--verbose</tt> option that would make OMake very verbose, when needed.
+    <li>Added an ability to postpone and/or repeat the rule execution output (so that, for example,
+    only the output of the rules that fail is printed, or the output of the
+    rules that failed is repeated at the end of the <tt>omake -k</tt>
+    execution). This feature is somewhat experimental and might change in the
+    future versions of OMake.
+    <li>Added the <tt>-o</tt> option for better control of OMake verbosity.
+  </ul>
+  <li>Added three special <tt>.PHONY</tt> targets: <tt>.BUILD_BEGIN</tt>,
+    <tt>.BUILD_SUCCESS</tt>, and <tt>.BUILD_FAILURE</tt>.
+    <tt>.BUILD_BEGIN</tt> is built before anything else in your project. One
+    of <tt>.BUILD_SUCCESS</tt> or <tt>.BUILD_FAILURE</tt> is built when the
+    build for your project terminates.<br>
+    Note:
+    <ul>
+      <li>This feature is experimental and is likely to change in the
+      future versions of OMake.
+      <li>If you want to use these targets, you should probably add them to
+      your <tt>~/.omakerc</tt>, rather than adding them directly to each of
+      the projects you work on.
+    </ul>
+  <li>OMake will now save the <tt>.omakedb</tt> periodically, preventing the
+  state loss in case the OMake process dies unexpectedly (for example, when Cygwin
+  kills OMake after user presses Ctrl-C). The checkpointing interval may be
+  configured both at  compile time and via the command line.
+  <li>The variables such as <tt>$&lt;</tt> and <tt>$@</tt> in rules and
+  <tt>%</tt> in implicit rules will no longer be expanded to strings; instead
+  they will be passed as <tt>Node</tt> (&quot;file&quot;) values.
+  <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
+  <li>Implicit rules can no longer have target patterns referring to another
+  directories. See <a
+    href="http://bugzilla.metaprl.org/show_bug.cgi?id=456">bug #456</a> for
+  detail.
+  <li>New functions: <tt>Shell.ln-or-cp</tt>, <tt>html-escaped</tt>,
+  <tt>string-escaped</tt>, <tt>encode-uri</tt>, <tt>decode-uri</tt>,
+  <tt>random</tt>, <tt>find-targets-in-path</tt>.
+  <li>Added an ability to turn a string into an input channel. This allows,
+  for example, to use an OMake variable as an input to built-in <tt>awk</tt> without having to
+  write it to a temporary file first.
+  <li>New flags added to built-in <tt>awk</tt> and <tt>grep</tt>.
+  <li>A large number of other bug fixes and improvements.
+</ul>
+
+
+<h3><a name="0.9.6.9">Version 0.9.6.9 (April 11, 2006)</a></h3>
+<ul>
+  <li>Standard library improvements:
+  <ul>
+    <li>Implemented Erick Tryzelaar's idea of having <tt>*Program</tt> and
+    <tt>*Library</tt> functions return the array with all the targets that it
+    have defined the rules for.
+
+    <li>Improved C++ support:
+    <ul>
+      <li>Use <tt>g++</tt> (when present) instead of <tt>gcc</tt> as
+        <tt>CXX</tt>.
+      <li>Allow <tt>.cc</tt> and <tt>.c++</tt> extensions in addition to
+        <tt>.cpp</tt>
+      <li>Added <tt>CXXProgram</tt> and <tt>CXXProgramInstall</tt> functions.
+    </ul>
+    <li>Improved OCaml support:
+    <ul>
+      <li>Changed <tt>USE_OCAMLFIND</tt> to be always false by default.
+      <li>Added <tt>OCAMLC_EXISTS</tt> variable.
+    </ul>
+    <li><tt>Pervasives.om</tt>: use the built-in <tt>cat</tt> by default.
+    <li>Added a <tt>PID</tt> built-in variable.
+  </ul>
+  <li>Bug fixes and improvements:
+  <ul>
+  <li>Fixed problems with <tt>:value:</tt> dependencies in <tt>.INCLUDE</tt>
+  rules and <tt>:squash:</tt> dependencies in implicit rules.
+  <li>Added auto-rehashing on relative names in the <tt>PATH</tt>. In
+  addition, you can define <tt>AUTO_REHASH = true</tt> if
+  you want to auto-rehash on all directories in the path.
+  <li>Comments in OMakefiles are now parsed more consistently.
+  <li>Significantly improved the performance of the built-in <tt>find</tt>
+  command.
+  </ul>
+  <li>Updated the default (sample) <tt>OMakefile</tt>.
+  <li>A number of documentation fixes and improvements.
+</ul>
+
+<h3><a name="0.9.6.8">Version 0.9.6.8 (January 23, 2006)</a></h3>
+<ul>
+  <li>Improved the handling of the ".PHONY" nodes, fixing a few bugs where a
+  ".PHONY" node was used in place of a file with the same name.
+  <li>Fixed a bug with PATH-expansion for pipelines being performed too early.
+  <li>Added a <tt>remove-project-directories</tt> function, which will prevent
+  the directories from being included even if there is a <tt>.SUBDIRS</tt>
+  command for any of them.
+  <li><tt>OCaml.om</tt>: fixed the installation of <tt>.mli</tt>, <tt>.cmi</tt> files
+  (which is performed by the <tt>OCamlLibraryCopy</tt> function when
+  <tt>INSTALL_INTERFACES</tt> is enabled).
+  <li>A number of documentation fixes and other improvements.
+</ul>
+<h3><a name="0.9.6.7">Version 0.9.6.7 (December 28, 2005)</a></h3>
+<ul>
+  <li>Added basic support for C++ (<a
+    href="http://bugzilla.metaprl.org/show_bug.cgi?id=389">Issue 389</a>)
+  <li>Portability improvements:
+  <ul>
+    <li>More portable bootstrapping <tt>Makefile</tt>
+    <li> When lockf is not supported and we fail to lock the project because
+    of that, print a warning message and keep going (this is fairly safe). We
+    used to go into an infinite loop before.
+ </ul>
+ <li><tt>OCaml.om</tt> improvements:
+   <ul>
+     <li>Added an <tt>OCAMLOPT_FOUND</tt> variable that can be used to tell whether
+     <tt>OCAMLOPT</tt> exists.
+     <li>Now by default, <tt>NATIVE_ENABLED</tt> and <tt>BYTE_ENABLED</tt>
+     variables will be set to enable the "best available" compilation mode:
+     <ul>
+       <li>When <tt>OCAMLOPT</tt> is fould, the defaults are <tt>
+       <br>NATIVE_ENABLED=true
+       <br>BYTE_ENABLED=false</tt>
+       <br> as before.
+       <li>Otherwise, the values are swapped.
+     </ul>
+     <li>Allow the usage of <tt>OCamlLibraryInstall</tt> and
+     <tt>OCamlLibraryCopy</tt> when the destination directory is the same as
+     the source one.
+   </ul>
+  <li> Fixed a (somewhat recently introduced) problem with OMake failing to
+  properly restart when the "<tt>-p</tt>"/"<tt>-P</tt>" filesystem watch is
+  used and OMake detects that one of the relevant OMake file have changed.
+  <li>Couple of "<tt>-w</tt>" option improvements.
+  <li>A number of minor documentation fixes.
+</ul>
+
+<h3><a name="0.9.6.6">Version 0.9.6.6 (November 5, 2005)</a></h3>
+<ul>
+  <li>Made sure OMake compiles fine with both OCaml 3.08 and 3.09.
+  <li>A few minor bugfixes and improvements:
+   <ul>
+     <li>Avoid giving bogus "These file are targeted separately, but appear
+        as effects of a single rule." warnings (thanks to Florian Hars for
+            reporting the problem).
+     <li>LaTeX rules: do not assume that .aux will always be created (based on
+         a patch by Cristian Tapus).
+     <li>Fixed ocamlfind support (based on a patch by Peter Jolly).
+   </ul>
+</ul>
+
+<h3><a name="0.9.6.5">Version 0.9.6.5 (September 14, 2005)</a></h3>
+
+<ul>
+  <li>Improved support for configure-style scripts in OMake (using the
+  run-once <tt>static.</tt> sections). OMake installation now includes a small
+  library of useful helpful configure functions and a number of examples
+  (<tt>ncurses</tt>, <tt>readline</tt>, <tt>fam</tt>).
+  <li>LaTeX rules improvements, including support for TeTeX v.3 and better
+  pdflatex support.
+  <li>The <tt>which</tt> function should now work correctly in Cygwin. Fixed
+  a number of issues related to using <tt>ocamlfind</tt> under Cygwin and
+  Windows.
+  <li>Fixed a number of bugs related to execution of complex shell
+  pipelines.
+  <li>New built-in functions: <tt>get-registry</tt> (Windows-only),
+  <tt>removeprefix</tt>, <tt>html-string</tt>.
+  <li>Fixed a problem with interactive <tt>osh</tt> sessions not handling the
+  <tt>return</tt> operator correctly.
+  <li>Improved handling of implicit <tt>:value:</tt> dependencies (implicit
+  value dependencies are added for all the &ldquo;free&rdquo;variables in
+  <tt>section eval</tt>). The free variable computation is more precise, and
+  the implicit dependencies are now allowed to contain undefined variables.
+  <li>The <tt>include foo</tt> directive will now try opening <tt>foo.om</tt>
+  before trying to open <tt>foo</tt>. Same is true for the <tt>.INCLUDE</tt>
+  rules.
+  <li>A number of documentation fixes. 
+  <li>Significant changes in the setup for compiling OMake. No more autoconf,
+  bootstapping uses make to build a feature-limited bootstrapping binary and
+  the normal version of OMake is compiled using OMake itself. Makefiles are
+  now generated by OMake.
+  <li>Significant reorganization of the source three. Now the source three
+  has a reasonable directory structure, instead of a single flat directory
+  with all the files.
+  <li>A number of other improvements and bug fixes.
+</ul>
+     <h3><a name="0.9.6">Version 0.9.6 (July 17, 2005)</a></h3>
+
+<ul>
+  <li> Added "static" sections that are evaluated once.  Values defined
+    in static sections are persistent across runs of omake.  This is
+    convenient for implementing configure-style tests in omake files.
+
+  <li>Added <tt>:value:</tt> dependencies.
+
+   <p>Value dependencies are specified using the :value: option in rules.
+
+   <pre>
+          a: b c :value: $(X)
+              ...</pre>
+
+   <p>This rule specifies that "a" should be recompiled if the value of
+   <tt>$(X)</tt> changes (X does not have to be a filename).  This is intended
+   to allow greater control over dependencies.
+
+   In addition, it can be used in place of other kinds of dependencies.
+   For example, the following rule:
+
+   <pre>
+          a: b :exists: c
+              commands</pre>
+
+   is the same as
+
+   <pre>
+          a: b :value: $(target-exists c)
+              commands</pre>
+
+   <p>Notes:
+
+    <ul>
+       <li> The values are arbitrary (they are not limited to variables)
+       <li> The values are evaluated at rule expansion time, so variables
+            like <tt>$@</tt>, <tt>$^</tt>, etc are legal.
+   </ul>
+
+   <p>One other significant difference is that the rule cache now uses a
+   digest of the rule commands text, not the text itself.  This has an
+   impact on initial omake speed (I am not sure how significant it is)
+   but the cache is smaller.  Also, "<tt>section eval</tt>" should now be
+   handled correctly.</li>
+
+  <li> Significantly changed the meaning of the <tt>.SCANNER</tt> rules. Now the
+    <tt>.SCANNER</tt> rules are treated much more like normal rules.
+
+    <p>Externally, a <tt>.SCANNER</tt> rule has the usual rule form:
+
+    <pre>
+       .SCANNER: target: dependencies...
+          ...scanner commands...</pre>
+
+    <p>However, the scanner target is now decoupled from the
+    build target, allowing a scanner result to be used for multiple
+    build targets.  For example, ocamldep produces dependencies
+    for .cmo and .cmx files simultaneously.  They can share
+    the scanner rule by specifying an explicit :scanner: dependency.
+
+    <pre>
+        .SCANNER: scan-ocaml-%.ml: %.ml
+            ocamldep $lt;
+
+        %.cmo: %.ml :scanner: scan-ocaml-%.ml
+            $(OCAMLC) ...
+
+        %.cmx %.o: %.ml :scanner: scan-ocaml-%.ml
+            $(OCAMLOPT) ...</pre>
+
+    <p>The current convention is that scanner targets should be named
+    <tt>scan-&lt;language&gt;-&lt;source-file&gt;</tt>.
+
+       <ul>
+       <li> If a rule has multiple <tt>:scanner:</tt> dependencies, the actual
+          dependencies will be the union of the scanner results.
+
+       <li> The <tt>.SCANNER</tt> targets use a different namespace than
+           normal targets, so it is valid to have overlapping rules.
+
+            <pre>
+              .SCANNER: foo:
+                  echo "foo: boo"
+
+              foo: :scanner: foo
+                  ...</pre>
+
+       <li> For backwards compatibility, if a rule has no :scanner:
+          dependencies, then omake will try to find a scanner with
+          the same name as the target.  So in the example above,
+          the <tt>:scanner:</tt> foo is actually unnecessary.
+        </ul>
+  </li>
+
+  <li> Added file locking for the <tt>.omakedb</tt> and <tt>.omc</tt> files, so that multiple processes
+    can be run simultaneously.
+
+  <li> Fixed issues where files were being expanded during the string to array
+  conversion.
+
+  <li> Better accessibility of the build rules and dependencies from OMake scripts.
+
+  <p> See documentation for the <a
+    href="manual/omake-pervasives.html#section_12"><tt>Target</tt>
+    object</a> and the <a
+    href="manual/omake-doc.html#section_288">&quot;Examining
+    the dependency graph&quot; Section</a> of the OMake Documentation for
+   more information.
+
+
+  <li> Improved the latex-related rules.
+
+  <li> Rule execution now fails when any shell command fails, even those in
+    nested sections.
+
+  <li> Regular expressions now handle \(...\) arguments correctly.  Also, the
+    lexer has better performance, searching is now roughly linear time.
+
+  <li> Added <tt>.SUBDIRS</tt> bodies.  If you don't want to write an
+  <tt>OMakefile</tt> for each subdirectory, you can define a <tt>.SUBDIRS</tt>
+  body that defines the it instead.
+
+        <pre>
+        .SUBDIRS: foo boo
+            println(Current directory is $(CWD))
+            ...normal configuration...</pre>
+
+  <li> Added the <tt>vmount</tt> function to define a "virtual mount" of one directory
+    over another.  This adds a fairly simple way to define multiple versions
+    of a project.  Suppose your source files are in a directory src/.  Then
+    one easy way to compile a version of the project is the following.
+
+        <pre>
+        vmount(-l, src, x86)
+        .SUBDIRS: x86</pre>
+
+    <p>Files from the src directory are now automatically linked into the
+    x86 directory as needed.  If you want to have multiple versions,
+    you can use multiple directories (and multiple vmounts).
+  <li> The Map object is now completely changed.
+
+   <p>The keys are now "simple" values, not just strings.  Simple
+   values include integers, floats, strings, arrays of simple
+   values, files, and directories.
+
+   <p>Only the Map class has the map functions defined.  If you want
+   to have, say, a File that also includes a Map, create a
+   subclass that extends both File and Map.
+
+   <p>Literal string keys can be written in the form <tt>$|key...|</tt>.
+   This works both for definitions and uses.  The usual modifiers
+   are allowed <tt>$,|key|</tt> and <tt>$`|key|</tt>.
+
+      <pre>
+      X. =
+         extends $(Map)
+         $|key 1| = 1
+         $|key 2| = $|key 1| boo
+         $|key 2| += foo</pre>
+  </li>
+
+  <li>Bugs fixed: <a
+    href="http://bugzilla.metaprl.org/buglist.cgi?bug_id=158,299,315,335,338,359,376,377,379,387,393,394,397,402,403,423,425,427,428,431,441,443,445,446,447,449,452,453,454,459,462,463,464,465,466,470,471,472,473,476,477,478,480,481,482,483,487,488,489,493">158,
+    299, 315, 335, 338, 359, 376, 377, 379, 387, 393, 394, 397, 402, 403, 423,
+    425, 427, 428, 431, 441, 443, 445, 446, 447, 449, 452, 453, 454, 459, 462,
+    463, 464, 465, 466, 470, 471, 472, 473, 476, 477, 478, 480, 481, 482, 483,
+    487, 488, 489, 493</a>
+
+  <li>Numerous other improvements.
+
+  </ul>
+  <h3>OMake 0.9.5</h3>
+  The version number 0.9.5 was skipped.
+
+  <h3><a name="0.9.4">OMake 0.9.4 (January 4, 2005)</a></h3>
+   <ul>
+  <li> Portability improvements. OMake should now compile and work under Windows
+    2000, Windows NT and FreeBSD. A number of Windows-specific bugs are fixed.
+    A Windows installer is added.
+  <li> OMake now uses the built-in versions of the following commands:
+    <tt>cp</tt>, <tt>mv</tt>, <tt>mkdir</tt>, <tt>rm</tt>, <tt>rmdir</tt>,
+<tt>chmod</tt>
+  <li> Improvements to the filesystem watch functionality. In particular,
+    the build will now restart if a change to one of the OMakefiles is
+    detected.
+  <li> Added a <tt>USE_OCAMLFIND</tt> variable that can be used to force or prohibit the
+    usage of ocamlfind in a project (by default <tt>USE_OCAMLFIND</tt> is set to true
+    iff the ocamlfind executable is found in path).
+  <li> Added a <tt>--force-dotomake</tt> option to create all <tt>.omc</tt>
+  and <tt>.omo</tt> files under <tt>$HOME/.omake/cache</tt> and a
+  <tt>--dotomake</tt> option to specify an alternative to
+  <tt>$HOME/.omake</tt>
+  <li> Added <tt>:squash:</tt> dependencies (that specify that the dependency must be
+    built, but when the dependency changes, it does not cause the target to be
+    rebuilt).
+  <li> OMake will now read <tt>~/.omakeinit</tt> and <tt>~/.omakerc</tt> files on startup.
+  <li> Improved the latex-related rules.
+  <li> Documentation improvements.
+  <li> Bugs fixed: <a
+  href="http://bugzilla.metaprl.org/buglist.cgi?bug_id=142,153,311,313,314,316,332,333,339,350,360,361,366,367,368,374,375">142, 153, 311, 313, 314, 316, 332, 333, 339, 350, 360, 361,
+    366, 367, 368, 374, 375</a>.
+
+   </ul>
+
+<h3><a name="0.9.3">OMake 0.9.3 (October 18, 2004)</a></h3>
+<ul>
+  <li> OMake now supports ocamlfind in its default configuration file
+   (thanks to Bardur Arantsson for the initial patch).
+  <li> OMake should now also work with OCaml 3.07 (in addition to 3.08).
+  <li> A large number of bug fixes, including:<ul>
+     <li> OMake should now compile correctly under Cygwin (thanks to
+       Peter Jolly who provided the patch),
+     <li> "double-colon" rules (that allow specifying multiple rules for
+       the same target) should now work correctly,
+     <li> kqueue-based file system monitoring (Mac OS X, FreeBSD) should
+       now work correctly
+     <li> array definitions should now work better.
+    </ul>
+  <li> Added a work around for the command line length limitation of
+    <tt>lib.exe</tt> on Windows
+  <li> Filesystem monitoring functionality now provides a choice whether
+      to continue monitoring once the project is built successfully.
+</ul>
+
+<h3><a name="0.9.2">OMake 0.9.2 (September 8, 2004)</a></h3>
+<ul>
+  <li> Bugs fixed:<ul>
+     <li> "<tt>make install</tt>" will no longer create <tt>$HOME/.omake</tt> as root;
+     <li> the <tt>-custom</tt> option is now a part of
+     <tt>OCAML_BYTE_LINK_FLAGS</tt> and
+       can be easily disabled;
+     <li> omake should now allow specifying dependencies for the same file
+       more than once.
+    </ul>
+  <li> The <tt>OMakeroot.src</tt>, <tt>OMakeroot.default</tt> and
+  <tt>OMakefile.default</tt> are now
+     under MIT license to allow users to freely borrow from them into their
+     own omake build files. (The rest of OMake is still under GPL).
+  <li> Fixed a number of typos and formatting errors in documentation.
+</ul>
+</body>
+</html>

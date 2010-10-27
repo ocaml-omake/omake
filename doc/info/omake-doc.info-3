@@ -1,0 +1,1524 @@
+This file has been translated from LaTeX by HeVeA.
+
+Node: Section 6-2,	Next: Section 6-3,	Prev: Section 6-1,	Up: Chapter 6
+  
+
+6.2   Functional evaluation
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Apart from I/O, omake programs are entirely functional. This has two
+parts:
+  
+  
+   - There is no assignment operator. 
+   - Functions are values, and may be passed as arguments, and returned
+   from functions just like any other value. 
+  
+  The second item is straightforward. For example, the following program
+defines an increment function by returning a function value.
+<<   incby(n) =
+        g(i) =
+           return $(add $(i), $(n))
+        return $(g)
+  
+     f = $(incby 5)
+  
+     value $(f 3)
+     - : 8 : Int
+>>
+  
+  The first item may be the most confusing initially. Without
+assignment, how is it possible for a subproject to modify the global
+behavior of the project? In fact, the omission is intentional. Build
+scripts are much easier to write when there is a guarantee that
+subprojects do not interfere with one another.
+  However, there are times when a subproject needs to propagate
+information back to its parent object, or when an inner scope needs to
+propagate information back to the outer scope.
+
+Node: Section 6-3,	Next: Subsection 6-3-1,	Prev: Section 6-2,	Up: Chapter 6
+  
+
+6.3   Exporting the environment
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+    The 'export' directive can
+be used to propagate all or part of an inner scope back to its parent.
+If used without arguments, the entire scope is propagated back to the
+parent; otherwise the arguments specify which part of the environment to
+propagate. The most common usage is to export some or all of the
+definitions in a conditional block. In the following example, the
+variable 'B' is bound to 2 after the conditional. The 'A' variable is
+not redefined.
+<<    if $(test)
+         A = 1
+         B = $(add $(A), 1)
+         export B
+      else
+         B = 2
+         export
+>>
+  
+  If the 'export' directive is used without an argument, all of the
+following is exported: 
+  
+   - The values of all the dynamically scoped variables (as described in
+   Section 5.5*Note Section 5-5::). 
+   - The current working directory. 
+   - The current Unix environment. 
+   - The current implicit rules and implicit dependencies (see also
+   Section 8.11.1*Note Subsection 8-11-1::). 
+   - The current set of "phony" target declarations (see
+   Sections 8.10*Note Section 8-10::
+   and 8.11.3*Note Subsection 8-11-3::). 
+  
+  If the 'export' directive is used with an argument, the argument
+expression is evaluated and the resulting value is interpreted as
+follows: 
+  
+   - If the value is empty, everything is exported, as described above. 
+   - If the value represents a environment (or a partial environment)
+   captured using the 'export' function, then the corresponding
+   environment or partial environment is exported. 
+   - Otherwise, the value must be a sequence of strings specifying which
+   items are to be propagated back. The following strings have special
+   meaning: 
+     
+      - '.RULE' --- implicit rules and implicit
+      dependencies. 
+      - '.PHONY' --- the set of "phony" target
+      declarations. 
+  All other strings are interpreted as names of the variables that need
+   to be propagated back. 
+  
+  For example, in the following (somewhat artificial) example, the
+variables 'A' and 'B' will be exported, and the implicit rule will
+remain in the environment after the section ends, but the variable 'TMP'
+and the target 'tmp_phony' will remain unchanged.
+<<section
+     A = 1
+     B = 2
+     TMP = $(add $(A), $(B))
+  
+     .PHONY: tmp_phony
+  
+     tmp_phony:
+        prepare_foo
+  
+     %.foo: %.bar tmp_phony
+        compute_foo $(TMP) $< $@
+     export A B .RULE
+>>
+  
+* Menu:
+
+* Subsection 6-3-1::	Export regions
+* Subsection 6-3-2::	Returning values from exported regions
+
+
+Node: Subsection 6-3-1,	Next: Subsection 6-3-2,	Prev: Section 6-3,	Up: Section 6-3
+  
+
+6.3.1   Export regions
+======================
+  
+  This feature was introduced in version 0.9.8.5.
+  The 'export' directive does not need to occur at the end of a block.
+An export is valid from the point where it is specified to the end of
+the block in which it is contained. In other words, the export is used
+in the program that follows it. This can be especially useful for
+reducing the amount of code you have to write. In the following example,
+the variable 'CFLAGS' is exported from the both branches of the
+conditional.
+<<    export CFLAGS
+      if $(equal $(OSTYPE), Win32)
+          CFLAGS += /DWIN32
+      else
+          CFLAGS += -UWIN32
+>>
+  
+
+Node: Subsection 6-3-2,	Next: Section 6-4,	Prev: Subsection 6-3-1,	Up: Section 6-3
+  
+
+6.3.2   Returning values from exported regions
+==============================================
+  
+  This feature was introduced in version 0.9.8.5.
+  The use of export does not affect the value returned by a block. The
+value is computed as usual, as the value of the last statement in the
+block, ignoring the export. For example, suppose we wish to implement a
+table that maps strings to unique integers. Consider the following
+program.
+<<    # Empty map
+      table = $(Map)
+  
+      # Add an entry to the table
+      intern(s) =
+          export
+          if $(table.mem $s)
+              table.find($s)
+          else
+              private.i = $(table.length)
+              table = $(table.add $s, $i)
+              value $i
+  
+      intern(foo)
+      intern(boo)
+      intern(moo)
+      # Prints "boo = 1"
+      println($"boo = $(intern boo)")
+>>
+  Given a string 's', the function 'intern' returns either the value
+already associated with 's', or assigns a new value. In the latter case,
+the table is updated with the new value. The 'export' at the beginning
+of the function means that the variable 'table' is to be exported. The
+bindings for 's' and 'i' are not exported, because they are private.
+
+  Evaluation in omake is eager. That is, expressions are evaluated as
+soon as they are encountered by the evaluator. One effect of this is
+that the right-hand-side of a variable definition is expanded when the
+variable is defined.
+<<    osh> A = 1
+      - : "1"
+      osh> A = $(A)$(A)
+      - : "11"
+>>
+  
+  In the second definition, 'A = $(A)$(A)', the right-hand-side is
+evaluated first, producing the sequence '11'. Then the variable 'A' is
+redefined as the new value. When combined with dynamic scoping, this has
+many of the same properties as conventional imperative programming.
+<<    osh> A = 1
+      - : "1"
+      osh> printA() =
+          println($"A = $A")
+      osh> A = $(A)$(A)
+      - : "11"
+      osh> printA()
+      11
+>>
+  
+  In this example, the print function is defined in the scope of 'A'.
+When it is called on the last line, the dynamic value of 'A' is '11',
+which is what is printed.
+  However, dynamic scoping and imperative programming should not be
+confused. The following example illustrates a difference. The second
+'printA' is not in the scope of the definition 'A = x$(A)$(A)x', so it
+prints the original value, '1'.
+<<    osh> A = 1
+      - : "1"
+      osh> printA() =
+          println($"A = $A")
+      osh> section
+               A = x$(A)$(A)x
+               printA()
+      x11x
+      osh> printA()
+      1
+>>
+  
+  See also Section 7.5*Note Section 7-5:: for further ways to
+control the evaluation order through the use of "lazy" expressions.
+
+Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
+  
+
+6.4   Objects
+*=*=*=*=*=*=*
+
+  
+  omake is an object-oriented language. Everything is an object,
+including base values like numbers and strings. In many projects, this
+may not be so apparent because most evaluation occurs in the default
+toplevel object, the 'Pervasives' object, and few other objects are ever
+defined.
+  However, objects provide additional means for data structuring, and in
+some cases judicious use of objects may simplify your project.
+  Objects are defined with the following syntax. This defines 'name' to
+be an object with several methods an values.
+<<    name. =                     # += may be used as well
+         extends parent-object    # optional
+         class class-name         # optional
+  
+         # Fields
+         X = value
+         Y = value
+  
+         # Methods
+         f(args) =
+            body
+         g(arg) =
+            body
+>>
+  
+  An 'extends' directive specifies that this object inherits from the
+specified 'parent-object'. The object may have any number of 'extends'
+directives. If there is more than on 'extends' directive, then fields
+and methods are inherited from all parent objects. If there are name
+conflicts, the later definitions override the earlier definitions.
+  The 'class' directive is optional. If specified, it defines a name for
+the object that can be used in 'instanceof' operations, as well as '::'
+scoping directives discussed below.
+  The body of the object is actually an arbitrary program. The variables
+defined in the body of the object become its fields, and the functions
+defined in the body become its methods.
+
+Node: Section 6-5,	Next: Section 6-6,	Prev: Section 6-4,	Up: Chapter 6
+  
+
+6.5   Field and method calls
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The fields and methods of an object are named using 'object.name'
+notation. For example, let's define a one-dimensional point value.
+<<   Point. =
+        class Point
+  
+        # Default value
+        x = $(int 0)
+  
+        # Create a new point
+        new(x) =
+           x = $(int $(x))
+           return $(this)
+  
+        # Move by one
+        move() =
+           x = $(add $(x), 1)
+           return $(this)
+  
+     osh> p1 = $(Point.new 15)
+     osh> value $(p1.x)
+     - : 15 : Int
+  
+     osh> p2 = $(p1.move)
+     osh> value $(p2.x)
+     - : 16 : Int
+>>
+  
+  The '$(this)' variable always represents the current object. The
+expression '$(p1.x)' fetches the value of the 'x' field in the 'p1'
+object. The expression '$(Point.new 15)' represents a method call to the
+'new' method of the 'Point' object, which returns a new object with 15
+as its initial value. The expression '$(p1.move)' is also a method call,
+which returns a new object at position 16.
+  Note that objects are functional --- it is not possible to modify the
+fields or methods of an existing object in place. Thus, the 'new' and
+'move' methods return new objects.
+
+Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
+  
+
+6.6   Method override
+*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Suppose we wish to create a new object that moves by 2 units, instead
+of just 1. We can do it by overriding the 'move' method.
+<<   Point2. =
+        extends $(Point)
+  
+        # Override the move method
+        move() =
+           x = $(add $(x), 2)
+           return $(this)
+  
+     osh> p2 = $(Point2.new 15)
+     osh> p3 = $(p2.move)
+     osh> value $(p3.x)
+     - : 17 : Int
+>>
+  
+  However, by doing this, we have completely replaced the old 'move'
+method.
+
+Node: Section 6-7,	Next: Chapter 7,	Prev: Section 6-6,	Up: Chapter 6
+  
+
+6.7   Super calls
+*=*=*=*=*=*=*=*=*
+
+  
+  Suppose we wish to define a new 'move' method that just calls the old
+one twice. We can refer to the old definition of move using a super
+call, which uses the notation '$(classname::name <args>)'. The
+'classname' should be the name of the superclass, and 'name' the field
+or method to be referenced. An alternative way of defining the 'Point2'
+object is then as follows.
+<<   Point2. =
+        extends $(Point)
+  
+        # Call the old method twice
+        move() =
+           this = $(Point::move)
+           return $(Point::move)
+>>
+  
+  Note that the first call to '$(Point::move)' redefines the current
+object (the 'this' variable). This is because the method returns a new
+object, which is re-used for the second call.
+   
+
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+  
+
+Chapter 7     Additional language examples
+******************************************
+    
+  In this section, we'll explore the core language through a series of
+examples (examples of the build system are the topic of the
+Chapter 3*Note Chapter 3::).
+  For most of these examples, we'll use the 'osh' command interpreter.
+For simplicity, the values printed by 'osh' have been abbreviated.
+* Menu:
+
+* Section 7-1::	Strings and arrays
+* Section 7-2::	Quoted strings
+* Section 7-3::	Files and directories
+* Section 7-4::	Iteration, mapping, and foreach
+* Section 7-5::	Lazy expressions
+* Section 7-6::	Scoping and exports
+* Section 7-7::	Shell aliases
+* Section 7-8::	Input/output redirection on the cheap
+
+
+Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
+  
+
+7.1   Strings and arrays
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The basic OMake values are strings, sequences, and arrays of values.
+Sequences are like arrays of values separated by whitespace; the
+sequences are split on demand by functions that expect arrays.
+<<   osh> X = 1 2
+     - : "1 2" : Sequence
+     osh> addsuffix(.c, $X)
+     - : <array 1.c 2.c> : Array
+>>
+  
+  Sometimes you want to define an array explicitly. For this, use the
+'[]' brackets after the variable name, and list each array entry on a
+single indented line.
+<<   osh> A[] =
+             Hello world
+             $(getenv HOME)
+     - : <array "Hello world" "/home/jyh"> : Array
+>>
+  
+  One central property of arrays is that whitespace in the elements is
+taken literally. This can be useful, especially for filenames that
+contain whitespace. 
+<<   # List the current files in the directory
+      osh> ls -Q
+      "fee"  "fi"  "foo"  "fum"
+      osh> NAME[] = 
+              Hello world
+      - : <array "Hello world"> : Array
+      osh> touch $(NAME)
+      osh> ls -Q
+      "fee"  "fi"  "foo"  "fum"  "Hello world"
+>>
+  
+
+Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
+  
+
+7.2   Quoted strings
+*=*=*=*=*=*=*=*=*=*=
+
+    
+  A 'String' is a single value; whitespace is taken literally in a
+string. Strings are introduced with quotes. There are four kinds of
+quoted elements; the kind is determined by the opening quote. The
+symbols ''' (single-quote) and '"' (double-quote) introduce the normal
+shell-style quoted elements. The quotation symbols are included in the
+result string. Variables are always expanded within a quote of this
+kind. Note that the osh(1) (Chapter 15*Note Chapter 15::) printer
+escapes double-quotes within the string; these are only for printing,
+they are not part of the string itself.
+<<    osh> A = 'Hello "world"'
+      - : "'Hello \"world\"'" : String
+      osh> B = "$(A)"
+      - : "\"'Hello \"world\"'\"" : String
+      osh> C = 'Hello \'world\''
+      - : "'Hello 'world''" : String
+>>
+  
+  A second kind of quote is introduced with the '$'' and '$"' quotes.
+The number of opening and closing quote symbols is arbitrary. These
+quotations have several properties: 
+  
+   - The quote delimiters are not part of the string. 
+   - Backslash '\' symbols within the string are treated as normal
+   characters. 
+   - The strings may span several lines. 
+   - Variables are expanded within '$"' sequences, but not within '$''
+   sequences. 
+  
+<<    osh> A = $'''Here $(IS) an '''' \(example\) string['''
+      - : "Here $(IS) an '''' \\(example\\) string[" : String
+      osh> B = $""""A is "$(A)" """"
+      - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+      osh> value $(A.length)
+      - : 38 : Int
+      osh> value $(A.nth 5)
+      - : "$" : String
+      osh> value $(A.rev)
+      - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+>>
+  
+  Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.
+<<    osh> A = a b c
+      - : "a b c" : Sequence
+      osh> B = $(A).c
+      - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
+      osh> value $(nth 2, $(B))
+      - : "c.c" : String
+      osh> value $(length $(B))
+      - : 3 : Int
+>>
+  
+  Arrays are different. The elements of an array are never merged with
+adjacent text of any kind. Arrays are defined by adding square brackets
+'[]' after a variable name and defining the elements with an indented
+body. The elements may include whitespace.
+<<    osh> A[] =
+              a b
+              foo bar
+      - : <array
+             "a b" : Sequence
+             "foo bar" : Sequence>
+             : Array
+      osh> echo $(A).c
+      a b foo bar .c
+      osh> value $(A.length)
+      - : 2 : Int
+      osh> value $(A.nth 1)
+      - : "foo bar" : Sequence
+>>
+  
+  Arrays are quite helpful on systems where filenames often contain
+whitespace.
+<<    osh> FILES[] =
+               c:\Documents and Settings\jyh\one file
+               c:\Program Files\omake\second file
+  
+      osh> CFILES = $(addsuffix .c, $(FILES))
+      osh> echo $(CFILES)
+      c:\Documents and Settings\jyh\one file.c c:\Program
+Files\omake\second file.c
+>>
+  
+
+Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
+  
+
+7.3   Files and directories
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  OMake projects usually span multiple directories, and different parts
+of the project execute commands in different directories. There is a
+need to define a location-independent name for a file or directory.
+  This is done with the '$(file <names>)' and '$(dir <names>)'
+functions.
+<<   osh> mkdir tmp
+     osh> F = $(file fee)
+     osh> section:
+              cd tmp
+              echo $F
+     ../fee
+     osh> echo $F
+     fee
+>>
+  
+  Note the use of a 'section:' to limit the scope of the 'cd' command.
+The section temporarily changes to the 'tmp' directory where the name of
+the file is '../fee'. Once the section completes, we are still in the
+current directory, where the name of the file is 'fee'.
+  One common way to use the file functions is to define proper file
+names in your project 'OMakefile', so that references within the various
+parts of the project will refer to the same file.
+<<    osh> cat OMakefile
+      ROOT = $(dir .)
+      TMP  = $(dir tmp)
+      BIN  = $(dir bin)
+      ...
+>>
+  
+
+Node: Section 7-4,	Next: Section 7-5,	Prev: Section 7-3,	Up: Chapter 7
+  
+
+7.4   Iteration, mapping, and foreach
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Most builtin functions operate transparently on arrays.
+<<    osh> addprefix(-D, DEBUG WIN32)
+      - : -DDEBUG -DWIN32 : Array
+      osh> mapprefix(-I, /etc /tmp)
+      - : -I /etc -I /tmp : Array
+      osh> uppercase(fee fi foo fum)
+      - : FEE FI FOO FUM : Array
+>>
+  
+  The 'mapprefix' and 'addprefix' functions are slightly different (the
+'addsuffix' and 'mapsuffix' functions are similar). The 'addprefix' adds
+the prefex to each array element. The 'mapprefix' doubles the length of
+the array, adding the prefix as a new array element before each of the
+original elements.
+  Even though most functions work on arrays, there are times when you
+will want to do it yourself. The 'foreach' function is the way to go.
+The 'foreach' function has two forms, but the form with a body is most
+useful. In this form, the function takes two arguments and a body. The
+second argument is an array, and the first is a variable. The body is
+evaluated once for each element of the array, where the variable is
+bound to the element. Let's define a function to add 1 to each element
+of an array of numbers.
+<<   osh> add1(l) =
+              foreach(i => $l):
+                  add($i, 1)
+     osh> add1(7 21 75)
+     - : 8 22 76 : Array
+>>
+  
+  Sometimes you have an array of filenames, and you want to define a
+rule for each of them. Rules are not special, you can define them
+anywhere a statement is expected. Say we want to write a function that
+describes how to process each file, placing the result in the 'tmp/'
+directory.
+<<   TMP = $(dir tmp)
+  
+     my-special-rule(files) =
+        foreach(name => $(files))
+           $(TMP)/$(name): $(name)
+              process $< > $@
+>>
+  
+  Later, in some other part of the project, we may decide that we want
+to use this function to process some files.
+<<   # These are the files to process in src/lib
+     MY_SPECIAL_FILES[] =
+         fee.src
+         fi.src
+         file with spaces in its name.src
+     my-special-rule($(MY_SPECIAL_FILES))
+>>
+  
+  The result of calling 'my-special-rule' is exactly the same as if we
+had written the following three rules explicitly.
+<<    $(TMP)/fee.src: fee.src
+          process fee > $@
+      $(TMP)/fi.src: fi.src
+          process fi.src > $@
+      $(TMP)/$"file with spaces in its name.src": $"file with spaces in
+its name.src"
+          process $< > $@
+>>
+  
+  Of course, writing these rules is not nearly as pleasant as calling
+the function. The usual properties of function abstraction give us the
+usual benefits. The code is less redundant, and there is a single
+location (the 'my-special-rule' function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one
+location.
+
+Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
+  
+
+7.5   Lazy expressions
+*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Evaluation in omake is normally eager. That is, expressions are
+evaluated as soon as they are encountered by the evaluator. One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+  There are two ways to control this behavior. The '$`(v)' form
+introduces lazy behavior, and the '$,(v)' form restores eager behavior.
+Consider the following sequence.
+<<    osh> A = 1
+      - : "1" : Sequence
+      osh> B = 2
+      - : "2" : Sequence
+      osh> C = $`(add $(A), $,(B))
+      - : $(apply add $(apply A) "2" : Sequence)
+      osh> println(C = $(C))
+      C = 3
+      osh> A = 5
+      - : "5" : Sequence
+      osh> B = 6
+      - : "6" : Sequence
+      osh> println(C = $(C))
+      C = 7
+>>
+  
+  The definition 'C = $`(add $(A), $,(B))' defines a lazy application.
+The 'add' function is not applied in this case until its value is
+needed. Within this expression, the value '$,(B)' specifies that 'B' is
+to be evaluated immediately, even though it is defined in a lazy
+expression.
+  The first time that we print the value of 'C', it evaluates to 3 since
+'A' is 1 and 'B' is 2. The second time we evaluate 'C', it evaluates to
+7 because 'A' has been redefined to '5'. The second definition of 'B'
+has no effect, since it was evaluated at definition time.
+* Menu:
+
+* Subsection 7-5-1::	A larger example of lazy expressions
+
+
+Node: Subsection 7-5-1,	Next: Section 7-6,	Prev: Section 7-5,	Up: Section 7-5
+  
+
+7.5.1   A larger example of lazy expressions
+============================================
+  
+  Lazy expressions are not evaluated until their result is needed. Some
+people, including this author, frown on overuse of lazy expressions,
+mainly because it is difficult to know when evaluation actually happens.
+However, there are cases where they pay off.
+  One example comes from option processing. Consider the specification
+of "include" directories on the command line for a C compiler. If we
+want to include files from /home/jyh/include and ../foo, we specify it
+on the command line with the options '-I/home/jyh/include -I../foo'.
+  Suppose we want to define a generic rule for building C files. We
+could define a 'INCLUDES' array to specify the directories to be
+included, and then define a generic implicit rule in our root OMakefile.
+<<    # Generic way to compile C files.
+      CFLAGS = -g
+      INCLUDES[] =
+      %.o: %.c
+         $(CC) $(CFLAGS) $(INCLUDES) -c $<
+  
+      # The src directory builds my_widget+ from 4 source files.
+      # It reads include files from the include directory.
+      .SUBDIRS: src
+          FILES = fee fi foo fum
+          OFILES = $(addsuffix .o, $(FILES))
+          INCLUDES[] += -I../include
+          my_widget: $(OFILES)
+             $(CC) $(CFLAGS) -o $@ $(OFILES)
+>>
+  
+  But this is not quite right. The problem is that INCLUDES is an array
+of options, not directories. If we later wanted to recover the
+directories, we would have to strip the leading '-I' prefix, which is a
+hassle. Furthermore, we aren't using proper names for the directories.
+The solution here is to use a lazy expression. We'll define INCLUDES as
+a directory array, and a new variable 'PREFIXED_INCLUDES' that adds the
+-I prefix. The 'PREFIXED_INCLUDES' is computed lazily, ensuring that the
+value uses the most recent value of the INCLUDES variable.
+<<    # Generic way to compile C files.
+      CFLAGS = -g
+      INCLUDES[] =
+      PREFIXED_INCLUDES[] = $`(addprefix -I, $(INCLUDES))
+      %.o: %.c
+         $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $<
+  
+      # For this example, we define a proper name for the include
+directory
+      STDINCLUDE = $(dir include)
+  
+      # The src directory builds my_widget+ from 4 source files.
+      # It reads include files from the include directory.
+      .SUBDIRS: src
+          FILES = fee fi foo fum
+          OFILES = $(addsuffix .o, $(FILES))
+          INCLUDES[] += $(STDINCLUDE)
+          my_widget: $(OFILES)
+             $(CC) $(CFLAGS) -o $@ $(OFILES)
+>>
+  
+  Note that there is a close connection between lazy values and
+functions. In the example above, we could equivalently define
+'PREFIXED_INCLUDES' as a function with zero arguments.
+<<    PREFIXED_INCLUDES() =
+          addprefix(-I, $(INCLUDES))
+>>
+  
+
+Node: Section 7-6,	Next: Section 7-7,	Prev: Section 7-5,	Up: Chapter 7
+  
+
+7.6   Scoping and exports
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The OMake language is functional (apart from IO and shell commands).
+This comes in two parts: functions are first-class, and variables are
+immutable (there is no assignment operator). The latter property may
+seem strange to users used to GNU make, but it is actually a central
+point of OMake. Since variables can't be modified, it is impossible (or
+at least hard) for one part of the project to interfere with another.
+  To be sure, pure functional programming can be awkward. In OMake, each
+new indentation level introduces a new scope, and new definitions in
+that scope are lost when the scope ends. If OMake were overly strict
+about scoping, we would wind up with a lot of convoluted code.
+<<   osh> X = 1
+     osh> setenv(BOO, 12)
+     osh> if $(equal $(OSTYPE), Win32)
+              setenv(BOO, 17)
+              X = 2
+     osh> println($X $(getenv BOO))
+     1 12
+>>
+  
+  The 'export' command presents a way out. It takes care of "exporting"
+a value (or the entire variable environment) from an inner scope to an
+outer one.
+<<   osh> X = 1
+     osh> setenv(BOO, 12)
+     osh> if $(equal $(OSTYPE), Win32)
+              setenv(BOO, 17)
+              X = 2
+              export
+     osh> println($X $(getenv BOO))
+     2 17
+>>
+  
+  Exports are especially useful in loop to export values from one
+iteration of a loop to the next.
+<<   # Ok, let's try to add up the elements of the array
+     osh>sum(l) =
+             total = 0
+             foreach(i => $l)
+                 total = $(add $(total), $i)
+             value $(total)
+     osh>sum(1 2 3)
+     - : 0 : Int
+  
+     # Oops, that didn't work!
+     osh>sum(l) =
+             total = 0
+             foreach(i => $l)
+                 total = $(add $(total), $i)
+                 export
+             value $(total)
+     osh>sum(1 2 3)
+     - : 6 : Int
+>>
+  
+  A 'while' loop is another form of loop, with an auto-export.
+<<    osh>i = 0
+      osh>total = 0
+      osh>while $(lt $i, 10)
+              total = $(add $(total), $i)
+              i = $(add $i, 1)
+      osh>println($(total))
+      45
+>>
+  
+
+Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
+  
+
+7.7   Shell aliases
+*=*=*=*=*=*=*=*=*=*
+
+  
+  Sometimes you may want to define an alias, an OMake command that
+masquerades as a real shell command. You can do this by adding your
+function as a method to the 'Shell' object.
+  For an example, suppose we use the 'awk' function to print out all the
+comments in a file.
+<<    osh>cat comment.om
+      # Comment function
+      comments(filename) =
+          awk($(filename))
+          case $'^#'
+              println($0)
+      # File finished
+      osh>include comment
+      osh>comments(comment.om)
+      # Comment function
+      # File finished
+>>
+  
+  To add it as an alias, add the method (using += to preserve the
+existing entries in the Shell).
+<<   osh>Shell. +=
+             printcom(argv) =
+                 comments($(nth 0, $(argv)))
+     osh>printcom comment.om > output.txt
+     osh>cat output.txt
+     # Comment function
+     # File finished
+>>
+  
+  A shell command is passed an array of arguments 'argv'. This does not
+include the name of the alias.
+
+Node: Section 7-8,	Next: Chapter 8,	Prev: Section 7-7,	Up: Chapter 7
+  
+
+7.8   Input/output redirection on the cheap
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  As it turns out, scoping also provides a nice alternate way to perform
+redirection. Suppose you have already written a lot of code that prints
+to the standard output channel, but now you decide you want to redirect
+it. One way to do it is using the technique in the previous example:
+define your function as an alias, and then use shell redirection to
+place the output where you want.
+  There is an alternate method that is easier in some cases. The
+variables 'stdin', 'stdout', and 'stderr' define the standard I/O
+channels. To redirect output, redefine these variables as you see fit.
+Of course, you would normally do this in a nested scope, so that the
+outer channels are not affected.
+<<    osh>f() =
+              println(Hello world)
+      osh>f()
+      Hello world
+      osh>section:
+              stdout = $(fopen output.txt, w)
+              f()
+              close($(stdout))
+      osh>cat output.txt
+      Hello world
+>>
+  
+  This also works for shell commands. If you like to gamble, you can try
+the following example.
+<<    osh>f() =
+              println(Hello world)
+      osh>f()
+      Hello world
+      osh>section:
+              stdout = $(fopen output.txt, w)
+              f()
+              cat output.txt
+              close($(stdout))
+      osh>cat output.txt
+      Hello world
+      Hello world
+>>
+  
+   
+
+Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
+  
+
+Chapter 8     Rules
+*******************
+    
+  Rules are used by OMake to specify how to build files. At its
+simplest, a rule has the following form.
+<<    <target>: <dependencies>
+          <commands>
+>>
+  
+  The '<target>' is the name of a file to be built. The '<dependencies>'
+are a list of files that are needed before the '<target>' can be built.
+The '<commands>' are a list of indented lines specifying commands to
+build the target. For example, the following rule specifies how to
+compile a file 'hello.c'.
+<<    hello.o: hello.c
+          $(CC) $(CFLAGS) -c -o hello.o hello.c
+>>
+  
+  This rule states that the hello.o file depends on the hello.c file. If
+the hello.c file has changed, the command '$(CC) $(CFLAGS) -c -o hello.o
+hello.c' is to be executed to update the target file 'hello.o'.
+  A rule can have an arbitrary number of commands. The individual
+command lines are executed independently by the command shell. The
+commands do not have to begin with a tab, but they must be indented from
+the dependency line.
+  In addition to normal variables, the following special variables may
+be used in the body of a rule.
+  
+  
+   - '$*': the target name, without a
+   suffix. 
+   - '$@': the target name. 
+   - '$^': a list of the sources, in
+   alphabetical order, with duplicates removed. 
+   - '$+': all the sources, in the
+   original order. 
+   - '$<': the first source. 
+  
+  For example, the above 'hello.c' rule may be simplified as follows.
+<<    hello.o: hello.c
+          $(CC) $(CFLAGS) -c -o $@ $<
+>>
+  
+  Unlike normal values, the variables in a rule body are expanded
+lazily, and binding is dynamic. The following function definition
+illustrates some of the issues.
+<<    CLibrary(name, files) =
+          OFILES = $(addsuffix .o, $(files))
+  
+          $(name).a: $(OFILES)
+              $(AR) cq $@ $(OFILES)
+>>
+  
+  This function defines a rule to build a program called '$(name)' from
+a list of '.o' files. The files in the argument are specified without a
+suffix, so the first line of the function definition defines a variable
+'OFILES' that adds the '.o' suffix to each of the file names. The next
+step defines a rule to build a target library '$(name).a' from the
+'$(OFILES)' files. The expression '$(AR)' is evaluated when the function
+is called, and the value of the variable 'AR' is taken from the caller's
+scope (see also the section on Scoping).
+* Menu:
+
+* Section 8-1::	Implicit rules
+* Section 8-2::	Bounded implicit rules
+* Section 8-3::	section
+* Section 8-4::	section rule
+* Section 8-5::	Special dependencies
+* Section 8-6::	'.SCANNER' rules
+* Section 8-7::	.DEFAULT
+* Section 8-8::	.SUBDIRS
+* Section 8-9::	.INCLUDE
+* Section 8-10::	.PHONY
+* Section 8-11::	Rule scoping
+* Section 8-12::	Running OMake from a subdirectory
+* Section 8-13::	Pathnames in rules
+
+
+Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
+  
+
+8.1   Implicit rules
+*=*=*=*=*=*=*=*=*=*=
+
+   
+  Rules may also be implicit. That is, the files may be specified by
+wildcard patterns. The wildcard character is '%'. For example, the
+following rule specifies a default rule for building '.o' files.
+<<    %.o: %.c
+          $(CC) $(CFLAGS) -c -o $@ $*.c
+>>
+  
+  This rule is a template for building an arbitrary '.o' file from a
+'.c' file.
+  By default, implicit rules are only used for the targets in the
+current directory. However subdirectories included via the '.SUBDIRS'
+rules inherit all the implicit rules that are in scope (see also the
+section on Scoping).
+
+Node: Section 8-2,	Next: Section 8-3,	Prev: Section 8-1,	Up: Chapter 8
+  
+
+8.2   Bounded implicit rules
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Implicit rules may specify the set of files they apply to. The
+following syntax is used.
+<<    <targets>: <pattern>: <dependencies>
+          <commands>
+>>
+  
+  For example, the following rule applies only to the files 'a.o' and
+'b.o'.
+<<   a.o b.o: %.o: %.c
+          $(CC) $(CFLAGS) -DSPECIAL -c $*.c
+>>
+  
+
+Node: Section 8-3,	Next: Section 8-4,	Prev: Section 8-2,	Up: Chapter 8
+  
+
+8.3   section
+*=*=*=*=*=*=*
+
+   
+  Frequently, the commands in a rule body are expressions to be
+evaluated by the shell. omake also allows expressions to be evaluated by
+omake itself.
+  The syntax of these "computed rules" uses the 'section' expression.
+The following rule uses the omake IO functions to produce the target
+'hello.c'.
+<<    hello.c:
+          section
+              FP = fopen(hello.c, w)
+              fprintln($(FP), $""#include <stdio.h> int main() {
+printf("Hello world\n"); }"")
+              close($(FP))
+>>
+  
+  This example uses the quotation '$""...""' (see also
+Section B.1.6*Note Subsection B-1-6::) to quote the text being
+printed. These quotes are not included in the output file. The 'fopen',
+'fprintln', and 'close' functions perform file IO as discussed in the IO
+section.
+  In addition, commands that are function calls, or special expressions,
+are interpreted correctly. Since the 'fprintln' function can take a file
+directly, the above rule can be abbreviated as follows.
+<<    hello.c:
+         fprintln($@, $""#include <stdio.h> int main() { printf("Hello
+world\n"); }"")
+>>
+  
+
+Node: Section 8-4,	Next: Section 8-5,	Prev: Section 8-3,	Up: Chapter 8
+  
+
+8.4   section rule
+*=*=*=*=*=*=*=*=*=
+
+   
+  Rules can also be computed using the 'section rule' form, where a rule
+body is expected instead of an expression. In the following rule, the
+file 'a.c' is copied onto the 'hello.c' file if it exists, otherwise
+'hello.c' is created from the file 'default.c'.
+<<    hello.c:
+          section rule
+             if $(target-exists a.c)
+                hello.c: a.c
+                   cat a.c > hello.c
+             else
+                hello.c: default.c
+                   cp default.c hello.c
+>>
+  
+
+Node: Section 8-5,	Next: Subsection 8-5-1,	Prev: Section 8-4,	Up: Chapter 8
+  
+
+8.5   Special dependencies
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 8-5-1::	:exists:
+* Subsection 8-5-2::	:effects:
+* Subsection 8-5-3::	:value:
+
+
+Node: Subsection 8-5-1,	Next: Subsection 8-5-2,	Prev: Section 8-5,	Up: Section 8-5
+  
+
+8.5.1   :exists:
+================
+   
+  In some cases, the contents of a dependency do not matter, only
+whether the file exists or not. In this case, the ':exists:' qualifier
+can be used for the dependency.
+<<    foo.c: a.c :exists: .flag
+         if $(test -e .flag)
+             $(CP) a.c $@
+>>
+  
+
+Node: Subsection 8-5-2,	Next: Subsection 8-5-3,	Prev: Subsection 8-5-1,	Up: Section 8-5
+  
+
+8.5.2   :effects:
+=================
+   
+  Some commands produce files by side-effect. For example, the latex(1)
+command produces a '.aux' file as a side-effect of producing a '.dvi'
+file. In this case, the ':effects:' qualifier can be used to list the
+side-effect explicitly. omake is careful to avoid simultaneously running
+programs that have overlapping side-effects.
+<<    paper.dvi: paper.tex :effects: paper.aux
+          latex paper
+>>
+  
+
+Node: Subsection 8-5-3,	Next: Section 8-6,	Prev: Subsection 8-5-2,	Up: Section 8-5
+  
+
+8.5.3   :value:
+===============
+   
+  The ':value:' dependency is used to specify that the rule execution
+depends on the value of an expression. For example, the following rule
+<<    a: b c :value: $(X)
+          ...
+>>
+  
+  specifies that "a" should be recompiled if the value of '$(X)' changes
+(X does not have to be a filename). This is intended to allow greater
+control over dependencies.
+  In addition, it can be used instead of other kinds of dependencies.
+For example, the following rule:
+<<    a: b :exists: c
+          commands
+>>
+  
+  is the same as
+<<    a: b :value: $(target-exists c)
+          commands
+>>
+  
+  Notes: 
+  
+   - The values are arbitrary (they are not limited to variables) 
+   - The values are evaluated at rule expansion time, so expressions
+   containing variables like '$@', '$^', etc are legal. 
+  
+
+Node: Section 8-6,	Next: Subsection 8-6-1,	Prev: Section 8-5,	Up: Chapter 8
+  
+
+8.6   '.SCANNER' rules
+*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Scanner rules define a way to specify automatic dependency scanning. A
+'.SCANNER' rule has the following form.
+<<    .SCANNER: target: dependencies
+          commands
+>>
+  
+  The rule is used to compute additional dependencies that might be
+defined in the source files for the specified target. The result of
+executing the scanner commands must be a sequence of dependencies in
+OMake format, printed to the standard output. For example, on GNU
+systems the 'gcc -MM foo.c' produces dependencies for the file 'foo.c'
+(based on '#include' information).
+  We can use this to specify a scanner for C files that adds the scanned
+dependencies for the '.o' file. The following scanner specifies that
+dependencies for a file, say 'foo.o' can be computed by running 'gcc -MM
+foo.c'. Furthermore, 'foo.c' is a dependency, so the scanner should be
+recomputed whenever the 'foo.c' file changes.
+<<    .SCANNER: %.o: %.c
+          gcc -MM $<
+>>
+  
+  Let's suppose that the command 'gcc -MM foo.c' prints the following
+line.
+<<    foo.o: foo.h /usr/include/stdio.h
+>>
+  
+  The result is that the files 'foo.h' and '/usr/include/stdio.h' are
+considered to be dependencies of 'foo.o'---that is, 'foo.o' should be
+rebuilt if either of these files changes.
+  This works, to an extent. One nice feature is that the scanner will be
+re-run whenever the 'foo.c' file changes. However, one problem is that
+dependencies in C are recursive. That is, if the file 'foo.h' is
+modified, it might include other files, establishing further
+dependencies. What we need is to re-run the scanner if 'foo.h' changes
+too.
+  We can do this with a value dependency. The variable '$&' is defined
+as the dependency results from any previous scan. We can add these as
+dependencies using the 'digest' function, which computes an MD5 digest
+of the files.
+<<    .SCANNER: %.o: %.c :value: $(digest $&)
+          gcc -MM $<
+>>
+  
+  Now, when the file 'foo.h' changes, its digest will also change, and
+the scanner will be re-run because of the value dependency (since '$&'
+will include 'foo.h').
+  This still is not quite right. The problem is that the C compiler uses
+a search-path for include files. There may be several versions of the
+file 'foo.h', and the one that is chosen depends on the include path.
+What we need is to base the dependencies on the search path.
+  The '$(digest-in-path-optional ...)' function computes the digest
+based on a search path, giving us a solution that works.
+<<    .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES),
+$&)
+         gcc -MM $(addprefix -I, $(INCLUDES)) $<
+>>
+  
+  The standard output of the scanner rules will be captured by OMake and
+is not allowed to contain any content that OMake will not be able to
+parse as a dependency. The output is allowed to contain dependency
+specifications for unrelated targets, however such dependencies will be
+ignored. The scanner rules are allowed to produce arbitrary output on
+the standard error channel --- such output will be handled in the same
+way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the '--output-'... options
+enabled).
+  Additional examples of the '.SCANNER' rules can be found in
+Section 3.4.3*Note Subsection 3-4-3::.
+* Menu:
+
+* Subsection 8-6-1::	Named scanners, and the ':scanner:' dependencies
+* Subsection 8-6-2::	Notes
+
+
+Node: Subsection 8-6-1,	Next: Subsection 8-6-2,	Prev: Section 8-6,	Up: Section 8-6
+  
+
+8.6.1   Named scanners, and the ':scanner:' dependencies
+========================================================
+   
+  Sometimes it may be useful to specify explicitly which scanner should
+be used in a rule. For example, we might compile '.c' files with
+different options, or (heaven help us) we may be using both 'gcc' and
+the Microsoft Visual C++ compiler 'cl'. In general, the target of a
+'.SCANNER' is not tied to a particular target, and we may name it as we
+like.
+<<    .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional
+$(INCLUDES), $&)
+          gcc -MM $(addprefix -I, $(INCLUDES)) $<
+  
+      .SCANNER: scan-cl-%.c: %.c :value: $(digest-in-path-optional
+$(INCLUDES), $&)
+          cl --scan-dependencies-or-something $(addprefix /I,
+$(INCLUDES)) $<
+>>
+  
+  The next step is to define explicit scanner dependencies. The
+':scanner:' dependency is used for this. In this case, the scanner
+dependencies are specified explicitly.
+<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
+          gcc ...
+  
+      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%.c
+          cl ...
+>>
+  
+  Explicit ':scanner:' scanner specification may also be used to state
+that a single '.SCANNER' rule should be used to generate dependencies
+for more than one target. For example,
+<<    .SCANNER: scan-all-c: $(GCC_FILES) :value:
+$(digest-in-path-optional $(INCLUDES), $&)
+          gcc -MM $(addprefix -I, $(INCLUDES)) $(GCC_FILES)
+  
+      $(GCC_FILES): %.o: %.c :scanner: scan-all-c
+          ...
+>>
+  
+  The above has the advantage of only running gcc once and a
+disadvantage that when a single source file changes, all the files will
+end up being re-scanned.
+
+Node: Subsection 8-6-2,	Next: Section 8-7,	Prev: Subsection 8-6-1,	Up: Section 8-6
+  
+
+8.6.2   Notes
+=============
+  
+  In most cases, you won't need to define scanners of your own. The
+standard installation includes default scanners (both explicitly and
+implicitly named ones) for C, OCaml, and LaTeX files.
+  The 'SCANNER_MODE' variable controls the usage of implicit scanner
+dependencies.
+  The explicit ':scanner:' dependencies reduce the chances of scanner
+mis-specifications. In large complicated projects it might be a good
+idea to set 'SCANNER_MODE' to 'error' and use only the named '.SCANNER'
+rules and explicit ':scanner:' specifications.
+
+Node: Section 8-7,	Next: Section 8-8,	Prev: Section 8-6,	Up: Chapter 8
+  
+
+8.7   .DEFAULT
+*=*=*=*=*=*=*=
+
+   
+  The '.DEFAULT' target specifies a target to be built by default if
+omake is run without explicit targets. The following rule instructs
+omake to build the program 'hello' by default
+<<   .DEFAULT: hello
+>>
+  
+
+Node: Section 8-8,	Next: Section 8-9,	Prev: Section 8-7,	Up: Chapter 8
+  
+
+8.8   .SUBDIRS
+*=*=*=*=*=*=*=
+
+   
+  The '.SUBDIRS' target is used to specify a set of subdirectories that
+are part of the project. Each subdirectory should have its own
+OMakefile, which is evaluated in the context of the current environment.
+<<   .SUBDIRS: src doc tests
+>>
+  
+  This rule specifies that the 'OMakefile's in each of the 'src', 'doc',
+and 'tests' directories should be read.
+  In some cases, especially when the 'OMakefile's are very similar in a
+large number of subdirectories, it is inconvenient to have a separate
+'OMakefile' for each directory. If the '.SUBDIRS' rule has a body, the
+body is used instead of the 'OMakefile'.
+<<   .SUBDIRS: src1 src2 src3
+        println(Subdirectory $(CWD))
+        .DEFAULT: lib.a
+>>
+  
+  In this case, the 'src1', 'src2', and 'src3' files do not need
+'OMakefile's. Furthermore, if one exists, it is ignored. The following
+includes the file if it exists.
+<<   .SUBDIRS: src1 src2 src3
+         if $(file-exists OMakefile)
+            include OMakefile
+         .DEFAULT: lib.a
+>>
+  
+
+Node: Section 8-9,	Next: Section 8-10,	Prev: Section 8-8,	Up: Chapter 8
+  
+
+8.9   .INCLUDE
+*=*=*=*=*=*=*=
+
+   
+  The '.INCLUDE' target is like the 'include' directive, but it
+specifies a rule to build the file if it does not exist.
+<<   .INCLUDE: config
+         echo "CONFIG_READ = true" > config
+  
+      echo CONFIG_READ is $(CONFIG_READ)
+>>
+  
+  You may also specify dependencies to an '.INCLUDE' rule.
+<<   .INCLUDE: config: config.defaults
+        cp config.defaults config
+>>
+  
+  A word of caution is in order here. The usual policy is used for
+determining when the rule is out-of-date. The rule is executed if any of
+the following hold.
+  
+  
+   - the target does not exist, 
+   - the rule has never been executed before, 
+   - any of the following have changed since the last time the rule was
+   executed, 
+     
+      - the target, 
+      - the dependencies, 
+      - the commands-text. 
+  
+  
+  In some of the cases, this will mean that the rule is executed even if
+the target file already exists. If the target is a file that you expect
+to edit by hand (and therefore you don't want to overwrite it), you
+should make the rule evaluation conditional on whether the target
+already exists.
+<<   .INCLUDE: config: config.defaults
+         # Don't overwrite my carefully hand-edited file
+         if $(not $(file-exists config))
+            cp config.defaults config
+>>
+  
+
+Node: Section 8-10,	Next: Section 8-11,	Prev: Section 8-9,	Up: Chapter 8
+  
+
+8.10   .PHONY
+*=*=*=*=*=*=*
+
+   
+  A "phony" target is a target that is not a real file, but exists to
+collect a set of dependencies. Phony targets are specified with the
+'.PHONY' rule. In the following example, the 'install' target does not
+correspond to a file, but it corresponds to some commands that should be
+run whenever the 'install' target is built (for example, by running
+'omake install').
+<<   .PHONY: install
+  
+     install: myprogram.exe
+        cp myprogram.exe /usr/bin
+>>
+  
+
+Node: Section 8-11,	Next: Subsection 8-11-1,	Prev: Section 8-10,	Up: Chapter 8
+  
+
+8.11   Rule scoping
+*=*=*=*=*=*=*=*=*=*
+
+   
+  As we have mentioned before, omake is a scoped language. This provides
+great flexibility---different parts of the project can define different
+configurations without interfering with one another (for example, one
+part of the project might be compiled with 'CFLAGS=-O3' and another with
+'CFLAGS=-g').
+  But how is the scope for a target file selected? Suppose we are
+building a file 'dir/foo.o'. omake uses the following rules to determine
+the scope.
+  
+  
+   - First, if there is an explicit rule for building 'dir/foo.o' (a
+   rule with no wildcards), the context for that rule determines the
+   scope for building the target. 
+   - Otherwise, the directory 'dir/' must be part of the project. This
+   normally means that a configuration file 'dir/OMakefile' exists
+   (although, see the '.SUBDIRS' section for another way to specify the
+   'OMakefile'). In this case, the scope of the target is the scope at
+   the end of the 'dir/OMakefile'. 
+  
+  To illustrate rule scoping, let's go back to the example of a "Hello
+world" program with two files. Here is an example 'OMakefile' (the two
+definitions of 'CFLAGS' are for illustration).
+<<    # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this project, the target 'hello' is explicit. The scope of the
+'hello' target is the line beginning with 'hello:', where the value of
+'CFLAGS' is '-g'. The other two targets, 'hello_code.o' and
+'hello_lib.o' do not appear as explicit targets, so their scope is at
+the end of the 'OMakefile', where the 'CFLAGS' variable is defined to be
+'-g -O3'. That is, 'hello' will be linked with 'CFLAGS=-g' and the '.o'
+files will be compiled with 'CFLAGS=-g -O3'.
+  We can change this behavior for any of the targets by specifying them
+as explicit targets. For example, suppose we wish to compile
+'hello_lib.o' with a preprocessor variable 'LIBRARY'.
+<<    # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          CFLAGS += -DLIBRARY
+          hello_lib.o:
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this case, 'hello_lib.o' is also mentioned as an explicit target,
+in a scope where 'CFLAGS=-g -DLIBRARY'. Since no rule body is specified,
+it is compiled using the usual implicit rule for building '.o' files (in
+a context where 'CFLAGS=-g -DLIBRARY').
+* Menu:
+
+* Subsection 8-11-1::	Scoping of implicit rules
+* Subsection 8-11-2::	Scoping of '.SCANNER' rules
+* Subsection 8-11-3::	Scoping for '.PHONY' targets
+
+
+Node: Subsection 8-11-1,	Next: Subsection 8-11-2,	Prev: Section 8-11,	Up: Section 8-11
+  
+
+8.11.1   Scoping of implicit rules
+==================================
+   
+  Implicit rules (rules containing wildcard patterns) are not global,
+they follow the normal scoping convention. This allows different parts
+of a project to have different sets of implicit rules. If we like, we
+can modify the example above to provide a new implicit rule for building
+'hello_lib.o'.
+<<    # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          %.o: %.c
+              $(CC) $(CFLAGS) -DLIBRARY -c $<
+          hello_lib.o:
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this case, the target 'hello_lib.o' is built in a scope with a new
+implicit rule for building '%.o' files. The implicit rule adds the
+'-DLIBRARY' option. This implicit rule is defined only for the target
+'hello_lib.o'; the target 'hello_code.o' is built as normal.

@@ -1,0 +1,12 @@
+test(f) =
+   M. =
+      extends $(Map)
+      $|abc| = xyz
+   keys[] =
+   M.foreach(key, val) =>
+      keys[] += $(key)
+      export keys
+   printvln($f)
+
+test(bar)
+      

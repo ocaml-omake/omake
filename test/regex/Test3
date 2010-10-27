@@ -1,0 +1,45 @@
+#
+# Test bol and eol delimiters
+#
+println(This should print $"'fooX'")
+match $'fooXboo'
+case $'^.*X'
+   println($0)
+default
+   println(Match failed)
+
+println(This should not match)
+match $'fooXboo'
+case $'^.*X$'
+   println($0)
+default
+   println(Match failed)
+
+println(This should print $"'fooX foo'")
+match $'fooX'
+case $'^\(.*\)X'
+   println($0 $1)
+default
+   println(Match failed)
+
+println($"This should print 'Xboo'")
+match $'fooXboo'
+case $'X.*'
+   println($0)
+default
+   println(Match failed)
+
+println($"This should print 'Xboo'")
+match $'fooXboo'
+case $'X.*$'
+   println($0)
+default
+   println(Match failed)
+
+println($"This should print 'Xboo bo'")
+match $'fooXboo'
+case $'X\(.*\)o$'
+   println($0 $1)
+default
+   println(Match failed)
+

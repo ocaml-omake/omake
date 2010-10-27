@@ -1,0 +1,42 @@
+#!/usr/bin/env osh
+
+.LANGUAGE: program
+
+errors = false
+
+check(exp, e, r) =
+    if e = r
+        println($"$(exp) = $e [SUCCESS]")
+    else
+        eprintln($"$(exp) = $e, should be $r [FAILURE]")
+	errors = true
+	export
+    export
+
+################################################
+# Factorial
+#
+fact(i) =
+    if i = 0
+        value 1
+    else
+        value i * fact(i - 1)
+
+check($"fact(10)", fact(10), 3628800)
+
+################################################
+# Mapper
+#
+map(f, l) =
+    public.l = l
+    items[] =
+    while l.is-nonempty
+        items[] += f(l[0])
+	l = nth-tl(1, l)
+    value items
+
+check($"map(i => i + 1, [10; 20; 30])", map(i => i + 1, [10; 20; 30]), [11; 21; 31])
+
+if errors
+    exit 1
+

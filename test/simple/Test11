@@ -1,0 +1,7 @@
+F(x) =
+   return
+printvln($F)
+println($"Arity of F is $(F.arity)")
+if $(not $(eq $(F.arity), 1))
+   eprintln($"Arity of F is $(F.arity), when 1 was expected")
+   exit 1

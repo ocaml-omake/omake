@@ -1,0 +1,12 @@
+print = false
+println($"Test1: prints the lines: '', 'Hello world', '', 'Another line'")
+awk(../Awk.in)
+case $'end\{doc\}'
+   print = false
+   export
+default
+   if $(print)
+      println($0)
+case $'begin\{doc\}'
+   print = true
+   export

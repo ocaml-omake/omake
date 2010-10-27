@@ -1,0 +1,24 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../ir
+
+FILES[] =
+    omake_exec_id
+    omake_exec_type
+    omake_exec_print
+    omake_exec_util
+    omake_exec_local
+    omake_exec_remote
+    omake_exec_notify
+    omake_exec
+
+MakeOCamlLibrary(exec, $(FILES))
+
+clean:
+	$(CLEAN)
+
+#
+# Generate a Makefile
+#
+MakeMakefile()

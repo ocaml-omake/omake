@@ -1,0 +1,21 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../ast
+    ../ir
+    ../env
+    ../exec
+
+FILES[] =
+    omake_eval
+    omake_value
+
+MakeOCamlLibrary(eval, $(FILES))
+
+clean:
+    $(CLEAN)
+
+#
+# Generate the Makefile
+#
+MakeMakefile()

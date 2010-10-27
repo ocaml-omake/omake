@@ -1,0 +1,4 @@
+rm -f .omakedb a b
+if $(shell-success omake)
+   eprintln($"Error: malfunctioning rule was not detected! This is bug 712.")
+   exit 1

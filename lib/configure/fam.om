@@ -1,0 +1,46 @@
+open configure/Configure
+
+#
+# Figure out if FAM is installed
+#
+.STATIC:
+    FAM_AVAILABLE = false
+    FAM_CFLAGS =
+    FAM_CLIBS =
+    if $(equal $(OSTYPE), Win32)
+        FAM_AVAILABLE = true
+        FAM_CFLAGS = /DFAM_ENABLED /DFAM_PSEUDO
+        export
+    else
+        # Unix
+        ConfMsgChecking(for FAM)
+
+        # See if the FamOpen function exists
+        FAM_AVAILABLE = $(and $(CheckHeader fam.h), $(CheckLib fam, FAMOpen))
+
+        # If native FAM doesn't exist, try using kqueue
+        if $(FAM_AVAILABLE)
+            FAM_CLIBS = -lfam
+            FAM_CFLAGS = -DFAM_ENABLED
+            ConfMsgResult(found)
+            ConfMsgChecking($"whether FAM supports Gamin's extensions")
+            if $(ConfMsgYesNo $(CheckLib fam, FAMNoExists))
+               FAM_CFLAGS += -DHAVE_FAMNOEXISTS
+               export
+            export
+        elseif $(CheckHeader sys/event.h)
+            ConfMsgResult(using kqueue)
+            FAM_AVAILABLE = true
+            FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_KQUEUE
+            FAM_CLIBS =
+            if $(VerboseCheckHeader string.h)
+                FAM_CFLAGS += -DHAVE_STRING_H
+                export
+            if $(VerboseCheckHeader strings.h)
+                FAM_CFLAGS += -DHAVE_STRINGS_H
+                export
+            export
+        else
+            ConfMsgResult(NOT found)
+
+        export

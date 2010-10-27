@@ -1,0 +1,49 @@
+#
+# Curried methods
+#
+A[] = 1 2 3
+
+A. +=
+   X = 1
+   curry.f() =
+      private.THIS = $(this)
+      g(h) =
+         h($(THIS))
+   g(h) =
+      private.THIS = $(this)
+      h($(THIS))
+
+B. =
+   class B
+
+B. +=
+   X = 2
+
+   A.f(items) =>
+      if $(equal $X, 2)
+          println($"A.f(...) evaluates to 2 [SUCCESS]")
+      else
+          eprintln($"A.f(...) evaluates to $X, expected 2 [ERROR]")
+          exit 1
+
+   A.g(items) =>
+      if $(equal $X, 1)
+          println($"A.g(...) evaluates to 1 [SUCCESS]")
+      else
+          eprintln($"A.g(...) evaluates to $X, expected 1 [ERROR]")
+          exit 1
+
+   A.f(items) =>
+      sum = 0
+      foreach(i => ..., $(items))
+         sum = $(add $(sum), $i)
+         export
+      if $(not $(this.instanceof B))
+          eprintln($"this is not an instanceof B [ERROR]")
+          exit 1
+      elseif $(equal $(sum), 6)
+          println($"sum evaluates to 6 [SUCCESS]")
+      else
+          eprintln($"sum evaluates to $(sum), expected 6 [ERROR]")
+          exit 1
+      

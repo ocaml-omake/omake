@@ -1,0 +1,17 @@
+A. =
+   extends $(Map)
+   $|1| = 1
+   $|2| = 2
+   $|3| = 3
+
+B = $(empty-map)
+
+A.foreach(k, v) =>
+   B = $(B.add $k, $v)
+   export
+
+if $(not $(equal $(A.keys), $(B.keys)))
+   eprintln($"Bug: the Map.foreach function does not preserve exports!")
+   eprintln($"Expected: $(A.keys)")
+   eprintln($"Actual: $(B.keys)")
+   exit 1

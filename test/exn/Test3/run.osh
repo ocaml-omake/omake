@@ -1,0 +1,13 @@
+finished = $(shell-code osh exn.om >& output)
+cat output
+eprintln($"Exit code: $(finished)")
+if $(eq $(finished), 0)
+   eprintln(The exit code can not be 0)
+   exit 2
+
+awk(output)
+case $'Uncaught Exception:'
+   exit 0
+
+eprintln($'No "Uncaught Exception:" string found in the output')
+exit 3

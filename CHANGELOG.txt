@@ -1,0 +1,166 @@
+For a more verbose changelog, see http://omake.metaprl.org/changelog.html
+
+OMake 0.9.8.6 [10/26/2010]
+   - Added keyword and optional function arguments.
+   - Added "program" syntax.
+   - Added support for partial and curried function applications.
+   - Added a high-quality C parser, LaTeX parser and LaTeX spellchecker
+   - New functions added: localtime, gmtime, mktime, normalize-tm, utimes,
+     digest-string, url-escaped, find-all, addprefixes
+   - Numerous bugs fixed
+
+OMake 0.9.8.5 [08/07/2007]
+   - Fixed Ctrl-C handling on Windows (with now correctly interrupt OMake)
+   - Added .STATIC and .MEMO rules, allowing defining lazy computations and
+     lazy memoization maps
+   - Added export sections, making it much easier to manage variable scoping
+   - Fields in sub-objects can now be referenced directly
+   - Many new built-in and library functions
+   - Significant bug-fixes
+   
+OMake 0.9.8.4 [06/04/2007]
+   - Fixed a file descriptor leak
+   - A few other minor bug fixes
+
+OMake 0.9.8.3 [06/01/2007]
+OMake 0.9.8.2 [skipped]
+   - Made it easy to define default ("implicit") rules for phony targets.
+   - Detect case-insensitive filesystems on Unix-like operating systems
+     (especially important under Mac OS X).
+   - A number of performance improvements.
+   - Documentation improvements.
+
+OMake 0.9.8.1 [03/16/2007]
+   - Added a large number of new built-in and standard library functions
+   - Extented the autocomfiguration section of the standard library
+   - A number of improvements in the interactive osh shell.
+   - A number of improvements in the library of standard build recipes
+   - Documentation improvements.
+   - A number of other improvements and bugfixes.
+
+OMake 0.9.8 [12/11/2006]
+   - The conversion from OMake expressions to shell command lines went through
+     a major redesign to make it more consistent and less ad-hoc.
+   - OMake documentation was significantly reorganized.
+   - OCaml build rules: Added experimental improved dependency scanner using
+     the upcoming "ocamldep -modules" feature; added support for the Menhir
+     parser-generator.
+   - Added a number of new options to control OMake's output and verbosity;
+     OMake is now more silent by default.
+   - Many more improvements and bug fixes.
+
+OMake 0.9.6.9 [04/11/2006]
+   - Significantly improved C++ support; minor improvements in OCaml support.
+   - Significantly updated the default (sample) OMakefile.
+   - Significantly improved the performance of the built-in find command.
+   - Several other bug fixes and improvements.
+   - A number of documentation fixes and improvements.
+
+OMake 0.9.6.8 [01/23/2006]
+  - Fixed a bug in PATH-expansion for pipelines.
+  - Improved the handling of the ".PHONY" nodes.
+  - Added a remove-project-directories function.
+  - Documentation fixes.
+  - A few other bugfixes and improvements.
+
+OMake 0.9.6.7 [12/28/2005]
+  - Added basic support for C++.
+  - Portability improvements.
+  - OCaml.om improvements.
+  - Minor documentation fixes.
+  - A few other bugfixes and improvements.
+
+OMake 0.9.6.6 [11/05/2005]
+  - Made sure OMake compiles fine with both OCaml 3.08 and 3.09.
+  - A few minor bugfixes and improvements.
+
+OMake 0.9.6.5 [09/14/2005]
+  - Improved support for configure-style scripts.
+  - LaTeX rules improvements.
+  - Fixed the "which" function and ocamlfind support under Cygwin.
+  - New built-in functions: get-registry (Windows-only), removeprefix,
+    html-string.
+  - Improved processing of complex shell pipelines.
+  - A number of documentation fixes.
+  - Numerous other bug fixes and improvements.
+
+OMake 0.9.6 [07/17/2005]
+
+  - Added "static" sections that are evaluated once.
+  - Added :value: dependencies, where a target depends on a computed
+    value, rather than a file.
+  - Changed the meaning of the .SCANNER rules.  .SCANNER rules
+    are now much more similar to normal rules.
+  - Added file locking for the .omakedb and .omc files.
+  - Fixed issues where files were being expanded during the string->array
+    conversion.
+  - Rule execution now fails when any shell command fails, even those in
+    nested sections.
+  - Regular expressions now handle \(...\) arguments correctly.  Also, the
+    lexer has better performance, searching is now roughly linear time.
+  - Added .SUBDIRS bodies, which can be used instead of the OMakefile
+    in a subdirectory.
+  - Added the vmount function to define a "virtual mount" of one directory
+    over another.
+  - Better accessibility of the build rules and dependencies from OMake
+    scripts.
+  - Improved the latex-related rules.
+  - The Map object is completely changed.
+  - Other bug fixes and improvements.
+
+OMake 0.9.5 [skipped]
+
+OMake 0.9.4 [01/04/2005]
+  - Portability improvements. OMake should now compile and work under Windows
+    2000, Windows NT and FreeBSD. A number of Windows-specific bugs are fixed.
+    A Windows installer is added.
+  - OMake now uses the built-in versions of the following commands:
+	 cp, mv, mkdir, rm, rmdir, chmod
+  - Improvements to the filesystem watch functionality. In particular,
+    the build will now restart if a change to one of the OMakefiles is
+    detected.
+  - Added a USE_OCAMLFIND variable that can be used to force or prohibit the
+    usage of ocamlfind in a project (by default USE_OCAMLFIND is set to true
+    iff the ocamlfind executable is found in path).
+  - Added a "--force-dotomake" option to create all .omc and .omo files
+	 under $HOME/.omake/cache and a "--dotomake" option to specify an alternative
+    to $HOME/.omake
+  - Added :squash: dependencies (that specify that the dependency must be
+    built, but when the dependency changes, it does not cause the target to be
+    rebuilt).
+  - OMake will now read ~/.omakeinit and ~/.omakerc files on startup.
+  - Improved the latex-related rules.
+  - Documentation improvements.
+  - Bugs fixed: 142, 153, 311, 313, 314, 316, 332, 333, 339, 350, 360, 361,
+    366, 367, 368, 374, 375. See
+    http://bugzilla.metaprl.org/buglist.cgi?bug_id=142,153,311,313,314,316,332,333,339,350,360,361,366,367,368,374,375
+    for details.
+
+OMake 0.9.3 [10/18/2004]
+  - OMake now supports ocamlfind in its default configuration file
+   (thanks to Bardur Arantsson for the initial patch).
+  - OMake should now also work with OCaml 3.07 (in addition to 3.08).
+  - A large number of bug fixes, including:
+     o OMake should now compile correctly under Cygwin (thanks to
+       Peter Jolly who provided the patch),
+     o "double-colon" rules (that allow specifying multiple rules for
+       the same target) should now work correctly,
+     o kqueue-based file system monitoring (Mac OS X, FreeBSD) should
+       now work correctly
+     o array definitions should now work better.
+  - Added a work around for the command line length limitation of
+    lib.exe on Windows
+  - Filesystem monitoring functionality now provides a choice whether
+      to continue monitoring once the project is built successfully.
+
+OMake 0.9.2 [09/08/2004]
+  - Bugs fixed:
+     o "make install" will no longer create $HOME/.omake as root;
+     o the -custom option is now a part of OCAML_BYTE_LINK_FLAGS and
+       can be easily disabled;
+     o omake should now allow specifying dependencies for the same file
+       more than once.
+  - The OMakeroot.src, OMakeroot.default and OMakefile.default are now
+     under MIT license to allow users to freely borrow from them into their
+     own omake build files. (The rest of OMake is still under GPL).
+  - Fixed a number of typos and formatting errors in documentation.

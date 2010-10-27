@@ -1,0 +1,42 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../exec
+    ../magic
+    ../ast
+
+FILES[] =
+    omake_options
+    omake_symbol
+    omake_state
+    omake_node_type
+    omake_node_sig
+    omake_node
+    omake_virtual_id
+    omake_install
+    omake_ir
+    omake_var
+    omake_ir_util
+    omake_ir_print
+    omake_ir_free_vars
+    omake_lexer
+    omake_parser
+    omake_value_type
+    omake_command_type
+    omake_value_print
+    omake_pos
+    omake_shell_type
+    omake_command
+    omake_cache_type
+    omake_cache
+
+MakeOCamlLibrary(ir, $(FILES))
+
+clean:
+    $(CLEAN)
+
+#
+# Generate the Makefile
+#
+MakeOCamlDepend($(FILES), magic.cma)
+MakeMakefile()

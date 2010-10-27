@@ -1,0 +1,213 @@
+\batchmode
+\documentclass[dvipdfm]{book}
+
+\usepackage{hevea}
+\usepackage{code}
+\usepackage{xspace}
+%\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{url}
+\usepackage{index}
+\usepackage{hyperref}
+
+\addtocounter{tocdepth}{1}
+\addtocounter{secnumdepth}{1}
+
+\newcommand{\OMake}{OMake\xspace}
+
+\newcommand{\authors}{Jason Hickey, Aleksey Nogin, \emph{et. al.}}
+
+\title{The \OMake{} user guide and reference manual}
+\author{\authors}
+
+%
+% Backwards-compatibility with the LaTeX2Man package
+%
+\newcommand{\Prog}[1]{\texttt{#1}}
+\newcommand{\File}[1]{\texttt{#1}}
+\newcommand{\Cmd}[2]{\texttt{#1}(#2)}
+\newcommand{\Arg}[1]{\texttt{#1}}
+\newcommand{\Opt}[1]{\texttt{#1}}
+\newcommand{\OptArg}[2]{\texttt{#1 <#2>}}
+\newcommand{\oOpt}[1]{[\texttt{#1}]}
+\newcommand{\oArg}[1]{\texttt{#1}}
+\newcommand{\oOptArg}[2]{[\texttt{#1 <#2>}]}
+
+\newcommand\Version{0.9.8.5+ (working towards version 0.9.8.6 and/or
+0.9.9+)}
+\newcommand\Date{\today}
+\date{\Date}
+
+%
+% Versions
+%
+\newcommand\newinreorg{\textit{This feature was introduced in version 0.9.8.5.}}
+\newcommand\newinkeyword{\textit{This feature was introduced in version 0.9.8.6.}}
+
+%
+% Identifiers.
+%
+\newcommand\idsection[1]{\subsection{#1}}
+\newcommand\varlabel[2]{\paragraph{#2}\hypertarget{var:#1}{}\index{#2}\index[var]{#2}}
+\newcommand\var[1]{\varlabel{#1}{#1}}
+\newcommand\funref[1]{\hypertarget{fun:#1}{}\label{function:#1}\index{#1}\index[fun]{#1}}
+\newcommand\fun[1]{\idsection{#1}\funref{#1}}
+\newcommand\funlabel[2]{\idsection{#2}\hypertarget{fun:#1}{}\index{#2}\index[fun]{#2}}
+\newcommand\twofuns[2]{\idsection{{#1}, {#2}}\funref{#1}\funref{#2}}
+\newcommand\twofunslabel[4]{\idsection{{#2}, {#4}}\hypertarget{fun:#1}{}\index{#2}\index[fun]{#2}\hypertarget{fun:#3}{}\index{#4}\index[fun]{#4}}
+\newcommand\threefuns[3]{\idsection{{#1}, {#2}, {#3}}\funref{#1}\funref{#2}\funref{#3}}
+\newcommand\threefunslabel[6]{\idsection{{#2}, {#4}, {#6}}\hypertarget{fun:#1}{}\index{#2}\index[fun]{#2}\hypertarget{fun:#3}{}\index{#4}\index[fun]{#4}\hypertarget{fun:#5}{}\index{#6}\index[fun]{#6}}
+\newcommand\sixfuns[6]{\idsection{{#1}, {#2}, {#3}, {#4}, {#5}, {#6}}\funref{#1}\funref{#2}\funref{#3}\funref{#4}\funref{#5}\funref{#6}}
+\newcommand\formref[1]{\funref{#1}}
+\newcommand\form[1]{\idsection{#1}\funref{#1}}
+\newcommand\objref[1]{\hypertarget{obj:#1}{}\label{object:#1}\index{#1}\index[obj]{#1}}
+\newcommand\obj[1]{\idsection{#1}\objref{#1}}
+\newcommand\targetlabelref[2]{\index{#2}\index[target]{#2}\label{target:#1}}
+\newcommand\targetref[1]{\index{#1}\index[target]{#1}\label{target:#1}}
+\newcommand\target[1]{\idsection{#1}\targetref{#1}}
+\newcommand\optionref[1]{\index{#1}\index[opt]{#1}\label{option:#1}}
+\newcommand\option[1]{\idsection{\texttt{#1}}\optionref{#1}}
+
+\newstyle{.verbatim}{margin-left:3ex; background:\#ddeeff;}
+\newstyle{CODE}{padding-left:0.2ex; padding-right:0.2ex; background:\#eef7ff;}
+
+\newcommand\hyperfun[1]{\hyperlink{fun:#1}{\code{#1} function}}
+\newcommand\hyperfunn[1]{\hyperlink{fun:#1}{\code{#1}}}
+\newcommand\hyperfunx[2]{\hyperlink{fun:#1}{\code{#2} function}}
+\newcommand\hyperfunxn[2]{\hyperlink{fun:#1}{\code{#2}}}
+\newcommand\hypervar[1]{\hyperlink{var:#1}{\code{#1} variable}}
+\newcommand\hypervarn[1]{\hyperlink{var:#1}{\code{#1}}}
+\newcommand\hypervarx[2]{\hyperlink{var:#1}{\code{#2} variable}}
+\newcommand\hypervarxn[2]{\hyperlink{var:#1}{\code{#2}}}
+\newcommand\hyperobj[1]{\hyperlink{obj:#1}{\code{#1} object}}
+\newcommand\hypertargn[1]{\hyperlink{target:#1}{\code{#1}}}
+
+\newindex{default}{idx}{ind}{Index}
+\newindex{var}{vidx}{vind}{Index of variables}
+\newindex{fun}{fids}{find}{Index of functions and special forms}
+\newindex{obj}{oids}{oind}{Index of objects}
+\newindex{opt}{opts}{optind}{Index of options}
+\newindex{target}{tids}{tind}{Index of special targets}
+
+\newcommand{\itemidx}[1]{\item{\code{#1}}\index{#1}}
+\newcommand{\itemtwoidx}[2]{\item{\code{#1}, \code{#2}}\index{#1}\index{#2}}
+
+\newcommand\bul{\begin{rawhtml}&bull;&nbsp;\end{rawhtml}}
+\newcommand\heading{%
+\begin{htmlonly}
+\begin{tabular}{@{}l@{~~}l@{}}
+Jump to:&\ahref{../index.html}{\OMake{} Home}
+\bul\ahref{omake.html}{Guide Home}
+\bul\ahref{omake-doc.html}{Guide (single-page)}
+\bul\ahref{omake-toc.html}{Contents (short)}
+\bul\ahref{omake-contents.html}{Contents (long)}\\
+Index:&\ahref{omake-all-index.html}{All}
+\bul\ahref{omake-var-index.html}{Variables}
+\bul\ahref{omake-fun-index.html}{Functions}
+\bul\ahref{omake-obj-index.html}{Objects}
+\bul\ahref{omake-target-index.html}{Targets}
+\bul\ahref{omake-option-index.html}{Options}
+\end{tabular}
+\end{htmlonly}%
+}
+\htmlhead{%
+\begin{rawhtml}
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+\end{rawhtml}
+\heading}
+\htmlfoot{\heading}
+
+\begin{document}
+
+\htmlprefix{\OMake{} manual: }
+\maketitle
+
+\begin{htmlonly}
+\ahref{omake-doc.html}{All the documentation on a single page}
+
+\textbf{\OMake{} table of contents}
+\end{htmlonly}
+
+\tableofcontents
+\label{chapter:contents}
+\cutname{omake-contents.html}
+
+\input{omake-index}
+\input{omake-examples}
+\input{omake-build-examples}
+\input{omake-language}
+\input{omake-language-naming}
+\input{omake-detail}
+\input{omake-language-examples}
+\input{omake-rules}
+\input{../tex/omake-base}
+\input{../tex/omake-system}
+\input{../tex/omake-pervasives}
+{\renewcommand\idsection[1]{\subsubsection{#1}}\input{../tex/omake-root}}
+\input{../tex/omake-autoconf}
+\input{osh}
+\appendix
+\input{omake-options}
+\input{omake-grammar}
+
+\printindex[default]
+\cutname{omake-all-index.html}
+\printindex[var]
+\cutname{omake-var-index.html}
+\printindex[fun]
+\cutname{omake-fun-index.html}
+\printindex[obj]
+\cutname{omake-obj-index.html}
+\printindex[target]
+\cutname{omake-target-index.html}
+\printindex[opt]
+\cutname{omake-option-index.html}
+
+\chapter{References}
+\label{chapter:references}
+\cutname{omake-references.html}
+
+\section{See Also}
+
+omake(1) (Chapter~\ref{chapter:omake}),
+osh(1) (Chapter~\ref{chapter:osh}),
+make(1)
+
+\section{Version}
+
+Version: \Version\ of \Date.
+
+\section{License and Copyright}
+
+\copyright\ 2003-2006, Mojave Group, Caltech
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; version 2
+of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+\section{Author}
+
+\noindent
+\authors					\\
+Caltech 256-80					\\
+Pasadena, CA 91125, USA				\\
+Email: \texttt{omake-devel@metaprl.org}		\\
+WWW: \url{http://www.cs.caltech.edu/~jyh} and \url{http://nogin.org/}
+
+\end{document}
+
+%% \IfFileExists{rcsinfo.sty}{
+%% \setDate{\rcsInfoLongDate}
+%% }{
+%% \setDate{April 11, 2006}    %%%% must be manually set, if rcsinfo is not present
+%% }

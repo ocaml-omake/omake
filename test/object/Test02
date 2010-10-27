@@ -1,0 +1,2 @@
+println($"stdin.close.arity() - should be 0")
+println($(stdin.close.arity))

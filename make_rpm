@@ -1,0 +1,25 @@
+#!/bin/sh -x
+
+#
+# Configuration
+#
+. config_rpm
+
+#
+# Make a tarball
+#
+./make_tar
+
+#
+# Build the RPM
+# BUG: --nodeps is needed only for the build on Cygwin.
+#
+rpmbuild -ta --nodeps download/$TARBALL
+
+#
+# Copy the packages back here
+#
+if [ -d $OMAKE/RPM ]; then
+   cp $RPMROOT/RPMS/$ARCHTYPE/$BINFILE $OMAKE/RPM
+   cp $RPMROOT/SRPMS/$SRCFILE $OMAKE/RPM
+fi

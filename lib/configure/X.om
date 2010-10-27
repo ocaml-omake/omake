@@ -1,0 +1,36 @@
+#
+# Some basic test for X.
+#
+static. =
+    X_LDFLAGS =
+    X_INCLUDES =
+
+    if $(CheckProg xmkmf)
+        FOUND_INCLUDES = false
+        FOUND_LIB = false
+        ConfMsgChecking(for X library and header location")
+        mkdir .conftest.dir
+        CWD = $(dir .)
+        cd .conftest.dir
+        fprintln(Imakefile, $(EMPTY))
+        if $(and $(shell-success-null xmkmf), $(test -r Makefile))
+            awk(Makefile)
+            case $'^[[:space:]]*INCROOT[[:space:]]*=[[:space:]]*\(.*\)$'
+                FOUND_INCLUDES = true
+                if $(not $(equal $1, /usr/include))
+                    X_INCLUDES = $(dir $"$1")
+                    export
+                export
+            case $'^[[:space:]]*(USR)?LIBDIR[[:space:]]*=[[:space:]]*\(.*\)$'
+                if $(glob iF, $1/libX11.*)
+                    FOUND_LIB = true
+                    if $(not $(mem $1, /usr/lib /lib))
+                        X_LDFLAGS = $"-L$1"
+                        export
+                    export
+            export
+        ConfMsgFound($(and $(FOUND_INCLUDES), $(FOUND_LIB)))
+
+        cd $(CWD)
+        rm -rf .conftest.dir
+        export X_LDFLAGS X_INCLUDES

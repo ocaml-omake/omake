@@ -1,0 +1,12 @@
+# Making sure rm -rf does not follow symbolic links.
+rm(-rf a b)
+mkdir a
+mkdir b
+touch a/a
+symlink(a, b/a)
+rm(-r b)
+OK = $(test -e a/a)
+rm(-r a) # just to clean up
+if $(not $(OK))
+   eprintln($""ERROR: "rm -rf" follows symbolic links!!!"")
+   exit 1

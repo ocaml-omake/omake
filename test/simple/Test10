@@ -1,0 +1,25 @@
+x = 1
+try
+   x = 2
+default
+   x = 3
+println($"""Without "export", x is $x""")
+if $(eq $x, 2)
+   eprintln($""Error: "try" blocks automatically export!"")
+   exit 1
+
+try
+   x = 2
+   export x
+default
+   x = 3
+   export x
+println($"""With "export x", x is $x""")
+
+try
+   x = 2
+   export
+default
+   x = 3
+   export
+println($"""With "export", x is $x""")

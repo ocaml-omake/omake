@@ -1,0 +1,22 @@
+X =
+try
+   raise foo
+default
+   X += def
+   export
+when true
+   X += wt
+when true
+   X += wt2
+   export
+finally
+   X += fin
+   export
+
+X = $"$X"
+
+if $(not $(equal $X, $"def wt2 fin"))
+   eprintln($"Expected: def wt2 fin, got: $X!")
+   exit 1
+else
+   println($X)

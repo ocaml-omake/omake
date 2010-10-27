@@ -1,0 +1,17 @@
+#
+# Make sure the output doesn't block from an alias
+# that produces a lot of output.
+#
+Shell. +=
+    barf(argv) =
+        i = 0
+        while $(lt $i, 100000)
+            println($i ........................................................................)
+            i = $(add $i, 1)
+
+.PHONY: all
+
+all:
+    barf
+
+.DEFAULT: all

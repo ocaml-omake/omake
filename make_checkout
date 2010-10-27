@@ -1,0 +1,25 @@
+#
+# Configuration
+#
+. config_rpm
+
+#
+# Build an RPM package for omake
+#
+TMPDIR=`mktemp -d /tmp/omake.XXXXXX` || exit 1
+
+#
+# Clean up on exit or error
+#
+cleanup () {
+    rm -rf $TMPDIR
+}
+trap cleanup 0 1 2 15
+
+cd $TMPDIR
+
+#
+# Check out a fresh copy of omake
+#
+#svn co http://svn.metaprl.org/svnroot/mojave/omake
+svn export http://svn.metaprl.org/svnroot/mojave/omake-branches/0.9.8.x omake-$VERSION

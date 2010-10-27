@@ -1,0 +1,12 @@
+#!/bin/sh -x
+
+#
+# Check out a fresh copy of omake
+#
+. make_checkout
+
+#
+# Make a tarball
+#
+mkdir -p $OMAKE/download
+tar -czf $OMAKE/download/$TARBALL omake-$VERSION

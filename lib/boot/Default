@@ -1,0 +1,182 @@
+OMakeroot = $(License)$'''
+########################################################################
+# The standard OMakeroot file.
+# You will not normally need to modify this file.
+# By default, your changes should be placed in the
+# OMakefile in this directory.
+#
+# If you decide to modify this file, note that it uses exactly
+# the same syntax as the OMakefile.
+#
+
+#
+# Include the standard installed configuration files.
+# Any of these can be deleted if you are not using them,
+# but you probably want to keep the Common file.
+#
+open build/C
+open build/OCaml
+open build/LaTeX
+
+#
+# The command-line variables are defined *after* the
+# standard configuration has been loaded.
+#
+DefineCommandVars()
+
+#
+# Include the OMakefile in this directory.
+#
+.SUBDIRS: .
+'''
+
+########################################################################
+########################################################################
+########################################################################
+
+OMakefile = $(License)$"""
+########################################################################
+# The standard OMakefile.
+# You will usually need to modify this file for your project.
+
+# Delete this line once you have configured this file
+eprintln($$(CWD)/OMakefile is not configured)
+
+########################################################################
+# Phony targets are scoped, so you probably want to declare them first.
+#
+
+# .PHONY: all install clean
+
+########################################################################
+# Subdirectories.
+# You may want to include some subdirectories in this project.
+# If so, define the subdirectory targets and uncomment this section.
+#
+
+# .SUBDIRS:
+
+########################################################################
+# C configuration.
+# Delete this section if you are not building C files.
+#
+
+################################################
+# Configuration.  You might want to modify any of these
+# configuration variables.
+#
+
+# CFLAGS +=
+# ASFLAGS +=
+# LDFLAGS +=
+# INCLUDES +=
+
+################################################
+# Uncomment the following section if you want
+# to build a C program in the current directory.
+#
+
+# CFILES[] =
+#    file1
+#    main
+#
+# MAIN = main
+#
+# .DEFAULT: $$(CProgram $$(MAIN), $$(CFILES))
+
+################################################
+# Uncomment the following section if you want to build a C library
+# in the current directory.
+#
+
+# LIBFILES[] =
+#    file1
+#    file2
+#
+# LIB = libxxx
+#
+# .DEFAULT: $$(StaticCLibrary $$(LIB), $$(LIBFILES))
+
+########################################################################
+# OCaml configuration.
+# Delete this section if you are not building OCaml files.
+#
+
+################################################
+# Configuration.  You may want to modify any of these configuration
+# variables.
+#
+
+#
+# This project requires ocamlfind (default - false).
+#
+# USE_OCAMLFIND = true
+#
+# OCAMLPACKS[] =
+#    pack1
+#    pack2
+#
+# if $$(not $$(OCAMLFIND_EXISTS))
+#    eprintln(This project requires ocamlfind, but is was not found.)
+#    eprintln(You need to install ocamlfind and run "omake --configure".)
+#    exit 1
+
+#
+# Include path
+#
+# OCAMLINCLUDES +=
+
+#
+# Compile native or byte code? 
+#
+# The default values are defined as follows:
+#
+# NATIVE_ENABLED = $$(OCAMLOPT_EXISTS)
+# BYTE_ENABLED = $$(not $$(OCAMLOPT_EXISTS))
+
+#
+# Various options
+#
+# OCAMLFLAGS    +=
+# OCAMLCFLAGS   +=
+# OCAMLOPTFLAGS +=
+# OCAML_LINK_FLAGS +=
+# OCAML_BYTE_LINK_FLAGS +=
+# OCAML_NATIVE_LINK_FLAGS +=
+
+################################################
+# Generated files
+#
+# Workaround for the fact that ocamldep does not pay attention to .mll
+# and .mly files.
+#
+# OCamlGeneratedFiles(parser.ml lexer.ml)
+
+################################################
+# Build an OCaml library
+#
+
+# FILES[] =
+#    file1
+#    file2
+#
+# LIB = main
+#
+# .DEFAULT: $$(OCamlLibrary $$(LIB), $$(FILES))
+
+################################################
+# Build an OCaml program
+#
+
+# FILES[] =
+#    file1
+#    file2
+#
+# PROGRAM =
+# OCAML_LIBS +=
+# OCAML_CLIBS +=
+# OCAML_OTHER_LIBS +=
+# OCAML_LIB_FLAGS +=
+#
+# .DEFAULT: $$(OCamlProgram $$(PROGRAM), $$(FILES))
+"""

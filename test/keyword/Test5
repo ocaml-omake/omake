@@ -1,0 +1,45 @@
+#
+# Currying and keyword arguments.
+#
+errors = 0
+check(debug, i, j) =
+   if $(equal $i, $j)
+       println($"$(debug) = $i [SUCCESS]")
+   else
+       eprintln($"$(debug):
+computed  $i
+should be $j [FAILURE]")
+       errors = $(add $(errors), 1)
+       export
+   export
+
+#
+# Keywords in alphabetical order
+#
+curry.f(?A = 1, ?B = 2, C) =
+   private.A = $A
+   private.B = $B
+   private.C = $C
+   g(?D = 10, ?E = 11, F) =
+      value $"A = $A, B = $B, C = $C, D = $D, E = $E, F = $F"
+
+check($'f(~A = 20, 21, 22)', $(f ~A = 20, 21, 22), $'A = 20, B = 2, C = 21, D = 10, E = 11, F = 22')
+check($'f(~E = 20, 21, 22)', $(f ~E = 20, 21, 22), $'A = 1, B = 2, C = 21, D = 10, E = 20, F = 22')
+check($'f(~E = 20, 21, ~A = 22, 23)', $(f ~E = 20, 21, ~A = 22, 23), $'A = 22, B = 2, C = 21, D = 10, E = 20, F = 23')
+
+#
+# Keywords in reverse alphabetical order
+#
+curry.f(?E = 11, ?D = 10, ~F) =
+   private.E = $E
+   private.D = $D
+   private.F = $F
+   g(?B = 2, ?A = 1, C) =
+      value $"A = $A, B = $B, C = $C, D = $D, E = $E, F = $F"
+
+check($'f(~A = 20, 21, 22)', $(f ~A = 20, 21, ~F = 22), $'A = 20, B = 2, C = 21, D = 10, E = 11, F = 22')
+check($'f(~E = 20, 21, 22)', $(f ~E = 20, 21, ~F = 22), $'A = 1, B = 2, C = 21, D = 10, E = 20, F = 22')
+check($'f(~E = 20, 21, ~A = 22, 23)', $(f ~E = 20, 21, ~A = 22, ~F = 23), $'A = 22, B = 2, C = 21, D = 10, E = 20, F = 23')
+
+if $(errors)
+    exit 1

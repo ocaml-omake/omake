@@ -1,0 +1,159 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Shell commands
+%
+\chapter{Shell commands}
+\label{chapter:shell}
+\cutname{omake-shell.html}
+
+Shell commands (commands to be executed by the operating system) can be freely mixed with other
+code.
+
+\textbf{NOTE}: the syntax and shell usage is identical on all platforms, including Win32.  To avoid
+portability problems on Win32, it is recommended that you avoid the use of the native shell
+interpreter \verb+cmd+.
+
+\begin{verbatim}
+    LIB = $(dir lib)
+    println(The contents of the $(LIB) directory is:)
+    ls $(LIB)
+\end{verbatim}
+
+\section{Simple commands}
+
+The syntax of shell commands is similar to the syntax used by the Unix shell \verb+bash+.  In
+general, a command is a \emph{pipeline}.  A basic command is part of a pipeline.  It is specified
+with the name of an executable and some arguments.  Here are some examples.
+
+\begin{verbatim}
+    ls
+    ls -AF .
+    echo Hello world
+\end{verbatim}
+
+The command is found using the current search path in the variable \verb+PATH[]+, which should
+define an array of directories containing executables.
+
+A command may also be prefixed by environment variable definitions.
+
+\begin{verbatim}
+    # Prints "Hello world"
+    env X="Hello world" Y=2 printenv X
+    # Pass the include path to the Visual C++
+    env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+\end{verbatim}
+
+\section{Globbing}
+
+Commands may contain wildcard patterns.  A pattern specifies a set of files through a limited kind
+of regular expression.  Patterns are expanded before the function is executed.
+
+\begin{verbatim}
+   # List all files with a .c suffix
+   ls *.c
+
+   # List all files with a single character prefix, and .c suffix
+   ls ?.c
+
+   # Rename the file hello.ml to foo.ml
+   mv {hello,foo}.ml
+\end{verbatim}
+
+A comprehensive description of \OMake{} glob patterns is given in Section~\ref{section:globbing}.
+
+\section{Background jobs}
+
+The command may also be placed in the background by placing an ampersand after the command.  Control
+returns to the shell without waiting for the job to complete.  The job continues to run in the
+background.
+
+\begin{verbatim}
+    gcc -o hugeprogram *.c &
+\end{verbatim}
+
+\section{File redirection}
+
+Input and output can be redirected to files by using the \verb+<+, \verb+>+, and \verb+>&+
+directives after the command.
+
+\begin{verbatim}
+    # Write to the "foo" file
+    echo Hello world > foo
+
+    # Redirect input from the foo file
+    cat < foo
+
+    # Redirect standard output and errors to the foo file
+    gcc -o boo *.c >& foo
+\end{verbatim}
+
+\section{Pipelines}
+
+Pipelines are sequences of commands, where the output from each command is sent to the next.
+Pipelines are defined with the \verb+|+ and \verb+|&+ syntax.  With \verb+|+ the output is
+redirected, but errors are not.  With \verb+|&+ both output and errors are redirected.
+
+\begin{verbatim}
+   # Send the output of the ls command to the printer
+   ls *.c | lpr
+
+   # Send output and errors to jyh as email
+   gcc -o hugefile *.c |& mail jyh
+\end{verbatim}
+
+\section{Conditional execution}
+
+Commands may also be composed though conditional evaluation using the \verb+||+ and \verb+&&+
+syntax.  Every command has an integer exit code, which may be zero or some other integer.  A command
+is said to \emph{succeed} if its exit code is zero.  The expression \verb+command1 && command2+
+executes \verb+command2+ only if \verb+command1+ succeeds.  The expression
+\verb+command1 || command2+ executes \verb+command2+ only if \verb+command1+ fails.
+
+\begin{verbatim}
+   # Display the x/y file if possible
+   cd x && cat y
+
+   # Run foo.exe, or print an error message
+   (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+\end{verbatim}
+
+\section{Grouping}
+
+Parenthesis are used for grouping in a pipeline or conditional command.  In the following
+expression, the \verb+test+ function is used to test whether the \verb+foo.exe+ file is executable.
+If it is, the \verb+foo.exe+ file is executed.  If the file is not executable (or if the
+\verb+foo.exe+ command fails), the message \verb+"foo.exe is not executable"+ is printed.
+
+\begin{verbatim}
+   # Run foo.exe, or print an error message
+   (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+\end{verbatim}
+
+\section{What is a shell command?}
+
+Syntactially, shell commands are any line that is not one of the following:
+
+\begin{itemize}
+\item A variable definition of the form \verb+VAR=string+
+\item A function call \verb+f(...)+ or method call \verb+o.f(...)+
+\item A rule definition containing a colon \verb+string: ...+
+\item A special command, including the following:
+\begin{itemize}
+\item \verb+if ...+
+\item \verb+switch ...+
+\item \verb+match ...+
+\item \verb+section ...+
+\item \verb+return ...+
+\end{itemize}
+\end{itemize}
+
+Commands may also be builtin (aliases).  See the documentation for the
+\hyperobj{Shell} for more information.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

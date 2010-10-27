@@ -1,0 +1,9 @@
+#
+# Nested args
+#
+println(This should print 'yB A')
+match $'CADCxBDCyBDCAD'
+case $'(C(\(.B\)|\(A\))*D)*'
+   println('$*')
+default
+   println(Match failed)

@@ -1,0 +1,12 @@
+#!/usr/bin/env osh
+
+f(?X = 1) =
+   println($X)
+
+println($"""Should print:
+1
+2
+----------""")
+
+f()
+f(~X = 2)

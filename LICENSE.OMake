@@ -1,0 +1,32 @@
+              OMake terms and conditions.
+                    July 15, 2006
+
+The OMake program is distributed under licensing terms described in
+each source file.
+
+Generally speaking, this means that one of three licenses are used.
+The libmojave library is distributed under the terms if the GNU Lesser
+General Public License (LGPL).  See the file LICENSE.libmojave for
+more details.
+
+The OMake scripts are distributed under the terms of the MIT license.
+The MIT license applies only to the portion of OMake where the MIT
+license is specifically indicated in the source code.
+
+The OMake program is distributed under terms of the GNU General Public
+License as published by the Free Software Foundation, version 2 of the
+License.  The license is distributed in the file LICENSE.
+
+In addition, as a special exception, the copyright holders give
+permission to link the code of portions of this program with the
+Objective Caml runtime, under certain conditions as described in
+each individual source file, and distribute linked combinations
+including the two.
+
+You must obey the GNU General Public License in all respects for all
+of the code used other than Objective Caml.  If you modify file(s)
+with this exception, you may extend this exception to your version of
+the file(s), but you are not obligated to do so.  If you do not wish
+to do so, delete this exception statement from your version.  If you
+delete this exception statement from all source files in the program,
+then also delete it here.

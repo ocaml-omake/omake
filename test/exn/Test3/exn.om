@@ -1,0 +1,2 @@
+println(This should just abort execution with an exception)
+raise "String error"

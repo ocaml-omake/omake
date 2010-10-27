@@ -1,0 +1,11 @@
+.SUBDIRS: .
+    .PHONY: foo
+    .DEFAULT: foo
+
+    test_wild() =
+        if $(not $(equal %, $'%'))
+            eprintln($"The % variable is not statically scoped, function got value:" %)
+            exit 1
+
+    %:
+        test_wild()

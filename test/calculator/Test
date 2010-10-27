@@ -1,0 +1,144 @@
+lex-comment. =
+   extends $(Lexer)
+
+   declare lex
+   declare rule
+
+   level = 0
+
+   other: .
+      lex()
+
+   term: $'[*][)]'
+      if $(not $(eq $(level), 0))
+         level = $(sub $(level), 1)
+         lex()
+
+   next: $'[(][*]'
+      level = $(add $(level), 1)
+      lex()
+
+   eof: $"\'"
+      eprintln(Unterminated comment)
+
+lexer1. =
+   extends $(Lexer)
+
+   declare lex
+   declare rule
+
+   other: .
+      eprintln(Illegal character: $0)
+      lex()
+
+   white: $'[[:space:]]+'
+      lex()
+
+   comment: $'[(][*]'
+      lex-comment.lex-channel($(channel))
+      lex()
+
+   op: $'[-+*/()]'
+      switch $0
+      case +
+         Token.unit(plus)
+      case -
+         Token.unit(minus)
+      case *
+         Token.unit(mul)
+      case /
+         Token.unit(div)
+      case $'('
+         Token.unit(lparen)
+      case $')'
+         Token.unit(rparen)
+
+   number: $'[[:digit:]]+'
+      Token.pair(exp, $(int $0))
+
+   eof: $"\'"
+      Token.unit(eof)
+
+parser1. =
+   extends $(Parser)
+
+   declare rule
+
+   #
+   # Use the main lexer
+   #
+   lexer = $(lexer1)
+
+   #
+   # Precedences, in ascending order
+   #
+   left(plus minus)
+   left(mul div)
+   right(uminus)
+
+   #
+   # A program
+   #
+   start(prog)
+
+   prog: exp eof
+      value $1
+
+   #
+   # Simple arithmetic expressions
+   #
+   exp: minus exp :prec: uminus
+      neg($2)
+
+   exp: exp plus exp
+      add($1, $3)
+
+   exp: exp minus exp
+      sub($1, $3)
+
+   exp: exp mul exp
+      mul($1, $3)
+
+   exp: exp div exp
+      div($1, $3)
+
+   exp: lparen exp rparen
+      value $2
+
+println(Test1: should print 48)
+println(Parsed $(parser1.parse-file prog, Test.input1))
+
+lexer2. =
+   extends $(lexer1)
+
+   declare rule
+
+   lsl: $"<<"
+      Token.unit(lsl)
+
+   lsr: $">>>"
+      Token.unit(lsr)
+
+   asr: $">>"
+      Token.unit(asr)
+
+parser2. =
+   extends $(parser1)
+
+   declare rule
+
+   left(plus, lsl lsr asr)
+
+   lexer = $(lexer2)
+
+   exp: exp lsl exp
+      lsl($1, $3)
+
+   exp: exp lsr exp
+      lsr($1, $3)
+
+   exp: exp asr exp
+      asr($1, $3)
+
+println(Test2: should print 256)
+println(Parsed $(parser2.parse-file prog, Test.input2))

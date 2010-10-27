@@ -1,0 +1,20 @@
+#
+# Produce a long string of 16-character lines
+#
+S[] =
+i = 0
+while $(lt $i, 500)
+    S[] += $(sprintf %15d, $i)
+    i = $(add $i, 1)
+S = $(concat $(nl), $S)
+
+#
+# sprintf might truncate it
+#
+X1 = $(sprintf %s%s, $S, $S)
+X2 = $S$S
+
+if $(not $(equal $(X1), $(X2)))
+    eprintln(sprintf truncation)
+    eprintln($(X1))
+    exit 1

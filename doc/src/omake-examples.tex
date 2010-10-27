@@ -1,0 +1,571 @@
+%
+% Soem examples.
+%
+\chapter{\OMake{} quickstart guide}
+\label{chapter:quickstart}
+\cutname{omake-quickstart.html}
+
+\section{Description}
+
+\Prog{omake} is designed for building projects that might have source files in several directories.
+Projects are normally specified using an \File{OMakefile} in each of the project directories, and an
+\File{OMakeroot} file in the root directory of the project.  The \File{OMakeroot} file specifies
+general build rules, and the \File{OMakefile}s specify the build parameters specific to each of the
+subdirectories.  When \Prog{omake} runs, it walks the configuration tree, evaluating rules from all
+of the \File{OMakefile}s.  The project is then built from the entire collection of build rules.
+
+\subsection{Automatic dependency analysis}
+
+Dependency analysis has always been problematic with the \Cmd{make}{1} program.  \Prog{omake}
+addresses this by adding the \verb+.SCANNER+ target, which specifies a command to produce
+dependencies.  For example, the following rule
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c
+        $(CC) $(INCLUDE) -MM $<
+\end{verbatim}
+
+is the standard way to generate dependencies for \verb+.c+ files.  \Prog{omake} will automatically
+run the scanner when it needs to determine dependencies for a file.
+
+\subsection{Content-based dependency analysis}
+
+Dependency analysis in omake uses MD5 digests to determine whether files have changed.  After each
+run, \Prog{omake} stores the dependency information in a file called \File{.omakedb} in the project
+root directory.  When a rule is considered for execution, the command is not executed if the target,
+dependencies, and command sequence are unchanged since the last run of \Prog{omake}.  As an
+optimization, \Prog{omake} does not recompute the digest for a file that has an unchanged
+modification time, size, and inode number.
+
+\section{For users already familiar with make}
+
+For users already familiar with the \Cmd{make}{1} command, here is a list of
+differences to keep in mind when using \Prog{omake}.
+
+\begin{itemize}
+\item In \Prog{omake}, you are much less likely to define build rules of your own.
+  The system provides many standard functions (like \hyperfunn{StaticCLibrary} and \hyperfunn{CProgram}),
+  described in Chapter~\ref{chapter:build}, to specify these builds more simply.
+\item Implicit rules using \verb+.SUFFIXES+ and the \verb+.suf1.suf2:+ are not supported.
+  You should use wildcard patterns instead \verb+%.suf2: %.suf1+.
+\item Scoping is significant: you should define variables and \verb+.PHONY+
+  targets (see Section~\ref{target:.PHONY}) before they are used.
+\item Subdirectories are incorporated into a project using the
+  \verb+.SUBDIRS:+ target (see Section~\ref{target:.SUBDIRS}).
+\end{itemize}
+
+\section{Building a small C program}
+
+To start a new project, the easiest method is to change directories to the project
+root and use the command \verb+omake --install+ to install default \File{OMakefile}s.
+
+\begin{verbatim}
+    $ cd ~/newproject
+    $ omake --install
+    *** omake: creating OMakeroot
+    *** omake: creating OMakefile
+    *** omake: project files OMakefile and OMakeroot have been installed
+    *** omake: you should edit these files before continuing
+\end{verbatim}
+
+The default \File{OMakefile} contains sections for building C and OCaml programs.
+For now, we'll build a simple C project.
+
+Suppose we have a C file called \verb+hello_code.c+ containing the following code:
+
+\begin{verbatim}
+    #include <stdio.h>
+
+    int main(int argc, char **argv)
+    {
+        printf("Hello world\n");
+        return 0;
+    }
+\end{verbatim}
+
+To build the program a program \verb+hello+ from this file, we can use the
+\hyperfun{CProgram}.
+The \File{OMakefile} contains just one line that specifies that the program \verb+hello+ is
+to be built from the source code in the \verb+hello_code.c+ file (note that file suffixes
+are not passed to these functions).
+
+\begin{verbatim}
+    CProgram(hello, hello_code)
+\end{verbatim}
+
+Now we can run \Prog{omake} to build the project.  Note that the first time we run \Prog{omake},
+it both scans the \verb+hello_code.c+ file for dependencies, and compiles it using the \verb+cc+
+compiler.  The status line printed at the end indicates how many files were scanned, how many
+were built, and how many MD5 digests were computed.
+
+\begin{verbatim}
+    $ omake hello
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.0 sec)
+    - scan . hello_code.o
+    + cc -I. -MM hello_code.c
+    - build . hello_code.o
+    + cc -I. -c -o hello_code.o hello_code.c
+    - build . hello
+    + cc -o hello hello_code.o
+    *** omake: done (0.5 sec, 1/6 scans, 2/6 rules, 5/22 digests)
+    $ omake
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.1 sec)
+    *** omake: done (0.1 sec, 0/4 scans, 0/4 rules, 0/9 digests)
+\end{verbatim}
+
+If we want to change the compile options, we can redefine the \verb+CC+ and \verb+CFLAGS+
+variables \emph{before} the \verb+CProgram+ line.  In this example, we will use the \verb+gcc+
+compiler with the \verb+-g+ option.  In addition, we will specify a \verb+.DEFAULT+ target
+to be built by default.  The \verb+EXE+ variable is defined to be \verb+.exe+ on \verb+Win32+
+systems; it is empty otherwise.
+
+\begin{verbatim}
+    CC = gcc
+    CFLAGS += -g
+    CProgram(hello, hello_code)
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+Here is the corresponding run for \Prog{omake}.
+
+\begin{verbatim}
+    $ omake
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.0 sec)
+    - scan . hello_code.o
+    + gcc -g -I. -MM hello_code.c
+    - build . hello_code.o
+    + gcc -g -I. -c -o hello_code.o hello_code.c
+    - build . hello
+    + gcc -g -o hello hello_code.o
+    *** omake: done (0.4 sec, 1/7 scans, 2/7 rules, 3/22 digests)
+\end{verbatim}
+
+We can, of course, include multiple files in the program.  Suppose we write a new
+file \verb+hello_helper.c+.  We would include this in the project as follows.
+
+\begin{verbatim}
+    CC = gcc
+    CFLAGS += -g
+    CProgram(hello, hello_code hello_helper)
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+\section{Larger projects}
+
+As the project grows it is likely that we will want to build libraries of code.
+Libraries can be built using the \verb+StaticCLibrary+ function.  Here is an example
+of an \File{OMakefile} with two libraries.
+
+\begin{verbatim}
+    CC = gcc
+    CFLAGS += -g
+
+    FOO_FILES = foo_a foo_b
+    BAR_FILES = bar_a bar_b bar_c
+
+    StaticCLibrary(libfoo, $(FOO_FILES))
+    StaticCLibrary(libbar, $(BAR_FILES))
+
+    # The hello program is linked with both libraries
+    LIBS = libfoo libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+\section{Subdirectories}
+
+As the project grows even further, it is a good idea to split it into several directories.
+Suppose we place the \verb+libfoo+ and \verb+libbar+ into subdirectories.
+
+In each subdirectory, we define an \File{OMakefile} for that directory.  For example, here
+is an example \File{OMakefile} for the \verb+foo+ subdirectory.
+
+\begin{verbatim}
+    INCLUDES += .. ../bar
+
+    FOO_FILES = foo_a foo_b
+    StaticCLibrary(libfoo, $(FOO_FILES))
+\end{verbatim}
+
+Note the the \verb+INCLUDES+ variable is defined to include the other directories in the project.
+
+Now, the next step is to link the subdirectories into the main project.  The project \File{OMakefile}
+should be modified to include a \verb+.SUBDIRS:+ target.
+
+\begin{verbatim}
+    # Project configuration
+    CC = gcc
+    CFLAGS += -g
+
+    # Subdirectories
+    .SUBDIRS: foo bar
+
+    # The libraries are now in subdirectories
+    LIBS = foo/libfoo bar/libbar
+
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+Note that the variables \verb+CC+ and \verb+CFLAGS+ are defined \emph{before} the \verb+.SUBDIRS+
+target.  These variables remain defined in the subdirectories, so that \verb+libfoo+ and \verb+libbar+
+use \verb+gcc -g+.
+
+If the two directories are to be configured differently, we have two choices.  The \File{OMakefile}
+in each subdirectory can be modified with its configuration (this is how it would normally be done).
+Alternatively, we can also place the change in the root \File{OMakefile}.
+
+\begin{verbatim}
+    # Default project configuration
+    CC = gcc
+    CFLAGS += -g
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    CFLAGS += -O3
+    .SUBDIRS: bar
+
+    # Main program
+    LIBS = foo/libfoo bar/libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+Note that the way we have specified it, the \verb+CFLAGS+ variable also contains the \verb+-O3+
+option for the \verb+CProgram+, and \verb+hello_code.c+ and \verb+hello_helper.c+ file will both be
+compiled with the \verb+-O3+ option.  If we want to make the change truly local to \verb+libbar+, we
+can put the \verb+bar+ subdirectory in its own scope using the \verb+section+ form.
+
+\begin{verbatim}
+    # Default project configuration
+    CC = gcc
+    CFLAGS += -g
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += -O3
+        .SUBDIRS: bar
+
+    # Main program does not use the optimizing compiler
+    LIBS = foo/libfoo bar/libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+Later, suppose we decide to port this project to \verb+Win32+, and we discover that we need
+different compiler flags and an additional library.
+
+\begin{verbatim}
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += -g
+        export
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += $(if $(equal $(OSTYPE), Win32), $(EMPTY), -O3)
+        .SUBDIRS: bar
+
+    # Default libraries
+    LIBS = foo/libfoo bar/libbar
+
+    # We need libwin32 only on Win32
+    if $(equal $(OSTYPE), Win32)
+       LIBS += win32/libwin32
+
+       .SUBDIRS: win32
+       export
+
+    # Main program does not use the optimizing compiler
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+Note the use of the \verb+export+ directives to export the variable definitions from the
+if-statements.  Variables in \Prog{omake} are \emph{scoped}---variables in nested blocks (blocks
+with greater indentation), are not normally defined in outer blocks.  The \verb+export+ directive
+specifies that the variable definitions in the nested blocks should be exported to their parent
+block.
+
+Finally, for this example, we decide to copy all libraries into a common \verb+lib+ directory.  We
+first define a directory variable, and replace occurrences of the \verb+lib+ string with the
+variable.
+
+\begin{verbatim}
+    # The common lib directory
+    LIB = $(dir lib)
+
+    # phony target to build just the libraries
+    .PHONY: makelibs
+
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += -g
+        export
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += $(if $(equal $(OSTYPE), Win32), $(EMPTY), -O3)
+        .SUBDIRS: bar
+
+    # Default libraries
+    LIBS = $(LIB)/libfoo $(LIB)/libbar
+
+    # We need libwin32 only on Win32
+    if $(equal $(OSTYPE), Win32)
+       LIBS += $(LIB)/libwin32
+
+       .SUBDIRS: win32
+       export
+
+    # Main program does not use the optimizing compiler
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+\end{verbatim}
+
+In each subdirectory, we modify the \File{OMakefile}s in the library directories to install them
+into the \verb+$(LIB)+ directory.  Here is the relevant change to \File{foo/OMakefile}.
+
+\begin{verbatim}
+    INCLUDES += .. ../bar
+
+    FOO_FILES = foo_a foo_b
+    StaticCLibraryInstall(makelib, $(LIB), libfoo, $(FOO_FILES))
+\end{verbatim}
+
+Directory (and file names) evaluate to relative pathnames.  Within the \verb+foo+ directory, the
+\verb+$(LIB)+ variable evaluates to \verb+../lib+.
+
+As another example, instead of defining the \verb+INCLUDES+ variable separately
+in each subdirectory, we can define it in the toplevel as follows.
+
+\begin{verbatim}
+    INCLUDES = $(ROOT) $(dir foo bar win32)
+\end{verbatim}
+
+In the \verb+foo+ directory, the \verb+INCLUDES+ variable will evaluate to
+the string \verb+.. . ../bar ../win32+.  In the \verb+bar+ directory,
+it would be \verb+.. ../foo . ../win32+.  In the root directory it
+would be \verb+. foo bar win32+.
+
+\section{Other things to consider}
+
+\Prog{omake} also handles recursive subdirectories.  For example, suppose the \verb+foo+
+directory itself contains several subdirectories.  The \File{foo/OMakefile} would then
+contain its own \verb+.SUBDIRS+ target, and each of its subdirectories would
+contain its own \verb+OMakefile+.
+
+\section{Building OCaml programs}
+
+By default, \Prog{omake} is also configured with functions for building OCaml programs.
+The functions for OCaml program use the \verb+OCaml+ prefix.  For example, suppose
+we reconstruct the previous example in OCaml, and we have a file called \verb+hello_code.ml+
+that contains the following code.
+
+\begin{verbatim}
+   open Printf
+
+   let () = printf "Hello world\n"
+\end{verbatim}
+
+An example \File{OMakefile} for this simple project would contain the following.
+
+\begin{verbatim}
+    # Use the byte-code compiler
+    BYTE_ENABLED = true
+    NATIVE_ENABLED = false
+    OCAMLCFLAGS += -g
+
+    # Build the program
+    OCamlProgram(hello, hello_code)
+    .DEFAULT: hello.run
+\end{verbatim}
+
+Next, suppose the we have two library subdirectories: the \verb+foo+ subdirectory
+is written in C, the \verb+bar+ directory is written in OCaml, and we need to
+use the standard OCaml \verb+Unix+ module.
+
+\begin{verbatim}
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += -g
+        export
+
+    # Use the byte-code compiler
+    BYTE_ENABLED = true
+    NATIVE_ENABLED = false
+    OCAMLCFLAGS += -g
+
+    # library subdirectories
+    INCLUDES += $(dir foo bar)
+    OCAMLINCLUDES += $(dir foo bar)
+    .SUBDIRS: foo bar
+
+    # C libraries
+    LIBS = foo/libfoo
+
+    # OCaml libraries
+    OCAML_LIBS = bar/libbar
+
+    # Also use the Unix module
+    OCAML_OTHER_LIBS = unix
+
+    # The main program
+    OCamlProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello
+\end{verbatim}
+
+The \File{foo/OMakefile} would be configured as a C library.
+
+\begin{verbatim}
+    FOO_FILES = foo_a foo_b
+    StaticCLibrary(libfoo, $(FOO_FILES))
+\end{verbatim}
+
+The \File{bar/OMakefile} would build an ML library.
+
+\begin{verbatim}
+   BAR_FILES = bar_a bar_b bar_c
+   OCamlLibrary(libbar, $(BAR_FILES))
+\end{verbatim}
+
+\section{The OMakefile and OMakeroot files}
+\label{section:omakeroot}
+\index{OMakefile}
+\index{OMakeroot}
+
+\Prog{\OMake} uses the \File{OMakefile} and \File{OMakeroot} files for configuring a project.  The
+syntax of these files is the same, but their role is slightly different.  For one thing, every
+project must have exactly one \File{OMakeroot} file in the project root directory.  This file serves
+to identify the project root, and it contains code that sets up the project.  In contrast, a
+multi-directory project will often have an \File{OMakefile} in each of the project subdirectories,
+specifying how to build the files in that subdirectory.
+
+Normally, the \File{OMakeroot} file is boilerplate.  The following listing is a typical example.
+
+\begin{verbatim}
+    include $(STDLIB)/build/Common
+    include $(STDLIB)/build/C
+    include $(STDLIB)/build/OCaml
+    include $(STDLIB)/build/LaTeX
+
+    # Redefine the command-line variables
+    DefineCommandVars(.)
+
+    # The current directory is part of the project
+    .SUBDIRS: .
+\end{verbatim}
+
+The \verb+include+ lines include the standard configuration files needed for the project.  The
+\verb+$(STDLIB)+ represents the \Prog{omake} library directory.  The only required configuration
+file is \verb+Common+.  The others are optional; for example, the \verb+$(STDLIB)/build/OCaml+ file
+is needed only when the project contains programs written in OCaml.
+
+The \verb+DefineCommandVars+ function defines any variables specified on the command line (as
+arguments of the form \verb+VAR=<value>+).  The \verb+.SUBDIRS+ line specifies that the current
+directory is part of the project (so the \verb+OMakefile+ should be read).
+
+Normally, the \verb+OMakeroot+ file should be small and project-independent.  Any project-specific
+configuration should be placed in the \verb+OMakefiles+ of the project.
+
+\section{Multiple version support}
+\index{vmount}
+
+\OMake{} version \verb+0.9.6+ introduced preliminary support for multiple, simultaneous versions of a
+project.  Versioning uses the \verb+vmount(dir1, dir2)+ function, which defines a ``virtual mount''
+of directory \verb+dir1+ over directory \verb+dir2+.  A ``virtual mount'' is like a transparent
+mount in Unix, where the files from \verb+dir1+ appear in the \verb+dir2+ namespace, but new files
+are created in \verb+dir2+.  More precisely, the filename \verb+dir2/foo+ refers to: a) the file
+\verb+dir1/foo+ if it exists, or b) \verb+dir2/foo+ otherwise.
+
+The \verb+vmount+ function makes it easy to specify multiple versions of a project.  Suppose we have
+a project where the source files are in the directory \verb+src/+, and we want to compile two
+versions, one with debugging support and one optimized.  We create two directories, \File{debug} and
+\File{opt}, and mount the \File{src} directory over them.
+
+\begin{verbatim}
+    section
+        CFLAGS += -g
+        vmount(-l, src, debug)
+        .SUBDIRS: debug
+
+    section
+        CFLAGS += -O3
+        vmount(-l, src, opt)
+        .SUBDIRS: opt
+\end{verbatim}
+
+Here, we are using \verb+section+ blocks to define the scope of the \verb+vmount+---you may not need
+them in your project.
+
+The \verb+-l+ option is optional.  It specifies that files form the \verb+src+ directory should be
+linked into the target directories (or copied, if the system is Win32).  The links are added as
+files are referenced.  If no options are given, then files are not copied or linked, but filenames
+are translated to refer directly to the \verb+src/+ files.
+
+Now, when a file is referenced in the \verb+debug+ directory, it is linked from the \verb+src+
+directory if it exists.  For example, when the file \verb+debug/OMakefile+ is read, the
+\verb+src/OMakefile+ is linked into the \verb+debug/+ directory.
+
+The \verb+vmount+ model is fairly transparent.  The \verb+OMakefile+s can be written \emph{as if}
+referring to files in the \verb+src/+ directory---they need not be aware of mounting.
+However, there are a few points to keep in mind.
+
+\section{Notes}
+
+\begin{itemize}
+\item When using the \verb+vmount+ function for versioning, it wise to keep the source files
+distinct from the compiled versions.  For example, suppose the source directory contained a file
+\verb+src/foo.o+.  When mounted, the \verb+foo.o+ file will be the same in all versions, which is
+probably not what you want.  It is better to keep the \verb+src/+ directory pristine, containing no
+compiled code.
+
+\item When using the \verb+vmount -l+ option, files are linked into the version directory only if
+they are referenced in the project.  Functions that examine the filesystem (like \verb+$(ls ...)+)
+may produce unexpected results.
+\end{itemize}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

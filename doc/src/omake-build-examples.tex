@@ -1,0 +1,836 @@
+%
+%
+%
+\chapter{Additional build examples}
+\label{chapter:build-examples}
+\index{build model}
+\cutname{omake-build-examples.html}
+
+Let's explain the \OMake{} build model a bit more.
+One issue that dominates this discussion is that \OMake{} is based on global project analysis.  That
+means you define a configuration for the \emph{entire} project, and you run \emph{one} instance of omake.
+
+For single-directory projects this doesn't mean much.  For multi-directory projects it means a lot.
+With GNU make, you would usually invoke the \verb+make+ program recursively for each directory in
+the project.  For example, suppose you had a project with some project root directory, containing a
+directory of sources \verb+src+, which in turn contains subdirectories \verb+lib+ and \verb+main+.
+So your project looks like this nice piece of ASCII art.
+
+\begin{verbatim}
+    my_project/
+    |--> Makefile
+    `--> src/
+         |---> Makefile
+         |---> lib/
+         |     |---> Makefile
+         |     `---> source files...
+         `---> main/
+               |---> Makefile
+               `---> source files...
+\end{verbatim}
+                    
+Typically, with GNU make, you would start an instance of \verb+make+ in \verb+my_project/+; this
+would in term start an instance of \verb+make+ in the \verb+src/+ directory; and this would start
+new instances in \verb+lib/+ and \verb+main/+.  Basically, you count up the number of
+\verb+Makefile+s in the project, and that is the number of instances of \verb+make+ processes that
+will be created.
+
+The number of processes is no big deal with today's machines (sometimes contrary the the author's opinion, we
+no longer live in the 1970s).  The problem with the scheme was that each \verb+make+ process had a
+separate configuration, and it took a lot of work to make sure that everything was consistent.
+Furthermore, suppose the programmer runs \verb+make+ in the \verb+main/+ directory, but the
+\verb+lib/+ is out-of-date.  In this case, \verb+make+ would happily crank away, perhaps trying to
+rebuild files in \verb+lib/+, perhaps just giving up.
+
+With \OMake{} this changes entirely.  Well, not entirely.  The source structure is quite similar, we
+merely add some Os to the ASCII art.
+
+\begin{verbatim}
+    my_project/
+    |--> OMakeroot   (or Root.om)
+    |--> OMakefile
+    `--> src/
+         |---> OMakefile
+         |---> lib/
+         |     |---> OMakefile
+         |     `---> source files...
+         `---> main/
+               |---> OMakefile
+               `---> source files...
+\end{verbatim}
+
+\index{OMakefile}
+\index{OMakeroot}
+The role of each \verb+<dir>/OMakefile+ plays the same role as each \verb+<dir>/Makefile+: it
+describes how to build the source files in \verb+<dir>+.  The OMakefile retains much of syntax and
+structure of the Makefile, but in most cases it is much simpler.
+
+One minor difference is the presence of the OMakeroot in the project root.  The main purpose of this
+file is to indicate where the project root \emph{is} in the first place (in case \verb+omake+ is
+invoked from a subdirectory).  The \verb+OMakeroot+ serves as the bootstrap file; omake starts by
+reading this file first.  Otherwise, the syntax and evaluation of \verb+OMakeroot+ is no different
+from any other \verb+OMakefile+.
+
+The \emph{big} difference is that \OMake{} performs a \emph{global} analysis.  Here is what happens
+when \verb+omake+ starts.
+
+\index{.SUBDIRS}
+\begin{enumerate}
+\item omake locates that OMakeroot file, and reads it.
+\item Each OMakefile points to its subdirectory OMakefiles using the .SUBDIRS target.
+For example, \verb+my_project/OMakefile+ has a rule,
+
+\begin{verbatim}
+    .SUBDIRS: src
+\end{verbatim}
+
+and the \verb+my_project/src/OMakefile+ has a rule,
+
+\begin{verbatim}
+    .SUBDIRS: lib main
+\end{verbatim}
+
+\verb+omake+ uses these rules to read and evaluate every \verb+OMakefile+ in the project.
+Reading and evaluation is fast.  This part of the process is cheap.
+
+\item Now that the entire configuration is read, \verb+omake+ determines which files are out-of-date
+(using a global analysis), and starts the build process.  This may take a while, depending on what
+exactly needs to be done.
+\end{enumerate}
+
+There are several advantages to this model.  First, since analysis is global, it is much easier to
+ensure that the build configuration is consistent--after all, there is only one configuration.
+Another benefit is that the build configuration is inherited, and can be re-used, down the
+hierarchy.  Typically, the root \verb+OMakefile+ defines some standard boilerplate and
+configuration, and this is inherited by subdirectories that tweak and modify it (but do not need to
+restate it entirely).  The disadvantage of course is space, since this is global analysis after all.
+In practice rarely seems to be a concern; omake takes up much less space than your web browser even
+on large projects.
+
+Some notes to the GNU/BSD make user.
+\begin{itemize}
+\item OMakefiles are a lot like Makefiles.  The syntax is similar, and there many of the builtin
+functions are similar.  However, the two build systems are not the same.  Some evil features (in the authors'
+opinions) have been dropped in \OMake{}, and some new features have been added.
+
+\item \OMake{} works the same way on all platforms, including Win32.  The standard configuration does
+the right thing, but if you care about porting your code to multiple platforms, and you use some
+tricky features, you may need to condition parts of your build config on the \verb+$(OSTYPE)+
+variable.
+
+\item A minor issue is that \OMake{} dependency analysis is based on MD5 file digests.  That is,
+dependencies are based on file \emph{contents}, not file \emph{modification times}.  Say goodbye to
+false rebuilds based on spurious timestamp changes and mismatches between local time and fileserver
+time.
+\end{itemize}
+
+\section{OMakeroot vs. OMakefile}
+
+Before we begin with examples, let's ask the first question, ``What is the difference between the
+project root OMakeroot and OMakefile?''  A short answer is, there is no difference, but you must
+have an OMakeroot file (or Root.om file).
+
+However, the normal style is that OMakeroot is boilerplate and is more-or-less the same for all
+projects.  The OMakefile is where you put all your project-specific stuff.
+
+To get started, you don't have to do this yourself.  In most cases you just perform the following
+step in your project root directory.
+
+\begin{itemize}
+\item Run \verb+omake --install+ in your project root.
+\end{itemize}
+
+This will create the initial OMakeroot and OMakefile files that you can edit to get started.
+
+\section{An example C project}
+
+To begin, let's start with a simple example.  Let's say that we have a full directory tree,
+containing the following files.
+
+\begin{verbatim}
+    my_project/
+    |--> OMakeroot
+    |--> OMakefile
+    `--> src/
+         |---> OMakefile
+         |---> lib/
+         |     |---> OMakefile
+         |     |---> ouch.c
+         |     |---> ouch.h
+         |     `---> bandaid.c
+         `---> main/
+               |---> OMakefile
+               |---> horsefly.c
+               |---> horsefly.h
+               `---> main.c
+\end{verbatim}
+
+Here is an example listing.
+
+\begin{verbatim}
+my_project/OMakeroot:
+    # Include the standard configuration for C applications
+    open build/C
+    
+    # Process the command-line vars
+    DefineCommandVars()
+    
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+    # Set up the standard configuration
+    CFLAGS += -g
+
+    # Include the src subdirectory
+    .SUBDIRS: src
+
+my_project/src/OMakefile:
+    # Add any extra options you like
+    CFLAGS += -O2
+
+    # Include the subdirectories
+    .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+    # Build the library as a static library.
+    # This builds libbug.a on Unix/OSX, or libbug.lib on Win32.
+    # Note that the source files are listed _without_ suffix.
+    StaticCLibrary(libbug, ouch bandaid)
+
+my_project/src/main/OMakefile:
+    # Some files include the .h files in ../lib
+    INCLUDES += ../lib
+
+    # Indicate which libraries we want to link against.
+    LIBS[] +=
+        ../lib/libbug
+
+    # Build the program.
+    # Builds horsefly.exe on Win32, and horsefly on Unix.
+    # The first argument is the name of the executable.
+    # The second argument is an array of object files (without suffix)
+    # that are part of the program.
+    CProgram(horsefly, horsefly main)
+
+    # Build the program by default (in case omake is called
+    # without any arguments).  EXE is defined as .exe on Win32,
+    # otherwise it is empty.
+    .DEFAULT: horsefly$(EXE)
+\end{verbatim}
+
+Most of the configuration here is defined in the file \verb+build/C.om+ (which is part of the \OMake{}
+distribution).  This file takes care of a lot of work, including:
+\begin{itemize}
+\item Defining the \verb+StaticCLibrary+ and \verb+CProgram+ functions, which describe the canonical
+way to build C libraries and programs.
+\item Defining a mechanism for \emph{scanning} each of the source programs to discover dependencies.
+That is, it defines .SCANNER rules for C source files.
+\end{itemize}
+
+Variables are inherited down the hierarchy, so for example, the value of CFLAGS in
+src/main/OMakefile is ``\verb+-g -O2+''.
+
+\section{An example OCaml project}
+
+Let's repeat the example, assuming we are using OCaml instead of C.
+This time, the directory tree looks like this.
+
+\begin{verbatim}
+    my_project/
+    |--> OMakeroot
+    |--> OMakefile
+    `--> src/
+         |---> OMakefile
+         |---> lib/
+         |     |---> OMakefile
+         |     |---> ouch.ml
+         |     |---> ouch.mli
+         |     `---> bandaid.ml
+         `---> main/
+               |---> OMakefile
+               |---> horsefly.ml
+               |---> horsefly.mli
+               `---> main.ml
+\end{verbatim}
+
+The listing is only a bit different.
+
+\begin{verbatim}
+my_project/OMakeroot:
+    # Include the standard configuration for OCaml applications
+    open build/OCaml
+    
+    # Process the command-line vars
+    DefineCommandVars()
+    
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+    # Set up the standard configuration
+    OCAMLFLAGS += -Wa
+
+    # Do we want to use the bytecode compiler,
+    # or the native-code one?  Let's use both for
+    # this example.
+    NATIVE_ENABLED = true
+    BYTE_ENABLED = true
+
+    # Include the src subdirectory
+    .SUBDIRS: src
+
+my_project/src/OMakefile:
+    # Include the subdirectories
+    .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+    # Let's do aggressive inlining on native code
+    OCAMLOPTFLAGS += -inline 10
+
+    # Build the library as a static library.
+    # This builds libbug.a on Unix/OSX, or libbug.lib on Win32.
+    # Note that the source files are listed _without_ suffix.
+    OCamlLibrary(libbug, ouch bandaid)
+
+my_project/src/main/OMakefile:
+    # These files depend on the interfaces in ../lib
+    OCAMLINCLUDES += ../lib
+
+    # Indicate which libraries we want to link against.
+    OCAML_LIBS[] +=
+        ../lib/libbug
+
+    # Build the program.
+    # Builds horsefly.exe on Win32, and horsefly on Unix.
+    # The first argument is the name of the executable.
+    # The second argument is an array of object files (without suffix)
+    # that are part of the program.
+    OCamlProgram(horsefly, horsefly main)
+
+    # Build the program by default (in case omake is called
+    # without any arguments).  EXE is defined as .exe on Win32,
+    # otherwise it is empty.
+    .DEFAULT: horsefly$(EXE)
+\end{verbatim}
+
+In this case, most of the configuration here is defined in the file \verb+build/OCaml.om+.  In this
+particular configuration, files in \verb+my_project/src/lib+ are compiled aggressively with the
+option \verb+-inline 10+, but files in \verb+my_project/src/lib+ are compiled normally.
+
+\section{Handling new languages}
+\index{cats and dogs}
+
+The previous two examples seem to be easy enough, but they rely on the \OMake{} standard library (the
+files \verb+build/C+ and \verb+build/OCaml+) to do all the work.  What happens if we want to write a
+build configuration for a language that is not already supported in the \OMake{} standard library?
+
+For this example, let's suppose we are adopting a new language.  The language uses the standard
+compile/link model, but is not in the \OMake{} standard library.  Specifically, let's say we have the
+following setup.
+
+\begin{itemize}
+\item Source files are defined in files with a \verb+.cat+ suffix (for Categorical Abstract Terminology).
+\item \verb+.cat+ files are compiled with the \verb+catc+ compiler to produce \verb+.woof+ files
+(Wicked Object-Oriented Format).
+\item \verb+.woof+ files are linked by the \verb+catc+ compiler with the \verb+-c+ option to produce
+a \verb+.dog+ executable (Digital Object Group).  The \verb+catc+ also defines a \verb+-a+ option to
+combine several \verb+.woof+ files into a library.
+\item Each \verb+.cat+ can refer to other source files.  If a source file \verb+a.cat+ contains a
+line \verb+open b+, then \verb+a.cat+ depends on the file \verb+b.woof+, and \verb+a.cat+ must be
+recompiled if \verb+b.woof+ changes.  The \verb+catc+ function takes a \verb+-I+ option to define a
+search path for dependencies.
+\end{itemize}
+
+To define a build configuration, we have to do three things.
+\begin{enumerate}
+\item Define a \verb+.SCANNER+ rule for discovering dependency information for the source files.
+\item Define a generic rule for compiling a \verb+.cat+ file to a \verb+.woof+ file.
+\item Define a rule (as a function) for linking \verb+.woof+ files to produce a \verb+.dog+ executable.
+\end{enumerate}
+
+Initially, these definitions will be placed in the project root \verb+OMakefile+.
+
+\subsection{Defining a default compilation rule}
+
+Let's start with part 2, defining a generic compilation rule.  We'll define the build rule as an
+\emph{implicit} rule.  To handle the include path, we'll define a variable \verb+CAT_INCLUDES+ that
+specifies the include path.  This will be an array of directories.  To define the options, we'll use
+a lazy variable (Section~\ref{section:lazy}).  In case there
+are any other standard flags, we'll define a \verb+CAT_FLAGS+ variable.
+
+\begin{verbatim}
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+   
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # The default way to build a .woof file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $<
+\end{verbatim}
+
+The final part is the build rule itself, where we call the \verb+catc+ compiler with the include
+path, and the \verb+CAT_FLAGS+ that have been defined.  The \verb+$<+ variable represents the source
+file.
+
+\subsection{Defining a rule for linking}
+
+For linking, we'll define another rule describing how to perform linking.  Instead of defining an
+implicit rule, we'll define a function that describes the linking step.  The function will take two
+arguments; the first is the name of the executable (without suffix), and the second is the files to
+link (also without suffixes).  Here is the code fragment.
+
+\begin{verbatim}
+    # Optional link options
+    CAT_LINK_FLAGS =
+
+    # The function that defines how to build a .dog program
+    CatProgram(program, files) =
+        # Add the suffixes
+        file_names = $(addsuffix .woof, $(files))
+        prog_name = $(addsuffix .dog, $(program))
+
+        # The build rule
+        $(prog_name): $(file_names)
+            $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+        # Return the program name
+        value $(prog_name)
+\end{verbatim}
+
+The \verb+CAT_LINK_FLAGS+ variable is defined just in case we want to pass additional flags specific
+to the link step.  Now that this function is defined, whenever we want to define a rule for building
+a program, we simply call the rule.  The previous implicit rule specifies how to compile each source file,
+and the \verb+CatProgram+ function specifies how to build the executable.
+
+\begin{verbatim}
+    # Build a rover.dog program from the source
+    # files neko.cat and chat.cat.
+    # Compile it by default.
+    .DEFAULT: $(CatProgram rover, neko chat)
+\end{verbatim}
+
+\subsection{Dependency scanning}
+\label{section:scanner-exm}\index{.SCANNER}
+
+That's it, almost.  The part we left out was automated dependency scanning.  This is one of the
+nicer features of \OMake{}, and one that makes build specifications easier to write and more robust.
+Strictly speaking, it isn't required, but you definitely want to do it.
+
+The mechanism is to define a \verb+.SCANNER+ rule, which is like a normal rule, but it specifies how
+to compute dependencies, not the target itself.  In this case, we want to define a \verb+.SCANNER+
+rule of the following form.
+
+\begin{verbatim}
+    .SCANNER: %.woof: %.cat
+        <commands>
+\end{verbatim}
+
+This rule specifies that a \verb+.woof+ file may have additional dependencies that can be extracted
+from the corresponding \verb+.cat+ file by executing the \verb+<commands>+.  The \emph{result} of
+executing the \verb+<commands>+ should be a sequence of dependencies in \OMake{} format, printed to the
+standard output.
+
+As we mentioned, each \verb+.cat+ file specifies dependencies on \verb+.woof+ files with an
+\verb+open+ directive.  For example, if the \verb+neko.cat+ file contains a line \verb+open chat+,
+then \verb+neko.woof+ depends on \verb+chat.woof+.  In this case, the \verb+<commands>+ should print
+the following line.
+
+\begin{verbatim}
+    neko.woof: chat.woof
+\end{verbatim}
+
+For an analogy that might make this clearer, consider the C programming language, where a \verb+.o+
+file is produced by compiling a \verb+.c+ file.  If a file \verb+foo.c+ contains a line like
+\verb+#include "fum.h"+, then \verb+foo.c+ should be recompiled whenever \verb+fum.h+ changes.  That
+is, the file \verb+foo.o+ \emph{depends} on the file \verb+fum.h+.  In the \OMake{} parlance, this is
+called an \emph{implicit} dependency, and the \verb+.SCANNER+ \verb+<commands>+ would print a line
+like the following.
+
+\begin{verbatim}
+    foo.o: fum.h
+\end{verbatim}
+
+\index{awk} Now, returning to the animal world, to compute the dependencies of \verb+neko.woof+, we
+should scan \verb+neko.cat+, line-by-line, looking for lines of the form \verb+open <name>+.  We
+could do this by writing a program, but it is easy enough to do it in \verb+omake+ itself.  We can
+use the builtin \hyperfun{awk} to scan the source file.  One slight complication
+is that the dependencies depend on the \verb+INCLUDE+ path.  We'll use the
+\hyperfun{find-in-path} to find them.  Here we go.
+
+\begin{verbatim}
+    .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($<)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+\end{verbatim}
+
+Let's look at the parts.  First, the entire body is defined in a \verb+section+ because we are
+computing it internally, not as a sequence of shell commands.
+
+We use the \verb+deps+ variable to collect all the dependencies.  The \verb+awk+ function scans the
+source file (\verb+$<+) line-by-line.  For lines that match the regular expression \verb+^open+
+(meaning that the line begins with the word \verb+open+), we add the second word on the line to the
+\verb+deps+ variable.  For example, if the input line is \verb+open chat+, then we would add the
+\verb+chat+ string to the \verb+deps+ array.  All other lines in the source file are ignored.
+
+Next, the \verb+$(set $(deps))+ expression removes any duplicate values in the \verb+deps+ array
+(sorting the array alphabetically in the process).  The \verb+find-in-path+ function then finds the
+actual location of each file in the include path.
+
+The final step is print the result as the string \verb+$"$@: $(deps)"+ The quotations are added to
+flatten the \verb+deps+ array to a simple string.
+
+\subsection{Pulling it all together}
+
+To complete the example, let's pull it all together into a single project, much like our previous
+example.
+
+\begin{verbatim}
+    my_project/
+    |--> OMakeroot
+    |--> OMakefile
+    `--> src/
+         |---> OMakefile
+         |---> lib/
+         |     |---> OMakefile
+         |     |---> neko.cat
+         |     `---> chat.cat
+         `---> main/
+               |---> OMakefile
+               `---> main.cat
+\end{verbatim}
+
+The listing for the entire project is as follows.  Here, we also include a function
+\verb+CatLibrary+ to link several \verb+.woof+ files into a library.
+
+\begin{verbatim}
+my_project/OMakeroot:
+    # Process the command-line vars
+    DefineCommandVars()
+    
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+   ########################################################################
+   # Standard config for compiling .cat files
+   #
+
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+   
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # Dependency scanner for .cat files
+   .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($<)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+
+   # The default way to compile a .cat file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $<
+
+   # Optional link options
+   CAT_LINK_FLAGS =
+
+   # Build a library for several .woof files
+   CatLibrary(lib, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       lib_name = $(addsuffix .woof, $(lib))
+
+       # The build rule
+       $(lib_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -a $@ $+
+
+       # Return the program name
+       value $(lib_name)
+
+   # The function that defines how to build a .dog program
+   CatProgram(program, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       prog_name = $(addsuffix .dog, $(program))
+
+       # The build rule
+       $(prog_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+       # Return the program name
+       value $(prog_name)
+
+   ########################################################################
+   # Now the program proper
+   #
+
+   # Include the src subdirectory
+   .SUBDIRS: src
+
+my_project/src/OMakefile:
+   .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+   CatLibrary(cats, neko chat)
+
+my_project/src/main/OMakefile:
+   # Allow includes from the ../lib directory
+   INCLUDES[] += ../lib
+
+   # Build the program
+   .DEFAULT: $(CatProgram main, main ../cats)
+\end{verbatim}
+
+Some notes.  The configuration in the project \verb+OMakeroot+ defines the standard configuration, including
+the dependency scanner, the default rule for compiling source files, and functions for building
+libraries and programs.
+
+These rules and functions are inherited by subdirectories, so the \verb+.SCANNER+ and build rules
+are used automatically in each subdirectory, so you don't need to repeat them.
+
+\subsection{Finishing up}
+
+At this point we are done, but there are a few things we can consider.
+
+First, the rules for building cat programs is defined in the project \verb+OMakefile+.  If you had
+another cat project somewhere, you would need to copy the \verb+OMakeroot+ (and modify it as
+needed).  Instead of that, you should consider moving the configuration to a shared library
+directory, in a file like \verb+Cat.om+.  That way, instead of copying the code, you could include
+the shared copy with an \OMake{} command \verb+open Cat+.  The share directory should be added to your
+\verb+OMAKEPATH+ environment variable to ensure that \verb+omake+ knows how to find it.
+
+Better yet, if you are happy with your work, consider submitting it as a standard configuration (by
+sending a request to \verb+omake@metaprl.org+) so that others can make use of it too.
+
+\section{Collapsing the hierarchy, .SUBDIRS bodies}
+\index{.SUBDIRS bodies}
+
+Some projects have many subdirectories that all have the same configuration.  For instance, suppose
+you have a project with many subdirectories, each containing a set of images that are to be composed
+into a web page.  Apart from the specific images, the configuration of each file is the same.
+
+To make this more concrete, suppose the project has four subdirectories \verb+page1+, \verb+page2+,
+\verb+page3+, and \verb+page4+.  Each contains two files \verb+image1.jpg+ and \verb+image2.jpg+
+that are part of a web page generated by a program \verb+genhtml+.
+
+Instead of of defining a \verb+OMakefile+ in each directory, we can define it as a body to the
+\verb+.SUBDIRS+ command.
+
+\begin{verbatim}
+    .SUBDIRS: page1 page2 page3 page4
+        index.html: image1.jpg image2jpg
+            genhtml $+ > $@
+\end{verbatim}
+
+The body of the \verb+.SUBDIRS+ is interpreted exactly as if it were the \verb+OMakefile+, and it
+can contain any of the normal statements.  The body is evaluated \emph{in the subdirectory} for each
+of the subdirectories.  We can see this if we add a statement that prints the current directory
+(\verb+$(CWD)+).
+
+\begin{verbatim}
+    .SUBDIRS: page1 page2 page3 page4
+        println($(absname $(CWD)))
+        index.html: image1.jpg image2jpg
+            genhtml $+ > $@
+  # prints
+    /home/jyh/.../page1
+    /home/jyh/.../page2
+    /home/jyh/.../page3
+    /home/jyh/.../page4
+\end{verbatim}
+
+\subsection{Using glob patterns}
+
+Of course, this specification is quite rigid.  In practice, it is likely that each subdirectory will
+have a different set of images, and all should be included in the web page.  One of the easier
+solutions is to use one of the directory-listing functions, like
+\hyperfunn{glob} or \hyperfunn{ls}.
+The \verb+glob+ function takes a shell pattern, and returns an array of
+file with matching filenames in the current directory.
+
+\begin{verbatim}
+    .SUBDIRS: page1 page2 page3 page4
+        IMAGES = $(glob *.jpg)
+        index.html: $(IMAGES)
+            genhtml $+ > $@
+\end{verbatim}
+
+\subsection{Simplified sub-configurations}
+
+Another option is to add a configuration file in each of the subdirectories that defines
+directory-specific information.  For this example, we might define a file \verb+BuildInfo.om+ in
+each of the subdirectories that defines a list of images in that directory.  The \verb+.SUBDIRS+
+line is similar, but we include the BuildInfo file.
+
+\begin{verbatim}
+    .SUBDIRS: page1 page2 page3 page4
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ > $@
+\end{verbatim}
+
+Where we might have the following configurations.
+
+\begin{verbatim}
+   page1/BuildInfo.om:
+       IMAGES[] = image.jpg
+   page2/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg winlogo.jpg
+   page3/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg unixlogo.jpg daemon.jpg
+   page4/BuildInfo.om:
+       IMAGES[] = fee.jpg fi.jpg foo.jpg fum.jpg
+\end{verbatim}
+
+\subsection{Computing the subdirectory list}
+
+The other hardcoded specification is the list of subdirectories \verb+page1+, ..., \verb+page4+.
+Rather than editing the project \verb+OMakefile+ each time a directory is added, we could compute it
+(again with \verb+glob+).
+
+\begin{verbatim}
+    .SUBDIRS: $(glob page*)
+        index.html: $(glob *.jpg)
+            genhtml $+ > $@
+\end{verbatim}
+
+Alternately, the directory structure may be hierarchical.  Instead of using \verb+glob+, we could
+use the \verb+subdirs+ function, returns each of the directories in a hierarchy.  For example, this
+is the result of evaluating the \verb+subdirs+ function in the omake project root.  The \verb+P+
+option, passed as the first argument, specifies that the listing is ``proper,'' it should not
+include the \verb+omake+ directory itself.
+
+\begin{verbatim}
+    osh> subdirs(P, .)
+    - : <array
+            /home/jyh/.../omake/mk : Dir
+            /home/jyh/.../omake/RPM : Dir
+            ...
+            /home/jyh/.../omake/osx_resources : Dir>
+\end{verbatim}
+
+Using \verb+subdirs+, our example is now as follows.
+
+\begin{verbatim}
+    .SUBDIRS: $(subdirs P, .)
+        index.html: $(glob *.jpg)
+            genhtml $+ > $@
+\end{verbatim}
+
+In this case, \emph{every} subdirectory will be included in the project.
+
+If we are using the \verb+BuildInfo.om+ option.  Instead of including every subdirectory, we could
+include only those that contain a \verb+BuildInfo.om+ file.  For this purpose, we can use the
+\verb+find+ function, which traverses the directory hierarchy looking for files that match a test
+expression.  In our case, we want to search for files with the name \verb+BuildInfo.om+.
+Here is an example call.
+
+\begin{verbatim}
+    osh> FILES = $(find . -name BuildInfo.om)
+    - : <array
+            /home/jyh/.../omake/doc/html/BuildInfo.om : File
+            /home/jyh/.../omake/src/BuildInfo.om : File
+            /home/jyh/.../omake/tests/simple/BuildInfo.om : File>
+    osh> DIRS = $(dirof $(FILES))
+    - : <array
+            /home/jyh/.../omake/doc/html : Dir
+            /home/jyh/.../omake/src : Dir
+            /home/jyh/.../omake/tests/simple : Dir>
+\end{verbatim}
+
+In this example, there are three \verb+BuildInfo.om+ files, in the \verb+doc/html+, \verb+src+, and
+\verb+tests/simple+ directories.  The \verb+dirof+ function returns the directories for each of the
+files.
+
+Returning to our original example, we modify it as follows.
+
+\begin{verbatim}
+    .SUBDIRS: $(dirof $(find . -name BuildInfo.om))
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ > $@
+\end{verbatim}
+
+\subsection{Temporary directories}
+
+Sometimes, your project may include temporary directories--directories where you place intermediate
+results.  these directories are deleted whenever the project is cleanup up.  This means, in
+particular, that you can't place an \verb+OMakefile+ in a temporary directory, because it will be
+removed when the directory is removed.
+
+Instead, if you need to define a configuration for any of these directories, you will need to define
+it using a \verb+.SUBDIRS+ body.
+
+\begin{verbatim}
+    section
+        CREATE_SUBDIRS = true
+
+        .SUBDIRS: tmp
+            # Compute an MD5 digest
+            %.digest: %.comments
+               echo $(digest $<) > $@
+
+            # Extract comments from the source files
+            %.comments: ../src/%.src
+               grep '^#' $< > $@
+
+            .DEFAULT: foo.digest
+
+    .PHONY: clean
+
+    clean:
+        rm -rf tmp        
+\end{verbatim}
+
+In this example, we define the \verb+CREATE_SUBDIRS+ variable as true, so that the \verb+tmp+
+directory will be created if it does not exist.  The \verb+.SUBDIRS+ body in this example is a bit
+contrived, but it illustrates the kind of specification you might expect.  The \verb+clean+
+phony-target indicates that the \verb+tmp+ directory should be removed when the project is cleaned
+up.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

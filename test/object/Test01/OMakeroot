@@ -1,0 +1,20 @@
+
+########################################################################
+# The standard OMakeroot file.
+# You will not normally need to modify this file.
+# By default, your changes should be placed in the
+# OMakefile in this directory.
+#
+# If you decide to modify this file, note that it uses exactly
+# the same syntax as the OMakefile.
+#
+
+#
+# First, include the standard installed configuration file.
+#
+include $(STDROOT)
+
+#
+# Second, include the OMakefile in this directory.
+#
+.SUBDIRS: .

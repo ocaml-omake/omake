@@ -1,0 +1,51 @@
+########################################################################
+# Check whitespace conventions at EOL
+#
+
+#
+# Display eol strictly
+#
+subst-nl(s) =
+   result[] =
+   inx = $(open-in-string $s)
+   lex-search($(inx))
+   case $"$(nl)"
+      result[] += $$$0
+      export
+   default
+      result[] += $0
+      export
+   close($(inx))
+   concat($(EMPTY), $(result))
+
+#
+# Translate the first string and compare
+# it with the second.
+#
+errors = false
+check-string(s1, s2) =
+   s1 = $(subst-nl $(s1))
+   if $(equal $(s1), $(s2))
+      println($"$(s2) [SUCCESS]")
+   else
+      eprintln($"$(s1) != $(s2) [FAILED]")
+      errors = true
+      export
+   export
+
+X = abc   # 123
+check-string($X, abc)
+
+Y = abcd   
+check-string($Y, abcd)
+
+X = $"A
+B   
+C   "
+check-string($X, $'A$
+B   $
+C   ')
+
+if $(errors)
+   exit 1
+

@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.09">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>Expressions and values</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc57">Chapter&#XA0;6</A>&#XA0;&#XA0;Expressions and values</H1><UL>
+<LI><A HREF="omake-detail.html#toc38">Dynamic scoping</A></LI>
+<LI><A HREF="omake-detail.html#toc39">Functional evaluation</A></LI>
+<LI><A HREF="omake-detail.html#toc40">Exporting the environment</A></LI>
+<LI><A HREF="omake-detail.html#toc41">Objects</A></LI>
+<LI><A HREF="omake-detail.html#toc42">Field and method calls</A></LI>
+<LI><A HREF="omake-detail.html#toc43">Method override</A></LI>
+<LI><A HREF="omake-detail.html#toc44">Super calls</A></LI>
+</UL>
+<P>
+<A NAME="chapter:extra"></A>
+</P><P><TT>omake</TT> provides a full programming-language including many
+system and IO functions. The language is object-oriented &#X2013; everything is
+an object, including the base values like numbers and strings. However,
+the <TT>omake</TT> language differs from other scripting languages in
+three main respects.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Scoping is dynamic.
+</LI><LI CLASS="li-itemize">Apart from IO, the language is entirely functional &#X2013; there is no
+assignment operator in the language.
+</LI><LI CLASS="li-itemize">Evaluation is normally eager &#X2013; that is, expressions are evaluated as soon
+as they are encountered.
+</LI></UL><P>To illustrate these features, we will use the <TT>osh</TT>(1) omake program shell.
+The <TT>osh</TT>(1) program provides a toploop, where expressions can be entered
+and the result printed. <TT>osh</TT>(1) normally interprets input as command text
+to be executed by the shell, so in many cases we will use the <CODE>value</CODE>
+form to evaluate an expression directly.</P><PRE CLASS="verbatim">    osh&gt; 1
+    *** omake error: File -: line 1, characters 0-1 command not found: 1
+    osh&gt; value 1
+    - : "1" : Sequence
+    osh&gt; ls -l omake
+    -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
+</PRE><H2 CLASS="section"><A NAME="toc38"></A><A NAME="htoc58">6.1</A>&#XA0;&#XA0;Dynamic scoping</H2><P>Dynamic scoping means that the value of a variable is determined by the most
+recent binding of the variable in scope at runtime. Consider the following
+program.</P><PRE CLASS="verbatim">    OPTIONS = a b c
+    f() =
+       println(OPTIONS = $(OPTIONS))
+    g() =
+       OPTIONS = d e f
+       f()
+</PRE><P>If <CODE>f()</CODE> is called without redefining the <CODE>OPTIONS</CODE> variable,
+the function should print the string <CODE>OPTIONS = a b c</CODE>.</P><P>In contrast, the function <CODE>g()</CODE> redefines the <CODE>OPTIONS</CODE>
+variable and evaluates <CODE>f()</CODE> in that scope, which now prints the
+string <CODE>OPTIONS = d e f</CODE>.</P><P>The body of <CODE>g</CODE> defines a local scope &#X2013; the redefinition of the
+<CODE>OPTIONS</CODE> variable is local to <CODE>g</CODE> and does not persist
+after the function terminates.</P><PRE CLASS="verbatim">    osh&gt; g()
+    OPTIONS = d e f
+    osh&gt; f()
+    OPTIONS = a b c
+</PRE><P>Dynamic scoping can be tremendously helpful for simplifying the code
+in a project. For example, the <TT>OMakeroot</TT> file defines a set of
+functions and rules for building projects using such variables as
+<CODE>CC</CODE>, <CODE>CFLAGS</CODE>, etc. However, different parts of a project
+may need different values for these variables. For example, we may
+have a subdirectory called <CODE>opt</CODE> where we want to use the
+<CODE>-03</CODE> option, and a subdirectory called <CODE>debug</CODE> where we
+want to use the <CODE>-g</CODE> option. Dynamic scoping allows us to redefine
+these variables in the parts of the project without having to
+redefine the functions that use them.</P><PRE CLASS="verbatim">    section
+       CFLAGS = -O3
+       .SUBDIRS: opt
+    section
+       CFLAGS = -g
+       .SUBDIRS: debug
+</PRE><P>However, dynamic scoping also has drawbacks. First, it can become
+confusing: you might have a variable that is intended to be private,
+but it is accidentally redefined elsewhere. For example, you might
+have the following code to construct search paths.</P><PRE CLASS="verbatim">   PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+</PRE><P>However, elsewhere in the project, the <CODE>PATHSEP</CODE> variable is
+redefined as a directory separator <CODE>/</CODE>, and your function
+suddenly returns the string <CODE>/bin//usr/bin//usr/X11R6/bin</CODE>,
+obviously not what you want.</P><P>The <CODE>private</CODE> block is used to solve this problem. Variables
+that are defined in a <CODE>private</CODE> block use static scoping &#X2013; that
+is, the value of the variable is determined by the most recent
+definition in scope in the source text.</P><PRE CLASS="verbatim">   private
+      PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   PATHSEP = /
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+</PRE><H2 CLASS="section"><A NAME="toc39"></A><A NAME="htoc59">6.2</A>&#XA0;&#XA0;Functional evaluation</H2><P>Apart from I/O, <TT>omake</TT> programs are entirely functional. This has two parts:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+There is no assignment operator.
+</LI><LI CLASS="li-itemize">Functions are values, and may be passed as arguments, and returned from
+functions just like any other value.
+</LI></UL><P>The second item is straightforward. For example, the following program defines
+an increment function by returning a function value.</P><PRE CLASS="verbatim">   incby(n) =
+      g(i) =
+         return $(add $(i), $(n))
+      return $(g)
+
+   f = $(incby 5)
+
+   value $(f 3)
+   - : 8 : Int
+</PRE><P>The first item may be the most confusing initially. Without assignment, how is
+it possible for a subproject to modify the global behavior of the project? In fact,
+the omission is intentional. Build scripts are much easier to write when there
+is a guarantee that subprojects do not interfere with one another.</P><P>However, there are times when a subproject needs to propagate
+information back to its parent object, or when an inner scope needs to
+propagate information back to the outer scope.</P><H2 CLASS="section"><A NAME="toc40"></A><A NAME="htoc60">6.3</A>&#XA0;&#XA0;Exporting the environment</H2><P>
+<A NAME="section:export"></A><A NAME="@default37"></A>
+The <CODE>export</CODE> directive can be used to propagate all or part of an inner scope back to its
+parent. If used without
+arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
+part of the environment to propagate. The most common usage is to export some or all of the definitions in a
+conditional block. In the following example, the variable <CODE>B</CODE> is bound to 2 after the
+conditional. The <CODE>A</CODE> variable is not redefined.</P><PRE CLASS="verbatim">    if $(test)
+       A = 1
+       B = $(add $(A), 1)
+       export B
+    else
+       B = 2
+       export
+</PRE><P>If the <CODE>export</CODE> directive is used without an argument, all of the following is exported:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+The values of all the dynamically scoped variables (as described in
+Section&#XA0;<A HREF="omake-language-naming.html#section:public">5.5</A>).
+</LI><LI CLASS="li-itemize">The current working directory.
+</LI><LI CLASS="li-itemize">The current Unix environment.
+</LI><LI CLASS="li-itemize">The current implicit rules and implicit dependencies (see also
+Section&#XA0;<A HREF="omake-rules.html#section:implicit-scoping">8.11.1</A>).
+</LI><LI CLASS="li-itemize">The current set of &#X201C;phony&#X201D; target declarations (see Sections&#XA0;<A HREF="omake-rules.html#target:.PHONY">8.10</A>
+and&#XA0;<A HREF="omake-rules.html#section:PHONY-scoping">8.11.3</A>).
+</LI></UL><P>If the <CODE>export</CODE> directive is used with an argument, the argument expression is evaluated
+and the resulting value is interpreted as follows:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If the value is empty, everything is exported, as described above.
+</LI><LI CLASS="li-itemize">If the value represents a environment (or a partial environment) captured using the
+<A HREF="omake-base.html#fun:export"><CODE>export</CODE> function</A>, then the corresponding environment or partial
+environment is exported.
+</LI><LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
+back. The following strings have special meaning:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<A NAME="@default38"></A><CODE>.RULE</CODE> &#X2014; implicit rules and implicit dependencies.
+</LI><LI CLASS="li-itemize"><A NAME="@default39"></A><CODE>.PHONY</CODE> &#X2014; the set of &#X201C;phony&#X201D; target declarations.
+</LI></UL>
+All other strings are interpreted as names of the variables that need to be propagated back.
+</LI></UL><P>For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
+will be exported, and the implicit rule will remain in the environment after the section ends, but
+the variable <CODE>TMP</CODE> and the target <CODE>tmp_phony</CODE> will remain unchanged.</P><PRE CLASS="verbatim">section
+   A = 1
+   B = 2
+   TMP = $(add $(A), $(B))
+
+   .PHONY: tmp_phony
+
+   tmp_phony:
+      prepare_foo
+
+   %.foo: %.bar tmp_phony
+      compute_foo $(TMP) $&lt; $@
+   export A B .RULE
+</PRE><H3 CLASS="subsection"><A NAME="htoc61">6.3.1</A>&#XA0;&#XA0;Export regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The <CODE>export</CODE> directive does not need to occur at the end of a block. An export is valid from
+the point where it is specified to the end of the block in which it is contained. In other words,
+the export is used in the program that follows it. This can be especially useful for reducing the
+amount of code you have to write. In the following example, the variable <CODE>CFLAGS</CODE> is exported
+from the both branches of the conditional.</P><PRE CLASS="verbatim">    export CFLAGS
+    if $(equal $(OSTYPE), Win32)
+        CFLAGS += /DWIN32
+    else
+        CFLAGS += -UWIN32
+</PRE><H3 CLASS="subsection"><A NAME="htoc62">6.3.2</A>&#XA0;&#XA0;Returning values from exported regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The use of export does not affect the value returned by a block. The value is computed as usual, as
+the value of the last statement in the block, ignoring the export. For example, suppose we wish to
+implement a table that maps strings to unique integers. Consider the following program.</P><PRE CLASS="verbatim">    # Empty map
+    table = $(Map)
+
+    # Add an entry to the table
+    intern(s) =
+        export
+        if $(table.mem $s)
+            table.find($s)
+        else
+            private.i = $(table.length)
+            table = $(table.add $s, $i)
+            value $i
+
+    intern(foo)
+    intern(boo)
+    intern(moo)
+    # Prints "boo = 1"
+    println($"boo = $(intern boo)")
+</PRE><P>Given a string <CODE>s</CODE>, the function <CODE>intern</CODE> returns either the value already associated with
+<CODE>s</CODE>, or assigns a new value. In the latter case, the table is updated with the new value. The
+<CODE>export</CODE> at the beginning of the function means that the variable <CODE>table</CODE> is to be
+exported. The bindings for <CODE>s</CODE> and <CODE>i</CODE> are not exported, because they are private.</P><P><A NAME="section:eager"></A></P><P>Evaluation in <TT>omake</TT> is eager. That is, expressions are evaluated as soon as they are
+encountered by the evaluator. One effect of this is that the right-hand-side of a variable
+definition is expanded when the variable is defined.</P><PRE CLASS="verbatim">    osh&gt; A = 1
+    - : "1"
+    osh&gt; A = $(A)$(A)
+    - : "11"
+</PRE><P>In the second definition, <CODE>A = $(A)$(A)</CODE>, the right-hand-side is evaluated first, producing the
+sequence <CODE>11</CODE>. Then the variable <CODE>A</CODE> is <EM>redefined</EM> as the new value. When combined
+with dynamic scoping, this has many of the same properties as conventional imperative programming.</P><PRE CLASS="verbatim">    osh&gt; A = 1
+    - : "1"
+    osh&gt; printA() =
+        println($"A = $A")
+    osh&gt; A = $(A)$(A)
+    - : "11"
+    osh&gt; printA()
+    11
+</PRE><P>In this example, the print function is defined in the scope of <CODE>A</CODE>. When it is called on
+the last line, the dynamic value of <CODE>A</CODE> is <CODE>11</CODE>, which is what is printed.</P><P>However, dynamic scoping and imperative programming should not be confused. The following example
+illustrates a difference. The second <CODE>printA</CODE> is not in the scope of the definition
+<CODE>A = x$(A)$(A)x</CODE>, so it prints the original value, <CODE>1</CODE>.</P><PRE CLASS="verbatim">    osh&gt; A = 1
+    - : "1"
+    osh&gt; printA() =
+        println($"A = $A")
+    osh&gt; section
+             A = x$(A)$(A)x
+             printA()
+    x11x
+    osh&gt; printA()
+    1
+</PRE><P>See also Section&#XA0;<A HREF="omake-language-examples.html#section:lazy">7.5</A> for further ways to control the evaluation order through the use
+of &#X201C;lazy&#X201D; expressions.</P><H2 CLASS="section"><A NAME="toc41"></A><A NAME="htoc63">6.4</A>&#XA0;&#XA0;Objects</H2><P><TT>omake</TT> is an object-oriented language. Everything is an object, including
+base values like numbers and strings. In many projects, this may not be so apparent
+because most evaluation occurs in the default toplevel object, the <CODE>Pervasives</CODE>
+object, and few other objects are ever defined.</P><P>However, objects provide additional means for data structuring, and in some cases
+judicious use of objects may simplify your project.</P><P>Objects are defined with the following syntax. This defines <CODE>name</CODE>
+to be an object with several methods an values.</P><PRE CLASS="verbatim">    name. =                     # += may be used as well
+       extends parent-object    # optional
+       class class-name         # optional
+
+       # Fields
+       X = value
+       Y = value
+
+       # Methods
+       f(args) =
+          body
+       g(arg) =
+          body
+</PRE><P>An <CODE>extends</CODE> directive specifies that this object inherits from
+the specified <CODE>parent-object</CODE>. The object may have any number of
+<CODE>extends</CODE> directives. If there is more than on <CODE>extends</CODE>
+directive, then fields and methods are inherited from all parent
+objects. If there are name conflicts, the later definitions override
+the earlier definitions.</P><P>The <CODE>class</CODE> directive is optional. If specified, it defines a name
+for the object that can be used in <CODE>instanceof</CODE> operations, as well
+as <CODE>::</CODE> scoping directives discussed below.</P><P>The body of the object is actually an arbitrary program. The
+variables defined in the body of the object become its fields, and the
+functions defined in the body become its methods.</P><H2 CLASS="section"><A NAME="toc42"></A><A NAME="htoc64">6.5</A>&#XA0;&#XA0;Field and method calls</H2><P>The fields and methods of an object are named using <CODE>object.name</CODE> notation.
+For example, let's define a one-dimensional point value.</P><PRE CLASS="verbatim">   Point. =
+      class Point
+
+      # Default value
+      x = $(int 0)
+
+      # Create a new point
+      new(x) =
+         x = $(int $(x))
+         return $(this)
+
+      # Move by one
+      move() =
+         x = $(add $(x), 1)
+         return $(this)
+
+   osh&gt; p1 = $(Point.new 15)
+   osh&gt; value $(p1.x)
+   - : 15 : Int
+
+   osh&gt; p2 = $(p1.move)
+   osh&gt; value $(p2.x)
+   - : 16 : Int
+</PRE><P>The <CODE>$(this)</CODE> variable always represents the current object.
+The expression <CODE>$(p1.x)</CODE> fetches the value of the <CODE>x</CODE> field
+in the <CODE>p1</CODE> object. The expression <CODE>$(Point.new 15)</CODE>
+represents a method call to the <CODE>new</CODE> method of the <CODE>Point</CODE>
+object, which returns a new object with 15 as its initial value. The
+expression <CODE>$(p1.move)</CODE> is also a method call, which returns a
+new object at position 16.</P><P>Note that objects are functional &#X2014; it is not possible to modify the fields
+or methods of an existing object in place. Thus, the <CODE>new</CODE> and <CODE>move</CODE>
+methods return new objects.</P><H2 CLASS="section"><A NAME="toc43"></A><A NAME="htoc65">6.6</A>&#XA0;&#XA0;Method override</H2><P>Suppose we wish to create a new object that moves by 2 units, instead of
+just 1. We can do it by overriding the <CODE>move</CODE> method.</P><PRE CLASS="verbatim">   Point2. =
+      extends $(Point)
+
+      # Override the move method
+      move() =
+         x = $(add $(x), 2)
+         return $(this)
+
+   osh&gt; p2 = $(Point2.new 15)
+   osh&gt; p3 = $(p2.move)
+   osh&gt; value $(p3.x)
+   - : 17 : Int
+</PRE><P>However, by doing this, we have completely replaced the old <CODE>move</CODE> method.</P><H2 CLASS="section"><A NAME="toc44"></A><A NAME="htoc66">6.7</A>&#XA0;&#XA0;Super calls</H2><P>Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
+We can refer to the old definition of move using a super call, which uses the notation
+<CODE>$(classname::name &lt;args&gt;)</CODE>. The <CODE>classname</CODE> should be the name of the
+superclass, and <CODE>name</CODE> the field or method to be referenced. An alternative
+way of defining the <CODE>Point2</CODE> object is then as follows.</P><PRE CLASS="verbatim">   Point2. =
+      extends $(Point)
+
+      # Call the old method twice
+      move() =
+         this = $(Point::move)
+         return $(Point::move)
+</PRE><P>Note that the first call to <CODE>$(Point::move)</CODE> redefines the
+current object (the <CODE>this</CODE> variable). This is because the method
+returns a new object, which is re-used for the second call.</P>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

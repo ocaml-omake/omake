@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>Shell commands</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc311">Chapter&#XA0;11</A>&#XA0;&#XA0;Shell commands</H1><UL>
+<LI><A HREF="omake-shell.html#toc85">Simple commands</A>
+</LI><LI><A HREF="omake-shell.html#toc86">Globbing</A>
+</LI><LI><A HREF="omake-shell.html#toc87">Background jobs</A>
+</LI><LI><A HREF="omake-shell.html#toc88">File redirection</A>
+</LI><LI><A HREF="omake-shell.html#toc89">Pipelines</A>
+</LI><LI><A HREF="omake-shell.html#toc90">Conditional execution</A>
+</LI><LI><A HREF="omake-shell.html#toc91">Grouping</A>
+</LI><LI><A HREF="omake-shell.html#toc92">What is a shell command?</A>
+</LI><LI><A HREF="omake-shell.html#toc93">Basic builtin functions</A>
+</LI><LI><A HREF="omake-shell.html#toc94">Job control builtin functions</A>
+</LI><LI><A HREF="omake-shell.html#toc95">Command history</A>
+</LI></UL>
+<P>
+<A NAME="chapter:shell"></A>
+</P><P>Shell commands (commands to be executed by the operating system) can be freely mixed with other
+code.</P><P><B>NOTE</B>: the syntax and shell usage is identical on all platforms, including Win32. To avoid
+portability problems on Win32, it is recommended that you avoid the use of the native shell
+interpreter <CODE>cmd</CODE>.</P><PRE CLASS="verbatim">    LIB = $(dir lib)
+    println(The contents of the $(LIB) directory is:)
+    ls $(LIB)
+</PRE><H2 CLASS="section"><A NAME="toc85"></A><A NAME="htoc312">11.1</A>&#XA0;&#XA0;Simple commands</H2><P>The syntax of shell commands is similar to the syntax used by the Unix shell <CODE>bash</CODE>. In
+general, a command is a <EM>pipeline</EM>. A basic command is part of a pipeline. It is specified
+with the name of an executable and some arguments. Here are some examples.</P><PRE CLASS="verbatim">    ls
+    ls -AF .
+    echo Hello world
+</PRE><P>The command is found using the current search path in the variable <CODE>PATH[]</CODE>, which should
+define an array of directories containing executables.</P><P>A command may also be prefixed by environment variable definitions.</P><PRE CLASS="verbatim">    # Prints "Hello world"
+    env X="Hello world" Y=2 printenv X
+    # Pass the include path to the Visual C++
+    env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+</PRE><H2 CLASS="section"><A NAME="toc86"></A><A NAME="htoc313">11.2</A>&#XA0;&#XA0;Globbing</H2><P>Commands may contain wildcard patterns. A pattern specifies a set of files through a limited kind
+of regular expression. Patterns are expanded before the function is executed.</P><PRE CLASS="verbatim">   # List all files with a .c suffix
+   ls *.c
+
+   # List all files with a single character prefix, and .c suffix
+   ls ?.c
+
+   # Rename the file hello.ml to foo.ml
+   mv {hello,foo}.ml
+</PRE><P>A comprehensive description of OMake glob patterns is given in Section&#XA0;<A HREF="omake-system.html#section:globbing">10.4</A>.</P><H2 CLASS="section"><A NAME="toc87"></A><A NAME="htoc314">11.3</A>&#XA0;&#XA0;Background jobs</H2><P>The command may also be placed in the background by placing an ampersand after the command. Control
+returns to the shell without waiting for the job to complete. The job continues to run in the
+background.</P><PRE CLASS="verbatim">    gcc -o hugeprogram *.c &amp;
+</PRE><H2 CLASS="section"><A NAME="toc88"></A><A NAME="htoc315">11.4</A>&#XA0;&#XA0;File redirection</H2><P>Input and output can be redirected to files by using the <CODE>&lt;</CODE>, <CODE>&gt;</CODE>, and <CODE>&gt;&amp;</CODE>
+directives after the command.</P><PRE CLASS="verbatim">    # Write to the "foo" file
+    echo Hello world &gt; foo
+
+    # Redirect input from the foo file
+    cat &lt; foo
+
+    # Redirect standard output and errors to the foo file
+    gcc -o boo *.c &gt;&amp; foo
+</PRE><H2 CLASS="section"><A NAME="toc89"></A><A NAME="htoc316">11.5</A>&#XA0;&#XA0;Pipelines</H2><P>Pipelines are sequences of commands, where the output from each command is sent to the next.
+Pipelines are defined with the <CODE>|</CODE> and <CODE>|&amp;</CODE> syntax. With <CODE>|</CODE> the output is
+redirected, but errors are not. With <CODE>|&amp;</CODE> both output and errors are redirected.</P><PRE CLASS="verbatim">   # Send the output of the ls command to the printer
+   ls *.c | lpr
+
+   # Send output and errors to jyh as email
+   gcc -o hugefile *.c |&amp; mail jyh
+</PRE><H2 CLASS="section"><A NAME="toc90"></A><A NAME="htoc317">11.6</A>&#XA0;&#XA0;Conditional execution</H2><P>Commands may also be composed though conditional evaluation using the <CODE>||</CODE> and <CODE>&amp;&amp;</CODE>
+syntax. Every command has an integer exit code, which may be zero or some other integer. A command
+is said to <EM>succeed</EM> if its exit code is zero. The expression <CODE>command1 &amp;&amp; command2</CODE>
+executes <CODE>command2</CODE> only if <CODE>command1</CODE> succeeds. The expression
+<CODE>command1 || command2</CODE> executes <CODE>command2</CODE> only if <CODE>command1</CODE> fails.</P><PRE CLASS="verbatim">   # Display the x/y file if possible
+   cd x &amp;&amp; cat y
+
+   # Run foo.exe, or print an error message
+   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
+</PRE><H2 CLASS="section"><A NAME="toc91"></A><A NAME="htoc318">11.7</A>&#XA0;&#XA0;Grouping</H2><P>Parenthesis are used for grouping in a pipeline or conditional command. In the following
+expression, the <CODE>test</CODE> function is used to test whether the <CODE>foo.exe</CODE> file is executable.
+If it is, the <CODE>foo.exe</CODE> file is executed. If the file is not executable (or if the
+<CODE>foo.exe</CODE> command fails), the message <CODE>"foo.exe is not executable"</CODE> is printed.</P><PRE CLASS="verbatim">   # Run foo.exe, or print an error message
+   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
+</PRE><H2 CLASS="section"><A NAME="toc92"></A><A NAME="htoc319">11.8</A>&#XA0;&#XA0;What is a shell command?</H2><P>Syntactially, shell commands are any line that is not one of the following:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+A variable definition of the form <CODE>VAR=string</CODE>
+</LI><LI CLASS="li-itemize">A function call <CODE>f(...)</CODE> or method call <CODE>o.f(...)</CODE>
+</LI><LI CLASS="li-itemize">A rule definition containing a colon <CODE>string: ...</CODE>
+</LI><LI CLASS="li-itemize">A special command, including the following:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>if ...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>switch ...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>match ...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>section ...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>return ...</CODE>
+</LI></UL>
+</LI></UL><P>Commands may also be builtin (aliases). See the documentation for the
+<A HREF="omake-pervasives.html#obj:Shell"><CODE>Shell</CODE> object</A> for more information.</P><H2 CLASS="section"><A NAME="toc93"></A><A NAME="htoc320">11.9</A>&#XA0;&#XA0;Basic builtin functions</H2><H3 CLASS="subsection"><A NAME="htoc321">11.9.1</A>&#XA0;&#XA0;echo</H3><P><A NAME="fun:echo"></A><A NAME="function:echo"></A><A NAME="@default353"></A><A NAME="@fun234"></A></P><P>The <CODE>echo</CODE> function prints a string.</P><PRE CLASS="verbatim">$(echo &lt;args&gt;)
+echo &lt;args&gt;
+</PRE><H3 CLASS="subsection"><A NAME="htoc322">11.9.2</A>&#XA0;&#XA0;cd</H3><P><A NAME="fun:cd"></A><A NAME="function:cd"></A><A NAME="@default354"></A><A NAME="@fun235"></A></P><P>The <CODE>cd</CODE> function changes the current directory.</P><PRE CLASS="verbatim">    cd(dir)
+       dir : Dir
+</PRE><P>The <CODE>cd</CODE> function also supports a 2-argument form:</P><PRE CLASS="verbatim">    $(cd dir, e)
+       dir : Dir
+       e : expression
+</PRE><P>In the two-argument form, expression <CODE>e</CODE> is evaluated
+in the directory <CODE>dir</CODE>. The current directory is not
+changed otherwise.</P><P>The behavior of the <CODE>cd</CODE> function can be changed with the
+<CODE>CDPATH</CODE> variable, which specifies a search path for
+directories. This is normally useful only in the <TT>osh</TT>
+command interpreter.</P><PRE CLASS="verbatim">    CDPATH : Dir Sequence
+</PRE><P>For example, the following will change directory to the first
+directory <CODE>./foo</CODE>, <CODE>~/dir1/foo</CODE>, <CODE>~/dir2/foo</CODE>.</P><PRE CLASS="verbatim">    CDPATH[] =
+       .
+       $(HOME)/dir1
+       $(HOME)/dir2
+    cd foo
+</PRE><H2 CLASS="section"><A NAME="toc94"></A><A NAME="htoc323">11.10</A>&#XA0;&#XA0;Job control builtin functions</H2><H3 CLASS="subsection"><A NAME="htoc324">11.10.1</A>&#XA0;&#XA0;jobs</H3><P><A NAME="fun:jobs"></A><A NAME="function:jobs"></A><A NAME="@default355"></A><A NAME="@fun236"></A></P><P>The <CODE>jobs</CODE> function prints a list of jobs.</P><P><CODE>jobs</CODE>
+</P><H3 CLASS="subsection"><A NAME="htoc325">11.10.2</A>&#XA0;&#XA0;bg</H3><P><A NAME="fun:bg"></A><A NAME="function:bg"></A><A NAME="@default356"></A><A NAME="@fun237"></A></P><P>The <CODE>bg</CODE> function places a job in the background.</P><P><CODE>bg &lt;pid...&gt;</CODE>
+</P><H3 CLASS="subsection"><A NAME="htoc326">11.10.3</A>&#XA0;&#XA0;fg</H3><P><A NAME="fun:fg"></A><A NAME="function:fg"></A><A NAME="@default357"></A><A NAME="@fun238"></A></P><P>The <CODE>fg</CODE> function brings a job to the foreground.</P><P><CODE>fg &lt;pid...&gt;</CODE>
+</P><H3 CLASS="subsection"><A NAME="htoc327">11.10.4</A>&#XA0;&#XA0;stop</H3><P><A NAME="fun:stop"></A><A NAME="function:stop"></A><A NAME="@default358"></A><A NAME="@fun239"></A></P><P>The <CODE>stop</CODE> function suspends a job.</P><P><CODE>stop &lt;pid...&gt;</CODE>
+</P><H3 CLASS="subsection"><A NAME="htoc328">11.10.5</A>&#XA0;&#XA0;wait</H3><P><A NAME="fun:wait"></A><A NAME="function:wait"></A><A NAME="@default359"></A><A NAME="@fun240"></A></P><P>The <CODE>wait</CODE> function waits for a job to finish.
+If no process identifiers are given, the shell waits for
+all jobs to complete.</P><P><CODE>wait &lt;pid...&gt;</CODE>
+</P><H3 CLASS="subsection"><A NAME="htoc329">11.10.6</A>&#XA0;&#XA0;kill</H3><P><A NAME="fun:kill"></A><A NAME="function:kill"></A><A NAME="@default360"></A><A NAME="@fun241"></A></P><P>The <CODE>kill</CODE> function signals a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>
+</P><H2 CLASS="section"><A NAME="toc95"></A><A NAME="htoc330">11.11</A>&#XA0;&#XA0;Command history</H2><H3 CLASS="subsection"><A NAME="htoc331">11.11.1</A>&#XA0;&#XA0;history</H3><P><A NAME="fun:history"></A><A NAME="function:history"></A><A NAME="@default361"></A><A NAME="@fun242"></A></P><PRE CLASS="verbatim">    $(history-index) : Int
+    $(history) : String Sequence
+    history-file : File
+    history-length : Int
+</PRE><P>The history variables manage the command-line history in <TT>osh</TT>. They have no effect
+in <TT>omake</TT>.</P><P>The <CODE>history-index</CODE> variable is the current index into the command-line history.
+The <CODE>history</CODE> variable is the current command-line history.</P><P>The <CODE>history-file</CODE> variable can be redefined if you want the command-line history
+to be saved. The default value is <CODE>~/.omake/osh_history</CODE>.</P><P>The <CODE>history-length</CODE> variable can be redefined to specify the maximum number of
+lines in the history that you want saved. The default value is <CODE>100</CODE>.
+
+
+</P>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

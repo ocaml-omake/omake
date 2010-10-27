@@ -1,0 +1,10 @@
+A. =
+   extends $(Map)
+   $|aaa| = bbb
+
+B = $(A)
+
+A.foreach(d, map) =>
+   if $(and $(not $(B.mem $d)), true)
+      eprintln(foo)
+

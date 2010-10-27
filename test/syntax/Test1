@@ -1,0 +1,43 @@
+#!/usr/bin/env osh
+
+.LANGUAGE: program
+
+errors = false
+
+################################################
+# Simple arithmetic
+#
+f(x) =
+    value x * 4
+
+y = f(1 + 2)
+
+if $(not $(equal $y, 12))
+    eprintln($"f(1 + 2) evaluates to $y, expected 12")
+    errors = true
+    export
+
+################################################
+# $-style applications use normal syntax
+#
+f(x) =
+    value $">>>$x<<<"
+
+y = $(f 1 + 2)
+s = $'''>>>1 + 2<<<'''
+
+if $(not $(equal $y, $s))
+    eprintln($"$$(f 1 + 2) evaluates to $y, expected $s")
+    errors = true
+    export
+
+################################################
+# Shell expressions use normal syntax
+#
+echo 1 + 2
+
+################################################
+# Program exit
+#
+if errors
+    exit 1

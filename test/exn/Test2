@@ -1,0 +1,8 @@
+println(Test2: this should print: Hello world)
+
+try
+   raise(Hello world)
+catch Sequence(v)
+   println($(v))
+finally
+   println(Done)

@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+
+OSX_DIR="`pwd`/osx_resources"
+OSX_TMP_INSTALL="$OSX_DIR/install"
+VERSION=`cat version.txt`
+VERSION_MAJOR=`cut -f 1 -d . version.txt`
+VERSION_MINOR=`cut -f 2 -d . version.txt`
+case `uname -p` in
+    powerpc)
+        ARCH=ppc;;
+    *)
+        ARCH=x86;;
+esac
+
+OMAKE_BASE=OMake-$VERSION-$ARCH
+
+usage () {
+    echo "Usage: $0 ( all | install | pkg | dmg | clean | upload )"
+    echo "   '$0 all' is equivalent to"
+    echo "   '$0 install; $0 pkg; $0 dmg'"
+    exit 1
+}
+
+mkinstall () {
+    set -x
+    sudo rm -rf $OSX_TMP_INSTALL || exit 1
+    INSTALL_ROOT=$OSX_TMP_INSTALL make install || exit 1
+    
+    # Install the html docs -- there's no omake target for it yet
+    mkdir -p $OSX_TMP_INSTALL/usr/local/share/doc/omake
+    cp -r doc/html/ $OSX_TMP_INSTALL/usr/local/share/doc/omake
+    rm -rf `find $OSX_TMP_INSTALL/usr/local/share/doc/omake -name .svn`
+    sudo chown -R root:wheel $OSX_TMP_INSTALL/usr || exit 1
+}
+
+pkg () {
+    set -x
+    year=`date "+%Y"`
+    cat $OSX_DIR/Info.plist.in \
+        | sed "s/##Version##/$VERSION/g" \
+        | sed "s/##Year##/$year/g" \
+        | sed "s/##MajorVersion##/$VERSION_MAJOR/g" \
+        | sed "s/##MinorVersion##/$VERSION_MINOR/g" \
+        > $OSX_DIR/Info.plist
+    
+    packagemaker -build -p $OMAKE_BASE.pkg \
+        -f $OSX_TMP_INSTALL/usr/local \
+        -i $OSX_DIR/Info.plist \
+        -d $OSX_DIR/Description.plist \
+        -r $OSX_DIR/installer_files
+}
+
+dmg () {
+    set -x
+    rm -f $OMAKE_BASE.dmg
+    hdiutil create -srcfolder ./$OMAKE_BASE.pkg $OMAKE_BASE.dmg
+}
+
+clean () {
+    cd $OSX_DIR
+    sudo rm -rf Info.plist $OMAKE_BASE.pkg $OMAKE_BASE.dmg install || exit 1
+    
+}
+
+upload () {
+    set -x
+    scp $OMAKE_BASE.dmg mojave.caltech.edu:~mojave/public_html/download/omake/
+}
+
+if [ "$#" -lt "1" ]; then
+    usage
+else
+    case $1 in
+        all)
+            mkinstall
+            pkg
+            dmg
+            ;;
+        install)
+            mkinstall
+            ;;
+        pkg|dmg|clean|upload)
+            $1
+            ;;
+        *)
+            echo "No such target: $1"
+            usage
+            ;;
+    esac
+fi

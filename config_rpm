@@ -1,0 +1,39 @@
+#!/bin/sh
+
+#
+# Configuration variables for RPM packages
+#
+PATH=/bin:/usr/bin:/usr/bin/X11:/usr/X11R6/bin:/usr/local/bin
+
+#
+# Version number
+#
+OMAKE=`/bin/pwd`
+ARCHTYPE=i386
+RPMROOT="`rpmbuild --showrc | grep '^-[0-9]*: _topdir' | sed -e 's,.*_topdir[[:space:]]*,,'`"
+if [ -d "$HOME/RPM" -a ! -d "$RPMROOT" ]; then
+   RPMROOT="$HOME/RPM"
+fi
+
+if grep -q '^[^ ]*-[^ ]*$' version.txt; then
+   VERSION=`sed -e 's/-.*//' < version.txt`
+   RELEASE=`sed -e 's/[^-]*-//' < version.txt`
+else
+   VERSION=`cat version.txt`
+   RELEASE=0.devel
+fi
+
+#
+# Name of the RPM files
+#
+TARBALL=omake-$VERSION-$RELEASE.tar.gz
+SRC_ZIP=omake-$VERSION-$RELEASE.src.zip
+BINFILE=omake-$VERSION-$RELEASE.$ARCHTYPE.rpm
+SRCFILE=omake-$VERSION-$RELEASE.src.rpm
+
+#
+# Location of tftpboot directory
+#
+TFTPBOOT=/tftpboot/rh8.0
+
+export PATH VERSION RELEASE

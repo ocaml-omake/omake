@@ -1,0 +1,633 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.10">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>OMake concepts and syntax</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc30">Chapter&#XA0;4</A>&#XA0;&#XA0;OMake concepts and syntax</H1><UL>
+<LI><A HREF="omake-language.html#toc16">Variables</A>
+</LI><LI><A HREF="omake-language.html#toc17">Adding to a variable definition</A>
+</LI><LI><A HREF="omake-language.html#toc18">Arrays</A>
+</LI><LI><A HREF="omake-language.html#toc19">Special characters and quoting</A>
+</LI><LI><A HREF="omake-language.html#toc20">Function definitions</A>
+</LI><LI><A HREF="omake-language.html#toc21">Curried functions</A>
+</LI><LI><A HREF="omake-language.html#toc22">Comments</A>
+</LI><LI><A HREF="omake-language.html#toc23">File inclusion</A>
+</LI><LI><A HREF="omake-language.html#toc24">Scoping, sections</A>
+</LI><LI><A HREF="omake-language.html#toc25">Conditionals</A>
+</LI><LI><A HREF="omake-language.html#toc26">Matching</A>
+</LI><LI><A HREF="omake-language.html#toc27">Objects</A>
+</LI><LI><A HREF="omake-language.html#toc28">Classes</A>
+</LI><LI><A HREF="omake-language.html#toc29">Inheritance</A>
+</LI><LI><A HREF="omake-language.html#toc30">static.</A>
+</LI><LI><A HREF="omake-language.html#toc31">Constants</A>
+</LI></UL>
+<P>
+<A NAME="chapter:language"></A>
+</P><P>Projects are specified to <TT>omake</TT> with <TT>OMakefile</TT>s. The <TT>OMakefile</TT> has a format
+similar to a <TT>Makefile</TT>. An <TT>OMakefile</TT> has three main kinds of syntactic objects:
+variable definitions, function definitions, and rule definitions.</P><H2 CLASS="section"><A NAME="toc16"></A><A NAME="htoc31">4.1</A>&#XA0;&#XA0;Variables</H2><P>
+<A NAME="section:variables"></A></P><P>Variables are defined with the following syntax. The name is any sequence of alphanumeric
+characters, underscore <CODE>_</CODE>, and hyphen <CODE>-</CODE>.</P><PRE CLASS="verbatim">   &lt;name&gt; = &lt;value&gt;
+</PRE><P>Values are defined as a sequence of literal characters and variable expansions. A variable
+expansion has the form <CODE>$(&lt;name&gt;)</CODE>, which represents the value of the <CODE>&lt;name&gt;</CODE>
+variable in the current environment. Some examples are shown below.</P><PRE CLASS="verbatim">   CC = gcc
+   CFLAGS = -Wall -g
+   COMMAND = $(CC) $(CFLAGS) -O2
+</PRE><P>In this example, the value of the <CODE>COMMAND</CODE> variable is the string <CODE>gcc -Wall -g -O2</CODE>.</P><P>Unlike <TT>make</TT>(1), variable expansion is <EM>eager</EM> and <EM>pure</EM> (see also the section
+on Scoping). That is, variable values are expanded immediately and new variable definitions do not
+affect old ones. For example, suppose we extend the previous example with following variable
+definitions.</P><PRE CLASS="verbatim">   X = $(COMMAND)
+   COMMAND = $(COMMAND) -O3
+   Y = $(COMMAND)
+</PRE><P>In this example, the value of the <CODE>X</CODE> variable is the string <CODE>gcc -Wall -g -O2</CODE> as
+before, and the value of the <CODE>Y</CODE> variable is <CODE>gcc -Wall -g -O2 -O3</CODE>.</P><H2 CLASS="section"><A NAME="toc17"></A><A NAME="htoc32">4.2</A>&#XA0;&#XA0;Adding to a variable definition</H2><P>Variables definitions may also use the += operator, which adds the new text to an existing
+definition. The following two definitions are equivalent.</P><PRE CLASS="verbatim">   # Add options to the CFLAGS variable
+   CFLAGS = $(CFLAGS) -Wall -g
+
+   # The following definition is equivalent
+   CFLAGS += -Wall -g
+</PRE><H2 CLASS="section"><A NAME="toc18"></A><A NAME="htoc33">4.3</A>&#XA0;&#XA0;Arrays</H2><P>
+<A NAME="@default11"></A></P><P>Arrays can be defined by appending the <CODE>[]</CODE> sequence to the variable name and defining initial
+values for the elements as separate lines. Whitespace on each line is
+taken literally. The following code sequence prints <CODE>c d e</CODE>.</P><PRE CLASS="verbatim">    X[] =
+        a b
+        c d e
+        f
+
+    println($(nth 2, $(X)))
+</PRE><H2 CLASS="section"><A NAME="toc19"></A><A NAME="htoc34">4.4</A>&#XA0;&#XA0;Special characters and quoting</H2><P>
+<A NAME="@default12"></A></P><P>The following characters are special to <TT>omake</TT>: <CODE>$():,=#\</CODE>. To treat
+any of these characters as normal text, they should be escaped with the backslash
+character <CODE>\</CODE>.</P><PRE CLASS="verbatim">    DOLLAR = \$
+</PRE><P>Newlines may also be escaped with a backslash to concatenate several lines.</P><PRE CLASS="verbatim">    FILES = a.c\
+            b.c\
+            c.c
+</PRE><P>Note that the backslash is <EM>not</EM> an escape for any other character, so the following
+works as expected (that is, it preserves the backslashes in the string).</P><PRE CLASS="verbatim">    DOSTARGET = C:\WINDOWS\control.ini
+</PRE><P>An alternative mechanism for quoting special text is the use <CODE>$"..."</CODE> escapes. The number of
+double-quotations is arbitrary. The outermost quotations are not included in the text.</P><PRE CLASS="verbatim">    A = $""String containing "quoted text" ""
+    B = $"""Multi-line
+        text.
+        The # character is not special"""
+</PRE><H2 CLASS="section"><A NAME="toc20"></A><A NAME="htoc35">4.5</A>&#XA0;&#XA0;Function definitions</H2><P>
+<A NAME="section:functions"></A>
+<A NAME="@default13"></A></P><P>Functions are defined using the following syntax.</P><PRE CLASS="verbatim">   &lt;name&gt;(&lt;params&gt;) =
+      &lt;indented-body&gt;
+</PRE><P>The parameters are a comma-separated list of identifiers, and the body must be placed on a separate
+set of lines that are indented from the function definition itself. For example, the following text
+defines a function that concatenates its arguments, separating them with a colon.</P><PRE CLASS="verbatim">    ColonFun(a, b) =
+        return($(a):$(b))
+</PRE><P><A NAME="@default14"></A>The <CODE>return</CODE> expression can be used to return a value from the function. A <CODE>return</CODE>
+statement is not required; if it is omitted, the returned value is the value of the last expression
+in the body to be evaluated. NOTE: as of version <CODE>0.9.6</CODE>, <CODE>return</CODE> is a control
+operation, causing the function to immediately return. In the following example, when the argument
+<CODE>a</CODE> is true, the function <CODE>f</CODE> immediately returns the value 1 without evaluating the print
+statement.</P><PRE CLASS="verbatim">    f(a) =
+       if $(a)
+          return 1
+       println(The argument is false)
+       return 0
+</PRE><P><A NAME="@default15"></A>In many cases, you may wish to return a value from a section or code block without returning from
+the function. In this case, you would use the <CODE>value</CODE> operator. In fact, the <CODE>value</CODE>
+operator is not limited to functions, it can be used any place where a value is required. In the
+following definition, the variable <CODE>X</CODE> is defined as 1 or 2, depending on the value of <I>a</I>,
+then result is printed, and returned from the function.</P><PRE CLASS="verbatim">    f_value(a) =
+       X =
+          if $(a)
+             value 1
+          else
+             value 2
+       println(The value of X is $(X))
+       value $(X)
+</PRE><P>Functions are called using the GNU-make syntax, <CODE>$(&lt;name&gt; &lt;args))</CODE>,
+where <CODE>&lt;args&gt;</CODE> is a comma-separated list of values. For example,
+in the following program, the variable <CODE>X</CODE> contains the
+value <CODE>foo:bar</CODE>.</P><PRE CLASS="verbatim">   X = $(ColonFun foo, bar)
+</PRE><P>If the value of a function is not needed, the function may also be called
+using standard function call notation. For example, the following program
+prints the string &#X201C;She says: Hello world&#X201D;.</P><PRE CLASS="verbatim">    Printer(name) =
+        println($(name) says: Hello world)
+
+    Printer(She)
+</PRE><H3 CLASS="subsection"><A NAME="htoc36">4.5.1</A>&#XA0;&#XA0;Keyword arguments</H3><P>
+<A NAME="section:keyword-arguments"></A>
+<A NAME="@default16"></A></P><P><I>This feature will be introduced in version 0.9.8.6.</I></P><P>Functions can also have keyword parameters and arguments. The syntax of a keyword
+parameter/argument is <CODE>[~|?]&lt;id&gt; [= &lt;expression&gt;]</CODE>, where the keyword name <CODE>&lt;id&gt;</CODE>
+is preceeded by the character <CODE>~</CODE> (for required arguments), or <CODE>?</CODE> (for optional
+arguments). If a default value <CODE>= &lt;expression&gt;</CODE> is provided, the argument is
+always optional.</P><P>Keyword arguments and normal anonymous arguments are completely separate. Also, it is an error to
+pass a keyword argument to a function that does not define it as a keyword parameter.</P><PRE CLASS="verbatim">    osh&gt;f(x, ?y = 1, z) =
+           add($(mul $x, 100), $(mul $y, 10), $z)
+    - : &lt;fun 0&gt;
+    osh&gt;f(1, ~y = 2, 3)
+    - : 123 : Int
+    osh&gt;f(1, 3, ~y = 2)
+    - : 123 : Int
+    osh&gt;f(1, 3)
+    - : 113 : Int
+    osh&gt;f(1, 2, 3)
+    *** omake error:
+       File -: line 11, characters 0-10
+       arity mismatch: expected 2 args, got 3
+    osh&gt;f(~z = 7)
+    *** omake error:
+       File -: line 12, characters 0-8
+       no such keyword: z
+</PRE><P>An optional keyword argument defaults to the empty value.</P><PRE CLASS="verbatim">    osh&gt; g(?x) =
+             println($"&gt;&gt;&gt;$x&lt;&lt;&lt;")
+    - : &lt;fun 0&gt;
+    osh&gt; g()
+    &gt;&gt;&gt;&lt;&lt;&lt;
+    osh&gt; g(~x = xxx)
+    &gt;&gt;&gt;xxx&lt;&lt;&lt;
+</PRE><P>It is an error to omit a required keyword argument.</P><PRE CLASS="verbatim">    osh&gt; h(~x, ~y) =
+             println(x = $x; y = $y)
+    - : &lt;fun 0&gt;
+    osh&gt; h(~y = 2, ~x = 1)
+    x = 1; y = 2
+    osh&gt; h(~y = 2)
+    *** omake error:
+       File -: line 11, characters 0-9
+       keyword argument is required: x
+</PRE><H2 CLASS="section"><A NAME="toc21"></A><A NAME="htoc37">4.6</A>&#XA0;&#XA0;Curried functions</H2><P><I>This feature will be introduced in version 0.9.8.6.</I></P><P>Functions that are marked with the classifier <CODE>curry</CODE> can be called with &#X201C;too many&#X201D; arguments.
+It is expected that a curried function returns a function that consumes the remaining arguments.
+All arguments must be specified.</P><PRE CLASS="verbatim">    osh&gt;curry.f(x, y) =
+            println($"Got two arguments: x = $x, y = $y")
+            g(z) =
+               add($x, $y, $z)
+    osh&gt; f(1, 2, 3)
+    Got two arguments: x = 1, y = 2
+    - : 6 : Int
+    osh&gt; f(1, 2)
+    Got two arguments: x = 1, y = 2
+    *** omake error:
+       File -: line 62, characters 0-7
+       arity mismatch: expected 1 args, got 0
+</PRE><P>The function <CODE>apply</CODE> can be used to compute partial applications, whether or not the function
+is labeled as a curried function.</P><PRE CLASS="verbatim">    osh&gt; f1(a, ~b = 2, ~c = 3, d) =
+            println($"a = $a, b = $b, c = $c, d = $d")
+    - : &lt;fun 0&gt;
+    osh&gt; f2 = $(apply $(f1), ~c = 13, 11)
+    - : &lt;curry 0&gt;
+    osh&gt; f2(14, ~b = 12)
+    a = 11, b = 12, c = 13, d = 14
+    osh&gt; f2(24)
+    a = 11, b = 2, c = 13, d = 24
+</PRE><H2 CLASS="section"><A NAME="toc22"></A><A NAME="htoc38">4.7</A>&#XA0;&#XA0;Comments</H2><P>Comments begin with the <CODE>#</CODE> character and continue to the end of the line.</P><H2 CLASS="section"><A NAME="toc23"></A><A NAME="htoc39">4.8</A>&#XA0;&#XA0;File inclusion</H2><P>
+<A NAME="section:include"></A>
+<A NAME="@default17"></A><A NAME="@fun0"></A><A NAME="@default18"></A></P><P>Files may be included with the <CODE>include</CODE> or <CODE>open</CODE> form. The included file must use
+the same syntax as an <TT>OMakefile</TT>.</P><PRE CLASS="verbatim">    include $(Config_file)
+</PRE><P>The <CODE>open</CODE> operation is similar to an <CODE>include</CODE>, but the file is included at most once.
+</P><PRE CLASS="verbatim">    open Config
+
+    # Repeated opens are ignored, so this
+    # line has no effect.
+    open Config
+</PRE><P>If the file specified is not an absolute filenmame, both <CODE>include</CODE> and
+<CODE>open</CODE> operations search for the file based on the
+<A HREF="omake-base.html#var:OMAKEPATH"><CODE>OMAKEPATH</CODE> variable</A>. In case of the <CODE>open</CODE> directive, the search is
+performed at <EM>parse</EM> time, and the argument to <CODE>open</CODE> may not
+contain any expressions.</P><H2 CLASS="section"><A NAME="toc24"></A><A NAME="htoc40">4.9</A>&#XA0;&#XA0;Scoping, sections</H2><P>
+<A NAME="section:section"></A>
+<A NAME="@default19"></A></P><P>Scopes in <TT>omake</TT> are defined by indentation level. When indentation is
+increased, such as in the body of a function, a new scope is introduced.</P><P>The <CODE>section</CODE> form can also be used to define a new scope. For example, the following code
+prints the line <CODE>X = 2</CODE>, followed by the line <CODE>X = 1</CODE>.</P><PRE CLASS="verbatim">    X = 1
+    section
+        X = 2
+        println(X = $(X))
+
+    println(X = $(X))
+</PRE><P>This result may seem surprising&#X2013;the variable definition within the
+<CODE>section</CODE> is not visible outside the scope of the <CODE>section</CODE>.</P><P>The <CODE>export</CODE> form, which will be described in detail in
+Section&#XA0;<A HREF="omake-detail.html#section:export">6.3</A>, can be used to circumvent this restriction by
+exporting variable values from an inner scope.
+For example, if we modify the previous example
+by adding an <CODE>export</CODE> expression, the new value for the <CODE>X</CODE>
+variable is retained, and the code prints the line <CODE>X = 2</CODE> twice.</P><PRE CLASS="verbatim">    X = 1
+    section
+        X = 2
+        println(X = $(X))
+        export
+
+    println(X = $(X))
+</PRE><P>There are also cases where separate scoping is quite important. For example,
+each <TT>OMakefile</TT> is evaluated in its own scope. Since each part of a project
+may have its own configuration, it is important that variable definitions in one
+<TT>OMakefile</TT> do not affect the definitions in another.</P><P>To give another example, in some cases it is convenient to specify a
+separate set of variables for different build targets. A frequent
+idiom in this case is to use the <CODE>section</CODE> command to define a
+separate scope.</P><PRE CLASS="verbatim">   section
+      CFLAGS += -g
+      %.c: %.y
+          $(YACC) $&lt;
+      .SUBDIRS: foo
+
+   .SUBDIRS: bar baz
+</PRE><P>In this example, the <CODE>-g</CODE> option is added to the <CODE>CFLAGS</CODE>
+variable by the <CODE>foo</CODE> subdirectory, but not by the <CODE>bar</CODE> and
+<CODE>baz</CODE> directories. The implicit rules are scoped as well and in this
+example, the newly added yacc rule will be inherited by the <CODE>foo</CODE>
+subdirectory, but not by the <CODE>bar</CODE> and <CODE>baz</CODE> ones; furthermore
+this implicit rule will not be in scope in the current directory.</P><H2 CLASS="section"><A NAME="toc25"></A><A NAME="htoc41">4.10</A>&#XA0;&#XA0;Conditionals</H2><P>
+<A NAME="section:conditionals"></A>
+<A NAME="@default20"></A>
+<A NAME="@default21"></A></P><P>Top level conditionals have the following form.</P><PRE CLASS="verbatim">    if &lt;test&gt;
+       &lt;true-clause&gt;
+    elseif &lt;test2&gt;
+       &lt;elseif-clause&gt;
+    else
+       &lt;else-clause&gt;
+</PRE><P>The <CODE>&lt;test&gt;</CODE> expression is evaluated, and if it evaluates to a <EM>true</EM> value (see
+Section&#XA0;<A HREF="omake-base.html#section:logic">9.2</A> for more information on logical values, and Boolean functions), the code
+for the <CODE>&lt;true-clause&gt;</CODE> is evaluated; otherwise the remaining clauses are evaluated. There may
+be multiple <CODE>elseif</CODE> clauses; both the <CODE>elseif</CODE> and <CODE>else</CODE> clauses are optional.
+Note that the clauses are indented, so they introduce new scopes.</P><P>When viewed as a predicate, a value corresponds to the Boolean <EM>false</EM>, if its string
+representation is the empty string, or one of the strings <CODE>false</CODE>, <CODE>no</CODE>, <CODE>nil</CODE>,
+<CODE>undefined</CODE>, or <CODE>0</CODE>. All other values are <EM>true</EM>.</P><P>The following example illustrates a typical use of a conditional. The
+<CODE>OSTYPE</CODE> variable is the current machine architecture.</P><PRE CLASS="verbatim">    # Common suffixes for files
+    if $(equal $(OSTYPE), Win32)
+       EXT_LIB = .lib
+       EXT_OBJ = .obj
+       EXT_ASM = .asm
+       EXE = .exe
+       export
+    elseif $(mem $(OSTYPE), Unix Cygwin)
+       EXT_LIB = .a
+       EXT_OBJ = .o
+       EXT_ASM = .s
+       EXE =
+       export
+    else
+       # Abort on other architectures
+       eprintln(OS type $(OSTYPE) is not recognized)
+       exit(1)
+</PRE><H2 CLASS="section"><A NAME="toc26"></A><A NAME="htoc42">4.11</A>&#XA0;&#XA0;Matching</H2><P>
+<A NAME="section:match"></A>
+<A NAME="@default22"></A><A NAME="@fun1"></A>
+<A NAME="@default23"></A><A NAME="@fun2"></A></P><P>Pattern matching is performed with the <CODE>switch</CODE> and <CODE>match</CODE> forms.</P><PRE CLASS="verbatim">    switch &lt;string&gt;
+    case &lt;pattern1&gt;
+        &lt;clause1&gt;
+    case &lt;pattern2&gt;
+        &lt;clause2&gt;
+    ...
+    default
+       &lt;default-clause&gt;
+</PRE><P>The number of cases is arbitrary.
+The <CODE>default</CODE> clause is optional; however, if it is used it should
+be the last clause in the pattern match.</P><P>For <CODE>switch</CODE>, the string is compared with the patterns literally.</P><PRE CLASS="verbatim">    switch $(HOST)
+    case mymachine
+        println(Building on mymachine)
+    default
+        println(Building on some other machine)
+</PRE><P>Patterns need not be constant strings. The following function tests
+for a literal match against <CODE>pattern1</CODE>, and a match against
+<CODE>pattern2</CODE> with <CODE>##</CODE> delimiters.</P><PRE CLASS="verbatim">   Switch2(s, pattern1, pattern2) =
+      switch $(s)
+      case $(pattern1)
+          println(Pattern1)
+      case $"##$(pattern2)##"
+          println(Pattern2)
+      default
+          println(Neither pattern matched)
+</PRE><P>For <CODE>match</CODE> the patterns are <TT>egrep</TT>(1)-style regular expressions.
+The numeric variables <CODE>$1, $2, ...</CODE> can be used to retrieve values
+that are matched by <CODE>\(...\)</CODE> expressions.</P><PRE CLASS="verbatim">    match $(NODENAME)@$(SYSNAME)@$(RELEASE)
+    case $"mymachine.*@\(.*\)@\(.*\)"
+        println(Compiling on mymachine; sysname $1 and release $2 are ignored)
+
+    case $".*@Linux@.*2\.4\.\(.*\)"
+        println(Compiling on a Linux 2.4 system; subrelease is $1)
+
+    default
+        eprintln(Machine configuration not implemented)
+        exit(1)
+</PRE><H2 CLASS="section"><A NAME="toc27"></A><A NAME="htoc43">4.12</A>&#XA0;&#XA0;Objects</H2><P>
+<A NAME="section:objects"></A>
+<A NAME="@default24"></A></P><P>OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
+and methods. An object is defined with a <CODE>.</CODE> suffix for a variable. For example, the
+following object might be used to specify a point (1, 5) on the two-dimensional plane.</P><PRE CLASS="verbatim">    Coord. =
+        x = 1
+        y = 5
+        print(message) =
+           println($"$(message): the point is ($(x), $(y)")
+
+    # Define X to be 5
+    X = $(Coord.x)
+
+    # This prints the string, "Hi: the point is (1, 5)"
+    Coord.print(Hi)
+</PRE><P>The fields <CODE>x</CODE> and <CODE>y</CODE> represent the coordinates of the point. The method <CODE>print</CODE>
+prints out the position of the point.</P><H2 CLASS="section"><A NAME="toc28"></A><A NAME="htoc44">4.13</A>&#XA0;&#XA0;Classes</H2><P>
+<A NAME="@default25"></A></P><P>We can also define <EM>classes</EM>. For example, suppose we wish to define a generic <CODE>Point</CODE>
+class with some methods to create, move, and print a point. A class is really just an object with
+a name, defined with the <CODE>class</CODE> directive.</P><PRE CLASS="verbatim">    Point. =
+        class Point
+
+        # Default values for the fields
+        x = 0
+        y = 0
+
+        # Create a new point from the coordinates
+        new(x, y) =
+           this.x = $(x)
+           this.y = $(y)
+           return $(this)
+
+        # Move the point to the right
+        move-right() =
+           x = $(add $(x), 1)
+           return $(this)
+
+        # Print the point
+        print() =
+           println($"The point is ($(x), $(y)")
+
+    p1 = $(Point.new 1, 5)
+    p2 = $(p1.move-right)
+
+    # Prints "The point is (1, 5)"
+    p1.print()
+
+    # Prints "The point is (2, 5)"
+    p2.print()
+</PRE><P>Note that the variable <CODE>$(this)</CODE> is used to refer to the current object. Also, classes and
+objects are <EM>functional</EM>&#X2014;the <CODE>new</CODE> and <CODE>move-right</CODE> methods return new objects. In
+this example, the object <CODE>p2</CODE> is a different object from <CODE>p1</CODE>, which retains the original
+(1, 5) coordinates.</P><H2 CLASS="section"><A NAME="toc29"></A><A NAME="htoc45">4.14</A>&#XA0;&#XA0;Inheritance</H2><P>
+<A NAME="@default26"></A></P><P>Classes and objects support inheritance (including multiple inheritance) with the <CODE>extends</CODE>
+directive. The following definition of <CODE>Point3D</CODE> defines a point with <CODE>x</CODE>, <CODE>y</CODE>, and
+<CODE>z</CODE> fields. The new object inherits all of the methods and fields of the parent classes/objects.</P><PRE CLASS="verbatim">    Z. =
+       z = 0
+
+    Point3D. =
+       extends $(Point)
+       extends $(Z)
+       class Point3D
+
+       print() =
+          println($"The 3D point is ($(x), $(y), $(z))")
+
+    # The "new" method was not redefined, so this
+    # defines a new point (1, 5, 0).
+    p = $(Point3D.new 1, 5)
+</PRE><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc46">4.15</A>&#XA0;&#XA0;static.</H2><P>
+<A NAME="section:static."></A>
+<A NAME="@default27"></A></P><P>The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
+are frequently used for configuring a project. Configuring a project can be expensive, so the
+<CODE>static.</CODE> object ensure that the configuration is performed just once. In the following
+(somewhat trivial) example, a <CODE>static</CODE> section is used to determine if the L<sup>A</sup>T<sub>E</sub>X command is
+available. The <CODE>$(where latex)</CODE> function returns the full pathname for <CODE>latex</CODE>, or
+<CODE>false</CODE> if the command is not found.</P><PRE CLASS="verbatim">   static. =
+      LATEX_ENABLED = false
+      print(--- Determining if LaTeX is installed )
+      if $(where latex)
+          LATEX_ENABLED = true
+          export
+
+      if $(LATEX_ENABLED)
+         println($'(enabled)')
+      else
+         println($'(disabled)')
+</PRE><P>The OMake standard library provides a number of useful functions for
+programming the <CODE>static.</CODE> tests, as described in
+Chapter&#XA0;<A HREF="omake-autoconf.html#chapter:autoconf">14</A>. Using the standard library, the above can
+be rewritten as</P><PRE CLASS="verbatim">   open configure/Configure
+   static. =
+      LATEX_ENABLED = $(CheckProg latex)
+</PRE><P>As a matter of style, a <CODE>static.</CODE> section that is used for configuration should print what it
+is doing using the <CODE><A HREF="omake-autoconf.html#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
+<CODE><A HREF="omake-autoconf.html#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions (of course, most of helper functions in
+the standard library would do that automatically).</P><H3 CLASS="subsection"><A NAME="htoc47">4.15.1</A>&#XA0;&#XA0;.STATIC</H3><P>
+<A NAME="section:.STATIC"></A>
+<A NAME="@default28"></A>
+<A NAME="@target0"></A></P><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>There is also a rule form of static section. The syntax can be any of the following three forms.</P><PRE CLASS="verbatim">    # Export all variables defined by the body
+    .STATIC:
+        &lt;body&gt;
+
+    # Specify file-dependencies
+    .STATIC: &lt;dependencies&gt;
+        &lt;body&gt;
+
+    # Specify which variables to export, as well as file dependencies
+    .STATIC: &lt;vars&gt;: &lt;dependencies&gt;
+        &lt;body&gt;
+</PRE><P>The <CODE>&lt;vars&gt;</CODE> are the variable names to be defined, the <CODE>&lt;dependencies&gt;</CODE> are file
+dependencies&#X2014;the rule is re-evaluated if one of the dependencies is changed. The <CODE>&lt;vars&gt;</CODE>
+and <CODE>&lt;dependencies&gt;</CODE> can be omitted; if so, all variables defined in the <CODE>&lt;body&gt;</CODE> are
+exported.</P><P>For example, the final example of the previous section can also be implemented as follows.</P><PRE CLASS="verbatim">    open configure/Configure
+    .STATIC:
+        LATEX_ENABLED = $(CheckProg latex)
+</PRE><P>The effect is much the same as using <CODE>static.</CODE> (instead of <CODE>.STATIC</CODE>). However, in most
+cases <CODE>.STATIC</CODE> is preferred, for two reasons.</P><P>First, a <CODE>.STATIC</CODE> section is lazy, meaning that it is not evaluated until one of its variables
+is resolved. In this example, if <CODE>$(LATEX_ENABLED)</CODE> is never evaluated, the section need never
+be evaluated either. This is in contrast to the <CODE>static.</CODE> section, which always evaluates its
+body at least once.</P><P>A second reason is that a <CODE>.STATIC</CODE> section allows for file dependencies, which are useful when
+the <CODE>.STATIC</CODE> section is used for memoization. For example, suppose we wish to create a
+dictionary from a table that has key-value pairs. By using a <CODE>.STATIC</CODE> section, we can perform
+this computation only when the input file changes (not on every fun of <CODE>omake</CODE>). In the
+following example the <A HREF="omake-system.html#fun:awk"><CODE>awk</CODE> function</A> is used to parse the file <CODE>table-file</CODE>.
+When a line is encountered with the form <I>key</I><CODE> = </CODE><I>value</I>, the key/value pair is
+added the the <CODE>TABLE</CODE>.</P><PRE CLASS="verbatim">    .STATIC: table-file
+        TABLE = $(Map)
+        awk(table-file)
+        case $'^\([[:alnum:]]+\) *= *\(.*\)'
+            TABLE = $(TABLE.add $1, $2)
+            export
+</PRE><P>It is appropriate to think of a <CODE>.STATIC</CODE> section as a rule that must be recomputed whenever
+the dependencies of the rule change. The targets of the rule are the variables it exports (in this
+case, the <CODE>TABLE</CODE> variable).</P><H4 CLASS="subsubsection"><A NAME="htoc48">4.15.1.1</A>&#XA0;&#XA0;.MEMO</H4><P>
+<A NAME="section:.MEMO"></A>
+<A NAME="@default29"></A>
+<A NAME="@target1"></A></P><P>A <CODE>.MEMO</CODE> rule is just like a <CODE>.STATIC</CODE> rule, except that the results are not saved
+between independent runs of <CODE>omake</CODE>.</P><H4 CLASS="subsubsection"><A NAME="htoc49">4.15.1.2</A>&#XA0;&#XA0;:key:</H4><P>
+<A NAME="@default30"></A></P><P>The <CODE>.STATIC</CODE> and <CODE>.MEMO</CODE> rules also accept a <CODE>:key:</CODE> value, which specifies a
+&#X201C;key&#X201D; associated with the values being computed. It is useful to think of a <CODE>.STATIC</CODE> rule
+as a dictionary that associates keys with their values. When a <CODE>.STATIC</CODE> rule is evaluated,
+the result is saved in the table with the <CODE>:key:</CODE> defined by the rule (if a <CODE>:key:</CODE> is not
+specified, a default key is used instead). In other words, a rule is like a function. The
+<CODE>:key:</CODE> specifies the function &#X201C;argument&#X201D;, and the rule body computes the result.</P><P>To illustrate, let&#X2019;s use a <CODE>.MEMO</CODE> rule to implement a Fibonacci function.</P><PRE CLASS="verbatim">    fib(i) =
+        i = $(int $i)
+        .MEMO: :key: $i
+            println($"Computing fib($i)...")
+            result =
+                if $(or $(eq $i, 0), $(eq $i, 1))
+                    value $i
+                else
+                    add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+        value $(result)
+
+    println($"fib(10) = $(fib 10)")
+    println($"fib(12) = $(fib 12)")
+</PRE><P>When this script is run, it produces the following output.</P><PRE CLASS="verbatim">    Computing fib(10)...
+    Computing fib(9)...
+    Computing fib(8)...
+    Computing fib(7)...
+    Computing fib(6)...
+    Computing fib(5)...
+    Computing fib(4)...
+    Computing fib(3)...
+    Computing fib(2)...
+    Computing fib(1)...
+    Computing fib(0)...
+    fib(10) = 55
+    Computing fib(12)...
+    Computing fib(11)...
+    fib(12) = 144
+</PRE><P>Note that the Fibonacci computation is performed just once for each value of the argument, rather
+than an exponential number of times. In other words, the <CODE>.MEMO</CODE> rule has performed a
+memoization, hence the name. Note that if <CODE>.STATIC</CODE> were used instead, the values would be
+saved across runs of <CODE>omake</CODE>.</P><P>As a general guideline, whenever you use a <CODE>.STATIC</CODE> or <CODE>.MEMO</CODE> rule within a function
+body, you will usually want to use a <CODE>:key:</CODE> value to index the rule by the function argument.
+However, this is not required. In the following, the <CODE>.STATIC</CODE> rule is used to perform some
+expensive computation once.</P><PRE CLASS="verbatim">    f(x) =
+        .STATIC:
+            y = $(expensive-computation)
+        add($x, $y)
+</PRE><P>Additonal care should be taken for recursive functions, like the Fibonacci function. If the
+<CODE>:key:</CODE> is omitted, then the rule would be defined in terms of itself, resulting in a cyclic
+dependency. Here is the output of the Fibonacci program with an omitted <CODE>:key:</CODE>.</P><PRE CLASS="verbatim">    Computing fib(10)...
+    Computing fib(8)...
+    Computing fib(6)...
+    Computing fib(4)...
+    Computing fib(2)...
+    Computing fib(0)...
+    fib(10) = 0
+    fib(12) = 0
+</PRE><P>The reason for this behavior is that the <CODE>result</CODE> value is not saved until the base case
+<CODE>i = 0 || i = 1</CODE> is reached, so <CODE>fib</CODE> calls itself recursively until reaching
+<CODE>fib(0)</CODE>, whereupon the <CODE>result</CODE> value is fixed at 0.</P><P>In any case, recursive definitions are perfectly acceptable, but you will usually want a
+<CODE>:key:</CODE> argument so that each recursive call has a different <CODE>:key:</CODE>. In most cases, this
+means that the <CODE>:key:</CODE> should include all arguments to the function.</P><H2 CLASS="section"><A NAME="toc31"></A><A NAME="htoc50">4.16</A>&#XA0;&#XA0;Constants</H2><P>
+<A NAME="@default31"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+int<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(int &lt;i&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:int">9.4.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Int</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Int">12.1.4</A>.
+</LI><LI CLASS="li-itemize">An integer is a represented with finite precision using the OCaml representation (31 bits on a
+32 platform, and 63 bits on a 64 bit platform).
+</LI><LI CLASS="li-itemize">See also: arithmetic&#XA0;<A HREF="omake-base.html#function:add">9.4.3</A>.
+</LI></UL></LI><LI CLASS="li-itemize">float<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(float &lt;x&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:float">9.4.2</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Float</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Float">12.1.5</A>.
+</LI><LI CLASS="li-itemize">A float is a floating-point value, represented in IEEE 64-bit format.
+</LI><LI CLASS="li-itemize">See also: arithmetic&#XA0;<A HREF="omake-base.html#function:add">9.4.3</A>.
+</LI></UL></LI><LI CLASS="li-itemize">array<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(array &lt;v1&gt;, ..., &lt;vn&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:array">9.3.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Array</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Array">12.1.7</A>.
+</LI><LI CLASS="li-itemize">An array is a finite list of values.
+Arrays are also defined with an array definition
+<PRE CLASS="verbatim">    X[] =
+        &lt;v1&gt;
+        ...
+        &lt;vn&gt;
+</PRE></LI><LI CLASS="li-itemize">See also: <CODE>nth</CODE>&#XA0;<A HREF="omake-base.html#function:nth">9.3.5</A>, <CODE>nth-tl</CODE>&#XA0;<A HREF="omake-base.html#function:nth-tl">9.3.8</A>,
+<CODE>length</CODE>&#XA0;<A HREF="omake-base.html#function:length">9.3.4</A>, &#X2026;
+</LI></UL></LI><LI CLASS="li-itemize">string<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>String</CODE>&#XA0;<A HREF="omake-pervasives.html#object:String">12.1.8</A>.
+</LI><LI CLASS="li-itemize">By default, all constant character sequences represent strings, so the simple way to construct
+a string is to write it down. Internally, the string may be parsed as several pieces.
+A string often represents an array of values separated by whitespace.
+<PRE CLASS="verbatim">    osh&gt;S = This is a string
+    - : &lt;sequence
+       "This" : Sequence
+       ' ' : White
+       "is" : Sequence
+       ' ' : White
+       "a" : Sequence
+       ' ' : White
+       "string" : Sequence&gt;
+       : Sequence
+    osh&gt;length($S)
+    - : 4 : Int
+</PRE></LI><LI CLASS="li-itemize">A <EM>data</EM> string is a string where whitespace is taken literally. It represents a single value,
+not an array. The constructors are the quotations <CODE>$"..."</CODE> and <CODE>$'...'</CODE>.<PRE CLASS="verbatim">    osh&gt;S = $'''This is a string'''
+    - : &lt;data "This is a string"&gt; : String
+</PRE></LI><LI CLASS="li-itemize">See also: Quoted strings&#XA0;<A HREF="omake-language-examples.html#section:quoted-strings">7.2</A>.
+</LI></UL></LI><LI CLASS="li-itemize">file<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(file &lt;names&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:file">10.1.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>File</CODE>&#XA0;<A HREF="omake-pervasives.html#object:File">12.1.13</A>.
+</LI><LI CLASS="li-itemize">A file object represents the abstract name for a file. The file object can be viewed as an
+absolute name; the string representation depends on the current directory.<PRE CLASS="verbatim">    osh&gt;name = $(file foo)
+    - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+    osh&gt;echo $(name)
+    foo
+    osh&gt;cd ..
+    - : /Users/jyh/projects/omake : Dir
+    osh&gt;echo $(name)
+    0.9.8.x/foo
+</PRE></LI><LI CLASS="li-itemize">See also: <CODE>vmount</CODE>&#XA0;<A HREF="omake-system.html#function:vmount">10.6.1</A>.
+</LI></UL></LI><LI CLASS="li-itemize">directory<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(dir &lt;names&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:dir">10.1.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Dir</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Dir">12.1.14</A>.
+</LI><LI CLASS="li-itemize">A directory object is like a file object, but it represents a directory.
+</LI></UL></LI><LI CLASS="li-itemize">map (dictionary)
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Map</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Map">12.1.2</A>.
+</LI><LI CLASS="li-itemize">A map/dictionary is a table that maps values to values. The <CODE>Map</CODE> object is the empty
+map. The data structure is persistent, and all operations are pure and functional. The special syntax
+<CODE>$|key|</CODE> can be used for keys that are strings.<PRE CLASS="verbatim">    osh&gt;table = $(Map)
+    osh&gt;table = $(table.add x, int)
+    osh&gt;table. +=
+            $|y| = int
+    osh&gt;table.find(y)
+    - : "int" : Sequence
+</PRE></LI></UL></LI><LI CLASS="li-itemize">channel<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(fopen &lt;filename&gt;, &lt;mode&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:fopen">10.8.4</A>.
+</LI><LI CLASS="li-itemize">Objects: <CODE>InChannel</CODE>&#XA0;<A HREF="omake-pervasives.html#object:InChannel">12.1.16</A>, <CODE>OutChannel</CODE>&#XA0;<A HREF="omake-pervasives.html#object:OutChannel">12.1.17</A>.
+</LI><LI CLASS="li-itemize">Channels are used for buffered input/output.
+</LI></UL></LI><LI CLASS="li-itemize">function<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(fun &lt;params&gt; =&gt; &lt;body&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:fun">9.5.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Fun</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Fun">12.1.9</A>.
+</LI><LI CLASS="li-itemize">Functions can be defined in several ways.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+As an anonymous function,
+<PRE CLASS="verbatim">    $(fun i, j =&gt; $(add $i, $j))
+</PRE></LI><LI CLASS="li-itemize">As a named function,
+<PRE CLASS="verbatim">    f(i, j) =
+        add($i, $j)
+</PRE></LI><LI CLASS="li-itemize">(<I>This feature will be introduced in version 0.9.8.6.</I>)
+As an anonymous function argument.
+<PRE CLASS="verbatim">    osh&gt;foreach(i =&gt; $(add $i, 1), 1 2 3)
+    - : &lt;array 2 3 4&gt; : Array
+</PRE></LI></UL>
+</LI></UL></LI><LI CLASS="li-itemize">lexer<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Lexer</CODE>&#XA0;<A HREF="omake-system.html#object:Lexer">10.11.9</A>.
+</LI><LI CLASS="li-itemize">This object represents a lexer.
+</LI></UL></LI><LI CLASS="li-itemize">parser<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Parser</CODE>&#XA0;<A HREF="omake-system.html#object:Parser">10.11.13</A>.
+</LI><LI CLASS="li-itemize">This object represents a parser.
+</LI></UL></LI></UL>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

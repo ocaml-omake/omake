@@ -1,0 +1,1516 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.09">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>File, I/O and system operations</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc183">Chapter&#XA0;10</A>&#XA0;&#XA0;File, I/O and system operations</H1><UL>
+<LI><A HREF="omake-system.html#toc73">File names</A></LI>
+<LI><A HREF="omake-system.html#toc74">Path search</A></LI>
+<LI><A HREF="omake-system.html#toc75">File stats</A></LI>
+<LI><A HREF="omake-system.html#toc76">Globbing and file listings</A></LI>
+<LI><A HREF="omake-system.html#toc77">Filesystem operations</A></LI>
+<LI><A HREF="omake-system.html#toc78">vmount</A></LI>
+<LI><A HREF="omake-system.html#toc79">File predicates</A></LI>
+<LI><A HREF="omake-system.html#toc80">IO functions</A></LI>
+<LI><A HREF="omake-system.html#toc81">Printing functions</A></LI>
+<LI><A HREF="omake-system.html#toc82">Value printing functions</A></LI>
+<LI><A HREF="omake-system.html#toc83">Higher-level IO functions</A></LI>
+</UL>
+<P>
+<A NAME="chapter:system"></A>
+</P><H2 CLASS="section"><A NAME="toc73"></A><A NAME="htoc184">10.1</A>&#XA0;&#XA0;File names</H2><H3 CLASS="subsection"><A NAME="htoc185">10.1.1</A>&#XA0;&#XA0;file, dir</H3><P><A NAME="fun:file"></A><A NAME="function:file"></A><A NAME="@default189"></A><A NAME="@fun109"></A><A NAME="fun:dir"></A><A NAME="function:dir"></A><A NAME="@default190"></A><A NAME="@fun110"></A></P><PRE CLASS="verbatim">   $(file sequence) : File Sequence
+      sequence : Sequence
+   $(dir sequence) : Dir Sequence
+      sequence : Sequence
+</PRE><P>The <CODE>file</CODE> and <CODE>dir</CODE> functions define location-independent references to files and directories.
+In <TT>omake</TT>, the commands to build a target are executed in the target's directory. Since there may be
+many directories in an <TT>omake</TT> project, the build system provides a way to construct a reference to a file
+in one directory, and use it in another without explicitly modifying the file name. The functions have the following
+syntax, where the name should refer to a file or directory.</P><P>For example, we can construct a reference to a file <CODE>foo</CODE> in the current directory.</P><PRE CLASS="verbatim">   FOO = $(file foo)
+   .SUBDIRS: bar
+</PRE><P>If the <CODE>FOO</CODE> variable is expanded in the <CODE>bar</CODE> subdirectory, it will expand to <CODE>../foo</CODE>.</P><P>These commands are often used in the top-level OMakefile to provide location-independent references to
+top-level directories, so that build commands may refer to these directories as if they were absolute.</P><PRE CLASS="verbatim">   ROOT = $(dir .)
+   LIB  = $(dir lib)
+   BIN  = $(dir bin)
+</PRE><P>Once these variables are defined, they can be used in build commands in subdirectories as follows, where
+<CODE>$(BIN)</CODE> will expand to the location of the <CODE>bin</CODE> directory relative to the command being executed.</P><PRE CLASS="verbatim">   install: hello
+ cp hello $(BIN)
+</PRE><H3 CLASS="subsection"><A NAME="htoc186">10.1.2</A>&#XA0;&#XA0;tmpfile</H3><P><A NAME="fun:tmpfile"></A><A NAME="function:tmpfile"></A><A NAME="@default191"></A><A NAME="@fun111"></A></P><PRE CLASS="verbatim">    $(tmpfile prefix) : File
+    $(tmpfile prefix, suffix) : File
+        prefix : String
+        suffix : String
+</PRE><P>The <CODE>tmpfile</CODE> function returns the name of a fresh temporary file in
+the temporary directory.
+</P><H3 CLASS="subsection"><A NAME="htoc187">10.1.3</A>&#XA0;&#XA0;in</H3><P><A NAME="fun:in"></A><A NAME="function:in"></A><A NAME="@default192"></A><A NAME="@fun112"></A></P><PRE CLASS="verbatim">   $(in dir, exp) : String Array
+      dir : Dir
+      exp : expression
+</PRE><P>The <CODE>in</CODE> function is closely related to the <CODE>dir</CODE> and
+<CODE>file</CODE> functions. It takes a directory and an expression, and
+evaluates the expression in that effective directory.
+For example, one common way to install a file is to define a symbol link, where the
+value of the link is relative to the directory where the link is created.</P><P>The following commands create links in the <CODE>$(LIB)</CODE> directory.</P><PRE CLASS="verbatim">    FOO = $(file foo)
+    install:
+       ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
+</PRE><P>Note that the <CODE>in</CODE> function only affects the expansion of <CODE>Node</CODE>
+(<CODE>File</CODE> and <CODE>Dir</CODE>) values.
+</P><H3 CLASS="subsection"><A NAME="htoc188">10.1.4</A>&#XA0;&#XA0;basename</H3><P><A NAME="fun:basename"></A><A NAME="function:basename"></A><A NAME="@default193"></A><A NAME="@fun113"></A></P><PRE CLASS="verbatim">   $(basename files) : String Sequence
+      files : String Sequence
+</PRE><P>The <CODE>basename</CODE> function returns the base names for a list of files.
+The basename is the filename with any leading directory components removed.</P><P>For example, the expression <CODE>$(basename dir1/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates to
+<CODE>a.out modules.conf foo.ml</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc189">10.1.5</A>&#XA0;&#XA0;dirname</H3><P><A NAME="fun:dirname"></A><A NAME="function:dirname"></A><A NAME="@default194"></A><A NAME="@fun114"></A></P><PRE CLASS="verbatim">   $(dirname files) : String Sequence
+      files : String Sequence
+</PRE><P>The <CODE>dirname</CODE> function returns the directory name for a list of files.
+The directory name is the filename with the basename removed. If a name
+does not have a directory part, the directory is &#X201C;.&#X201D;</P><P>For example, the expression <CODE>$(dirname dir1\dir2\a.out /etc/modules.conf /foo.ml bar.ml)</CODE> evaluates to
+<CODE>dir1/dir2 /etc / .</CODE>.</P><P><B>Note</B>: this function is different from the <CODE>dirof</CODE> function.
+The function <CODE>dirname</CODE> is simple a function over strings, while
+<CODE>dirof</CODE> is a function on filenames.
+</P><H3 CLASS="subsection"><A NAME="htoc190">10.1.6</A>&#XA0;&#XA0;rootname</H3><P><A NAME="fun:rootname"></A><A NAME="function:rootname"></A><A NAME="@default195"></A><A NAME="@fun115"></A></P><PRE CLASS="verbatim">   $(rootname files) : String Sequence
+      files : String Sequence
+</PRE><P>The <CODE>rootname</CODE> function returns the root name for a list of files.
+The rootname is the filename with the final suffix removed.</P><P>For example, the expression <CODE>$(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml)</CODE> evaluates to
+<CODE>dir1/dir2/a /etc/a.b /foo</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc191">10.1.7</A>&#XA0;&#XA0;dirof</H3><P><A NAME="fun:dirof"></A><A NAME="function:dirof"></A><A NAME="@default196"></A><A NAME="@fun116"></A></P><PRE CLASS="verbatim">   $(dirof files) : Dir Sequence
+      files : File Sequence
+</PRE><P>The <CODE>dirof</CODE> function returns the directory for each of the listed files.</P><P>For example, the expression <CODE>$(dirof dir/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates
+to the directories <CODE>dir1/dir2 /etc /</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc192">10.1.8</A>&#XA0;&#XA0;fullname</H3><P><A NAME="fun:fullname"></A><A NAME="function:fullname"></A><A NAME="@default197"></A><A NAME="@fun117"></A></P><PRE CLASS="verbatim">   $(fullname files) : String Sequence
+      files : File Sequence
+</PRE><P>The <CODE>fullname</CODE> function returns the pathname relative to the project root
+for each of the files or directories.
+</P><H3 CLASS="subsection"><A NAME="htoc193">10.1.9</A>&#XA0;&#XA0;absname</H3><P><A NAME="fun:absname"></A><A NAME="function:absname"></A><A NAME="@default198"></A><A NAME="@fun118"></A></P><PRE CLASS="verbatim">   $(absname files) : String Sequence
+      files : File Sequence
+</PRE><P>The <CODE>absname</CODE> function returns the absolute pathname for each of the files
+or directories.
+</P><H3 CLASS="subsection"><A NAME="htoc194">10.1.10</A>&#XA0;&#XA0;homename</H3><P><A NAME="fun:homename"></A><A NAME="function:homename"></A><A NAME="@default199"></A><A NAME="@fun119"></A></P><PRE CLASS="verbatim">   $(homename files) : String Sequence
+      files : File Sequence
+</PRE><P>The <CODE>homename</CODE> function returns the name of a file in
+tilde form, if possible. The unexpanded forms are computed
+lazily: the <CODE>homename</CODE> function will usually evaluate to an absolute
+pathname until the first tilde-expansion for the same directory.
+</P><H3 CLASS="subsection"><A NAME="htoc195">10.1.11</A>&#XA0;&#XA0;suffix</H3><P><A NAME="fun:suffix"></A><A NAME="function:suffix"></A><A NAME="@default200"></A><A NAME="@fun120"></A></P><PRE CLASS="verbatim">   $(suffix files) : String Sequence
+      files : StringSequence
+</PRE><P>The <CODE>suffix</CODE> function returns the suffixes for a list of files.
+If a file has no suffix, the function returns the empty string.</P><P>For example, the expression <CODE>$(suffix dir1/dir2/a.out /etc/a /foo.ml)</CODE> evaluates
+to <CODE>.out .ml</CODE>.
+</P><H2 CLASS="section"><A NAME="toc74"></A><A NAME="htoc196">10.2</A>&#XA0;&#XA0;Path search</H2><H3 CLASS="subsection"><A NAME="htoc197">10.2.1</A>&#XA0;&#XA0;which</H3><P><A NAME="fun:which"></A><A NAME="function:which"></A><A NAME="@default201"></A><A NAME="@fun121"></A></P><PRE CLASS="verbatim">   $(which files) : File Sequence
+      files : String Sequence
+</PRE><P>The <CODE>which</CODE> function searches for executables in the
+current command search path, and returns <CODE>file</CODE> values
+for each of the commands. It is an error if a command is
+not found.
+</P><H3 CLASS="subsection"><A NAME="htoc198">10.2.2</A>&#XA0;&#XA0;where</H3><P><A NAME="fun:where"></A><A NAME="function:where"></A><A NAME="@default202"></A><A NAME="@fun122"></A></P><P>The <CODE>where</CODE> function is similar to which, except it returns the list of
+all the locations of the given executable (in the order in which the
+corresponding directories appear in <CODE>$PATH</CODE>). In case a command is handled
+internally by the <CODE>Shell</CODE> object, the first string in the output will
+describe the command as a built-in function.</P><PRE CLASS="verbatim">    % where echo
+    echo is a Shell object method (a built-in function)
+    /bin/echo
+</PRE><H3 CLASS="subsection"><A NAME="htoc199">10.2.3</A>&#XA0;&#XA0;rehash</H3><P><A NAME="fun:rehash"></A><A NAME="function:rehash"></A><A NAME="@default203"></A><A NAME="@fun123"></A></P><PRE CLASS="verbatim">    rehash()
+</PRE><P>The <CODE>rehash</CODE> function resets all search paths.
+</P><H3 CLASS="subsection"><A NAME="htoc200">10.2.4</A>&#XA0;&#XA0;exists-in-path</H3><P><A NAME="fun:exists-in-path"></A><A NAME="function:exists-in-path"></A><A NAME="@default204"></A><A NAME="@fun124"></A></P><PRE CLASS="verbatim">   $(exists-in-path files) : String
+      files : String Sequence
+</PRE><P>The <CODE>exists-in-path</CODE> function tests whether all executables
+are present in the current search path.
+</P><H3 CLASS="subsection"><A NAME="htoc201">10.2.5</A>&#XA0;&#XA0;digest, digest-optional</H3><P><A NAME="fun:digest"></A><A NAME="function:digest"></A><A NAME="@default205"></A><A NAME="@fun125"></A><A NAME="fun:digest-optional"></A><A NAME="function:digest-optional"></A><A NAME="@default206"></A><A NAME="@fun126"></A></P><PRE CLASS="verbatim">     $(digest files) : String Array
+        file : File Array
+     raises RuntimeException
+
+     $(digest-optional files) : String Array
+        file : File Array
+</PRE><P>The <CODE>digest</CODE> and <CODE>digest-optional</CODE> functions compute MD5 digests
+of files. The <CODE>digest</CODE> function raises an exception if a file
+does no exist. The <CODE>digest-optional</CODE> returns <CODE>false</CODE> if a
+file does no exist. MD5 digests are cached.
+</P><H3 CLASS="subsection"><A NAME="htoc202">10.2.6</A>&#XA0;&#XA0;find-in-path, find-in-path-optional</H3><P><A NAME="fun:find-in-path"></A><A NAME="function:find-in-path"></A><A NAME="@default207"></A><A NAME="@fun127"></A><A NAME="fun:find-in-path-optional"></A><A NAME="function:find-in-path-optional"></A><A NAME="@default208"></A><A NAME="@fun128"></A></P><PRE CLASS="verbatim">    $(find-in-path path, files) : File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(find-in-path-optional path, files) : File Array
+</PRE><P>The <CODE>find-in-path</CODE> function searches for the files in a search
+path. Only the tail of the filename is significant. The <CODE>find-in-path</CODE>
+function raises an exception if the file can't be found.
+The <CODE>find-in-path-optional</CODE> function silently removes
+files that can't be found.
+</P><H3 CLASS="subsection"><A NAME="htoc203">10.2.7</A>&#XA0;&#XA0;digest-in-path, digest-in-path-optional</H3><P><A NAME="fun:digest-in-path"></A><A NAME="function:digest-in-path"></A><A NAME="@default209"></A><A NAME="@fun129"></A><A NAME="fun:digest-in-path-optional"></A><A NAME="function:digest-in-path-optional"></A><A NAME="@default210"></A><A NAME="@fun130"></A></P><PRE CLASS="verbatim">    $(digest-in-path path, files) : String/File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(digest-in-path-optional path, files) : String/File Array
+</PRE><P>The <CODE>digest-in-path</CODE> function searches for the files in a search
+path and returns the file and digest for each file. Only the tail of the
+filename is significant. The <CODE>digest-in-path</CODE> function raises an exception
+if the file can't be found. The <CODE>digest-in-path-optional</CODE>
+function silently removes elements that can't be found.
+</P><H2 CLASS="section"><A NAME="toc75"></A><A NAME="htoc204">10.3</A>&#XA0;&#XA0;File stats</H2><H3 CLASS="subsection"><A NAME="htoc205">10.3.1</A>&#XA0;&#XA0;file-exists, target-exists, target-is-proper</H3><P><A NAME="fun:file-exists"></A><A NAME="function:file-exists"></A><A NAME="@default211"></A><A NAME="@fun131"></A><A NAME="fun:target-exists"></A><A NAME="function:target-exists"></A><A NAME="@default212"></A><A NAME="@fun132"></A><A NAME="fun:target-is-proper"></A><A NAME="function:target-is-proper"></A><A NAME="@default213"></A><A NAME="@fun133"></A></P><PRE CLASS="verbatim">   $(file-exists files) : String
+   $(target-exists files) : String
+   $(target-is-proper files) : String
+       files : File Sequence
+</PRE><P>The <CODE>file-exists</CODE> function checks whether the files listed exist.
+The <CODE>target-exists</CODE> function is similar to the <CODE>file-exists</CODE> function.
+However, it returns true if the file exists <EM>or</EM> if it can be built
+by the current project. The <CODE>target-is-proper</CODE> returns true only
+if the file can be generated in the current project.
+</P><H3 CLASS="subsection"><A NAME="htoc206">10.3.2</A>&#XA0;&#XA0;stat-reset</H3><P><A NAME="fun:stat-reset"></A><A NAME="function:stat-reset"></A><A NAME="@default214"></A><A NAME="@fun134"></A></P><PRE CLASS="verbatim">   $(stat-reset files) : String
+       files : File Sequence
+</PRE><P>OMake uses a stat-cache. The <CODE>stat-reset</CODE> function reset the <CODE>stat</CODE>
+information for the given files, forcing the <CODE>stat</CODE> information to
+be recomputed the next time it is requested.
+</P><H3 CLASS="subsection"><A NAME="htoc207">10.3.3</A>&#XA0;&#XA0;filter-exists, filter-targets, filter-proper-targets</H3><P><A NAME="fun:filter-exists"></A><A NAME="function:filter-exists"></A><A NAME="@default215"></A><A NAME="@fun135"></A><A NAME="fun:filter-targets"></A><A NAME="function:filter-targets"></A><A NAME="@default216"></A><A NAME="@fun136"></A><A NAME="fun:filter-proper-targets"></A><A NAME="function:filter-proper-targets"></A><A NAME="@default217"></A><A NAME="@fun137"></A></P><PRE CLASS="verbatim">   $(filter-exists files) : File Sequence
+   $(filter-targets files) : File Sequence
+   $(filter-proper-targets) : File Sequence
+      files : File Sequence
+</PRE><P>The <CODE>filter-exists</CODE>, <CODE>filter-targets</CODE>, and <CODE>filter-proper-targets</CODE>
+functions remove files from a list of files.
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>filter-exists</CODE>: the result is the list of files that exist.
+</LI><LI CLASS="li-itemize"><CODE>filter-targets</CODE>: the result is the list of files either exist, or
+can be built by the current project.
+</LI><LI CLASS="li-itemize"><CODE>filter-proper-targets</CODE>: the result is the list of files that can
+be built in the current project.
+</LI></UL><H5 CLASS="paragraph">Creating a &#X201C;distclean&#X201D; target</H5><P>
+<A NAME="section:distclean"></A></P><P>One way to create a simple &#X201C;<CODE>distclean</CODE>&#X201D; rule that removes generated files from
+the project is by removing all files that can be built in the current
+project.</P><P><B>CAUTION:</B> you should be careful before you do this. The rule
+removes <EM>any</EM> file that can <EM>potentially</EM> be reconstructed.
+There is no check to make sure that the commands to rebuild the file
+would actually succeed. Also, note that no file outside the
+current project will be deleted.</P><PRE CLASS="verbatim">    .PHONY: distclean
+
+    distclean:
+        rm $(filter-proper-targets $(ls R, .))
+</PRE><P>If you use CVS, you may wish to utilize the <CODE>cvs_realclean</CODE> program that
+is distributed with OMake in order to create a &#X201C;<CODE>distclean</CODE>&#X201D; rule that would
+delete all the files thare are not known to CVS. For example, if you already have a more traditional
+&#X201C;<CODE>clean</CODE>&#X201D; target defined in your project, and if you want the &#X201C;<CODE>distclean</CODE>&#X201D; rule to
+be interactive by default, you can write the following:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+
+    distclean: clean
+        cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>You can add more files that you want to always keep (such as configuration files) with the -i option.</P><P>Similarly, if you use Subversion, you utilize the <CODE>build/svn_realclean.om</CODE> script that comes with OMake:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+
+    open build/svn_realclean
+
+    distclean: clean
+        svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>See also the <A HREF="omake-build.html#fun:dependencies-proper"><CODE>dependencies-proper</CODE> function</A> for an alternate method for removing intermediate files.
+</P><H3 CLASS="subsection"><A NAME="htoc208">10.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><P><A NAME="fun:find-targets-in-path"></A><A NAME="function:find-targets-in-path"></A><A NAME="@default218"></A><A NAME="@fun138"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="function:find-targets-in-path-optional"></A><A NAME="@default219"></A><A NAME="@fun139"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
+    $(find-targets-in-path-optional path, files) : File Array
+        path : Dir Array
+        files : File Sequence
+</PRE><P>The <CODE>find-target-in-path</CODE> function searches for targets in the
+search path. For each file <CODE>file</CODE> in the file list, the path is
+searched sequentially for a directory <CODE>dir</CODE> such that the target
+<CODE>dir/file</CODE> exists. If so, the file <CODE>dir/file</CODE> is returned.</P><P>For example, suppose you are building a C project, and project
+contains a subdirectory <CODE>src/</CODE> containing only the files
+<CODE>fee.c</CODE> and <CODE>foo.c</CODE>. The following expression
+evaluates to the files <CODE>src/fee.o</CODE> <CODE>src/foo.o</CODE> even
+if the files have not already been built.</P><PRE CLASS="verbatim">    $(find-targets-in-path lib src, fee.o foo.o)
+
+    # Evaluates to
+    src/fee.o src/foo.o
+</PRE><P>The <CODE>find-targets-in-path</CODE>
+function raises an exception if the file can't be found.
+The <CODE>find-targets-in-path-optional</CODE> function silently removes
+targets that can't be found.</P><PRE CLASS="verbatim">    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+
+    # Evaluates to
+    src/fee.o src/foo.o
+</PRE><H3 CLASS="subsection"><A NAME="htoc209">10.3.5</A>&#XA0;&#XA0;find-ocaml-targets-in-path-optional</H3><P><A NAME="fun:find-ocaml-targets-in-path-optional"></A><A NAME="function:find-ocaml-targets-in-path-optional"></A><A NAME="@default220"></A><A NAME="@fun140"></A>
+The <CODE>find-ocaml-targets-in-path-optional</CODE> function is very similar to the
+<CODE><A HREF="#fun:find-targets-in-path-optional">find-targets-in-path-optional</A></CODE> one, except an OCaml-style search
+is used, where for every element of the search path and for every name being
+searched for, first the uncapitalized version is tried and if it is not buildable,
+then the capitalized version is tried next.
+</P><H3 CLASS="subsection"><A NAME="htoc210">10.3.6</A>&#XA0;&#XA0;file-sort</H3><P><A NAME="fun:file-sort"></A><A NAME="function:file-sort"></A><A NAME="@default221"></A><A NAME="@fun141"></A>
+<A NAME="@default222"></A>
+<A NAME="@default223"></A></P><PRE CLASS="verbatim">   $(file-sort order, files) : File Sequence
+      order : String
+      files : File Sequence
+</PRE><P><A NAME="@default224"></A><A NAME="@target12"></A><A NAME="target:.ORDER"></A><A NAME="@default225"></A><A NAME="@target13"></A><A NAME="target:.BUILDORDER"></A>The <CODE>file-sort</CODE> function sorts a list of filenames by
+build order augmented by a set of sort rules. Sort
+rules are declared using the <CODE>.ORDER</CODE> target.
+The <CODE>.BUILDORDER</CODE> defines the default order.</P><P><CODE>$(file-sort &lt;order&gt;, &lt;files&gt;)</CODE></P><P>For example, suppose we have the following set of rules.</P><PRE CLASS="verbatim">   a: b c
+   b: d
+   c: d
+
+   .DEFAULT: a b c d
+      echo $(file-sort .BUILDORDER, a b c d)
+</PRE><P>In the case, the sorter produces the result <CODE>d b c a</CODE>.
+That is, a target is sorted <EM>after</EM> its dependencies.
+The sorter is frequently used to sort files that are to be linked
+by their dependencies (for languages where this matters).</P><P>There are three important restrictions to the sorter:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+The sorter can be used only within a rule body.
+The reason for this is that <EM>all</EM> dependencies
+must be known before the sort is performed.
+</LI><LI CLASS="li-itemize">The sorter can only sort files that are buildable
+in the current project.
+</LI><LI CLASS="li-itemize">The sorter will fail if the dependencies are cyclic.
+</LI></UL><H4 CLASS="subsubsection"><A NAME="htoc211">10.3.6.1</A>&#XA0;&#XA0;sort rule</H4><P>It is possible to further constrain the sorter through the use of
+sort rules. A sort rule is declared in two steps. The
+target must be listed as an <CODE>.ORDER</CODE> target; and then
+a set of sort rules must be given. A sort rule defines
+a pattern constraint.</P><PRE CLASS="verbatim">   .ORDER: .MYORDER
+
+   .MYORDER: %.foo: %.bar
+   .MYORDER: %.bar: %.baz
+
+   .DEFAULT: a.foo b.bar c.baz d.baz
+      echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+</PRE><P>In this example, the <CODE>.MYORDER</CODE> sort rule specifies that any
+file with a suffix <CODE>.foo</CODE> should be placed after any file with
+suffix <CODE>.bar</CODE>, and any file with suffix <CODE>.bar</CODE> should be
+placed after a file with suffix <CODE>.baz</CODE>.</P><P>In this example, the result of the sort is <CODE>d.baz c.baz b.bar a.foo</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc212">10.3.7</A>&#XA0;&#XA0;file-check-sort</H3><P><A NAME="fun:file-check-sort"></A><A NAME="function:file-check-sort"></A><A NAME="@default226"></A><A NAME="@fun142"></A></P><PRE CLASS="verbatim">   file-check-sort(files)
+      files : File Sequence
+   raises RuntimeException
+</PRE><P>The <CODE>file-check-sort</CODE> function checks whether a list of files
+is in sort order. If so, the list is returned unchanged.
+If not, the function raises an exception.</P><P><CODE>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</CODE>
+</P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc213">10.4</A>&#XA0;&#XA0;Globbing and file listings</H2><P>
+<A NAME="section:globbing"></A></P><P>OMake commands are &#X201C;glob-expanded&#X201D; before being executed. That is,
+names may contain <EM>patterns</EM> that are expanded to sequences of
+file and directory names. The syntax follows the standard bash(1), csh(1),
+syntax, with the following rules.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+A <EM>pathname</EM> is a sequence of directory and file names separated by
+one of the <CODE>/</CODE> or <CODE>\</CODE> characters. For example, the following pathnames
+refer to the same file: <CODE>/home/jyh/OMakefile</CODE> and <CODE>/home\jyh/OMakefile</CODE>.</LI><LI CLASS="li-itemize">Glob-expansion is performed on the components of a path. If a path contains
+occurrences of special characters (listed below), the path is viewed as a pattern
+to be matched against the actual files in the system. The expansion produces a
+sequence of all file/directory names that match.<P>For the following examples, suppose that a directory <CODE>/dir</CODE> contains files
+named <CODE>a</CODE>, <CODE>-a</CODE>, <CODE>a.b</CODE>, and <CODE>b.c</CODE>.</P><DL CLASS="description"><DT CLASS="dt-description">
+<TT><B>*</B></TT></DT><DD CLASS="dd-description"> Matches any sequence of zero-or-more characters. For example,
+the pattern <CODE>/dir/a*</CODE> expands to <CODE>/dir/a /dir/aa /dir/a.b</CODE>.</DD><DT CLASS="dt-description"><TT><B>?</B></TT></DT><DD CLASS="dd-description"> Matches exactly one character. The pattern <CODE>/dir/?a</CODE> expands
+the filename <CODE>/dir/-a</CODE>.</DD><DT CLASS="dt-description"><TT><B>[...]</B></TT></DT><DD CLASS="dd-description"> Square brackets denote character sets and ranges
+in the ASCII character set. The pattern may contain individual characters <I>c</I>
+or character ranges <TT><I>c</I><SUB>1</SUB>-<I>c</I><SUB>2</SUB></TT>. The pattern matches any of the
+individual characters specified, or any characters in the range. A leading &#X201C;hat&#X201D;
+inverts the send of the pattern. To specify a pattern that contains the
+literal characters <CODE>-</CODE>, the <CODE>-</CODE> should occur as the first character in
+the range.<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
+<TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[a-b]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/a /dir/a.b /dir/b.c</CODE></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a-b]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b /dir/b.c</CODE></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b</CODE></TD></TR>
+</TABLE>
+</DIV></DD><DT CLASS="dt-description"><TT><B>{s1,...,sN}</B></TT></DT><DD CLASS="dd-description"> Braces indicate brace-expansion.
+The braces delimit a sequence of strings separated by commas.
+Given <I>N</I> strings, the result produces <I>N</I> copies of the pattern,
+one for each of the strings <I>s<SUB>i</SUB></I>.<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
+<TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{b,c,d}</CODE></TD><TD ALIGN=left NOWRAP><CODE>ab ac ad</CODE></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{b{c,d},e}</CODE></TD><TD ALIGN=left NOWRAP><CODE>abc abd ae</CODE></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{?{[A-Z],d},*}</CODE></TD><TD ALIGN=left NOWRAP><CODE>a?[A-Z] a?d a*</CODE></TD></TR>
+</TABLE>
+</DIV></DD><DT CLASS="dt-description"><TT><B>&#XA0;</B></TT></DT><DD CLASS="dd-description"> The tilde is used to specify home directories.
+Depending on your system, these might be possible expansions.<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
+<TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~jyh</CODE></TD><TD ALIGN=left NOWRAP><CODE>/home/jyh</CODE></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~bob/*.c</CODE></TD><TD ALIGN=left NOWRAP><CODE>c:\Documents and Settings\users\bob</CODE></TD></TR>
+</TABLE>
+</DIV></DD><DT CLASS="dt-description"><BR>
+</DT><DD CLASS="dd-description"> The <CODE>\</CODE> character is both a pathname separator
+and an escape character. If followed by a special glob character,
+the <CODE>\</CODE> changes the sense of the following character to non-special
+status. Otherwise, <CODE>\</CODE> is viewed as a pathname separator.<DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
+<TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~jyh/\*</CODE></TD><TD ALIGN=left NOWRAP><CODE>~jyh/*</CODE> (<CODE>*</CODE> is literal)</TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/\[a-z?</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/[a-z?</CODE> (<CODE>[</CODE> is literal, <CODE>?</CODE> is a pattern).</TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>c:\Program Files\[A-z]</CODE></TD><TD ALIGN=left NOWRAP><CODE>c:\Program Files[A-z]*</CODE></TD></TR>
+</TABLE>
+</DIV><P>Note that the final case might be considered to be ambiguous (where <CODE>\</CODE> should
+be viewed as a pathname separator, not as an escape for the subsequent <CODE>[</CODE>
+character. If you want to avoid this ambiguity on Win32, you should use the
+forward slash <CODE>/</CODE> even for Win32 pathnames (the <CODE>/</CODE> is translated
+to <CODE>\</CODE> in the output).</P><DIV CLASS="center">
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
+<TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
+<TR><TD ALIGN=left NOWRAP><CODE>c:/Program Files/[A-z]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>c:\Program Files\WindowsUpdate ...</CODE></TD></TR>
+</TABLE>
+</DIV></DD></DL></LI></UL><H3 CLASS="subsection"><A NAME="htoc214">10.4.1</A>&#XA0;&#XA0;glob</H3><P><A NAME="fun:glob"></A><A NAME="function:glob"></A><A NAME="@default227"></A><A NAME="@fun143"></A></P><PRE CLASS="verbatim">   $(glob strings) : Node Array
+      strings : String Sequence
+   $(glob options, strings) : Node Array
+      options : String
+      strings : String Sequence
+</PRE><P>The <CODE>glob</CODE> function performs glob-expansion.</P><P>The . and .. entries are always ignored.</P><P>The options are:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>b</B></DT><DD CLASS="dd-description"> Do not perform <TT>csh</TT>(1)-style brace expansion.
+</DD><DT CLASS="dt-description"><B>e</B></DT><DD CLASS="dd-description"> The <CODE>\</CODE> character does not escape special characters.
+</DD><DT CLASS="dt-description"><B>n</B></DT><DD CLASS="dd-description"> If an expansion fails, return the expansion literally instead of aborting.
+</DD><DT CLASS="dt-description"><B>i</B></DT><DD CLASS="dd-description"> If an expansion fails, it expands to nothing.
+</DD><DT CLASS="dt-description"><B>.</B></DT><DD CLASS="dd-description"> Allow wildcard patterns to match files beginning with a .
+</DD><DT CLASS="dt-description"><B>A</B></DT><DD CLASS="dd-description"> Return all files, including files that begin with a .
+</DD><DT CLASS="dt-description"><B>F</B></DT><DD CLASS="dd-description"> Match only normal files (any file that is not a directory).
+</DD><DT CLASS="dt-description"><B>D</B></DT><DD CLASS="dd-description"> Match only directory files.
+</DD><DT CLASS="dt-description"><B>C</B></DT><DD CLASS="dd-description"> Ignore files according to <TT>cvs</TT>(1) rules.
+</DD><DT CLASS="dt-description"><B>P</B></DT><DD CLASS="dd-description"> Include only proper subdirectories.
+</DD></DL><P>In addition, the following variables may be defined that affect the
+behavior of <CODE>glob</CODE>.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>GLOB_OPTIONS</B></DT><DD CLASS="dd-description"> A string containing default options.
+</DD><DT CLASS="dt-description"><B>GLOB_IGNORE</B></DT><DD CLASS="dd-description"> A list of shell patterns for filenames that <CODE>glob</CODE> should ignore.
+</DD><DT CLASS="dt-description"><B>GLOB_ALLOW</B></DT><DD CLASS="dd-description"> A list of shell patterns. If a file does not match a pattern in
+<CODE>GLOB_ALLOW</CODE>, it is ignored.
+</DD></DL><P>The returned files are sorted by name.
+</P><H3 CLASS="subsection"><A NAME="htoc215">10.4.2</A>&#XA0;&#XA0;ls</H3><P><A NAME="fun:ls"></A><A NAME="function:ls"></A><A NAME="@default228"></A><A NAME="@fun144"></A></P><PRE CLASS="verbatim">   $(ls files) : Node Array
+      files : String Sequence
+   $(ls options, files) : Node Array
+      files : String Sequence
+</PRE><P>The <CODE>ls</CODE> function returns the filenames in a directory.</P><P>The . and .. entries are always ignored.
+The patterns are shell-style patterns, and are glob-expanded.</P><P>The options include all of the options to the <CODE>glob</CODE> function,
+plus the following.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>R</B></DT><DD CLASS="dd-description"> Perform a recursive listing.
+</DD></DL><P>The <CODE>GLOB_ALLOW</CODE> and <CODE>GLOB_IGNORE</CODE> variables can be defined
+to control the globbing behavior.
+The returned files are sorted by name.
+</P><H3 CLASS="subsection"><A NAME="htoc216">10.4.3</A>&#XA0;&#XA0;subdirs</H3><P><A NAME="fun:subdirs"></A><A NAME="function:subdirs"></A><A NAME="@default229"></A><A NAME="@fun145"></A></P><PRE CLASS="verbatim">   $(subdirs dirs) : Dir Array
+      dirs : String Sequence
+   $(subdirs options, dirs) : Dir Array
+      options : String
+      dirs : String Sequence
+</PRE><P>The <CODE>subdirs</CODE> function returns all the subdirectories
+of a list of directories, recursively.</P><P>The possible options are the following:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>A</B></DT><DD CLASS="dd-description"> Return directories that begin with a .
+</DD><DT CLASS="dt-description"><B>C</B></DT><DD CLASS="dd-description"> Ignore files according to <TT>.cvsignore</TT> rules.
+</DD><DT CLASS="dt-description"><B>P</B></DT><DD CLASS="dd-description"> Include only proper subdirectories.
+</DD></DL><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc217">10.5</A>&#XA0;&#XA0;Filesystem operations</H2><H3 CLASS="subsection"><A NAME="htoc218">10.5.1</A>&#XA0;&#XA0;mkdir</H3><P><A NAME="fun:mkdir"></A><A NAME="function:mkdir"></A><A NAME="@default230"></A><A NAME="@fun146"></A></P><PRE CLASS="verbatim">   mkdir(mode, node...)
+      mode : Int
+      node : Node
+   raises RuntimeException
+
+   mkdir(node...)
+      node : Node
+   raises RuntimeException
+</PRE><P>The <CODE>mkdir</CODE> function creates a directory, or a set of directories.
+The following options are supported.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>-m mode</B></DT><DD CLASS="dd-description"> Specify the permissions of the created directory.
+</DD><DT CLASS="dt-description"><B>-p</B></DT><DD CLASS="dd-description"> Create parent directories if they do not exist.
+</DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining names literally.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc219">10.5.2</A>&#XA0;&#XA0;Stat</H3><P><A NAME="obj:Stat"></A><A NAME="object:Stat"></A><A NAME="@default231"></A><A NAME="@obj0"></A></P><P>The <CODE>Stat</CODE> object represents an information about a filesystem node,
+as returned by the <CODE>stat</CODE> and <CODE>lstat</CODE> functions.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>dev</B></DT><DD CLASS="dd-description">: the device number.
+</DD><DT CLASS="dt-description"><B>ino</B></DT><DD CLASS="dd-description">: the inode number.
+</DD><DT CLASS="dt-description"><B>kind</B></DT><DD CLASS="dd-description">: the kind of the file, one of the following:
+<CODE>REG</CODE> (regular file),
+<CODE>DIR</CODE> (directory),
+<CODE>CHR</CODE> (character device),
+<CODE>BLK</CODE> (block device),
+<CODE>LNK</CODE> (symbolic link),
+<CODE>FIFO</CODE> (named pipe),
+<CODE>SOCK</CODE> (socket).
+</DD><DT CLASS="dt-description"><B>perm</B></DT><DD CLASS="dd-description">: access rights, represented as an integer.
+</DD><DT CLASS="dt-description"><B>nlink</B></DT><DD CLASS="dd-description">: number of links.
+</DD><DT CLASS="dt-description"><B>uid</B></DT><DD CLASS="dd-description">: user id of the owner.
+</DD><DT CLASS="dt-description"><B>gid</B></DT><DD CLASS="dd-description">: group id of the file's group.
+</DD><DT CLASS="dt-description"><B>rdev</B></DT><DD CLASS="dd-description">: device minor number.
+</DD><DT CLASS="dt-description"><B>size</B></DT><DD CLASS="dd-description">: size in bytes.
+</DD><DT CLASS="dt-description"><B>atime</B></DT><DD CLASS="dd-description">: last access time, as a floating point number.
+</DD><DT CLASS="dt-description"><B>mtime</B></DT><DD CLASS="dd-description">: last modification time, as a floating point number.
+</DD><DT CLASS="dt-description"><B>ctime</B></DT><DD CLASS="dd-description">: last status change time, as a floating point number.
+</DD></DL><P>Not all of the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc220">10.5.3</A>&#XA0;&#XA0;stat, lstat</H3><P><A NAME="fun:stat"></A><A NAME="function:stat"></A><A NAME="@default232"></A><A NAME="@fun147"></A><A NAME="fun:lstat"></A><A NAME="function:lstat"></A><A NAME="@default233"></A><A NAME="@fun148"></A></P><PRE CLASS="verbatim">    $(stat node...) : Stat
+       node : Node or Channel
+    $(lstat node...) : Stat
+       node : Node or Channel
+    raises RuntimeException
+</PRE><P>The <CODE>stat</CODE> functions return file information.
+If the file is a symbolic link, the <CODE>stat</CODE> function refers to the
+destination of the link; the <CODE>lstat</CODE> function refers to the link
+itself.
+</P><H3 CLASS="subsection"><A NAME="htoc221">10.5.4</A>&#XA0;&#XA0;unlink</H3><P><A NAME="fun:unlink"></A><A NAME="function:unlink"></A><A NAME="@default234"></A><A NAME="@fun149"></A></P><PRE CLASS="verbatim">   $(unlink file...)
+      file : File
+   #(rm file...)
+      file : File
+   $(rmdir dir...)
+      dir : Dir
+   raises RuntimeException
+</PRE><P>The <CODE>unlink</CODE> and <CODE>rm</CODE> functions remove a file.
+The <CODE>rmdir</CODE> function removes a directory.</P><P>The following options are supported for <CODE>rm</CODE> and <CODE>rmdir</CODE>.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>-f</B></DT><DD CLASS="dd-description"> ignore nonexistent files, never prompt.
+</DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> prompt before removal.
+</DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> remove the contents of directories recursively.
+</DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> explain what is going on.
+</DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> the rest of the values are interpreted literally.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc222">10.5.5</A>&#XA0;&#XA0;rename</H3><P><A NAME="fun:rename"></A><A NAME="function:rename"></A><A NAME="@default235"></A><A NAME="@fun150"></A></P><PRE CLASS="verbatim">    rename(old, new)
+       old : Node
+       new : Node
+    mv(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    cp(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    raises RuntimeException
+</PRE><P>The <CODE>rename</CODE> function changes the name of a file or directory named <CODE>old</CODE>
+to <CODE>new</CODE>.</P><P>The <CODE>mv</CODE> function is similar, but if <CODE>new</CODE> is a directory, and it exists,
+then the files specified by the sequence are moved into the directory. If not,
+the behavior of <CODE>mv</CODE> is identical to <CODE>rename</CODE>. The <CODE>cp</CODE> function
+is similar, but the original file is not removed.</P><P>The <CODE>mv</CODE> and <CODE>cp</CODE> functions take the following options.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>-f</B></DT><DD CLASS="dd-description"> Do not prompt before overwriting.
+</DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before overwriting.
+</DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what it happening.
+</DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Copy the contents of directories recursively.
+</DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining arguments literally.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc223">10.5.6</A>&#XA0;&#XA0;link</H3><P><A NAME="fun:link"></A><A NAME="function:link"></A><A NAME="@default236"></A><A NAME="@fun151"></A></P><PRE CLASS="verbatim">   link(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+</PRE><P>The <CODE>link</CODE> function creates a hard link named <CODE>dst</CODE> to the file
+or directory <CODE>src</CODE>.</P><P>Hard links may work under Win32 when NTFS is used.</P><P>Normally, only the superuser can create hard links to directories.
+</P><H3 CLASS="subsection"><A NAME="htoc224">10.5.7</A>&#XA0;&#XA0;symlink</H3><P><A NAME="fun:symlink"></A><A NAME="function:symlink"></A><A NAME="@default237"></A><A NAME="@fun152"></A></P><PRE CLASS="verbatim">   symlink(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+</PRE><P>The <CODE>symlink</CODE> function creates a symbolic link <CODE>dst</CODE> that
+points to the <CODE>src</CODE> file.</P><P>The link name is computed relative to
+the target directory. For example, the expression
+<CODE>$(symlink a/b, c/d)</CODE> creates a link named
+<CODE>c/d -&gt; ../a/b</CODE>.</P><P>Symbolic links are not supported in Win32. Consider using the <CODE>ln-or-cp</CODE>
+<CODE>Shell</CODE> alias for cross-platform portable linking/copying.
+</P><H3 CLASS="subsection"><A NAME="htoc225">10.5.8</A>&#XA0;&#XA0;readlink</H3><P><A NAME="fun:readlink"></A><A NAME="function:readlink"></A><A NAME="@default238"></A><A NAME="@fun153"></A></P><PRE CLASS="verbatim">   $(readlink node...) : Node
+      node : Node
+</PRE><P>The <CODE>readlink</CODE> function reads the value of a symbolic link.
+</P><H3 CLASS="subsection"><A NAME="htoc226">10.5.9</A>&#XA0;&#XA0;chmod</H3><P><A NAME="fun:chmod"></A><A NAME="function:chmod"></A><A NAME="@default239"></A><A NAME="@fun154"></A></P><PRE CLASS="verbatim">   chmod(mode, dst...)
+      mode : Int
+      dst : Node or Channel
+   chmod(mode dst...)
+      mode : String
+      dst : Node Sequence
+   raises RuntimeException
+</PRE><P>The <CODE>chmod</CODE> function changes the permissions of the targets.</P><P>Options:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
+</DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Change files and directories recursively.
+</DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
+</DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining argument literally.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc227">10.5.10</A>&#XA0;&#XA0;chown</H3><P><A NAME="fun:chown"></A><A NAME="function:chown"></A><A NAME="@default240"></A><A NAME="@fun155"></A></P><PRE CLASS="verbatim">   chown(uid, gid, node...)
+      uid : Int
+      gid : Int
+      node : Node or Channel
+   chown(uid, node...)
+      uid : Int
+      node : Node or Channel
+   raises RuntimeException
+</PRE><P>The <CODE>chown</CODE> function changes the user and group id of the file.
+If the <CODE>gid</CODE> is not specified, it is not changed. If either
+id is -1, that id is not changed.
+</P><H3 CLASS="subsection"><A NAME="htoc228">10.5.11</A>&#XA0;&#XA0;truncate</H3><P><A NAME="fun:truncate"></A><A NAME="function:truncate"></A><A NAME="@default241"></A><A NAME="@fun156"></A></P><PRE CLASS="verbatim">   truncate(length, node...)
+       length : Int
+       node : Node or Channel
+   raises RuntimeException
+</PRE><P>The <CODE>truncate</CODE> function truncates a file to the given length.
+</P><H3 CLASS="subsection"><A NAME="htoc229">10.5.12</A>&#XA0;&#XA0;umask</H3><P><A NAME="fun:umask"></A><A NAME="function:umask"></A><A NAME="@default242"></A><A NAME="@fun157"></A></P><PRE CLASS="verbatim">    $(umask mode) : Int
+       mode : Int
+    raises RuntimeException
+</PRE><P>Sets the file mode creation mask.
+The previous mask is returned.
+This value is not scoped, changes have global effect.
+</P><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc230">10.6</A>&#XA0;&#XA0;vmount</H2><H3 CLASS="subsection"><A NAME="htoc231">10.6.1</A>&#XA0;&#XA0;vmount</H3><P><A NAME="fun:vmount"></A><A NAME="function:vmount"></A><A NAME="@default243"></A><A NAME="@fun158"></A></P><PRE CLASS="verbatim">    vmount(src, dst)
+       src, dst : Dir
+    vmount(flags, src, dst)
+       flags : String
+       src, dst : Dir
+</PRE><P>&#X201C;Mount&#X201D; the <CODE>src</CODE> directory on the <CODE>dst</CODE> directory. This is
+a virtual mount, changing the behavior of the <CODE>$(file ...)</CODE> function.
+When the <CODE>$(file str)</CODE> function is used, the resulting file is taken
+relative to the <CODE>src</CODE> directory if the file exists. Otherwise, the
+file is relative to the current directory.</P><P>The main purpose of the <CODE>vmount</CODE> function is to support multiple
+builds with separate configurations or architectures.</P><P>The options are as follows.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>l</B></DT><DD CLASS="dd-description"> Create symbolic links to files in the <CODE>src</CODE> directory.
+</DD><DT CLASS="dt-description"><B>c</B></DT><DD CLASS="dd-description"> Copy files from the <CODE>src</CODE> directory.
+</DD></DL><P>Mount operations are scoped.
+</P><H3 CLASS="subsection"><A NAME="htoc232">10.6.2</A>&#XA0;&#XA0;add-project-directories</H3><P><A NAME="fun:add-project-directories"></A><A NAME="function:add-project-directories"></A><A NAME="@default244"></A><A NAME="@fun159"></A></P><PRE CLASS="verbatim">    add-project-directories(dirs)
+       dirs : Dir Array
+</PRE><P>Add the directories to the set of directories that omake considers to be part
+of the project. This is mainly used to avoid omake complaining that the
+current directory is not part of the project.
+</P><H3 CLASS="subsection"><A NAME="htoc233">10.6.3</A>&#XA0;&#XA0;remove-project-directories</H3><P><A NAME="fun:remove-project-directories"></A><A NAME="function:remove-project-directories"></A><A NAME="@default245"></A><A NAME="@fun160"></A></P><PRE CLASS="verbatim">    remove-project-directories(dirs)
+       dirs : Dir Array
+</PRE><P>Removed the directories from the set of directories that omake considers to be part
+of the project. This is mainly used to cancel a <CODE>.SUBDIRS</CODE> from including
+a directory if it is determined that the directory does not need to be compiled.
+</P><H2 CLASS="section"><A NAME="toc79"></A><A NAME="htoc234">10.7</A>&#XA0;&#XA0;File predicates</H2><H3 CLASS="subsection"><A NAME="htoc235">10.7.1</A>&#XA0;&#XA0;test</H3><P><A NAME="fun:test"></A><A NAME="function:test"></A><A NAME="@default246"></A><A NAME="@fun161"></A></P><PRE CLASS="verbatim">   test(exp) : Bool
+      exp : String Sequence
+</PRE><P>The <EM>expression</EM> grammar is as follows:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>!</CODE> <EM>expression</EM> : <EM>expression</EM> is not true
+</LI><LI CLASS="li-itemize"><EM>expression1</EM> <CODE>-a</CODE> <EM>expression2</EM> : both expressions are true
+</LI><LI CLASS="li-itemize"><EM>expression1</EM> <CODE>-o</CODE> <EM>expression2</EM> : at least one expression is true
+</LI><LI CLASS="li-itemize"><CODE>(</CODE> <EM>expression</EM> <CODE>)</CODE> : <EM>expression</EM> is true
+</LI></UL><P>The base expressions are:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>-n</CODE> <EM>string</EM> : The <EM>string</EM> has nonzero length
+</LI><LI CLASS="li-itemize"><CODE>-z</CODE> <EM>string</EM> : The <EM>string</EM> has zero length
+</LI><LI CLASS="li-itemize"><EM>string</EM> <CODE>=</CODE> <EM>string</EM> : The strings are equal
+</LI><LI CLASS="li-itemize"><EM>string</EM> <CODE>!=</CODE> <EM>string</EM> : The strings are not equal</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-eq</CODE> <EM>int2</EM> : The integers are equal
+</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-ne</CODE> <EM>int2</EM> : The integers are not equal
+</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-gt</CODE> <EM>int2</EM> : <EM>int1</EM> is larger than <EM>int2</EM>
+</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-ge</CODE> <EM>int2</EM> : <EM>int2</EM> is not larger than <EM>int1</EM>
+</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-lt</CODE> <EM>int2</EM> : <EM>int1</EM> is smaller than <EM>int2</EM>
+</LI><LI CLASS="li-itemize"><EM>int1</EM> <CODE>-le</CODE> <EM>int2</EM> : <EM>int1</EM> is not larger than <EM>int2</EM></LI><LI CLASS="li-itemize"><EM>file1</EM> <CODE>-ef</CODE> <EM>file2</EM> : On Unix, <EM>file1</EM> and <EM>file2</EM> have the
+same device and inode number.
+On Win32, <EM>file1</EM> and <EM>file2</EM> have the
+same name.
+</LI><LI CLASS="li-itemize"><EM>file1</EM> <CODE>-nt</CODE> <EM>file2</EM> : <EM>file1</EM> is newer than <EM>file2</EM>
+</LI><LI CLASS="li-itemize"><EM>file1</EM> <CODE>-ot</CODE> <EM>file2</EM> : <EM>file1</EM> is older than <EM>file2</EM></LI><LI CLASS="li-itemize"><CODE>-b</CODE> <EM>file</EM> : The file is a block special file
+</LI><LI CLASS="li-itemize"><CODE>-c</CODE> <EM>file</EM> : The file is a character special file
+</LI><LI CLASS="li-itemize"><CODE>-d</CODE> <EM>file</EM> : The file is a directory
+</LI><LI CLASS="li-itemize"><CODE>-e</CODE> <EM>file</EM> : The file exists
+</LI><LI CLASS="li-itemize"><CODE>-f</CODE> <EM>file</EM> : The file is a normal file
+</LI><LI CLASS="li-itemize"><CODE>-g</CODE> <EM>file</EM> : The set<CODE>-group-id</CODE> bit is set on the file
+</LI><LI CLASS="li-itemize"><CODE>-G</CODE> <EM>file</EM> : The file's group is the current effective group
+</LI><LI CLASS="li-itemize"><CODE>-h</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-L</CODE>)
+</LI><LI CLASS="li-itemize"><CODE>-k</CODE> <EM>file</EM> : The file's sticky bit is set
+</LI><LI CLASS="li-itemize"><CODE>-L</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-h</CODE>)
+</LI><LI CLASS="li-itemize"><CODE>-O</CODE> <EM>file</EM> : The file's owner is the current effective user
+</LI><LI CLASS="li-itemize"><CODE>-p</CODE> <EM>file</EM> : The file is a named pipe
+</LI><LI CLASS="li-itemize"><CODE>-r</CODE> <EM>file</EM> : The file is readable
+</LI><LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file is empty
+</LI><LI CLASS="li-itemize"><CODE>-S</CODE> <EM>file</EM> : The file is a socket
+</LI><LI CLASS="li-itemize"><CODE>-u</CODE> <EM>file</EM> : The set<CODE>-user-id</CODE> bit is set on the file
+</LI><LI CLASS="li-itemize"><CODE>-w</CODE> <EM>file</EM> : The file is writable
+</LI><LI CLASS="li-itemize"><CODE>-x</CODE> <EM>file</EM> : The file is executable
+</LI></UL><P>A <EM>string</EM> is any sequence of characters; leading <CODE>-</CODE> characters are allowed.</P><P>An <EM>int</EM> is a <EM>string</EM> that can be interpreted as an integer. Unlike traditional
+versions of the test program, the leading characters may specify an arity. The
+prefix <CODE>0b</CODE> means the numbers is in binary; the prefix <CODE>0o</CODE> means
+the number is in octal; the prefix <CODE>0x</CODE> means the number is in hexadecimal.
+An <EM>int</EM> can also be specified as <CODE>-l</CODE> <EM>string</EM>, which evaluates to the length of
+the <EM>string</EM>.</P><P>A <EM>file</EM> is a <EM>string</EM> that represents the name of a file.</P><P>The syntax mirrors that of the <TT>test</TT>(1) program. If you are on a Unix system, the man page
+explains more. Here are some examples.</P><PRE CLASS="verbatim">    # Create an empty file
+    osh&gt; touch foo
+    # Is the file empty?
+    osh&gt; test(-e foo)
+    - : true
+    osh&gt; test(! -e foo)
+    - : false
+    # Create another file
+    osh&gt; touch boo
+    # Is the newer file newer?
+    osh&gt; test(boo -nt foo)
+    - : true
+    # A more complex query
+    # boo is newer than foo, and foo is empty
+    osh&gt; test(\( boo -nt foo \) -a -e foo)
+    - : true
+</PRE><H3 CLASS="subsection"><A NAME="htoc236">10.7.2</A>&#XA0;&#XA0;find</H3><P><A NAME="fun:find"></A><A NAME="function:find"></A><A NAME="@default247"></A><A NAME="@fun162"></A></P><PRE CLASS="verbatim">   find(exp) : Node Array
+      exp : String Sequence
+</PRE><P>The <CODE>find</CODE> function searches a directory recursively, returning the
+files for which the expression evaluates to true.</P><P>The expression argument uses the same syntax as the <CODE>test</CODE> function,
+with the following exceptions.</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+The expression may begin with a directory. If not specified, the current
+directory is searched.
+</LI><LI CLASS="li-enumerate">The <CODE>{}</CODE> string expands to the current file being examined.
+</LI></OL><P>The syntax of the expression is the same as <CODE>test</CODE>, with the following
+additions.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>-name</CODE> <EM>string</EM> : The current file matches the glob expression
+(see Section&#XA0;<A HREF="#section:globbing">10.4</A>).
+</LI><LI CLASS="li-itemize"><CODE>-regex</CODE> <EM>string</EM> : The current file matches the regular expression
+</LI></UL><P>The <CODE>find</CODE> function performs a recursive scan of all subdirectories.
+The following call is being run from the root of the <CODE>omake</CODE> source directory.</P><PRE CLASS="verbatim">    osh&gt; find(. -name fo* )
+    - : &lt;array
+            /home/jyh/.../omake/mk/.svn/format
+            /home/jyh/.../omake/RPM/.svn/format
+            ...
+            /home/jyh/.../omake/osx_resources/installer_files/.svn/format&gt;
+</PRE><P>Another example, listing only those files that are normal files
+or symbolic links.</P><PRE CLASS="verbatim">    osh&gt; find(. -name fo* -a \( -f {} -o -L {} \))
+    - : &lt;array
+            /home/jyh/.../omake/mk/.svn/format
+            /home/jyh/.../omake/RPM/.svn/format
+            ...
+            /home/jyh/.../omake/osx_resources/installer_files/.svn/format&gt;
+</PRE><H2 CLASS="section"><A NAME="toc80"></A><A NAME="htoc237">10.8</A>&#XA0;&#XA0;IO functions</H2><H3 CLASS="subsection"><A NAME="htoc238">10.8.1</A>&#XA0;&#XA0;Standard channels</H3><P>The following variables define the standard channels.</P><H5 CLASS="paragraph">stdin</H5><P><A NAME="var:stdin"></A><A NAME="@default248"></A><A NAME="@var20"></A></P><PRE CLASS="verbatim">stdin : InChannel
+</PRE><P>The standard input channel, open for reading.</P><H5 CLASS="paragraph">stdout</H5><P><A NAME="var:stdout"></A><A NAME="@default249"></A><A NAME="@var21"></A>
+</P><PRE CLASS="verbatim">stdout : OutChannel
+</PRE><P>The standard output channel, open for writing.</P><H5 CLASS="paragraph">stderr</H5><P><A NAME="var:stderr"></A><A NAME="@default250"></A><A NAME="@var22"></A>
+</P><PRE CLASS="verbatim">stderr : OutChannel
+</PRE><P>The standard error channel, open for writing.
+</P><H3 CLASS="subsection"><A NAME="htoc239">10.8.2</A>&#XA0;&#XA0;open-in-string</H3><P><A NAME="fun:open-in-string"></A><A NAME="function:open-in-string"></A><A NAME="@default251"></A><A NAME="@fun163"></A>
+The <CODE>open-in-string</CODE> treats a string as if it were a file
+and returns a channel for reading.</P><PRE CLASS="verbatim">   $(open-in-string s) : Channel
+       s : String
+</PRE><H3 CLASS="subsection"><A NAME="htoc240">10.8.3</A>&#XA0;&#XA0;open-out-string, out-contents</H3><P><A NAME="fun:open-out-string"></A><A NAME="function:open-out-string"></A><A NAME="@default252"></A><A NAME="@fun164"></A><A NAME="fun:out-contents"></A><A NAME="function:out-contents"></A><A NAME="@default253"></A><A NAME="@fun165"></A>
+The <CODE>open-out-string</CODE> creates a channel that writes to a
+string instead of a file. The string may be retrieved with the
+<CODE>out-contents</CODE> function.</P><PRE CLASS="verbatim">   $(open-out-string) : Channel
+   $(out-contents chan) : String
+       chan : OutChannel
+</PRE><H3 CLASS="subsection"><A NAME="htoc241">10.8.4</A>&#XA0;&#XA0;fopen</H3><P><A NAME="fun:fopen"></A><A NAME="function:fopen"></A><A NAME="@default254"></A><A NAME="@fun166"></A></P><P>The <CODE>fopen</CODE> function opens a file for reading or writing.</P><PRE CLASS="verbatim">   $(fopen file, mode) : Channel
+      file : File
+      mode : String
+</PRE><P>The <CODE>file</CODE> is the name of the file to be opened.
+The <CODE>mode</CODE> is a combination of the following characters.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>r</B></DT><DD CLASS="dd-description"> Open the file for reading; it is an error if the file does not exist.
+</DD><DT CLASS="dt-description"><B>w</B></DT><DD CLASS="dd-description"> Open the file for writing; the file is created if it does not exist.
+</DD><DT CLASS="dt-description"><B>a</B></DT><DD CLASS="dd-description"> Open the file in append mode; the file is created if it does not exist.
+</DD><DT CLASS="dt-description"><B>+</B></DT><DD CLASS="dd-description"> Open the file for both reading and writing.
+</DD><DT CLASS="dt-description"><B>t</B></DT><DD CLASS="dd-description"> Open the file in text mode (default).
+</DD><DT CLASS="dt-description"><B>b</B></DT><DD CLASS="dd-description"> Open the file in binary mode.
+</DD><DT CLASS="dt-description"><B>n</B></DT><DD CLASS="dd-description"> Open the file in nonblocking mode.
+</DD><DT CLASS="dt-description"><B>x</B></DT><DD CLASS="dd-description"> Fail if the file already exists.
+</DD></DL><P>Binary mode is not significant on Unix systems, where
+text and binary modes are equivalent.
+</P><H3 CLASS="subsection"><A NAME="htoc242">10.8.5</A>&#XA0;&#XA0;close</H3><P><A NAME="fun:close"></A><A NAME="function:close"></A><A NAME="@default255"></A><A NAME="@fun167"></A></P><PRE CLASS="verbatim">    $(close channel...)
+       channel : Channel
+</PRE><P>The <CODE>close</CODE> function closes a file that was previously opened
+with <CODE>fopen</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc243">10.8.6</A>&#XA0;&#XA0;read, input-line</H3><P><A NAME="fun:read"></A><A NAME="function:read"></A><A NAME="@default256"></A><A NAME="@fun168"></A><A NAME="fun:input-line"></A><A NAME="function:input-line"></A><A NAME="@default257"></A><A NAME="@fun169"></A></P><PRE CLASS="verbatim">   $(read channel, amount) : String
+   $(input-line channel) : String
+      channel : InChannel
+      amount  : Int
+   raises RuntimeException
+</PRE><P>The <CODE>read</CODE> function reads up to <CODE>amount</CODE>
+bytes from an input channel, and returns
+the data that was read. The <CODE>input-line</CODE> function reads a line from the file and returns the line read, without
+the line terminator. If an end-of-file condition is reached, both functions raise a <CODE>RuntimeException</CODE>
+exception.
+</P><H3 CLASS="subsection"><A NAME="htoc244">10.8.7</A>&#XA0;&#XA0;write</H3><P><A NAME="fun:write"></A><A NAME="function:write"></A><A NAME="@default258"></A><A NAME="@fun170"></A></P><PRE CLASS="verbatim">   $(write channel, buffer, offset, amount) : String
+      channel : OutChannel
+      buffer  : String
+      offset  : Int
+      amount  : Int
+   $(write channel, buffer) : String
+      channel : OutChannel
+      buffer  : String
+   raises RuntimeException
+</PRE><P>In the 4-argument form, the <CODE>write</CODE> function writes
+bytes to the output channel <CODE>channel</CODE> from the <CODE>buffer</CODE>,
+starting at position <CODE>offset</CODE>. Up to <CODE>amount</CODE> bytes
+are written. The function returns the number of bytes that were
+written.</P><P>The 3-argument form is similar, but the <CODE>offset</CODE> is 0.</P><P>In the 2-argument form, the <CODE>offset</CODE> is 0, and the <CODE>amount</CODE>
+if the length of the <CODE>buffer</CODE>.</P><P>If an end-of-file condition is reached,
+the function raises a <CODE>RuntimeException</CODE> exception.
+</P><H3 CLASS="subsection"><A NAME="htoc245">10.8.8</A>&#XA0;&#XA0;lseek</H3><P><A NAME="fun:lseek"></A><A NAME="function:lseek"></A><A NAME="@default259"></A><A NAME="@fun171"></A></P><PRE CLASS="verbatim">    $(lseek channel, offset, whence) : Int
+       channel : Channel
+       offset  : Int
+       whence  : String
+    raises RuntimeException
+</PRE><P>The <CODE>lseek</CODE> function repositions the offset of the
+channel <CODE>channel</CODE> according to the <CODE>whence</CODE> directive, as
+follows:</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>SEEK_SET</B></DT><DD CLASS="dd-description"> The offset is set to <CODE>offset</CODE>.
+</DD><DT CLASS="dt-description"><B>SEEK_CUR</B></DT><DD CLASS="dd-description"> The offset is set to its current position plus <CODE>offset</CODE> bytes.
+</DD><DT CLASS="dt-description"><B>SEEK_END</B></DT><DD CLASS="dd-description"> The offset is set to the size of the file plus <CODE>offset</CODE> bytes.
+</DD></DL><P>The <CODE>lseek</CODE> function returns the new position in the file.
+</P><H3 CLASS="subsection"><A NAME="htoc246">10.8.9</A>&#XA0;&#XA0;rewind</H3><P><A NAME="fun:rewind"></A><A NAME="function:rewind"></A><A NAME="@default260"></A><A NAME="@fun172"></A></P><PRE CLASS="verbatim">   rewind(channel...)
+      channel : Channel
+</PRE><P>The <CODE>rewind</CODE> function set the current file position to the
+beginning of the file.
+</P><H3 CLASS="subsection"><A NAME="htoc247">10.8.10</A>&#XA0;&#XA0;tell</H3><P><A NAME="fun:tell"></A><A NAME="function:tell"></A><A NAME="@default261"></A><A NAME="@fun173"></A></P><PRE CLASS="verbatim">    $(tell channel...) : Int...
+       channel : Channel
+    raises RuntimeException
+</PRE><P>The <CODE>tell</CODE> function returns the current position of the <CODE>channel</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc248">10.8.11</A>&#XA0;&#XA0;flush</H3><P><A NAME="fun:flush"></A><A NAME="function:flush"></A><A NAME="@default262"></A><A NAME="@fun174"></A></P><PRE CLASS="verbatim">   $(flush channel...)
+      channel : OutChannel
+</PRE><P>The <CODE>flush</CODE> function can be used only on files that are open for writing.
+It flushes all pending data to the file.
+</P><H3 CLASS="subsection"><A NAME="htoc249">10.8.12</A>&#XA0;&#XA0;channel-name</H3><P><A NAME="fun:channel-name"></A><A NAME="function:channel-name"></A><A NAME="@default263"></A><A NAME="@fun175"></A></P><PRE CLASS="verbatim">   $(channel-name channel...) : String
+      channel : Channel
+</PRE><P>The <CODE>channel-name</CODE> function returns the name that is associated with the channel.
+</P><H3 CLASS="subsection"><A NAME="htoc250">10.8.13</A>&#XA0;&#XA0;dup</H3><P><A NAME="fun:dup"></A><A NAME="function:dup"></A><A NAME="@default264"></A><A NAME="@fun176"></A></P><PRE CLASS="verbatim">    $(dup channel) : Channel
+       channel : Channel
+    raises RuntimeException
+</PRE><P>The <CODE>dup</CODE> function returns a new channel referencing the
+same file as the argument.
+</P><H3 CLASS="subsection"><A NAME="htoc251">10.8.14</A>&#XA0;&#XA0;dup2</H3><P><A NAME="fun:dup2"></A><A NAME="function:dup2"></A><A NAME="@default265"></A><A NAME="@fun177"></A></P><PRE CLASS="verbatim">   dup2(channel1, channel2)
+      channel1 : Channel
+      channel2 : Channel
+   raises RuntimeException
+</PRE><P>The <CODE>dup2</CODE> function causes <CODE>channel2</CODE> to refer to the same
+file as <CODE>channel1</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc252">10.8.15</A>&#XA0;&#XA0;set-nonblock</H3><P><A NAME="fun:set-nonblock"></A><A NAME="function:set-nonblock"></A><A NAME="@default266"></A><A NAME="@fun178"></A></P><PRE CLASS="verbatim">   set-nonblock-mode(mode, channel...)
+      channel : Channel
+      mode : String
+</PRE><P>The <CODE>set-nonblock-mode</CODE> function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a <CODE>RuntimeException</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc253">10.8.16</A>&#XA0;&#XA0;set-close-on-exec-mode</H3><P><A NAME="fun:set-close-on-exec-mode"></A><A NAME="function:set-close-on-exec-mode"></A><A NAME="@default267"></A><A NAME="@fun179"></A></P><PRE CLASS="verbatim">   set-close-on-exec-mode(mode, channel...)
+      channel : Channel
+      mode : String
+   raises RuntimeException
+</PRE><P>The <CODE>set-close-on-exec-mode</CODE> function sets the close-on-exec
+flags for the given channels. If the close-on-exec flag is set, the channel
+is not inherited by child processes. Otherwise it is.
+</P><H3 CLASS="subsection"><A NAME="htoc254">10.8.17</A>&#XA0;&#XA0;pipe</H3><P><A NAME="fun:pipe"></A><A NAME="function:pipe"></A><A NAME="@default268"></A><A NAME="@fun180"></A></P><PRE CLASS="verbatim">   $(pipe) : Pipe
+   raises RuntimeException
+</PRE><P>The <CODE>pipe</CODE> function creates a <CODE>Pipe</CODE> object, which has two
+fields. The <CODE>read</CODE> field is a channel that is opened for
+reading, and the <CODE>write</CODE> field is a channel that is opened
+for writing.
+</P><H3 CLASS="subsection"><A NAME="htoc255">10.8.18</A>&#XA0;&#XA0;mkfifo</H3><P><A NAME="fun:mkfifo"></A><A NAME="function:mkfifo"></A><A NAME="@default269"></A><A NAME="@fun181"></A></P><PRE CLASS="verbatim">   mkfifo(mode, node...)
+      mode : Int
+      node : Node
+</PRE><P>The <CODE>mkfifo</CODE> function creates a named pipe.
+</P><H3 CLASS="subsection"><A NAME="htoc256">10.8.19</A>&#XA0;&#XA0;select</H3><P><A NAME="fun:select"></A><A NAME="function:select"></A><A NAME="@default270"></A><A NAME="@fun182"></A></P><PRE CLASS="verbatim">   $(select rfd..., wfd..., wfd..., timeout) : Select
+      rfd : InChannel
+      wfd : OutChannel
+      efd : Channel
+      timeout : float
+   raises RuntimeException
+</PRE><P>The <CODE>select</CODE> function polls for possible IO on a set of channels.
+The <CODE>rfd</CODE> are a sequence of channels for reading, <CODE>wfd</CODE> are a
+sequence of channels for writing, and <CODE>efd</CODE> are a sequence of
+channels to poll for error conditions. The <CODE>timeout</CODE> specifies
+the maximum amount of time to wait for events.</P><P>On successful return, <CODE>select</CODE> returns a <CODE>Select</CODE> object,
+which has the following fields:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>read</B></DT><DD CLASS="dd-description"> An array of channels available for reading.
+</DD><DT CLASS="dt-description"><B>write</B></DT><DD CLASS="dd-description"> An array of channels available for writing.
+</DD><DT CLASS="dt-description"><B>error</B></DT><DD CLASS="dd-description"> An array of channels on which an error has occurred.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc257">10.8.20</A>&#XA0;&#XA0;lockf</H3><P><A NAME="fun:lockf"></A><A NAME="function:lockf"></A><A NAME="@default271"></A><A NAME="@fun183"></A></P><PRE CLASS="verbatim">    lockf(channel, command, len)
+       channel : Channel
+       command : String
+       len : Int
+    raises RuntimeException
+</PRE><P>The <CODE>lockf</CODE> function places a lock on a region of the channel.
+The region starts at the current position and extends for <CODE>len</CODE>
+bytes.</P><P>The possible values for <CODE>command</CODE> are the following.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>F_ULOCK</B></DT><DD CLASS="dd-description"> Unlock a region.
+</DD><DT CLASS="dt-description"><B>F_LOCK</B></DT><DD CLASS="dd-description"> Lock a region for writing; block if already locked.
+</DD><DT CLASS="dt-description"><B>F_TLOCK</B></DT><DD CLASS="dd-description"> Lock a region for writing; fail if already locked.
+</DD><DT CLASS="dt-description"><B>F_TEST</B></DT><DD CLASS="dd-description"> Test a region for other locks.
+</DD><DT CLASS="dt-description"><B>F_RLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; block if already locked.
+</DD><DT CLASS="dt-description"><B>F_TRLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; fail is already locked.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc258">10.8.21</A>&#XA0;&#XA0;InetAddr</H3><P><A NAME="obj:InetAddr"></A><A NAME="object:InetAddr"></A><A NAME="@default272"></A><A NAME="@obj1"></A></P><P>The <CODE>InetAddr</CODE> object describes an Internet address.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>addr</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the Internet address.
+</DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc259">10.8.22</A>&#XA0;&#XA0;Host</H3><P><A NAME="obj:Host"></A><A NAME="object:Host"></A><A NAME="@default273"></A><A NAME="@obj2"></A></P><P>A <CODE>Host</CODE> object contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the host.
+</DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: other names by which the host is known.
+</DD><DT CLASS="dt-description"><B>addrtype</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the preferred socket domain.
+</DD><DT CLASS="dt-description"><B>addrs</B></DT><DD CLASS="dd-description"> <CODE>InetAddr Array</CODE>: an array of Internet addresses belonging to the host.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc260">10.8.23</A>&#XA0;&#XA0;gethostbyname</H3><P><A NAME="fun:gethostbyname"></A><A NAME="function:gethostbyname"></A><A NAME="@default274"></A><A NAME="@fun184"></A></P><PRE CLASS="verbatim">   $(gethostbyname host...) : Host...
+      host : String
+   raises RuntimeException
+</PRE><P>The <CODE>gethostbyname</CODE> function returns a <CODE>Host</CODE> object
+for the specified host. The <CODE>host</CODE> may specify a domain name
+or an Internet address.</P><H3 CLASS="subsection"><A NAME="htoc261">10.8.24</A>&#XA0;&#XA0;Protocol</H3><P><A NAME="obj:Protocol"></A><A NAME="object:Protocol"></A><A NAME="@default275"></A><A NAME="@obj3"></A></P><P>The <CODE>Protocol</CODE> object represents a protocol entry.
+It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the canonical name of the protocol.
+</DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the protocol.
+</DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the protocol number.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc262">10.8.25</A>&#XA0;&#XA0;getprotobyname</H3><P><A NAME="fun:getprotobyname"></A><A NAME="function:getprotobyname"></A><A NAME="@default276"></A><A NAME="@fun185"></A></P><PRE CLASS="verbatim">   $(getprotobyname name...) : Protocol...
+      name : Int or String
+   raises RuntimeException
+</PRE><P>The <CODE>getprotobyname</CODE> function returns a <CODE>Protocol</CODE> object for the
+specified protocol. The <CODE>name</CODE> may be a protocol name, or a
+protocol number.
+</P><H3 CLASS="subsection"><A NAME="htoc263">10.8.26</A>&#XA0;&#XA0;Service</H3><P><A NAME="obj:Service"></A><A NAME="object:Service"></A><A NAME="@default277"></A><A NAME="@obj4"></A></P><P>The <CODE>Service</CODE> object represents a network service.
+It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the service.
+</DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the service.
+</DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number of the service.
+</DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Protocol</CODE>: the protocol for the service.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc264">10.8.27</A>&#XA0;&#XA0;getservbyname</H3><P><A NAME="fun:getservbyname"></A><A NAME="function:getservbyname"></A><A NAME="@default278"></A><A NAME="@fun186"></A></P><PRE CLASS="verbatim">   $(getservbyname service...) : Service...
+      service : String or Int
+   raises RuntimeException
+</PRE><P>The <CODE>getservbyname</CODE> function gets the information for a network service.
+The <CODE>service</CODE> may be specified as a service name or number.
+</P><H3 CLASS="subsection"><A NAME="htoc265">10.8.28</A>&#XA0;&#XA0;socket</H3><P><A NAME="fun:socket"></A><A NAME="function:socket"></A><A NAME="@default279"></A><A NAME="@fun187"></A></P><PRE CLASS="verbatim">   $(socket domain, type, protocol) : Channel
+      domain : String
+      type : String
+      protocol : String
+   raises RuntimeException
+</PRE><P>The <CODE>socket</CODE> function creates an unbound socket.</P><P>The possible values for the arguments are as follows.</P><P>The <CODE>domain</CODE> may have the following values.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>PF_UNIX or unix</B></DT><DD CLASS="dd-description"> Unix domain, available only on Unix systems.
+</DD><DT CLASS="dt-description"><B>PF_INET or inet</B></DT><DD CLASS="dd-description"> Internet domain, IPv4.
+</DD><DT CLASS="dt-description"><B>PF_INET6 or inet6</B></DT><DD CLASS="dd-description"> Internet domain, IPv6.
+</DD></DL><P>The <CODE>type</CODE> may have the following values.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>SOCK_STREAM or stream</B></DT><DD CLASS="dd-description"> Stream socket.
+</DD><DT CLASS="dt-description"><B>SOCK_DGRAM or dgram</B></DT><DD CLASS="dd-description"> Datagram socket.
+</DD><DT CLASS="dt-description"><B>SOCK_RAW or raw</B></DT><DD CLASS="dd-description"> Raw socket.
+</DD><DT CLASS="dt-description"><B>SOCK_SEQPACKET or seqpacket</B></DT><DD CLASS="dd-description"> Sequenced packets socket
+</DD></DL><P>The <CODE>protocol</CODE> is an <CODE>Int</CODE> or <CODE>String</CODE> that specifies
+a protocol in the protocols database.
+</P><H3 CLASS="subsection"><A NAME="htoc266">10.8.29</A>&#XA0;&#XA0;bind</H3><P><A NAME="fun:bind"></A><A NAME="function:bind"></A><A NAME="@default280"></A><A NAME="@fun188"></A></P><PRE CLASS="verbatim">   bind(socket, host, port)
+      socket : InOutChannel
+      host : String
+      port : Int
+   bind(socket, file)
+      socket : InOutChannel
+      file : File
+   raise RuntimeException
+</PRE><P>The <CODE>bind</CODE> function binds a socket to an address.</P><P>The 3-argument form specifies an Internet connection, the <CODE>host</CODE> specifies a host name
+or IP address, and the <CODE>port</CODE> is a port number.</P><P>The 2-argument form is for <CODE>Unix</CODE> sockets. The <CODE>file</CODE> specifies the filename
+for the address.
+</P><H3 CLASS="subsection"><A NAME="htoc267">10.8.30</A>&#XA0;&#XA0;listen</H3><P><A NAME="fun:listen"></A><A NAME="function:listen"></A><A NAME="@default281"></A><A NAME="@fun189"></A></P><PRE CLASS="verbatim">   listen(socket, requests)
+      socket : InOutChannel
+      requests : Int
+   raises RuntimeException
+</PRE><P>The <CODE>listen</CODE> function sets up the socket for receiving up to <CODE>requests</CODE> number
+of pending connection requests.
+</P><H3 CLASS="subsection"><A NAME="htoc268">10.8.31</A>&#XA0;&#XA0;accept</H3><P><A NAME="fun:accept"></A><A NAME="function:accept"></A><A NAME="@default282"></A><A NAME="@fun190"></A></P><PRE CLASS="verbatim">   $(accept socket) : InOutChannel
+      socket : InOutChannel
+   raises RuntimeException
+</PRE><P>The <CODE>accept</CODE> function accepts a connection on a socket.
+</P><H3 CLASS="subsection"><A NAME="htoc269">10.8.32</A>&#XA0;&#XA0;connect</H3><P><A NAME="fun:connect"></A><A NAME="function:connect"></A><A NAME="@default283"></A><A NAME="@fun191"></A></P><PRE CLASS="verbatim">    connect(socket, addr, port)
+       socket : InOutChannel
+       addr : String
+       port : int
+    connect(socket, name)
+       socket : InOutChannel
+       name : File
+    raise RuntimeException
+</PRE><P>The <CODE>connect</CODE> function connects a socket to a remote address.</P><P>The 3-argument form specifies an Internet connection.
+The <CODE>addr</CODE> argument is the Internet address of the remote host,
+specified as a domain name or IP address. The <CODE>port</CODE> argument
+is the port number.</P><P>The 2-argument form is for Unix sockets. The <CODE>name</CODE> argument
+is the filename of the socket.
+</P><H3 CLASS="subsection"><A NAME="htoc270">10.8.33</A>&#XA0;&#XA0;getchar</H3><P><A NAME="fun:getchar"></A><A NAME="function:getchar"></A><A NAME="@default284"></A><A NAME="@fun192"></A></P><PRE CLASS="verbatim">    $(getc) : String
+    $(getc file) : String
+       file : InChannel or File
+    raises RuntimeException
+</PRE><P>The <CODE>getc</CODE> function returns the next character of a file.
+If the argument is not specified, <CODE>stdin</CODE> is used as input.
+If the end of file has been reached, the function returns <CODE>false</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc271">10.8.34</A>&#XA0;&#XA0;gets</H3><P><A NAME="fun:gets"></A><A NAME="function:gets"></A><A NAME="@default285"></A><A NAME="@fun193"></A></P><PRE CLASS="verbatim">   $(gets) : String
+   $(gets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+</PRE><P>The <CODE>gets</CODE> function returns the next line from a file.
+The function returns the empty string if the end of file has been reached.
+The line terminator is removed.
+</P><H3 CLASS="subsection"><A NAME="htoc272">10.8.35</A>&#XA0;&#XA0;fgets</H3><P><A NAME="fun:fgets"></A><A NAME="function:fgets"></A><A NAME="@default286"></A><A NAME="@fun194"></A></P><PRE CLASS="verbatim">   $(fgets) : String
+   $(fgets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+</PRE><P>The <CODE>fgets</CODE> function returns the next line from a file that has been
+opened for reading with <CODE>fopen</CODE>. The function returns the empty string
+if the end of file has been reached. The returned string is returned as
+literal data. The line terminator is not removed.
+</P><H2 CLASS="section"><A NAME="toc81"></A><A NAME="htoc273">10.9</A>&#XA0;&#XA0;Printing functions</H2><P>
+<A NAME="fun:fprint"></A><A NAME="function:fprint"></A><A NAME="@default287"></A><A NAME="@fun195"></A>
+<A NAME="fun:print"></A><A NAME="function:print"></A><A NAME="@default288"></A><A NAME="@fun196"></A>
+<A NAME="fun:eprint"></A><A NAME="function:eprint"></A><A NAME="@default289"></A><A NAME="@fun197"></A>
+<A NAME="fun:fprintln"></A><A NAME="function:fprintln"></A><A NAME="@default290"></A><A NAME="@fun198"></A>
+<A NAME="fun:println"></A><A NAME="function:println"></A><A NAME="@default291"></A><A NAME="@fun199"></A>
+<A NAME="fun:eprintln"></A><A NAME="function:eprintln"></A><A NAME="@default292"></A><A NAME="@fun200"></A></P><P>Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
+The <CODE>println</CODE> function adds a terminating newline to the value being
+printed, the <CODE>print</CODE> function does not.</P><PRE CLASS="verbatim">    fprint(&lt;file&gt;, &lt;string&gt;)
+    print(&lt;string&gt;)
+    eprint(&lt;string&gt;)
+    fprintln(&lt;file&gt;, &lt;string&gt;)
+    println(&lt;string&gt;)
+    eprintln(&lt;string&gt;)
+</PRE><P>The <CODE>fprint</CODE> functions print to a file that has been previously opened with
+<CODE>fopen</CODE>. The <CODE>print</CODE> functions print to the standard output channel, and
+the <CODE>eprint</CODE> functions print to the standard error channel.
+</P><H2 CLASS="section"><A NAME="toc82"></A><A NAME="htoc274">10.10</A>&#XA0;&#XA0;Value printing functions</H2><P>
+<A NAME="fun:fprintv"></A><A NAME="function:fprintv"></A><A NAME="@default293"></A><A NAME="@fun201"></A>
+<A NAME="fun:printv"></A><A NAME="function:printv"></A><A NAME="@default294"></A><A NAME="@fun202"></A>
+<A NAME="fun:eprintv"></A><A NAME="function:eprintv"></A><A NAME="@default295"></A><A NAME="@fun203"></A>
+<A NAME="fun:fprintvln"></A><A NAME="function:fprintvln"></A><A NAME="@default296"></A><A NAME="@fun204"></A>
+<A NAME="fun:printvln"></A><A NAME="function:printvln"></A><A NAME="@default297"></A><A NAME="@fun205"></A>
+<A NAME="fun:eprintvln"></A><A NAME="function:eprintvln"></A><A NAME="@default298"></A><A NAME="@fun206"></A></P><P>Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
+The <CODE>printvln</CODE> function adds a terminating newline to the value being
+printed, the <CODE>printv</CODE> function does not.</P><PRE CLASS="verbatim">    fprintv(&lt;file&gt;, &lt;string&gt;)
+    printv(&lt;string&gt;)
+    eprintv(&lt;string&gt;)
+    fprintvln(&lt;file&gt;, &lt;string&gt;)
+    printvln(&lt;string&gt;)
+    eprintvln(&lt;string&gt;)
+</PRE><P>The <CODE>fprintv</CODE> functions print to a file that has been previously opened with
+<CODE>fopen</CODE>. The <CODE>printv</CODE> functions print to the standard output channel, and
+the <CODE>eprintv</CODE> functions print to the standard error channel.
+</P><H3 CLASS="subsection"><A NAME="htoc275">10.10.1</A>&#XA0;&#XA0;Miscellaneous functions</H3><H4 CLASS="subsubsection"><A NAME="htoc276">10.10.1.1</A>&#XA0;&#XA0;set-channel-line</H4><PRE CLASS="verbatim">    set-channel-line(channel, filename, line)
+        channel : Channel
+        filename : File
+        line : int
+</PRE><P>Set the line number information for the channel.
+</P><H2 CLASS="section"><A NAME="toc83"></A><A NAME="htoc277">10.11</A>&#XA0;&#XA0;Higher-level IO functions</H2><H3 CLASS="subsection"><A NAME="htoc278">10.11.1</A>&#XA0;&#XA0;Regular expressions</H3><P>
+<A NAME="@default299"></A></P><P>Many of the higher-level functions use regular expressions.
+Regular expressions are defined by strings with syntax nearly identical
+to <TT>awk</TT>(1).</P><P>Strings may contain the following character constants.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>\\</CODE> : a literal backslash.
+</LI><LI CLASS="li-itemize"><CODE>\a</CODE> : the alert character <CODE>^G</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\b</CODE> : the backspace character <CODE>^H</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\f</CODE> : the formfeed character <CODE>^L</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\n</CODE> : the newline character <CODE>^J</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\r</CODE> : the carriage return character <CODE>^M</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\t</CODE> : the tab character <CODE>^I</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\v</CODE> : the vertical tab character.
+</LI><LI CLASS="li-itemize"><CODE>\xhh...</CODE> : the character represented by the string
+of hexadecimal digits <CODE>h</CODE>. All valid hexadecimal digits
+following the sequence are considered to be part of the sequence.
+</LI><LI CLASS="li-itemize"><CODE>\ddd</CODE> : the character represented by 1, 2, or 3 octal
+digits.
+</LI></UL><P>Regular expressions are defined using the special characters <CODE>.\^$[(){}*?</CODE>+.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>c</CODE> : matches the literal character <CODE>c</CODE> if <CODE>c</CODE> is not
+a special character.
+</LI><LI CLASS="li-itemize"><CODE>\c</CODE> : matches the literal character <CODE>c</CODE>, even if <CODE>c</CODE>
+is a special character.
+</LI><LI CLASS="li-itemize"><CODE>.</CODE> : matches any character, including newline.
+</LI><LI CLASS="li-itemize"><CODE>^</CODE> : matches the beginning of a line.
+</LI><LI CLASS="li-itemize"><CODE>$</CODE> : matches the end of line.
+</LI><LI CLASS="li-itemize"><CODE>[abc...]</CODE> : matches any of the characters <CODE>abc...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>[^abc...]</CODE> : matches any character except <CODE>abc...</CODE>
+</LI><LI CLASS="li-itemize"><CODE>r1|r2</CODE> : matches either <CODE>r1</CODE> or <CODE>r2</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r1r2</CODE> : matches <CODE>r1</CODE> and then <CODE>r2</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r</CODE>+ : matches one or more occurrences of <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r*</CODE> : matches zero or more occurrences of <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r?</CODE> : matches zero or one occurrence of <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>(r)</CODE> : parentheses are used for grouping; matches <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>\(r\)</CODE> : also defines grouping, but the expression matched
+within the parentheses is available to the output processor
+through one of the variables <CODE>$1</CODE>, <CODE>$2</CODE>, ...
+</LI><LI CLASS="li-itemize"><CODE>r{n}</CODE> : matches exactly <CODE>n</CODE> occurrences of <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r{n,}</CODE> : matches <CODE>n</CODE> or more occurrences of <CODE>r</CODE>.
+</LI><LI CLASS="li-itemize"><CODE>r{n,m}</CODE> : matches at least <CODE>n</CODE> occurrences of <CODE>r</CODE>,
+and no more than <CODE>m</CODE> occurrences.
+</LI><LI CLASS="li-itemize"><CODE>\y</CODE>: matches the empty string at either the beginning or
+end of a word.
+</LI><LI CLASS="li-itemize"><CODE>\B</CODE>: matches the empty string within a word.
+</LI><LI CLASS="li-itemize"><CODE>\&lt;</CODE>: matches the empty string at the beginning of a word.
+</LI><LI CLASS="li-itemize"><CODE>\&gt;</CODE>: matches the empty string at the end of a word.
+</LI><LI CLASS="li-itemize"><CODE>\w</CODE>: matches any character in a word.
+</LI><LI CLASS="li-itemize"><CODE>\W</CODE>: matches any character that does not occur within a word.
+</LI><LI CLASS="li-itemize"><CODE>\`</CODE>: matches the empty string at the beginning of a file.
+</LI><LI CLASS="li-itemize"><CODE>\'</CODE>: matches the empty string at the end of a file.
+</LI></UL><P>Character classes can be used to specify character sequences
+abstractly. Some of these sequences can change depending on your LOCALE.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>[:alnum:]</CODE> Alphanumeric characters.
+</LI><LI CLASS="li-itemize"><CODE>[:alpha:]</CODE> Alphabetic characters.
+</LI><LI CLASS="li-itemize"><CODE>[:lower:]</CODE> Lowercase alphabetic characters.
+</LI><LI CLASS="li-itemize"><CODE>[:upper:]</CODE> Uppercase alphabetic characters.
+</LI><LI CLASS="li-itemize"><CODE>[:cntrl:]</CODE> Control characters.
+</LI><LI CLASS="li-itemize"><CODE>[:digit:]</CODE> Numeric characters.
+</LI><LI CLASS="li-itemize"><CODE>[:xdigit:]</CODE> Numeric and hexadecimal characters.
+</LI><LI CLASS="li-itemize"><CODE>[:graph:]</CODE> Characters that are printable and visible.
+</LI><LI CLASS="li-itemize"><CODE>[:print:]</CODE> Characters that are printable, whether they are visible or not.
+</LI><LI CLASS="li-itemize"><CODE>[:punct:]</CODE> Punctuation characters.
+</LI><LI CLASS="li-itemize"><CODE>[:blank:]</CODE> Space or tab characters.
+</LI><LI CLASS="li-itemize"><CODE>[:space:]</CODE> Whitespace characters.
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc279">10.11.2</A>&#XA0;&#XA0;cat</H3><P><A NAME="fun:cat"></A><A NAME="function:cat"></A><A NAME="@default300"></A><A NAME="@fun207"></A></P><PRE CLASS="verbatim">    cat(files) : Sequence
+       files : File or InChannel Sequence
+</PRE><P>The <CODE>cat</CODE> function concatenates the output from multiple files
+and returns it as a string.
+</P><H3 CLASS="subsection"><A NAME="htoc280">10.11.3</A>&#XA0;&#XA0;grep</H3><P><A NAME="fun:grep"></A><A NAME="function:grep"></A><A NAME="@default301"></A><A NAME="@fun208"></A></P><PRE CLASS="verbatim">   grep(pattern) : String  # input from stdin, default options
+      pattern : String
+   grep(pattern, files) : String  # default options
+      pattern : String
+      files   : File Sequence
+   grep(options, pattern, files) : String
+     options : String
+     pattern : String
+     files   : File Sequence
+</PRE><P>The <CODE>grep</CODE> function searches for occurrences of a regular
+expression <CODE>pattern</CODE> in a set of files, and prints lines that match.
+This is like a highly-simplified version of <TT>grep</TT>(1).</P><P>The options are:
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>q</B></DT><DD CLASS="dd-description"> If specified, the output from <CODE>grep</CODE> is not displayed.
+</DD><DT CLASS="dt-description"><B>h</B></DT><DD CLASS="dd-description"> If specified, output lines will not include the filename (default, when only one input
+file is given).
+</DD><DT CLASS="dt-description"><B>n</B></DT><DD CLASS="dd-description"> If specified, output lines include the filename (default, when more than one input file
+is given).
+</DD><DT CLASS="dt-description"><B>v</B></DT><DD CLASS="dd-description"> If specified, search for lines without a match instead of lines with a match,
+</DD></DL><P>The <CODE>pattern</CODE> is a regular expression.</P><P>If successful (<CODE>grep</CODE> found a match), the function returns <CODE>true</CODE>.
+Otherwise, it returns <CODE>false</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc281">10.11.4</A>&#XA0;&#XA0;scan</H3><P><A NAME="fun:scan"></A><A NAME="function:scan"></A><A NAME="@default302"></A><A NAME="@fun209"></A></P><PRE CLASS="verbatim">   scan(input-files)
+   case string1
+      body1
+   case string2
+      body2
+   ...
+   default
+      bodyd
+</PRE><P>The <CODE>scan</CODE> function provides input processing in command-line form.
+The function takes file/filename arguments. If called with no
+arguments, the input is taken from <CODE>stdin</CODE>. If arguments are provided,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.
+Output is always to <CODE>stdout</CODE>.</P><P>The <CODE>scan</CODE> function operates by reading the input one line at a time,
+and processing it according to the following algorithm.</P><P>For each line,
+the record is first split into fields, and
+the fields are bound to the variables <CODE>$1, $2, ...</CODE>. The variable
+<CODE>$0</CODE> is defined to be the entire line, and <CODE>$*</CODE> is an array
+of all the field values. The <CODE>$(NF)</CODE> variable is defined to be the number
+of fields.</P><P>Next, a case expression is selected. If <CODE>string_i</CODE> matches the token <CODE>$1</CODE>,
+then <CODE>body_i</CODE> is evaluated. If the body ends in an <CODE>export</CODE>, the state
+is passed to the next clause. Otherwise the value is discarded.</P><P>For example, here is an <CODE>scan</CODE> function that acts as a simple command processor.</P><PRE CLASS="verbatim">    calc() =
+       i = 0
+       scan(script.in)
+       case print
+          println($i)
+       case inc
+          i = $(add $i, 1)
+          export
+       case dec
+          i = $(sub $i, 1)
+          export
+       case addconst
+          i = $(add $i, $2)
+          export
+       default
+          eprintln($"Unknown command: $1")
+</PRE><P>The <CODE>scan</CODE> function also supports several options.</P><PRE CLASS="verbatim">    scan(options, files)
+    ...
+</PRE><DL CLASS="description"><DT CLASS="dt-description">
+<B>A</B></DT><DD CLASS="dd-description"> Parse each line as an argument list, where arguments
+may be quoted. For example, the following line has three words,
+&#X201C;<CODE>ls</CODE>&#X201D;, &#X201C;<CODE>-l</CODE>&#X201D;, &#X201C;<CODE>Program Files</CODE>&#X201D;.<PRE CLASS="verbatim">       ls -l "Program Files"
+   </PRE></DD><DT CLASS="dt-description"><B>O</B></DT><DD CLASS="dd-description"> Parse each line using white space as the separator, using the
+usual OMake algorithm for string parsing. This is the default.
+</DD><DT CLASS="dt-description"><B>x</B></DT><DD CLASS="dd-description"> Once each line is split, reduce each word using the
+hex representation. This is the usual hex representation used
+in URL specifiers, so the string &#X201C;Program Files&#X201D; may be
+alternately represented in the form ProgramProgram+Files.
+</DD></DL><P>Note, if you want to redirect the output to a file, the easiest way is to
+redefine the <CODE>stdout</CODE> variable. The <CODE>stdout</CODE> variable is scoped the
+same way as other variables, so this definition does not affect the meaning of
+<CODE>stdout</CODE> outside the <CODE>calc</CODE> function.</P><PRE CLASS="verbatim">    calc() =
+        stdout = $(fopen script.out, w)
+        scan(script.in)
+           ...
+        close(stdout)
+</PRE><H3 CLASS="subsection"><A NAME="htoc282">10.11.5</A>&#XA0;&#XA0;awk</H3><P><A NAME="fun:awk"></A><A NAME="function:awk"></A><A NAME="@default303"></A><A NAME="@fun210"></A></P><PRE CLASS="verbatim">   awk(input-files)
+   case pattern1:
+      body1
+   case pattern2:
+      body2
+   ...
+   default:
+      bodyd
+</PRE><P>or</P><PRE CLASS="verbatim">   awk(options, input-files)
+   case pattern1:
+      body1
+   case pattern2:
+      body2
+   ...
+   default:
+      bodyd
+</PRE><P>The <CODE>awk</CODE> function provides input processing similar to <TT>awk</TT>(1),
+but more limited. The <CODE>input-files</CODE> argument is a sequence of values,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.
+If called with no options and no file arguments, the input is taken from <CODE>stdin</CODE>.
+Output is always to <CODE>stdout</CODE>.</P><P>The variables <CODE>RS</CODE> and <CODE>FS</CODE> define record and field separators
+as regular expressions.
+The default value of <CODE>RS</CODE> is the regular expression <CODE>\r|\n|\r\n</CODE>.
+The default value of <CODE>FS</CODE> is the regular expression <CODE>[ \t]</CODE>+.</P><P>The <CODE>awk</CODE> function operates by reading the input one record at a time,
+and processing it according to the following algorithm.</P><P>For each line,
+the record is first split into fields using the field separator <CODE>FS</CODE>, and
+the fields are bound to the variables <CODE>$1, $2, ...</CODE>. The variable
+<CODE>$0</CODE> is defined to be the entire line, and <CODE>$*</CODE> is an array
+of all the field values. The <CODE>$(NF)</CODE> variable is defined to be the number
+of fields.</P><P>Next, the cases are evaluated in order.
+For each case, if the regular expression <CODE>pattern_i</CODE> matches the record <CODE>$0</CODE>,
+then <CODE>body_i</CODE> is evaluated. If the body ends in an <CODE>export</CODE>, the state
+is passed to the next clause. Otherwise the value is discarded. If the regular
+expression contains <CODE>\(r\)</CODE> expression, those expression override the
+fields <CODE>$1, $2, ...</CODE>.</P><P>For example, here is an <CODE>awk</CODE> function to print the text between two
+delimiters <CODE>\begin{&lt;name&gt;}</CODE> and <CODE>\end{&lt;name&gt;}</CODE>, where the <CODE>&lt;name&gt;</CODE>
+must belong to a set passed as an argument to the <CODE>filter</CODE> function.</P><PRE CLASS="verbatim">    filter(names) =
+       print = false
+
+       awk(Awk.in)
+       case $"^\\end\{\([:alpha:]+\)\}"
+          if $(mem $1, $(names))
+             print = false
+             export
+          export
+       default
+          if $(print)
+             println($0)
+       case $"^\\begin\{\([:alpha:]+\)\}"
+          print = $(mem $1, $(names))
+          export
+</PRE><P>Note, if you want to redirect the output to a file, the easiest way is to
+redefine the <CODE>stdout</CODE> variable. The <CODE>stdout</CODE> variable is scoped the
+same way as other variables, so this definition does not affect the meaning of
+<CODE>stdout</CODE> outside the <CODE>filter</CODE> function.</P><PRE CLASS="verbatim">    filter(names) =
+        stdout = $(fopen file.out, w)
+        awk(Awk.in)
+           ...
+        close(stdout)
+</PRE><P>Options.
+</P><DL CLASS="description"><DT CLASS="dt-description">
+<B>b</B></DT><DD CLASS="dd-description"> &#X201C;Break&#X201D; when evaluating cases. Only the first case that matches will be selected.
+</DD></DL><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop,
+exiting the <CODE>awk</CODE> function immediately.
+</P><H3 CLASS="subsection"><A NAME="htoc283">10.11.6</A>&#XA0;&#XA0;fsubst</H3><P><A NAME="fun:fsubst"></A><A NAME="function:fsubst"></A><A NAME="@default304"></A><A NAME="@fun211"></A></P><PRE CLASS="verbatim">   fsubst(files)
+   case pattern1 [options]
+      body1
+   case pattern2 [options]
+      body2
+   ...
+   default
+      bodyd
+</PRE><P>The <CODE>fsubst</CODE> function provides a <TT>sed</TT>(1)-like substitution
+function. Similar to <CODE>awk</CODE>, if <CODE>fsubst</CODE> is called with no
+arguments, the input is taken from <CODE>stdin</CODE>. If arguments are provided,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.</P><P>The <CODE>RS</CODE> variable defines a regular expression that determines a record separator,
+The default value of <CODE>RS</CODE> is the regular expression <CODE>\r|\n|\r\n</CODE>.</P><P>The <CODE>fsubst</CODE> function reads the file one record at a time.</P><P>For each record, the cases are evaluated in order. Each case defines
+a substitution from a substring matching the <CODE>pattern</CODE> to
+replacement text defined by the body.</P><P>Currently, there is only one option: <CODE>g</CODE>.
+If specified, each clause specifies a global replacement,
+and all instances of the pattern define a substitution.
+Otherwise, the substitution is applied only once.</P><P>Output can be redirected by redefining the <CODE>stdout</CODE> variable.</P><P>For example, the following program replaces all occurrences of
+an expression <CODE>word.</CODE> with its capitalized form.</P><PRE CLASS="verbatim">    section
+       stdout = $(fopen Subst.out, w)
+       fsubst(Subst.in)
+       case $"\&lt;\([[:alnum:]]+\)\." g
+          value $(capitalize $1).
+       close(stdout)
+</PRE><H3 CLASS="subsection"><A NAME="htoc284">10.11.7</A>&#XA0;&#XA0;lex</H3><P><A NAME="fun:lex"></A><A NAME="function:lex"></A><A NAME="@default305"></A><A NAME="@fun212"></A></P><PRE CLASS="verbatim">   lex(files)
+   case pattern1
+      body1
+   case pattern2
+      body2
+   ...
+   default
+      bodyd
+</PRE><P>The <CODE>lex</CODE> function provides a simple lexical-style scanner
+function. The input is a sequence of files or channels. The cases
+specify regular expressions. Each time the input is read, the regular
+expression that matches the <EM>longest prefix</EM> of the input is selected,
+and the body is evaluated.</P><P>If two clauses both match the same input, the <EM>last</EM> one is selected
+for execution. The <CODE>default</CODE> case matches the regular expression <CODE>.</CODE>;
+you probably want to place it first in the pattern list.</P><P>If the body end with an <CODE>export</CODE> directive,
+the state is passed to the next clause.</P><P>For example, the following program collects all occurrences of alphanumeric
+words in an input file.</P><PRE CLASS="verbatim">    collect-words($(files)) =
+       words[] =
+       lex($(files))
+       default
+          # empty
+       case $"[[:alnum:]]+" g
+          words[] += $0
+          export
+</PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
+</P><H3 CLASS="subsection"><A NAME="htoc285">10.11.8</A>&#XA0;&#XA0;lex-search</H3><P><A NAME="fun:lex-search"></A><A NAME="function:lex-search"></A><A NAME="@default306"></A><A NAME="@fun213"></A></P><PRE CLASS="verbatim">   lex-search(files)
+   case pattern1
+      body1
+   case pattern2
+      body2
+   ...
+   default
+      bodyd
+</PRE><P>The <CODE>lex-search</CODE> function is like the <CODE>lex</CODE> function, but input that
+does not match any of the regular expressions is skipped. If the clauses include
+a <CODE>default</CODE> case, then the <CODE>default</CODE> matches any skipped text.</P><P>For example, the following program collects all occurrences of alphanumeric
+words in an input file, skipping any other text.</P><PRE CLASS="verbatim">    collect-words($(files)) =
+       words[] =
+       lex-search($(files))
+       default
+          eprintln(Skipped $0)
+       case $"[[:alnum:]]+" g
+          words[] += $0
+          export
+</PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
+</P><H3 CLASS="subsection"><A NAME="htoc286">10.11.9</A>&#XA0;&#XA0;Lexer</H3><P><A NAME="obj:Lexer"></A><A NAME="object:Lexer"></A><A NAME="@default307"></A><A NAME="@obj5"></A></P><P>The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
+<TT>lex</TT>(1) and <TT>flex</TT>(1) programs.</P><P>In <TT>omake</TT>, lexical analyzers can be constructed dynamically by extending
+the <CODE>Lexer</CODE> class. A lexer definition consists of a set of directives specified
+with method calls, and set of clauses specified as rules.</P><P>For example, consider the following lexer definition, which is intended
+for lexical analysis of simple arithmetic expressions for a desktop
+calculator.</P><PRE CLASS="verbatim">   lexer1. =
+      extends $(Lexer)
+
+      other: .
+         eprintln(Illegal character: $* )
+         lex()
+
+      white: $"[[:space:]]+"
+         lex()
+
+      op: $"[-+*/()]"
+         switch $*
+         case +
+            Token.unit($(loc), plus)
+         case -
+            Token.unit($(loc), minus)
+         case *
+            Token.unit($(loc), mul)
+         case /
+            Token.unit($(loc), div)
+         case $"("
+            Token.unit($(loc), lparen)
+         case $")"
+            Token.unit($(loc), rparen)
+
+      number: $"[[:digit:]]+"
+         Token.pair($(loc), exp, $(int $* ))
+
+      eof: $"\'"
+         Token.unit($(loc), eof)
+</PRE><P>This program defines an object <CODE>lexer1</CODE> the extends the <CODE>Lexer</CODE>
+object, which defines lexing environment.</P><P>The remainder of the definition consists of a set of clauses,
+each with a method name before the colon; a regular expression
+after the colon; and in this case, a body. The body is optional,
+if it is not specified, the method with the given name should
+already exist in the lexer definition.</P><P><EM>NB</EM> The clause that matches the <EM>longest</EM> prefix of the input
+is selected. If two clauses match the same input prefix, then the <EM>last</EM>
+one is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.</P><P>The first clause matches any input that is not matched by the other clauses.
+In this case, an error message is printed for any unknown character, and
+the input is skipped. Note that this clause is selected only if no other
+clause matches.</P><P>The second clause is responsible for ignoring white space.
+If whitespace is found, it is ignored, and the lexer is called
+recursively.</P><P>The third clause is responsible for the arithmetic operators.
+It makes use of the <CODE>Token</CODE> object, which defines three
+fields: a <CODE>loc</CODE> field that represents the source location;
+a <CODE>name</CODE>; and a <CODE>value</CODE>.</P><P>The lexer defines the <CODE>loc</CODE> variable to be the location
+of the current lexeme in each of the method bodies, so we can use
+that value to create the tokens.</P><P>The <CODE>Token.unit($(loc), name)</CODE>
+method constructs a new <CODE>Token</CODE> object with the given name,
+and a default value.</P><P>The <CODE>number</CODE> clause matches nonnegative integer constants.
+The <CODE>Token.pair($(loc), name, value)</CODE> constructs a token with the
+given name and value.</P><P>Lexer object operate on <CODE>InChannel</CODE> objects.
+The method <CODE>lexer1.lex-channel(channel)</CODE> reads the next
+token from the channel argument.</P><H3 CLASS="subsection"><A NAME="htoc287">10.11.10</A>&#XA0;&#XA0;Lexer matching</H3><P>During lexical analysis, clauses are selected by longest match.
+That is, the clause that matches the longest sequence of input
+characters is chosen for evaluation. If no clause matches, the
+lexer raises a <CODE>RuntimeException</CODE>. If more than one clause
+matches the same amount of input, the first one is chosen
+for evaluation.</P><H3 CLASS="subsection"><A NAME="htoc288">10.11.11</A>&#XA0;&#XA0;Extending lexer definitions</H3><P>Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with
+the string <CODE>(*</CODE>, ends with <CODE>*)</CODE>, and comments may
+be nested.</P><P>One convenient way to do this is to define a separate lexer
+just to skip comments.</P><PRE CLASS="verbatim">   lex-comment. =
+      extends $(Lexer)
+
+      level = 0
+
+      other: .
+         lex()
+
+      term: $"[*][)]"
+         if $(not $(eq $(level), 0))
+            level = $(sub $(level), 1)
+            lex()
+
+      next: $"[(][*]"
+         level = $(add $(level), 1)
+         lex()
+
+      eof: $"\'"
+         eprintln(Unterminated comment)
+</PRE><P>This lexer contains a field <CODE>level</CODE> that keeps track of the nesting
+level. On encountering a <CODE>(*</CODE> string, it increments the level,
+and for <CODE>*)</CODE>, it decrements the level if nonzero, and continues.</P><P>Next, we need to modify our previous lexer to skip comments.
+We can do this by extending the lexer object <CODE>lexer1</CODE>
+that we just created.</P><PRE CLASS="verbatim">   lexer1. +=
+      comment: $"[(][*]"
+         lex-comment.lex-channel($(channel))
+         lex()
+</PRE><P>The body for the comment clause calls the <CODE>lex-comment</CODE> lexer when
+a comment is encountered, and continues lexing when that lexer returns.</P><H3 CLASS="subsection"><A NAME="htoc289">10.11.12</A>&#XA0;&#XA0;Threading the lexer object</H3><P>Clause bodies may also end with an <CODE>export</CODE> directive. In this case
+the lexer object itself is used as the returned token. If used with
+the <CODE>Parser</CODE> object below, the lexer should define the <CODE>loc</CODE>, <CODE>name</CODE>
+and <CODE>value</CODE> fields in each <CODE>export</CODE> clause. Each time
+the <CODE>Parser</CODE> calls the lexer, it calls it with the lexer returned
+from the previous lex invocation.
+</P><H3 CLASS="subsection"><A NAME="htoc290">10.11.13</A>&#XA0;&#XA0;Parser</H3><P><A NAME="obj:Parser"></A><A NAME="object:Parser"></A><A NAME="@default308"></A><A NAME="@obj6"></A></P><P>The <CODE>Parser</CODE> object provides a facility for syntactic analysis based
+on context-free grammars.</P><P><CODE>Parser</CODE> objects are specified as a sequence of directives,
+specified with method calls; and productions, specified as rules.</P><P>For example, let's finish building the desktop calculator started
+in the <CODE>Lexer</CODE> example.</P><PRE CLASS="verbatim">   parser1. =
+      extends $(Parser)
+
+      #
+      # Use the main lexer
+      #
+      lexer = $(lexer1)
+
+      #
+      # Precedences, in ascending order
+      #
+      left(plus minus)
+      left(mul div)
+      right(uminus)
+
+      #
+      # A program
+      #
+      start(prog)
+
+      prog: exp eof
+         return $1
+
+      #
+      # Simple arithmetic expressions
+      #
+      exp: minus exp :prec: uminus
+         neg($2)
+
+      exp: exp plus exp
+         add($1, $3)
+
+      exp: exp minus exp
+         sub($1, $3)
+
+      exp: exp mul exp
+         mul($1, $3)
+
+      exp: exp div exp
+         div($1, $3)
+
+      exp: lparen exp rparen
+         return $2
+</PRE><P>Parsers are defined as extensions of the <CODE>Parser</CODE> class.
+A <CODE>Parser</CODE> object must have a <CODE>lexer</CODE> field. The <CODE>lexer</CODE>
+is not required to be a <CODE>Lexer</CODE> object, but it must provide
+a <CODE>lexer.lex()</CODE> method that returns a token object with
+<CODE>name</CODE> and <CODE>value</CODE> fields. For this example, we use the
+<CODE>lexer1</CODE> object that we defined previously.</P><P>The next step is to define precedences for the terminal symbols.
+The precedences are defined with the <CODE>left</CODE>, <CODE>right</CODE>,
+and <CODE>nonassoc</CODE> methods in order of increasing precedence.</P><P>The grammar must have at least one start symbol, declared with
+the <CODE>start</CODE> method.</P><P>Next, the productions in the grammar are listed as rules.
+The name of the production is listed before the colon, and
+a sequence of variables is listed to the right of the colon.
+The body is a semantic action to be evaluated when the production
+is recognized as part of the input.</P><P>In this example, these are the productions for the arithmetic
+expressions recognized by the desktop calculator. The semantic
+action performs the calculation. The variables <CODE>$1, $2, ...</CODE>
+correspond to the values associated with each of the variables
+on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc291">10.11.14</A>&#XA0;&#XA0;Calling the parser</H3><P>The parser is called with the <CODE>$(parser1.parse-channel start, channel)</CODE>
+or <CODE>$(parser1.parse-file start, file)</CODE> functions. The <CODE>start</CODE>
+argument is the start symbol, and the <CODE>channel</CODE> or <CODE>file</CODE>
+is the input to the parser.</P><H3 CLASS="subsection"><A NAME="htoc292">10.11.15</A>&#XA0;&#XA0;Parsing control</H3><P>The parser generator generates a pushdown automation based on LALR(1)
+tables. As usual, if the grammar is ambiguous, this may generate shift/reduce
+or reduce/reduce conflicts. These conflicts are printed to standard
+output when the automaton is generated.</P><P>By default, the automaton is not constructed until the parser is
+first used.</P><P>The <CODE>build(debug)</CODE> method forces the construction of the automaton.
+While not required, it is wise to finish each complete parser with
+a call to the <CODE>build(debug)</CODE> method. If the <CODE>debug</CODE> variable
+is set, this also prints with parser table together with any conflicts.</P><P>The <CODE>loc</CODE> variable is defined within action bodies, and represents
+the input range for all tokens on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc293">10.11.16</A>&#XA0;&#XA0;Extending parsers</H3><P>Parsers may also be extended by inheritance.
+For example, let's extend the grammar so that it also recognizes
+the <CODE>&lt;&lt;</CODE> and <CODE>&gt;&gt;</CODE> shift operations.</P><P>First, we extend the lexer so that it recognizes these tokens.
+This time, we choose to leave <CODE>lexer1</CODE> intact, instead of
+using the += operator.</P><PRE CLASS="verbatim">   lexer2. =
+      extends $(lexer1)
+
+      lsl: $"&lt;&lt;"
+         Token.unit($(loc), lsl)
+
+      asr: $"&gt;&gt;"
+         Token.unit($(loc), asr)
+</PRE><P>Next, we extend the parser to handle these new operators.
+We intend that the bitwise operators have lower precedence
+than the other arithmetic operators. The two-argument form
+of the <CODE>left</CODE> method accomplishes this.</P><PRE CLASS="verbatim">   parser2. =
+      extends $(parser1)
+
+      left(plus, lsl lsr asr)
+
+      lexer = $(lexer2)
+
+      exp: exp lsl exp
+         lsl($1, $3)
+
+      exp: exp asr exp
+         asr($1, $3)
+</PRE><P>In this case, we use the new lexer <CODE>lexer2</CODE>, and we add productions
+for the new shift operations.
+</P><H3 CLASS="subsection"><A NAME="htoc294">10.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="object:Passwd"></A><A NAME="@default309"></A><A NAME="@obj7"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system's user database.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><CODE>pw_name</CODE><A NAME="@default310"></A>: the login name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_passwd</CODE><A NAME="@default311"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_uid</CODE><A NAME="@default312"></A>: user id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gid</CODE><A NAME="@default313"></A>: group id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gecos</CODE><A NAME="@default314"></A>: the user name or comment field.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default315"></A>: the user's home directory.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default316"></A>: the user's default shell.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc295">10.11.18</A>&#XA0;&#XA0;getpwnam, getpwuid</H3><P><A NAME="fun:getpwnam"></A><A NAME="function:getpwnam"></A><A NAME="@default317"></A><A NAME="@fun214"></A><A NAME="fun:getpwuid"></A><A NAME="function:getpwuid"></A><A NAME="@default318"></A><A NAME="@fun215"></A></P><PRE CLASS="verbatim">    $(getpwnam name...) : Passwd
+       name : String
+    $(getpwuid uid...) : Passwd
+       uid : Int
+    raises RuntimeException
+</PRE><P>The <CODE>getpwnam</CODE> function looks up an entry by the user's login and the <CODE>getpwuid</CODE>
+function looks up an entry by user's numerical id (uid). If no entry is found, an exception
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc296">10.11.19</A>&#XA0;&#XA0;getpwents</H3><P><A NAME="fun:getpwents"></A><A NAME="function:getpwents"></A><A NAME="@default319"></A><A NAME="@fun216"></A></P><PRE CLASS="verbatim">    $(getpwents) : Array
+</PRE><P>The <CODE>getpwents</CODE> function returns an array of <CODE>Passwd</CODE> objects, one for every user
+fund in the system user database. Note that depending on the operating system and on the setup
+of the user database, the returned array may be incomplete or even empty.
+</P><H3 CLASS="subsection"><A NAME="htoc297">10.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="object:Group"></A><A NAME="@default320"></A><A NAME="@obj8"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system's user group database.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><CODE>gr_name</CODE><A NAME="@default321"></A>: the group name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_group</CODE><A NAME="@default322"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_gid</CODE><A NAME="@default323"></A>: group id of the group.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default324"></A>: the group member's user names.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc298">10.11.21</A>&#XA0;&#XA0;getgrnam, getgrgid</H3><P><A NAME="fun:getgrnam"></A><A NAME="function:getgrnam"></A><A NAME="@default325"></A><A NAME="@fun217"></A><A NAME="fun:getgrgid"></A><A NAME="function:getgrgid"></A><A NAME="@default326"></A><A NAME="@fun218"></A></P><PRE CLASS="verbatim">    $(getgrnam name...) : Group
+       name : String
+    $(getgrgid gid...) : Group
+       gid : Int
+    raises RuntimeException
+</PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group's name and the <CODE>getgrgid</CODE>
+function looks up an entry by groups's numerical id (gid). If no entry is found, an exception
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc299">10.11.22</A>&#XA0;&#XA0;tgetstr</H3><P><A NAME="fun:tgetstr"></A><A NAME="function:tgetstr"></A><A NAME="@default327"></A><A NAME="@fun219"></A></P><PRE CLASS="verbatim">   $(tgetstr id) : String
+      id : String
+</PRE><P>The <CODE>tgetstr</CODE> function looks up the terminal capability with the indicated <CODE>id</CODE>.
+This assumes the terminfo to lookup is given in the <CODE>TERM</CODE> environment variable. This
+function returns an empty value if the given terminal capability is not defined.</P><P>Note: if you intend to use the value returned by <CODE>tgetstr</CODE> inside the shell
+<CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
+</P><H3 CLASS="subsection"><A NAME="htoc300">10.11.23</A>&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</H3><P><A NAME="fun:xterm-escape-begin"></A><A NAME="function:xterm-escape-begin"></A><A NAME="@default328"></A><A NAME="@fun220"></A><A NAME="fun:xterm-escape-end"></A><A NAME="function:xterm-escape-end"></A><A NAME="@default329"></A><A NAME="@fun221"></A></P><PRE CLASS="verbatim">   $(xterm-escape-begin) : String
+   $(xterm-escape-end) : String
+</PRE><P>The <CODE>xterm-escape-begin</CODE> and <CODE>xterm-escape-end</CODE> functions return the escape sequences
+that can be used to set the XTerm window title. Will return empty values if this capability is
+not available.</P><P>Note: if you intend to use these strings inside the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to use
+<CODE>$(prompt_invisible_begin)$(xterm-escape-begin)</CODE> and
+<CODE>$(xterm-escape-end)$(prompt_invisible_end)</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc301">10.11.24</A>&#XA0;&#XA0;xterm-escape</H3><P><A NAME="fun:xterm-escape"></A><A NAME="function:xterm-escape"></A><A NAME="@default330"></A><A NAME="@fun222"></A></P><PRE CLASS="verbatim">   $(xterm-escape s) : Sequence
+</PRE><P>When the <CODE>TERM</CODE> environment variable indicates that the XTerm title setting capability is available,
+<CODE>$(xterm-escape s)</CODE> is equivalent to <CODE>$(xterm-escape-begin)s$(xterm-escape-end)</CODE>. Otherwise, it
+returns an empty value.</P><P>Note: if you intend to use the value returned by <CODE>xterm-escape</CODE> inside the shell
+<CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
+</P><H3 CLASS="subsection"><A NAME="htoc302">10.11.25</A>&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</H3><P><A NAME="fun:prompt-invisible-begin"></A><A NAME="function:prompt-invisible-begin"></A><A NAME="@default331"></A><A NAME="@fun223"></A><A NAME="fun:prompt-invisible-end"></A><A NAME="function:prompt-invisible-end"></A><A NAME="@default332"></A><A NAME="@fun224"></A></P><PRE CLASS="verbatim">   $(prompt-invisible-begin) : String
+   $(prompt-invisible-end) : String
+</PRE><P>The <CODE>prompt-invisible-begin</CODE> and <CODE>prompt-invisible-end</CODE> functions return the escape sequences
+that must used to mark the &#X201C;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various escape sequences).
+</P><H3 CLASS="subsection"><A NAME="htoc303">10.11.26</A>&#XA0;&#XA0;prompt-invisible</H3><P><A NAME="fun:prompt-invisible"></A><A NAME="function:prompt-invisible"></A><A NAME="@default333"></A><A NAME="@fun225"></A></P><PRE CLASS="verbatim">   $(prompt-invisible s) : Sequence
+</PRE><P>The <CODE>prompt-invisible</CODE> will wrap its argument with <CODE>$(prompt-invisible-begin)</CODE> and
+<CODE>$(prompt-invisible-end)</CODE>. All the `invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various
+escape sequences) must be wrapped this way.
+</P><H3 CLASS="subsection"><A NAME="htoc304">10.11.27</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="function:gettimeofday"></A><A NAME="@default334"></A><A NAME="@fun226"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
+</PRE><P>The <CODE>gettimeofday</CODE> function returns the time of day in seconds
+since January 1, 1970.</P>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

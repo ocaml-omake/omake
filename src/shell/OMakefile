@@ -1,0 +1,52 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+    ../ast
+    ../ir
+    ../env
+    ../eval
+
+FILES[] =
+    omake_shell_parse
+    omake_shell_lex
+    omake_shell_sys_type
+    omake_shell_sys
+    omake_shell_job
+    omake_shell_completion
+
+MakeOCamlLibrary(shell, $(FILES))
+
+#
+# Generated files
+#
+GENERATED_FILES[] =
+    omake_shell_parse.mli
+    omake_shell_parse.ml
+    omake_shell_sys.ml
+
+OCamlGeneratedFiles($(GENERATED_FILES))
+
+OMAKE_SHELL_SYS = omake_shell_sys_$(if $(equal $(OSTYPE), Win32), win32, unix).ml
+
+omake_shell_sys.ml: $(OMAKE_SHELL_SYS)
+    ln-or-cp $< $@
+
+clean:
+    $(CLEAN) $(GENERATED_FILES)
+
+########################################################################
+# Generate a Makefile
+#
+win32 = $'$(win32)'
+
+MAKEFILE_TEXT += $"""
+omake_shell_parse.ml: omake_shell_parse.mly
+omake_shell_parse.mli: omake_shell_parse.mly
+omake_shell_parse.cmo: omake_shell_parse.cmi
+"""
+
+MakeLinkFiles(omake_shell_parse.mly)
+MakeLinkFile(omake_shell_sys.ml, omake_shell_sys_$(win32).ml)
+MakeDontLink($(GENERATED_FILES))
+MakeMakefile()
+

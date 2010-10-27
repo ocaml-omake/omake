@@ -1,0 +1,45 @@
+#
+# Simple lazy tests.
+#
+errors = 0
+check(debug, i, j) =
+   if $(equal $i, $j)
+       println($"$(debug) = $i [SUCCESS]")
+   else
+       eprintln($"$(debug):
+computed  $i
+should be $j [FAILURE]")
+       errors = $(add $(errors), 1)
+       export
+   export
+
+#
+# Simple var
+#
+Y = 1
+X = $`Y
+Y = 2
+check($"X", $X, 2)
+
+#
+# With an eager application
+#
+Z = 3
+X = $`(sub $Y, $,Z)
+Y = 4
+Z = 5
+check($'$(sub $Y, $,Z)', $X, 1)
+
+#
+# Double quote
+#
+Z = 3
+W = 4
+X = $`(add $Y, $`(mul $Z, $,W))
+check($'''$`(add $Y, $`(mul $Z, $,W))''', $X, 16)
+
+W = 5
+check($'''$`(add $Y, $`(mul $Z, $,W))''', $X, 16)
+
+if $(errors)
+    exit 1

@@ -1,0 +1,8 @@
+.PHONY: y
+
+x : y
+	echo $< > $@
+	if true
+	      echo 1 >> $@
+
+.DEFAULT: x

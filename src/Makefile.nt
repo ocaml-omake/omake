@@ -1,0 +1,1002 @@
+#
+# !!!THIS IS A GENERATED FILE!!!
+# !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
+#
+#
+# Generic "nmake" configuration for bootstrapping.
+#
+LN = copy /Y
+RM = del /F
+DOT =
+slash = \\
+
+win32 = win32
+system = system
+
+#
+# C configuration
+#
+CC = cl
+CFLAGS = /nologo /MT -I"$(OCAMLLIB)" /DWIN32 /DFAM_ENABLED /DFAM_PSEUDO
+AR = lib /nologo /debugtype:CV
+AROUT = /out:
+EXT_OBJ = .obj
+EXT_LIB = .lib
+EXE = .exe
+
+OCAMLFLAGS = -thread
+THREADSLIB = threads.cma
+
+.SUFFIXES: .mll .mly .mli .ml .cmi .cmo
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $*.c
+
+
+#
+# OCaml configuration
+#
+OCAMLC = ocamlc
+OCAMLYACC = ocamlyacc
+OCAMLLEX = ocamllex
+OCAMLDEP = ocamldep
+
+.mly.ml:
+	$(OCAMLYACC) $*.mly
+
+.mly.mli:
+	$(OCAMLYACC) $*.mly
+
+.mll.ml:
+	$(OCAMLLEX) $*.mll
+
+.mli.cmi:
+	$(OCAMLC) $(OCAMLFLAGS) -c $*.mli
+
+.ml.cmo:
+	$(OCAMLC) $(OCAMLFLAGS) -c $*.ml
+
+#
+# The version.txt file
+#
+version.txt:
+	@echo 0.0.boot > $@
+
+
+lm_heap.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.c lm_heap.c
+
+lm_heap.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.h lm_heap.h
+
+lm_channel.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_channel.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_channel.c lm_channel.c
+
+lm_compat_win32.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.c lm_compat_win32.c
+
+lm_compat_win32.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.h lm_compat_win32.h
+
+lm_ctype.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_ctype.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_ctype.c lm_ctype.c
+
+lm_printf.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_printf.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_printf.c lm_printf.c
+
+lm_uname_ext.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_uname_ext.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_uname_ext.c lm_uname_ext.c
+
+lm_unix_cutil.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_unix_cutil.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_unix_cutil.c lm_unix_cutil.c
+
+unixsupport.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)unixsupport.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)unixsupport.h unixsupport.h
+
+fam_win32.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_win32.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_win32.c fam_win32.c
+
+fam_kqueue.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_kqueue.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_kqueue.c fam_kqueue.c
+
+fam_inotify.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_inotify.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_inotify.c fam_inotify.c
+
+fam_pseudo.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_pseudo.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_pseudo.h fam_pseudo.h
+
+lm_notify.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_notify.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_notify.c lm_notify.c
+
+inotify.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.h inotify.h
+
+inotify-syscalls.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h inotify-syscalls.h
+
+inotify.om: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om inotify.om
+
+lm_termsize.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_termsize.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_termsize.c lm_termsize.c
+
+lm_terminfo.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_terminfo.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_terminfo.c lm_terminfo.c
+
+lm_fs_case_sensitive.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_fs_case_sensitive.c
+	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_fs_case_sensitive.c lm_fs_case_sensitive.c
+
+OFILES_clib = lm_heap$(EXT_OBJ) lm_channel$(EXT_OBJ) lm_printf$(EXT_OBJ) lm_ctype$(EXT_OBJ) lm_uname_ext$(EXT_OBJ) lm_unix_cutil$(EXT_OBJ) lm_compat_win32$(EXT_OBJ) readline$(EXT_OBJ) omake_shell_sys$(EXT_OBJ) fam_win32$(EXT_OBJ) fam_kqueue$(EXT_OBJ) fam_inotify$(EXT_OBJ) lm_notify$(EXT_OBJ) lm_termsize$(EXT_OBJ) lm_terminfo$(EXT_OBJ) lm_fs_case_sensitive$(EXT_OBJ)
+
+clib$(EXT_LIB): $(OFILES_clib)
+	-$(RM) $@
+	$(AR) $(AROUT)$@ $(OFILES_clib)
+
+SRC_clib = ..$(slash)src$(slash)clib
+
+omake_shell_sys.c: $(SRC_clib)$(slash)omake_shell_sys.c
+	$(LN) $(SRC_clib)$(slash)omake_shell_sys.c omake_shell_sys.c
+
+readline.c: $(SRC_clib)$(slash)readline.c
+	$(LN) $(SRC_clib)$(slash)readline.c readline.c
+
+ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify.om lm_termsize.c lm_terminfo.c lm_fs_case_sensitive.c
+
+
+lm_printf.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml lm_printf.ml
+
+lm_debug.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.ml lm_debug.ml
+
+lm_heap.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_heap.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_heap.ml lm_heap.ml
+
+lm_list_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.ml lm_list_util.ml
+
+lm_array_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.ml lm_array_util.ml
+
+lm_set_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set_sig.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set_sig.ml lm_set_sig.ml
+
+lm_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.ml lm_set.ml
+
+lm_map_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map_sig.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map_sig.ml lm_map_sig.ml
+
+lm_map.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.ml lm_map.ml
+
+lm_int_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.ml lm_int_set.ml
+
+lm_index.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.ml lm_index.ml
+
+lm_thread_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_sig.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_sig.ml lm_thread_sig.ml
+
+lm_thread.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.ml lm_thread.ml
+
+lm_string_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.ml lm_string_util.ml
+
+lm_string_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.ml lm_string_set.ml
+
+lm_printf.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.mli lm_printf.mli
+
+lm_debug.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.mli lm_debug.mli
+
+lm_list_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.mli lm_list_util.mli
+
+lm_array_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.mli lm_array_util.mli
+
+lm_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.mli lm_set.mli
+
+lm_map.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.mli lm_map.mli
+
+lm_int_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.mli lm_int_set.mli
+
+lm_index.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.mli lm_index.mli
+
+lm_thread_core.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core.mli lm_thread_core.mli
+
+lm_thread.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.mli lm_thread.mli
+
+lm_string_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.mli lm_string_util.mli
+
+lm_string_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.mli lm_string_set.mli
+
+lm_thread_pool.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool.mli lm_thread_pool.mli
+
+lm_arg.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.ml lm_arg.ml
+
+lm_hash_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash_sig.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash_sig.ml lm_hash_sig.ml
+
+lm_hash.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.ml lm_hash.ml
+
+lm_location.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_location.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_location.ml lm_location.ml
+
+lm_position.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_position.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_position.ml lm_position.ml
+
+lm_channel.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_channel.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_channel.ml lm_channel.ml
+
+lm_lexer.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_lexer.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_lexer.ml lm_lexer.ml
+
+lm_parser.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_parser.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_parser.ml lm_parser.ml
+
+lm_glob.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_glob.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_glob.ml lm_glob.ml
+
+lm_db.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_db.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_db.ml lm_db.ml
+
+lm_arg.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.mli lm_arg.mli
+
+lm_hash.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.mli lm_hash.mli
+
+lm_location.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_location.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_location.mli lm_location.mli
+
+lm_position.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_position.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_position.mli lm_position.mli
+
+lm_channel.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_channel.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_channel.mli lm_channel.mli
+
+lm_lexer.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_lexer.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_lexer.mli lm_lexer.mli
+
+lm_parser.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_parser.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_parser.mli lm_parser.mli
+
+lm_glob.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_glob.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_glob.mli lm_glob.mli
+
+lm_db.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_db.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_db.mli lm_db.mli
+
+lm_termsize.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_termsize.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_termsize.ml lm_termsize.ml
+
+lm_termsize.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_termsize.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_termsize.mli lm_termsize.mli
+
+lm_terminfo.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_terminfo.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_terminfo.ml lm_terminfo.ml
+
+lm_terminfo.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_terminfo.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_terminfo.mli lm_terminfo.mli
+
+lm_filename_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_filename_util.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_filename_util.ml lm_filename_util.ml
+
+lm_filename_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_filename_util.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_filename_util.mli lm_filename_util.mli
+
+lm_uname.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_uname.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_uname.ml lm_uname.ml
+
+lm_unix_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_unix_util.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_unix_util.ml lm_unix_util.ml
+
+lm_uname.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_uname.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_uname.mli lm_uname.mli
+
+lm_unix_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_unix_util.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_unix_util.mli lm_unix_util.mli
+
+lm_notify.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_notify.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_notify.ml lm_notify.ml
+
+lm_notify.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_notify.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_notify.mli lm_notify.mli
+
+lm_fs_case_sensitive.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.ml lm_fs_case_sensitive.ml
+
+lm_fs_case_sensitive.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.mli lm_fs_case_sensitive.mli
+
+lm_symbol.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.ml lm_symbol.ml
+
+lm_symbol.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.mli lm_symbol.mli
+
+CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash_sig.cmo lm_hash.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_lexer.cmo lm_parser.cmo lm_unix_util.cmo lm_glob.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo
+OCAML_LIB_FLAGS_lm =
+
+lm.cma: $(CMOFILES_lm)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_lm) -a -o $@ $(CMOFILES_lm)
+
+lm_thread_pool.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool_$(system).ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool_$(system).ml lm_thread_pool.ml
+
+lm_thread_core.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core_$(system).ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core_$(system).ml lm_thread_core.ml
+
+SRC_libmojave = ..$(slash)src$(slash)libmojave
+
+ALLFILES_libmojave =  lm_printf.ml lm_debug.ml lm_heap.ml lm_list_util.ml lm_array_util.ml lm_set_sig.ml lm_set.ml lm_map_sig.ml lm_map.ml lm_int_set.ml lm_index.ml lm_thread_sig.ml lm_thread.ml lm_string_util.ml lm_string_set.ml lm_printf.mli lm_debug.mli lm_list_util.mli lm_array_util.mli lm_set.mli lm_map.mli lm_int_set.mli lm_index.mli lm_thread_core.mli lm_thread.mli lm_string_util.mli lm_string_set.mli lm_thread_pool.mli lm_arg.ml lm_hash_sig.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
+
+
+CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
+OCAML_LIB_FLAGS_util =
+
+util.cma: $(CMOFILES_util)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_util) -a -o $@ $(CMOFILES_util)
+
+ocaml_patch.cmo: ocaml_patch.cmi
+
+ocaml_patch.ml: ..$(slash)src$(slash)util$(slash)ocaml_patch_$(win32).ml
+	$(LN) ..$(slash)src$(slash)util$(slash)ocaml_patch_$(win32).ml ocaml_patch.ml
+
+Makefile.dep: ocaml_patch.ml
+
+SRC_util = ..$(slash)src$(slash)util
+
+fmarshal.ml: $(SRC_util)$(slash)fmarshal.ml
+	$(LN) $(SRC_util)$(slash)fmarshal.ml fmarshal.ml
+
+ocaml_patch.mli: $(SRC_util)$(slash)ocaml_patch.mli
+	$(LN) $(SRC_util)$(slash)ocaml_patch.mli ocaml_patch.mli
+
+omake_handle_table.ml: $(SRC_util)$(slash)omake_handle_table.ml
+	$(LN) $(SRC_util)$(slash)omake_handle_table.ml omake_handle_table.ml
+
+omake_marshal.ml: $(SRC_util)$(slash)omake_marshal.ml
+	$(LN) $(SRC_util)$(slash)omake_marshal.ml omake_marshal.ml
+
+omake_print_util.ml: $(SRC_util)$(slash)omake_print_util.ml
+	$(LN) $(SRC_util)$(slash)omake_print_util.ml omake_print_util.ml
+
+omake_print_util.mli: $(SRC_util)$(slash)omake_print_util.mli
+	$(LN) $(SRC_util)$(slash)omake_print_util.mli omake_print_util.mli
+
+omake_printf.ml: $(SRC_util)$(slash)omake_printf.ml
+	$(LN) $(SRC_util)$(slash)omake_printf.ml omake_printf.ml
+
+omake_readline.ml: $(SRC_util)$(slash)omake_readline.ml
+	$(LN) $(SRC_util)$(slash)omake_readline.ml omake_readline.ml
+
+omake_readline.mli: $(SRC_util)$(slash)omake_readline.mli
+	$(LN) $(SRC_util)$(slash)omake_readline.mli omake_readline.mli
+
+omake_util.ml: $(SRC_util)$(slash)omake_util.ml
+	$(LN) $(SRC_util)$(slash)omake_util.ml omake_util.ml
+
+omake_util.mli: $(SRC_util)$(slash)omake_util.mli
+	$(LN) $(SRC_util)$(slash)omake_util.mli omake_util.mli
+
+omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
+	$(LN) $(SRC_util)$(slash)omake_wild.ml omake_wild.ml
+
+omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
+	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
+
+ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
+
+
+CMOFILES_omake_gen_magic = omake_gen_magic.cmo
+OCAML_LIBS_omake_gen_magic = lm.cma
+OCAML_OTHER_LIBS_omake_gen_magic = unix.cma
+OCAML_CLIBS_omake_gen_magic =
+OCAML_CCLIBS_omake_gen_magic =
+
+omake_gen_magic$(EXE): $(CMOFILES_omake_gen_magic) $(OCAML_LIBS_omake_gen_magic) $(OCAML_CLIBS_omake_gen_magic)
+	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake_gen_magic) $(OCAML_OTHER_LIBS_omake_gen_magic) $(THREADSLIB) $(OCAML_LIBS_omake_gen_magic) $(CMOFILES_omake_gen_magic)
+
+CMOFILES_magic = omake_magic.cmo
+OCAML_LIB_FLAGS_magic =
+
+magic.cma: $(CMOFILES_magic)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_magic) -a -o $@ $(CMOFILES_magic)
+
+GENMAGIC_DEPS = lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml version.txt
+MAGIC_FILES =    --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
+
+omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
+	$(DOT)omake_gen_magic -o $@ --version version.txt --magic $(MAGIC_FILES)
+
+SRC_magic = ..$(slash)src$(slash)magic
+
+omake_gen_magic.ml: $(SRC_magic)$(slash)omake_gen_magic.ml
+	$(LN) $(SRC_magic)$(slash)omake_gen_magic.ml omake_gen_magic.ml
+
+ALLFILES_magic = omake_gen_magic.ml
+
+
+CMOFILES_ir = omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_node_sig.cmo omake_node.cmo omake_virtual_id.cmo omake_install.cmo omake_ir.cmo omake_var.cmo omake_ir_util.cmo omake_ir_print.cmo omake_ir_free_vars.cmo omake_lexer.cmo omake_parser.cmo omake_value_type.cmo omake_command_type.cmo omake_value_print.cmo omake_pos.cmo omake_shell_type.cmo omake_command.cmo omake_cache_type.cmo omake_cache.cmo
+OCAML_LIB_FLAGS_ir =
+
+ir.cma: $(CMOFILES_ir)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_ir) -a -o $@ $(CMOFILES_ir)
+
+omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_node_sig.cmo omake_node.cmo omake_virtual_id.cmo omake_install.cmo omake_ir.cmo omake_var.cmo omake_ir_util.cmo omake_ir_print.cmo omake_ir_free_vars.cmo omake_lexer.cmo omake_parser.cmo omake_value_type.cmo omake_command_type.cmo omake_value_print.cmo omake_pos.cmo omake_shell_type.cmo omake_command.cmo omake_cache_type.cmo omake_cache.cmo omake_options.cmi omake_state.cmi omake_node.cmi omake_virtual_id.cmi omake_install.cmi omake_var.cmi omake_ir_util.cmi omake_ir_print.cmi omake_ir_free_vars.cmi omake_value_print.cmi omake_pos.cmi omake_command.cmi omake_cache.cmi: magic.cma
+
+SRC_ir = ..$(slash)src$(slash)ir
+
+omake_cache.ml: $(SRC_ir)$(slash)omake_cache.ml
+	$(LN) $(SRC_ir)$(slash)omake_cache.ml omake_cache.ml
+
+omake_cache.mli: $(SRC_ir)$(slash)omake_cache.mli
+	$(LN) $(SRC_ir)$(slash)omake_cache.mli omake_cache.mli
+
+omake_cache_type.ml: $(SRC_ir)$(slash)omake_cache_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_cache_type.ml omake_cache_type.ml
+
+omake_command.ml: $(SRC_ir)$(slash)omake_command.ml
+	$(LN) $(SRC_ir)$(slash)omake_command.ml omake_command.ml
+
+omake_command.mli: $(SRC_ir)$(slash)omake_command.mli
+	$(LN) $(SRC_ir)$(slash)omake_command.mli omake_command.mli
+
+omake_command_type.ml: $(SRC_ir)$(slash)omake_command_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_command_type.ml omake_command_type.ml
+
+omake_install.ml: $(SRC_ir)$(slash)omake_install.ml
+	$(LN) $(SRC_ir)$(slash)omake_install.ml omake_install.ml
+
+omake_install.mli: $(SRC_ir)$(slash)omake_install.mli
+	$(LN) $(SRC_ir)$(slash)omake_install.mli omake_install.mli
+
+omake_ir.ml: $(SRC_ir)$(slash)omake_ir.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir.ml omake_ir.ml
+
+omake_ir_free_vars.ml: $(SRC_ir)$(slash)omake_ir_free_vars.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir_free_vars.ml omake_ir_free_vars.ml
+
+omake_ir_free_vars.mli: $(SRC_ir)$(slash)omake_ir_free_vars.mli
+	$(LN) $(SRC_ir)$(slash)omake_ir_free_vars.mli omake_ir_free_vars.mli
+
+omake_ir_print.ml: $(SRC_ir)$(slash)omake_ir_print.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir_print.ml omake_ir_print.ml
+
+omake_ir_print.mli: $(SRC_ir)$(slash)omake_ir_print.mli
+	$(LN) $(SRC_ir)$(slash)omake_ir_print.mli omake_ir_print.mli
+
+omake_ir_util.ml: $(SRC_ir)$(slash)omake_ir_util.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir_util.ml omake_ir_util.ml
+
+omake_ir_util.mli: $(SRC_ir)$(slash)omake_ir_util.mli
+	$(LN) $(SRC_ir)$(slash)omake_ir_util.mli omake_ir_util.mli
+
+omake_lexer.ml: $(SRC_ir)$(slash)omake_lexer.ml
+	$(LN) $(SRC_ir)$(slash)omake_lexer.ml omake_lexer.ml
+
+omake_node.ml: $(SRC_ir)$(slash)omake_node.ml
+	$(LN) $(SRC_ir)$(slash)omake_node.ml omake_node.ml
+
+omake_node.mli: $(SRC_ir)$(slash)omake_node.mli
+	$(LN) $(SRC_ir)$(slash)omake_node.mli omake_node.mli
+
+omake_node_sig.ml: $(SRC_ir)$(slash)omake_node_sig.ml
+	$(LN) $(SRC_ir)$(slash)omake_node_sig.ml omake_node_sig.ml
+
+omake_node_type.ml: $(SRC_ir)$(slash)omake_node_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_node_type.ml omake_node_type.ml
+
+omake_options.ml: $(SRC_ir)$(slash)omake_options.ml
+	$(LN) $(SRC_ir)$(slash)omake_options.ml omake_options.ml
+
+omake_options.mli: $(SRC_ir)$(slash)omake_options.mli
+	$(LN) $(SRC_ir)$(slash)omake_options.mli omake_options.mli
+
+omake_parser.ml: $(SRC_ir)$(slash)omake_parser.ml
+	$(LN) $(SRC_ir)$(slash)omake_parser.ml omake_parser.ml
+
+omake_pos.ml: $(SRC_ir)$(slash)omake_pos.ml
+	$(LN) $(SRC_ir)$(slash)omake_pos.ml omake_pos.ml
+
+omake_pos.mli: $(SRC_ir)$(slash)omake_pos.mli
+	$(LN) $(SRC_ir)$(slash)omake_pos.mli omake_pos.mli
+
+omake_shell_type.ml: $(SRC_ir)$(slash)omake_shell_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_shell_type.ml omake_shell_type.ml
+
+omake_state.ml: $(SRC_ir)$(slash)omake_state.ml
+	$(LN) $(SRC_ir)$(slash)omake_state.ml omake_state.ml
+
+omake_state.mli: $(SRC_ir)$(slash)omake_state.mli
+	$(LN) $(SRC_ir)$(slash)omake_state.mli omake_state.mli
+
+omake_symbol.ml: $(SRC_ir)$(slash)omake_symbol.ml
+	$(LN) $(SRC_ir)$(slash)omake_symbol.ml omake_symbol.ml
+
+omake_value_print.ml: $(SRC_ir)$(slash)omake_value_print.ml
+	$(LN) $(SRC_ir)$(slash)omake_value_print.ml omake_value_print.ml
+
+omake_value_print.mli: $(SRC_ir)$(slash)omake_value_print.mli
+	$(LN) $(SRC_ir)$(slash)omake_value_print.mli omake_value_print.mli
+
+omake_value_type.ml: $(SRC_ir)$(slash)omake_value_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_value_type.ml omake_value_type.ml
+
+omake_var.ml: $(SRC_ir)$(slash)omake_var.ml
+	$(LN) $(SRC_ir)$(slash)omake_var.ml omake_var.ml
+
+omake_var.mli: $(SRC_ir)$(slash)omake_var.mli
+	$(LN) $(SRC_ir)$(slash)omake_var.mli omake_var.mli
+
+omake_virtual_id.ml: $(SRC_ir)$(slash)omake_virtual_id.ml
+	$(LN) $(SRC_ir)$(slash)omake_virtual_id.ml omake_virtual_id.ml
+
+omake_virtual_id.mli: $(SRC_ir)$(slash)omake_virtual_id.mli
+	$(LN) $(SRC_ir)$(slash)omake_virtual_id.mli omake_virtual_id.mli
+
+ALLFILES_ir = omake_cache.ml omake_cache.mli omake_cache_type.ml omake_command.ml omake_command.mli omake_command_type.ml omake_install.ml omake_install.mli omake_ir.ml omake_ir_free_vars.ml omake_ir_free_vars.mli omake_ir_print.ml omake_ir_print.mli omake_ir_util.ml omake_ir_util.mli omake_lexer.ml omake_node.ml omake_node.mli omake_node_sig.ml omake_node_type.ml omake_options.ml omake_options.mli omake_parser.ml omake_pos.ml omake_pos.mli omake_shell_type.ml omake_state.ml omake_state.mli omake_symbol.ml omake_value_print.ml omake_value_print.mli omake_value_type.ml omake_var.ml omake_var.mli omake_virtual_id.ml omake_virtual_id.mli
+
+
+CMOFILES_exec = omake_exec_id.cmo omake_exec_type.cmo omake_exec_print.cmo omake_exec_util.cmo omake_exec_local.cmo omake_exec_remote.cmo omake_exec_notify.cmo omake_exec.cmo
+OCAML_LIB_FLAGS_exec =
+
+exec.cma: $(CMOFILES_exec)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_exec) -a -o $@ $(CMOFILES_exec)
+
+SRC_exec = ..$(slash)src$(slash)exec
+
+omake_exec.ml: $(SRC_exec)$(slash)omake_exec.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec.ml omake_exec.ml
+
+omake_exec.mli: $(SRC_exec)$(slash)omake_exec.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec.mli omake_exec.mli
+
+omake_exec_id.ml: $(SRC_exec)$(slash)omake_exec_id.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_id.ml omake_exec_id.ml
+
+omake_exec_id.mli: $(SRC_exec)$(slash)omake_exec_id.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_id.mli omake_exec_id.mli
+
+omake_exec_local.ml: $(SRC_exec)$(slash)omake_exec_local.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_local.ml omake_exec_local.ml
+
+omake_exec_local.mli: $(SRC_exec)$(slash)omake_exec_local.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_local.mli omake_exec_local.mli
+
+omake_exec_notify.ml: $(SRC_exec)$(slash)omake_exec_notify.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_notify.ml omake_exec_notify.ml
+
+omake_exec_notify.mli: $(SRC_exec)$(slash)omake_exec_notify.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_notify.mli omake_exec_notify.mli
+
+omake_exec_print.ml: $(SRC_exec)$(slash)omake_exec_print.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_print.ml omake_exec_print.ml
+
+omake_exec_print.mli: $(SRC_exec)$(slash)omake_exec_print.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_print.mli omake_exec_print.mli
+
+omake_exec_remote.ml: $(SRC_exec)$(slash)omake_exec_remote.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_remote.ml omake_exec_remote.ml
+
+omake_exec_remote.mli: $(SRC_exec)$(slash)omake_exec_remote.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_remote.mli omake_exec_remote.mli
+
+omake_exec_type.ml: $(SRC_exec)$(slash)omake_exec_type.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_type.ml omake_exec_type.ml
+
+omake_exec_util.ml: $(SRC_exec)$(slash)omake_exec_util.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_util.ml omake_exec_util.ml
+
+omake_exec_util.mli: $(SRC_exec)$(slash)omake_exec_util.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_util.mli omake_exec_util.mli
+
+ALLFILES_exec = omake_exec.ml omake_exec.mli omake_exec_id.ml omake_exec_id.mli omake_exec_local.ml omake_exec_local.mli omake_exec_notify.ml omake_exec_notify.mli omake_exec_print.ml omake_exec_print.mli omake_exec_remote.ml omake_exec_remote.mli omake_exec_type.ml omake_exec_util.ml omake_exec_util.mli
+
+
+CMOFILES_ast = omake_ast.cmo omake_ast_util.cmo omake_ast_print.cmo
+OCAML_LIB_FLAGS_ast =
+
+ast.cma: $(CMOFILES_ast)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_ast) -a -o $@ $(CMOFILES_ast)
+
+SRC_ast = ..$(slash)src$(slash)ast
+
+omake_ast.ml: $(SRC_ast)$(slash)omake_ast.ml
+	$(LN) $(SRC_ast)$(slash)omake_ast.ml omake_ast.ml
+
+omake_ast_print.ml: $(SRC_ast)$(slash)omake_ast_print.ml
+	$(LN) $(SRC_ast)$(slash)omake_ast_print.ml omake_ast_print.ml
+
+omake_ast_print.mli: $(SRC_ast)$(slash)omake_ast_print.mli
+	$(LN) $(SRC_ast)$(slash)omake_ast_print.mli omake_ast_print.mli
+
+omake_ast_util.ml: $(SRC_ast)$(slash)omake_ast_util.ml
+	$(LN) $(SRC_ast)$(slash)omake_ast_util.ml omake_ast_util.ml
+
+omake_ast_util.mli: $(SRC_ast)$(slash)omake_ast_util.mli
+	$(LN) $(SRC_ast)$(slash)omake_ast_util.mli omake_ast_util.mli
+
+ALLFILES_ast = omake_ast.ml omake_ast_print.ml omake_ast_print.mli omake_ast_util.ml omake_ast_util.mli
+
+
+CMOFILES_omake_gen_parse = omake_gen_parse.cmo
+OCAML_LIBS_omake_gen_parse =
+OCAML_OTHER_LIBS_omake_gen_parse = unix.cma
+OCAML_CLIBS_omake_gen_parse =
+OCAML_CCLIBS_omake_gen_parse =
+
+omake_gen_parse$(EXE): $(CMOFILES_omake_gen_parse) $(OCAML_LIBS_omake_gen_parse) $(OCAML_CLIBS_omake_gen_parse)
+	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake_gen_parse) $(OCAML_OTHER_LIBS_omake_gen_parse) $(THREADSLIB) $(OCAML_LIBS_omake_gen_parse) $(CMOFILES_omake_gen_parse)
+
+CMOFILES_env = omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo
+OCAML_LIB_FLAGS_env =
+
+env.cma: $(CMOFILES_env)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_env) -a -o $@ $(CMOFILES_env)
+
+GENPARSE = omake_gen_parse
+omake_ast_parse.mly: $(GENPARSE)$(EXE) omake_ast_parse.input
+	$(DOT)$(GENPARSE) -o $@ omake_ast_parse.input
+
+omake_ast_lex.ml: omake_ast_lex.mll
+omake_ast_lex.cmo: omake_ast_lex.cmi
+omake_ast_parse.ml: omake_ast_parse.mly
+omake_ast_parse.mli: omake_ast_parse.mly
+omake_ast_parse.cmo: omake_ast_parse.cmi
+omake_exp_parse.ml: omake_exp_parse.mly
+omake_exp_parse.mli: omake_exp_parse.mly
+omake_exp_parse.cmo: omake_exp_parse.cmi
+
+omake_ast_lex.mll: ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll
+	$(LN) ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll omake_ast_lex.mll
+
+omake_ast_parse.input: ..$(slash)src$(slash)env$(slash)omake_ast_parse.input
+	$(LN) ..$(slash)src$(slash)env$(slash)omake_ast_parse.input omake_ast_parse.input
+
+omake_exp_parse.mly: ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly
+	$(LN) ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly omake_exp_parse.mly
+
+omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_exp_parse.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+
+Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml omake_exp_parse.ml omake_exp_parse.mli
+
+SRC_env = ..$(slash)src$(slash)env
+
+omake_ast_lex.mli: $(SRC_env)$(slash)omake_ast_lex.mli
+	$(LN) $(SRC_env)$(slash)omake_ast_lex.mli omake_ast_lex.mli
+
+omake_command_digest.ml: $(SRC_env)$(slash)omake_command_digest.ml
+	$(LN) $(SRC_env)$(slash)omake_command_digest.ml omake_command_digest.ml
+
+omake_command_digest.mli: $(SRC_env)$(slash)omake_command_digest.mli
+	$(LN) $(SRC_env)$(slash)omake_command_digest.mli omake_command_digest.mli
+
+omake_env.ml: $(SRC_env)$(slash)omake_env.ml
+	$(LN) $(SRC_env)$(slash)omake_env.ml omake_env.ml
+
+omake_env.mli: $(SRC_env)$(slash)omake_env.mli
+	$(LN) $(SRC_env)$(slash)omake_env.mli omake_env.mli
+
+omake_exn_print.ml: $(SRC_env)$(slash)omake_exn_print.ml
+	$(LN) $(SRC_env)$(slash)omake_exn_print.ml omake_exn_print.ml
+
+omake_exn_print.mli: $(SRC_env)$(slash)omake_exn_print.mli
+	$(LN) $(SRC_env)$(slash)omake_exn_print.mli omake_exn_print.mli
+
+omake_exp_lex.ml: $(SRC_env)$(slash)omake_exp_lex.ml
+	$(LN) $(SRC_env)$(slash)omake_exp_lex.ml omake_exp_lex.ml
+
+omake_exp_lex.mli: $(SRC_env)$(slash)omake_exp_lex.mli
+	$(LN) $(SRC_env)$(slash)omake_exp_lex.mli omake_exp_lex.mli
+
+omake_gen_parse.ml: $(SRC_env)$(slash)omake_gen_parse.ml
+	$(LN) $(SRC_env)$(slash)omake_gen_parse.ml omake_gen_parse.ml
+
+omake_ir_ast.ml: $(SRC_env)$(slash)omake_ir_ast.ml
+	$(LN) $(SRC_env)$(slash)omake_ir_ast.ml omake_ir_ast.ml
+
+omake_ir_ast.mli: $(SRC_env)$(slash)omake_ir_ast.mli
+	$(LN) $(SRC_env)$(slash)omake_ir_ast.mli omake_ir_ast.mli
+
+omake_ir_semant.ml: $(SRC_env)$(slash)omake_ir_semant.ml
+	$(LN) $(SRC_env)$(slash)omake_ir_semant.ml omake_ir_semant.ml
+
+omake_ir_semant.mli: $(SRC_env)$(slash)omake_ir_semant.mli
+	$(LN) $(SRC_env)$(slash)omake_ir_semant.mli omake_ir_semant.mli
+
+ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_exp_lex.ml omake_exp_lex.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_semant.ml omake_ir_semant.mli omake_ast_lex.mll omake_ast_parse.input omake_exp_parse.mly
+
+
+CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo
+OCAML_LIB_FLAGS_shell =
+
+shell.cma: $(CMOFILES_shell)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_shell) -a -o $@ $(CMOFILES_shell)
+
+omake_shell_parse.ml: omake_shell_parse.mly
+omake_shell_parse.mli: omake_shell_parse.mly
+omake_shell_parse.cmo: omake_shell_parse.cmi
+
+omake_shell_parse.mly: ..$(slash)src$(slash)shell$(slash)omake_shell_parse.mly
+	$(LN) ..$(slash)src$(slash)shell$(slash)omake_shell_parse.mly omake_shell_parse.mly
+
+omake_shell_sys.ml: ..$(slash)src$(slash)shell$(slash)omake_shell_sys_$(win32).ml
+	$(LN) ..$(slash)src$(slash)shell$(slash)omake_shell_sys_$(win32).ml omake_shell_sys.ml
+
+Makefile.dep: omake_shell_parse.mli omake_shell_parse.ml omake_shell_sys.ml
+
+SRC_shell = ..$(slash)src$(slash)shell
+
+omake_shell_completion.ml: $(SRC_shell)$(slash)omake_shell_completion.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_completion.ml omake_shell_completion.ml
+
+omake_shell_completion.mli: $(SRC_shell)$(slash)omake_shell_completion.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_completion.mli omake_shell_completion.mli
+
+omake_shell_job.ml: $(SRC_shell)$(slash)omake_shell_job.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_job.ml omake_shell_job.ml
+
+omake_shell_job.mli: $(SRC_shell)$(slash)omake_shell_job.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_job.mli omake_shell_job.mli
+
+omake_shell_lex.ml: $(SRC_shell)$(slash)omake_shell_lex.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_lex.ml omake_shell_lex.ml
+
+omake_shell_lex.mli: $(SRC_shell)$(slash)omake_shell_lex.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_lex.mli omake_shell_lex.mli
+
+omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_sys.mli omake_shell_sys.mli
+
+omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
+
+ALLFILES_shell = omake_shell_completion.ml omake_shell_completion.mli omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
+
+
+CMOFILES_eval = omake_eval.cmo omake_value.cmo
+OCAML_LIB_FLAGS_eval =
+
+eval.cma: $(CMOFILES_eval)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_eval) -a -o $@ $(CMOFILES_eval)
+
+SRC_eval = ..$(slash)src$(slash)eval
+
+omake_eval.ml: $(SRC_eval)$(slash)omake_eval.ml
+	$(LN) $(SRC_eval)$(slash)omake_eval.ml omake_eval.ml
+
+omake_eval.mli: $(SRC_eval)$(slash)omake_eval.mli
+	$(LN) $(SRC_eval)$(slash)omake_eval.mli omake_eval.mli
+
+omake_value.ml: $(SRC_eval)$(slash)omake_value.ml
+	$(LN) $(SRC_eval)$(slash)omake_value.ml omake_value.ml
+
+omake_value.mli: $(SRC_eval)$(slash)omake_value.mli
+	$(LN) $(SRC_eval)$(slash)omake_value.mli omake_value.mli
+
+ALLFILES_eval = omake_eval.ml omake_eval.mli omake_value.ml omake_value.mli
+
+
+CMOFILES_build = omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_builtin_util.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo
+OCAML_LIB_FLAGS_build =
+
+build.cma: $(CMOFILES_build)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_build) -a -o $@ $(CMOFILES_build)
+
+omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_builtin_util.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo omake_rule.cmi omake_build_util.cmi omake_builtin_util.cmi omake_target.cmi omake_builtin.cmi omake_build_tee.cmi omake_build.cmi: magic.cma
+
+SRC_build = ..$(slash)src$(slash)build
+
+omake_build.ml: $(SRC_build)$(slash)omake_build.ml
+	$(LN) $(SRC_build)$(slash)omake_build.ml omake_build.ml
+
+omake_build.mli: $(SRC_build)$(slash)omake_build.mli
+	$(LN) $(SRC_build)$(slash)omake_build.mli omake_build.mli
+
+omake_build_tee.ml: $(SRC_build)$(slash)omake_build_tee.ml
+	$(LN) $(SRC_build)$(slash)omake_build_tee.ml omake_build_tee.ml
+
+omake_build_tee.mli: $(SRC_build)$(slash)omake_build_tee.mli
+	$(LN) $(SRC_build)$(slash)omake_build_tee.mli omake_build_tee.mli
+
+omake_build_type.ml: $(SRC_build)$(slash)omake_build_type.ml
+	$(LN) $(SRC_build)$(slash)omake_build_type.ml omake_build_type.ml
+
+omake_build_util.ml: $(SRC_build)$(slash)omake_build_util.ml
+	$(LN) $(SRC_build)$(slash)omake_build_util.ml omake_build_util.ml
+
+omake_build_util.mli: $(SRC_build)$(slash)omake_build_util.mli
+	$(LN) $(SRC_build)$(slash)omake_build_util.mli omake_build_util.mli
+
+omake_builtin.ml: $(SRC_build)$(slash)omake_builtin.ml
+	$(LN) $(SRC_build)$(slash)omake_builtin.ml omake_builtin.ml
+
+omake_builtin.mli: $(SRC_build)$(slash)omake_builtin.mli
+	$(LN) $(SRC_build)$(slash)omake_builtin.mli omake_builtin.mli
+
+omake_builtin_type.ml: $(SRC_build)$(slash)omake_builtin_type.ml
+	$(LN) $(SRC_build)$(slash)omake_builtin_type.ml omake_builtin_type.ml
+
+omake_builtin_util.ml: $(SRC_build)$(slash)omake_builtin_util.ml
+	$(LN) $(SRC_build)$(slash)omake_builtin_util.ml omake_builtin_util.ml
+
+omake_builtin_util.mli: $(SRC_build)$(slash)omake_builtin_util.mli
+	$(LN) $(SRC_build)$(slash)omake_builtin_util.mli omake_builtin_util.mli
+
+omake_rule.ml: $(SRC_build)$(slash)omake_rule.ml
+	$(LN) $(SRC_build)$(slash)omake_rule.ml omake_rule.ml
+
+omake_rule.mli: $(SRC_build)$(slash)omake_rule.mli
+	$(LN) $(SRC_build)$(slash)omake_rule.mli omake_rule.mli
+
+omake_target.ml: $(SRC_build)$(slash)omake_target.ml
+	$(LN) $(SRC_build)$(slash)omake_target.ml omake_target.ml
+
+omake_target.mli: $(SRC_build)$(slash)omake_target.mli
+	$(LN) $(SRC_build)$(slash)omake_target.mli omake_target.mli
+
+ALLFILES_build = omake_build.ml omake_build.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin.ml omake_builtin.mli omake_builtin_type.ml omake_builtin_util.ml omake_builtin_util.mli omake_rule.ml omake_rule.mli omake_target.ml omake_target.mli
+
+
+CMOFILES_builtin = omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo
+OCAML_LIB_FLAGS_builtin = -linkall
+
+builtin.cma: $(CMOFILES_builtin)
+	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_builtin) -a -o $@ $(CMOFILES_builtin)
+
+omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo omake_builtin_base.cmi omake_builtin_arith.cmi omake_builtin_file.cmi omake_builtin_fun.cmi omake_builtin_io.cmi omake_builtin_io_fun.cmi omake_builtin_sys.cmi omake_builtin_target.cmi omake_builtin_shell.cmi omake_builtin_rule.cmi omake_builtin_test.cmi omake_builtin_object.cmi: magic.cma
+
+SRC_builtin = ..$(slash)src$(slash)builtin
+
+omake_builtin_arith.ml: $(SRC_builtin)$(slash)omake_builtin_arith.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.ml omake_builtin_arith.ml
+
+omake_builtin_arith.mli: $(SRC_builtin)$(slash)omake_builtin_arith.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.mli omake_builtin_arith.mli
+
+omake_builtin_base.ml: $(SRC_builtin)$(slash)omake_builtin_base.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_base.ml omake_builtin_base.ml
+
+omake_builtin_base.mli: $(SRC_builtin)$(slash)omake_builtin_base.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_base.mli omake_builtin_base.mli
+
+omake_builtin_file.ml: $(SRC_builtin)$(slash)omake_builtin_file.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_file.ml omake_builtin_file.ml
+
+omake_builtin_file.mli: $(SRC_builtin)$(slash)omake_builtin_file.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_file.mli omake_builtin_file.mli
+
+omake_builtin_fun.ml: $(SRC_builtin)$(slash)omake_builtin_fun.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_fun.ml omake_builtin_fun.ml
+
+omake_builtin_fun.mli: $(SRC_builtin)$(slash)omake_builtin_fun.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_fun.mli omake_builtin_fun.mli
+
+omake_builtin_io.ml: $(SRC_builtin)$(slash)omake_builtin_io.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.ml omake_builtin_io.ml
+
+omake_builtin_io.mli: $(SRC_builtin)$(slash)omake_builtin_io.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.mli omake_builtin_io.mli
+
+omake_builtin_io_fun.ml: $(SRC_builtin)$(slash)omake_builtin_io_fun.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.ml omake_builtin_io_fun.ml
+
+omake_builtin_io_fun.mli: $(SRC_builtin)$(slash)omake_builtin_io_fun.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.mli omake_builtin_io_fun.mli
+
+omake_builtin_object.ml: $(SRC_builtin)$(slash)omake_builtin_object.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.ml omake_builtin_object.ml
+
+omake_builtin_object.mli: $(SRC_builtin)$(slash)omake_builtin_object.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.mli omake_builtin_object.mli
+
+omake_builtin_rule.ml: $(SRC_builtin)$(slash)omake_builtin_rule.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_rule.ml omake_builtin_rule.ml
+
+omake_builtin_rule.mli: $(SRC_builtin)$(slash)omake_builtin_rule.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_rule.mli omake_builtin_rule.mli
+
+omake_builtin_shell.ml: $(SRC_builtin)$(slash)omake_builtin_shell.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_shell.ml omake_builtin_shell.ml
+
+omake_builtin_shell.mli: $(SRC_builtin)$(slash)omake_builtin_shell.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_shell.mli omake_builtin_shell.mli
+
+omake_builtin_sys.ml: $(SRC_builtin)$(slash)omake_builtin_sys.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.ml omake_builtin_sys.ml
+
+omake_builtin_sys.mli: $(SRC_builtin)$(slash)omake_builtin_sys.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.mli omake_builtin_sys.mli
+
+omake_builtin_target.ml: $(SRC_builtin)$(slash)omake_builtin_target.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_target.ml omake_builtin_target.ml
+
+omake_builtin_target.mli: $(SRC_builtin)$(slash)omake_builtin_target.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_target.mli omake_builtin_target.mli
+
+omake_builtin_test.ml: $(SRC_builtin)$(slash)omake_builtin_test.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.ml omake_builtin_test.ml
+
+omake_builtin_test.mli: $(SRC_builtin)$(slash)omake_builtin_test.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.mli omake_builtin_test.mli
+
+ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli
+
+
+CMOFILES_cvs_realclean = cvs_realclean.cmo
+OCAML_LIBS_cvs_realclean = lm.cma
+OCAML_OTHER_LIBS_cvs_realclean = unix.cma
+OCAML_CLIBS_cvs_realclean =
+OCAML_CCLIBS_cvs_realclean =
+
+cvs_realclean$(EXE): $(CMOFILES_cvs_realclean) $(OCAML_LIBS_cvs_realclean) $(OCAML_CLIBS_cvs_realclean)
+	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_cvs_realclean) $(OCAML_OTHER_LIBS_cvs_realclean) $(THREADSLIB) $(OCAML_LIBS_cvs_realclean) $(CMOFILES_cvs_realclean)
+
+CMOFILES_omake = omake_shell.cmo omake_main.cmo
+OCAML_LIBS_omake = lm.cma util.cma magic.cma ast.cma ir.cma env.cma exec.cma eval.cma shell.cma build.cma builtin.cma
+OCAML_OTHER_LIBS_omake = unix.cma
+OCAML_CLIBS_omake = clib$(EXT_LIB)
+OCAML_CCLIBS_omake = -cclib clib$(EXT_LIB)
+
+omake$(EXE): $(CMOFILES_omake) $(OCAML_LIBS_omake) $(OCAML_CLIBS_omake)
+	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake) $(OCAML_OTHER_LIBS_omake) $(THREADSLIB) $(OCAML_LIBS_omake) $(CMOFILES_omake)
+
+omake_shell.cmo omake_main.cmo omake_shell.cmi omake_main.cmi: magic.cma
+
+SRC_main = ..$(slash)src$(slash)main
+
+cvs_realclean.ml: $(SRC_main)$(slash)cvs_realclean.ml
+	$(LN) $(SRC_main)$(slash)cvs_realclean.ml cvs_realclean.ml
+
+omake_main.ml: $(SRC_main)$(slash)omake_main.ml
+	$(LN) $(SRC_main)$(slash)omake_main.ml omake_main.ml
+
+omake_main.mli: $(SRC_main)$(slash)omake_main.mli
+	$(LN) $(SRC_main)$(slash)omake_main.mli omake_main.mli
+
+omake_shell.ml: $(SRC_main)$(slash)omake_shell.ml
+	$(LN) $(SRC_main)$(slash)omake_shell.ml omake_shell.ml
+
+omake_shell.mli: $(SRC_main)$(slash)omake_shell.mli
+	$(LN) $(SRC_main)$(slash)omake_shell.mli omake_shell.mli
+
+ALLFILES_main = cvs_realclean.ml omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli
+
+ALLFILES = $(ALLFILES_clib) $(ALLFILES_libmojave) $(ALLFILES_util) $(ALLFILES_magic) $(ALLFILES_ir) $(ALLFILES_exec) $(ALLFILES_ast) $(ALLFILES_env) $(ALLFILES_shell) $(ALLFILES_eval) $(ALLFILES_build) $(ALLFILES_builtin) $(ALLFILES_main)
+
+#
+# Create a dependency file
+#
+Makefile.dep: $(ALLFILES)
+	$(OCAMLDEP) $(OCAMLINCLUDES) *.ml *.mli > Makefile.dep
+
+#
+# Clean up
+#
+clean:
+	$(RM) *.cmo *.cmx *.cma *.cmxa *.o *.obj *.a *.lib *.exe
+	$(RM) $(ALLFILES)
+	$(RM) omake
+
+
+!INCLUDE Makefile.dep
+

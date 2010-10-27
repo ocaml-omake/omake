@@ -1,0 +1,9 @@
+Subst.out: Subst.in
+    section
+        stdout = $(fopen $@, w)
+        fsubst(Subst.in)
+        case $"\<\([[:alnum:]]+\)\." g
+            value $(capitalize $1).
+        close($(stdout))
+
+.DEFAULT: Subst.out

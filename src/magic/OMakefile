@@ -1,0 +1,95 @@
+#
+# Calculate magic numbers for various binary formats
+#
+OCAMLINCLUDES[] +=
+    ../libmojave
+
+#
+# Magic number generator
+#
+OCAML_LIBS[] =
+    ../libmojave/lm
+
+MakeOCamlProgram(omake_gen_magic, omake_gen_magic)
+
+########################################################################
+# Scanning files for magic numbers.
+#
+CACHE_MAGIC_FILES[] =
+    ../libmojave/lm_filename_util.ml
+    ../libmojave/lm_hash.ml
+    ../libmojave/lm_location.ml
+    ../libmojave/lm_map.ml
+    ../libmojave/lm_position.ml
+    ../libmojave/lm_set.ml
+    ../libmojave/lm_symbol.ml
+    ../ir/omake_value_type.ml
+    ../ir/omake_cache.ml
+    ../ir/omake_cache_type.ml
+    ../ir/omake_node.ml
+    ../env/omake_command_digest.ml
+
+OMC_MAGIC_FILES[] =
+    ../libmojave/lm_filename_util.ml
+    ../libmojave/lm_hash.ml
+    ../libmojave/lm_location.ml
+    ../libmojave/lm_symbol.ml
+    ../libmojave/lm_map.ml
+    ../libmojave/lm_set.ml
+    ../ir/omake_node.ml
+    ../ir/omake_ir.ml
+
+OMO_MAGIC_FILES[] =
+    ../libmojave/lm_filename_util.ml
+    ../libmojave/lm_hash.ml
+    ../libmojave/lm_lexer.ml
+    ../libmojave/lm_location.ml
+    ../libmojave/lm_map.ml
+    ../libmojave/lm_parser.ml
+    ../libmojave/lm_position.ml
+    ../libmojave/lm_set.ml
+    ../libmojave/lm_symbol.ml
+    ../ir/omake_value_type.ml
+    ../ir/omake_cache_type.ml
+    ../ir/omake_ir.ml
+    ../ir/omake_node.ml
+    ../env/omake_env.ml
+
+GENMAGIC_DEPS[] =
+    $(CACHE_MAGIC_FILES)
+    $(OMC_MAGIC_FILES)
+    $(OMO_MAGIC_FILES)
+    $(VERSION_TXT)
+
+MAGIC_FILES =\
+    --cache-files $(CACHE_MAGIC_FILES)\
+    --omc-files $(OMC_MAGIC_FILES)\
+    --omo-files $(OMO_MAGIC_FILES)
+
+#
+# Generate the file
+#
+omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
+    ./omake_gen_magic -o $@ --lib $(LIBDIR) --version $(VERSION_TXT) --default_save_interval $(DEFAULT_SAVE_INTERVAL) --magic $(MAGIC_FILES)
+
+MakeOCamlLibrary(magic, omake_magic)
+
+clean:
+    $(CLEAN) omake_magic.ml .*.magic omake_gen_magic$(EXE) omake_gen_magic.opt omake_gen_magic.run
+
+########################################################################
+# Generate the Makefile
+#
+MAKEFILE_TEXT += $"""
+GENMAGIC_DEPS = $(basename $(GENMAGIC_DEPS))
+MAGIC_FILES =\
+    --cache-files $(basename $(CACHE_MAGIC_FILES))\
+    --omc-files $(basename $(OMC_MAGIC_FILES))\
+    --omo-files $(basename $(OMO_MAGIC_FILES))
+
+omake_magic.ml: omake_gen_magic$$(EXE) $$(GENMAGIC_DEPS)
+	$$(DOT)omake_gen_magic -o $$@ --version version.txt --magic $$(MAGIC_FILES)
+"""
+
+MakeDontLink(omake_magic.ml)
+MakeMakefile()

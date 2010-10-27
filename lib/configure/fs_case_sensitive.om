@@ -1,0 +1,49 @@
+open configure/Configure
+
+.STATIC:
+    DETECT_FS_CASE_SENSITIVE = false
+    DETECT_FS_CASE_SENSITIVE_CFLAGS =
+    if $(equal $(OSTYPE), Win32)
+        DETECT_FS_CASE_SENSITIVE = false
+        export
+    else
+        ConfMsgChecking(for optimal filesystem case-sensitivity test)
+        if $(TryLinkC $"""
+/* For statfs */
+#include <sys/param.h>
+#include <sys/mount.h>
+/* For getattrlist */
+#include <sys/attr.h>
+#include <unistd.h>
+
+typedef struct vol_caps_buf {
+    unsigned long size;
+    vol_capabilities_attr_t caps;
+} vol_caps_buf_t;
+
+/* This is nonsense, but it includes every identifier we care about */
+int main(int argc, char *argv[]) {
+    struct statfs stat;
+    
+    statfs(".", &stat);
+    
+    struct attrlist alist;
+    alist.bitmapcount = ATTR_BIT_MAP_COUNT;
+    alist.volattr = ATTR_VOL_CAPABILITIES;
+    vol_caps_buf_t buffer;
+    
+    getattrlist(stat.f_mntonname, &alist, &buffer, sizeof(buffer), 0);
+    /* Check for the capabilities we need */
+    int foo = ATTR_VOL_CAPABILITIES + VOL_CAPABILITIES_FORMAT +
+            VOL_CAP_FMT_CASE_SENSITIVE;
+    
+    return 0;
+}
+""")
+            ConfMsgResult($"Mac OS X implementation, using getattrlist")
+            DETECT_FS_CASE_SENSITIVE = true
+            DETECT_FS_CASE_SENSITIVE_CFLAGS = -DDETECT_FS_CASE_SENSITIVE_GETATTRLIST
+            export
+        else
+            ConfMsgResult(Generic)
+        export

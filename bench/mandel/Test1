@@ -1,0 +1,95 @@
+#!/usr/bin/env osh
+
+#
+# Compute an image of the Mandelbrot set.  This is a benchmark
+# program.  It isn't intended that it be the most efficient
+# implementation, we just want to stress the numerical
+# routines.
+#
+# It generates a pgm image.  You can use the ppm tools, or xv,
+# to view the result.
+#
+.LANGUAGE: program
+
+#
+# Program constants
+#   dimen: the dimension of the image
+#   bound: the maximum value for each pixel
+#
+dimen = 128
+bound = 255
+
+#
+# Fixed-point numbers.
+#
+fix-shift = 24
+
+fix-int(i) =
+    value i << fix-shift
+	  
+fix-add(i, j) =
+    value i + j
+
+fix-sub(i, j) =
+    value i - j
+
+fix-mul(i, j) =
+    return ((i >> (fix-shift / 2)) * (j >> (fix-shift / 2)))
+
+fix-mul-int(i, j) =
+    value i * j
+
+fix-div-int(i, j) =
+    value i / j
+
+#
+# Compute a point in the Mandelbrot set.
+#
+compute(x, y) =
+    loop(k, usex, usey) =
+        if k = 0
+            value k
+        else
+            xsqr = fix-mul(usex, usex)
+	    ysqr = fix-mul(usey, usey)
+	    if fix-add(xsqr, ysqr) > fix-int(4)
+	        value k
+	    else
+	        new-usey = fix-add(fix-mul(fix-int(2), fix-mul(usex, usey)), y)
+		new-usex = fix-add(fix-sub(xsqr, ysqr), x)
+		loop(k - 1, new-usex, new-usey)
+    loop(bound, x, y)
+
+#
+# Main function
+# Plot the Mandelbrot set at position (x, y).
+# the dimension of the image is scale.  The arguments are
+# fixpoint numbers.
+#
+mandel(x, y, scale) =
+    left = fix-sub(x, fix-div-int(scale, 2))
+    top = fix-sub(y, fix-div-int(scale, 2))
+    step = fix-div-int(scale, dimen)
+
+    println($"""P2
+""""""""# Creator mandel.om
+""""""""$(dimen)
+""""""""$(dimen)
+""""""""255
+""")
+
+    i = 0
+    while i < dimen
+        j = 0
+	line[] =
+	while j < dimen
+	    x = fix-add(left, fix-mul-int(step, i))
+	    y = fix-add(top, fix-mul-int(step, j))
+	    line[] += compute(x, y)
+	    j = j + 1
+	println($"$(line)")
+	i = i + 1
+
+stdout = fopen($'mandel.ppm', $'w')
+mandel(fix-int(-1), 0, fix-int(2))
+close(stdout)

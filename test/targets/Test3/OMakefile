@@ -1,0 +1,6 @@
+foo(arg) =
+    printvln($@)
+    touch $@
+
+a b:
+    foo(.)

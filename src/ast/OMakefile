@@ -1,0 +1,21 @@
+OCAMLINCLUDES[] +=
+    ../libmojave
+    ../util
+
+FILES[] =
+    omake_ast
+    omake_ast_util
+    omake_ast_print
+
+#
+# The library
+#
+MakeOCamlLibrary(ast, $(FILES))
+
+clean:
+    $(CLEAN)
+
+#
+# Generate the Makefile
+#
+MakeMakefile()

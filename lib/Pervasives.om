@@ -1,0 +1,1535 @@
+########################################################################
+# Copyright (C) 2003-2007 Jason Hickey and Mojave Group
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the File
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the File.
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
+
+########################################################################
+# This file defines the Pervasives module--the standard module
+# open to every program.  This is a bootstrap file.  The syntax
+# here is mainly normal, but it is assumed that the basic classes
+# are empty at this point.  You never need to assume this again.
+#
+class Pervasives
+
+########################################################################
+# Common variables and utilities
+#
+public. =
+    declare BUILD_SUMMARY
+    declare CWD
+    declare FS
+    declare GLOB_ALLOW
+    declare GLOB_IGNORE
+    declare GLOB_OPTIONS
+    declare NF
+    declare OMAKEPATH
+    declare PATH
+    declare RS
+    declare STDLIB
+    declare STDROOT
+    declare TARGETS
+    declare prompt
+    declare EMPTY
+    declare EMPTY_ARRAY
+
+const.EMPTY =
+const.EMPTY_ARRAY[] =
+const.TAB = $'	'
+const.false = false
+const.true = true
+
+shell-success(argv) =
+    try
+        value $(equal $(shell-code $(argv)), 0)
+    default
+        value $(not true)
+
+shell-success-null(argv) =
+   # XXX: HACK: Is there a portable /dev/null?
+   #            Perhaps we should fix http://bugzilla.metaprl.org/show_bug.cgi?id=619
+   #            and use a string out channel?
+   tmp = $(tmpfile omake.shell-success-null)
+   stdout = $(fopen $(tmp), w)
+   stderr = $(stdout)
+   res = $(shell-success $(argv))
+   close($(stdout))
+   rm(-f $(tmp))
+   return $(res)
+
+last(array) =
+   return $(nth $(sub $(length $(array)), 1), $(array))
+
+Bool(v) =
+   value $(not $(not $v))
+
+nonempty(l) =
+    gt($(length $l), 0)
+
+# GNU Make - like join function
+join(l1, l2) =
+    result[] =
+    while $(and $(nonempty $(l1)), $(nonempty $(l2)))
+        x = $(nth 0, $(l1))
+        y = $(nth 0, $(l2))
+        l1 = $(nth-tl 1, $(l1))
+        l2 = $(nth-tl 1, $(l2))
+        result[] += $x$y
+    # From GNU Make docs: If one argument has more words that the other,
+    # the extra words are copied unchanged into the result
+    result[] += $(l1)
+    result[] += $(l2)
+    value $(result)
+
+# Documented in src/builtin/omake_builtin_sys.ml
+
+xterm-escape(s) =
+    if $(xterm-escape-begin)
+        value $(xterm-escape-begin)$s$(xterm-escape-end)
+    else
+        value $(EMPTY)
+
+prompt-invisible(s) =
+    value $(prompt-invisible-begin)$s$(prompt-invisible-end)
+
+########################################################################
+# \begin{doc}
+#
+# \chapter{The standard objects}
+# \label{chapter:pervasives}
+# \cutname{omake-pervasives.html}
+#
+# \verb+Pervasives+ defines the objects that are defined in all
+# programs.  The following objects are defined.
+#
+# \section{Pervasives objects}
+#
+# \obj{Object}
+#
+# Parent objects: none.
+#
+# The \verb+Object+ object is the root object.
+# Every class is a subclass of \verb+Object+.
+#
+# It provides the following fields:
+#
+# \begin{itemize}
+# \item \verb+$(o.object-length)+: the number of fields and methods in the object.
+# \item \verb+$(o.object-mem <var>)+: returns \verb+true+ iff the \verb+<var>+ is a field
+#    or method of the object.
+# \item \verb+$(o.object-add <var>, <value>)+: adds the field to the object,
+#    returning a new object.
+# \item \verb+$(o.object-find <var>)+: fetches the field or method from the object;
+#    it is equivalent to \verb+$(o.<var>)+, but the variable can be non-constant.
+# \item \verb+$(o.object-map <fun>)+: maps a function over the object.  The function
+#    should take two arguments; the first is a field name, the second is the
+#    value of that field.  The result is a new object constructed from the
+#    values returned by the function.
+# \item \verb+o.object-foreach+: the \verb+object-foreach+ form is equivalent to \verb+object-map+,
+#    but with altered syntax.
+#
+#    \begin{verbatim}
+#    o.object-foreach(<var1>, <var2>) =>
+#       <body>
+#    \end{verbatim}
+#
+#    For example, the following function prints all the fields of an
+#    object \verb+o+.
+#
+#    \begin{verbatim}
+#    PrintObject(o) =
+#       o.object-foreach(v, x) =>
+#          println($(v) = $(x))
+#    \end{verbatim}
+#
+#    The \verb+export+ form is valid in a \verb+object-foreach+ body.  The following
+#    function collects just the field names of an object.
+#
+#    \begin{verbatim}
+#    FieldNames(o) =
+#       names[] =
+#       o.object-foreach(v, x) =>
+#          names[] += $(v)
+#          export
+#       return $(names)
+#    \end{verbatim}
+# \end{itemize}
+#
+# \end{doc}
+#
+Object. +=
+   class Object
+
+   object-length() =
+      return $(obj-length $(this))
+
+   object-mem(v) =
+      return $(obj-mem $(this), $(v))
+
+   object-add(v, x) =
+      return $(obj-add $(this), $(v), $(x))
+
+   object-find(v) =
+      return $(obj-find $(this), $(v))
+
+   object-map(f) =
+      return $(obj-map $(this), $(f))
+
+   curry.object-foreach() =
+      private.THIS = $(this)
+      g(f) =
+         export
+         obj-map($(THIS), $(f))
+
+   instanceof(v) =
+      return $(obj-instanceof $(this), $(v))
+
+public.Object = $(this.Object)
+
+#
+# The runtime doesn't know to include the Object module, so do it now.
+#
+extends $(Object)
+
+#
+# \begin{doc}
+# \obj{Map}
+#
+# Parent objects: \verb+Object+.
+#
+# A \verb+Map+ object is a dictionary from values to values.  The \verb+<key>+
+# values are restricted to simple values: integers, floating-point numbers,
+# strings, files, directories, and arrays of simple values.
+#
+# The Map object provides the following methods.
+#
+# \begin{itemize}
+# \item \verb+$(o.length)+: the number of items in the map.
+# \item \verb+$(o.mem <key>)+: returns \verb+true+ iff the \verb+<key>+ is defined
+#    in the map.
+# \item \verb+$(o.add <key>, <value>)+: adds the field to the map,
+#    returning a new map.
+# \item \verb+$(o.find <key>)+: fetches the field from the map.
+# \item \verb+$(o.keys)+: fetches an array of all the keys in the map, in alphabetical order.
+# \item \verb+$(o.values)+: fetches an array of all the values in the map,
+#    in the alphabetical order of the corresponding keys.
+# \item \verb+$(o.map <fun>)+: maps a function over the map.  The function
+#    should take two arguments; the first is a field name, the second is the
+#    value of that field.  The result is a new object constructed from the
+#    values returned by the function.
+# \item \verb+o.foreach+: the \verb+foreach+ form is equivalent to \verb+map+,
+#    but with altered syntax.
+#
+#    \begin{verbatim}
+#    o.foreach(<var1>, <var2>) =>
+#       <body>
+#    \end{verbatim}
+#
+#    For example, the following function prints all the fields of a
+#    map \verb+o+.
+#
+#    \begin{verbatim}
+#    PrintMap(o) =
+#       o.foreach(v, x) =>
+#          println($(v) = $(x))
+#    \end{verbatim}
+#
+#    The \verb+export+ form is valid in a \verb+foreach+ body.  The following
+#    function reimplements the \verb+key+ method.
+#
+#    \begin{verbatim}
+#    FieldNames(o) =
+#       names =
+#       o.foreach(v, x) =>
+#          names += $(v)
+#          export
+#       return $(names)
+#    \end{verbatim}
+# \end{itemize}
+#
+# There is also simpler syntax when the key is a string.  The table can be
+# defined using definitions with the form \verb+$|key|+
+# (the number of pipe symbols \verb+|+ is allowed to vary).
+#
+# \begin{verbatim}
+#     $|key 1| = value1
+#     $||key1|key2|| = value2    # The key is key1|key2
+#     X = $|key 1|               # Define X to be the value of field $|key 1|
+# \end{verbatim}
+#
+# The usual modifiers are also allowed.  The expression \verb+$`|key|+ represents
+# lazy evaluation of the key, and \verb+$,|key|+ is normal evaluation.
+#
+# \end{doc}
+#
+Map. +=
+    class Map
+    extends $(Object)
+
+    mem(v) =
+        return $(map-mem $(this), $(v))
+
+    add(v, x) =
+        return $(map-add $(this), $(v), $(x))
+
+    remove(v) =
+        return $(map-remove $(this), $(v))
+
+    find(v) =
+        return $(map-find $(this), $(v))
+
+    map(f) =
+        export
+        return $(map-map $(this), $(f))
+
+    curry.foreach() =
+        private.THIS = $(this)
+        g(f) =
+            export
+            map-map($(THIS), $f)
+
+    length() =
+        return $(map-length $(this))
+
+    keys() =
+        return $(map-keys $(this))
+
+    values() =
+        return $(map-values $(this))
+
+########################################################################
+# \begin{doc}
+# \obj{Number}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Number+ object is the parent object for integers
+# and floating-point numbers.
+# \end{doc}
+#
+Number. +=
+   class Number
+   extends $(Object)
+
+public.Number = $(Number)
+
+#
+# \begin{doc}
+# \obj{Int}
+#
+# Parent objects: \verb+Number+.
+#
+# The \verb+Int+ object represents integer values.
+# \end{doc}
+#
+Int. +=
+   class Int
+   extends $(Number)
+
+#
+# \begin{doc}
+# \obj{Float}
+#
+# Parent objects: \verb+Number+.
+#
+# The \verb+Float+ object represents floating-point numbers.
+# \end{doc}
+#
+Float. +=
+   class Float
+   extends $(Number)
+
+########################################################################
+# \begin{doc}
+# \obj{Sequence}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Sequence+ object represents a generic object containing
+# sequential elements.  It provides the following methods.
+#
+# \begin{itemize}
+# \item \verb+$(s.length)+: the number of elements in the sequence.
+# \item \verb+$(s.is-nonempty)+: true iff the expression \verb+$(s.nth 0)+
+#    will complete without failure.
+# \item \verb+$(s.nth <i>)+: return the n'th element of the sequence.
+# \item \verb+$(s.nth-tl <i>)+: return the n'th tail of the sequence.
+# \item \verb+$(s.map <fun>)+: maps a function over the fields in the sequence.
+#    The function should take one argument. The result is a new sequence
+#    constructed from the values returned by the function.
+# \item \verb+s.foreach+: the \verb+foreach+ form is equivalent to \verb+map+,
+#    but with altered syntax.
+#
+#    \begin{verbatim}
+#    s.foreach(<var>) =>
+#       <body>
+#    \end{verbatim}
+#
+#    For example, the following function prints all the elements of the sequence.
+#
+#    \begin{verbatim}
+#    PrintSequence(s) =
+#       s.foreach(x) =>
+#          println(Elem = $(x))
+#    \end{verbatim}
+#
+#    The \verb+export+ form is valid in a \verb+foreach+ body.  The following
+#    function counts the number of zeros in the sequence.
+#
+#    \begin{verbatim}
+#    Zeros(s) =
+#       count = $(int 0)
+#       s.foreach(v) =>
+#          if $(equal $(v), 0)
+#             count = $(add $(count), 1)
+#             export
+#          export
+#       return $(count)
+#    \end{verbatim}
+#
+# \item \verb+$(s.forall <fun>)+: tests whether each element of the sequence
+#   satifies a predicate.
+# \item \verb+$(s.exists <fun>)+: tests whether the sequence contains an element
+#   that satisfies a predicate.
+# \item \verb+$(s.sort <fun>)+: sorts a sequence.  The \verb+<fun>+ is a comparison
+#   function.  It takes two elements \verb+(x, y)+ of the sequence, compares them, and returns
+#   a negative number if $x < y$, a positive number if $x > y$, and zero if the two elements
+#   are equal.
+#
+#   \begin{verbatim}
+#   osh> items = $(int 0 3 -2)
+#   osh> items.forall(x => $(gt $x, 0))
+#   - : bool = false
+#   osh> items.exists(x => $(gt $x, 0))
+#   - : bool = true
+#   osh> items.sort($(compare))
+#   - : Array = -2 3 0
+#   \end{verbatim}
+#
+# \end{itemize}
+# \end{doc}
+#
+Sequence. +=
+   class Sequence
+   extends $(Object)
+
+   length() =
+      sequence-length($(this))
+
+   is-nonempty() =
+      sequence-nonempty($(this))
+
+   nth(i) =
+      sequence-nth($(this), $(i))
+
+   nth-tl(i) =
+      sequence-nth-tl($(this), $(i))
+
+   sub(off, len) =
+      sequence-sub($(this), $(off), $(len))
+
+   rev() =
+      sequence-rev($(this))
+
+   map(f) =
+      sequence-map($(f), $(this))
+
+   # Note: private exports have no effect
+   curry.foreach() =
+      private.THIS = $(this)
+      g(f) =
+         export
+         sequence-map($(f), $(THIS))
+
+   forall(f) =
+      sequence-forall($f, $(this))
+
+   exists(f) =
+      sequence-exists($f, $(this))
+
+   sort(f) =
+      sequence-sort($f, $(this))
+
+public.Sequence = $(Sequence)
+
+#
+# \begin{doc}
+# \obj{Array}
+#
+# Parent objects: \verb+Sequence+.
+#
+# The \verb+Array+ is a random-access sequence.
+# It provides the following additional methods.
+#
+# \begin{itemize}
+# \item \verb+$(s.nth <i>)+: returns element \verb+i+ of the sequence.
+# \item \verb+$(s.rev <i>)+: returns the reversed sequence.
+# \end{itemize}
+#
+# \end{doc}
+#
+Array. +=
+   class Array
+   extends $(Sequence)
+
+public.Array = $(Array)
+
+#
+# \begin{doc}
+# \obj{String}
+#
+# Parent objects: \verb+Array+.
+# \end{doc}
+#
+String. +=
+    class String
+    extends $(Array)
+
+########################################################################
+# \begin{doc}
+# \obj{Fun}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Fun+ object provides the following methods.
+# \begin{itemize}
+# \item \verb+$(f.arity)+: the arity if the function.
+# \end{itemize}
+# \end{doc}
+#
+Fun. +=
+   class Fun
+   extends $(Object)
+
+   arity() =
+      return $(sequence-length $(this))
+
+########################################################################
+# \begin{doc}
+# \obj{Rule}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Rule+ object represents a build rule.
+# It does not currently have any methods.
+# \end{doc}
+#
+Rule. +=
+   class Rule
+   extends $(Object)
+
+#
+# \begin{doc}
+# \obj{Target}
+#
+# Parent object: \verb+Object+.
+#
+# The \verb+Target+ object contains information collected for
+# a specific target file.
+#
+# \begin{itemize}
+# \item \verb+target+: the target file.
+# \item \verb+effects+: the files that may be modified by a
+#    side-effect when this target is built.
+# \item \verb+scanner_deps+: static dependencies that must be built
+#    before this target can be scanned.
+# \item \verb+static-deps+: statically-defined build dependencies
+#    of this target.
+# \item \verb+build-deps+: all the build dependencies for the target,
+#    including static and scanned dependencies.
+# \item \verb+build-values+: all the value dependencies associated
+#    with the build.
+# \item \verb+build-commands+: the commands to build the target.
+# \item \verb+output-file+: if output was diverted to a file,
+#    with one of the \verb+--output-*+ options~\ref{chapter:options},
+#    this field names that file.  Otherwise it is \verb+false+.
+# \end{itemize}
+#
+# The object supports the following methods.
+#
+# \begin{itemize}
+# \item \verb+find(file)+: returns a Target object for the given file.
+#    Raises a \verb+RuntimeException+ if the specified target is
+#    not part of the project.
+# \item \verb+find-optional(file)+: returns a \verb+Target+ object
+#    for the given file, or \verb+false+ if the file is not
+#    part of the project.
+# \end{itemize}
+#
+# NOTE: the information for a target is constructed dynamically,
+# so it is possible that the \verb+Target+ object for a node will
+# contain different values in different contexts.  The easiest way
+# to make sure that the \verb+Target+ information is complete is
+# to compute it within a rule body, where the rule depends on
+# the target file, or the dependencies of the target file.
+# \end{doc}
+#
+Target. +=
+   class Target
+   extends $(Object)
+
+   target =
+   effects =
+   scanner-deps =
+   static-deps =
+   build-deps =
+   build-values =
+   build-commands =
+   output-file = false
+
+   find(file) =
+      return $(target $(file))
+
+   find-optional(file) =
+      return $(target-optional $(file))
+
+########################################################################
+# \begin{doc}
+# \obj{Node}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Node+ object is the parent object for files and directories.
+# It supports the following operations.
+# \begin{itemize}
+# \end{doc}
+#
+Node. +=
+    class Node
+    extends $(Object)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(node.stat)+: returns a \verb+stat+ object for the file.  If the
+    # file is a symbolic link, the \verb+stat+ information is for the destination of
+    # the link, not the link itself.
+    #
+    #
+    # \item \verb+$(node.lstat)+: returns a \verb+stat+ object for the file or symbolic link.
+    # \end{doc}
+    #
+    stat() =
+       return $(public.stat $(this))
+
+    lstat() =
+       return $(public.lstat $(this))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(node.unlink)+: removes the file.
+    # \item \verb+$(node.rename <file>)+: renames the file.
+    # \item \verb+$(node.link <file>)+: creates a hard link \verb+<dst>+ to this file.
+    # \item \verb+$(node.symlink <file>)+: create a symbolic link \verb+<dst>+ to this file.
+    # \end{doc}
+    #
+    unlink() =
+       return $(public.unlink $(this))
+
+    rename(file) =
+       return $(public.rename $(this), $(file))
+
+    link(file) =
+       return $(public.link $(this), $(file))
+
+    symlink(file) =
+       return $(public.symlink $(this), $(file))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(node.chmod <perm>)+: change the permission of this file.
+    # \item \verb+$(node.chown <uid>, <gid>)+: change the owner and group id of this file.
+    # \end{doc}
+    #
+    chmod(perm) =
+       return $(public.chmod $(this), $(perm))
+
+    chown(uid, gid) =
+       return $(public.chown $(this), $(uid), $(gid))
+
+public.Node = $(Node)
+
+#
+# \begin{doc}
+# \end{itemize}
+# \end{doc}
+#
+
+#
+# \begin{doc}
+# \obj{File}
+#
+# Parent objects: \verb+Node+.
+#
+# The file object represents the name of a file.
+# \end{doc}
+#
+File. +=
+    class File
+    extends $(Node)
+
+#
+# \begin{doc}
+# \obj{Dir}
+#
+# Parent objects: \verb+Node+.
+#
+# The \verb+Dir+ object represents the name of a directory.
+# \end{doc}
+#
+Dir. +=
+    class Dir
+    extends $(Node)
+
+########################################################################
+# \begin{doc}
+# \obj{Channel}
+#
+# Parent objects: \verb+Object+.
+#
+# A \verb+Channel+ is a generic IO channel.
+# It provides the following methods.
+# \begin{itemize}
+# \end{doc}
+Channel. +=
+    class Channel
+    extends $(Object)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(o.close)+: close the channel.
+    # \end{doc}
+    #
+    close() =
+       public.close($(this))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(o.name)+: returns the file name associated with the channel.
+    # \end{doc}
+    #
+    name() =
+       return $(public.channel-name $(this))
+
+public.Channel = $(this.Channel)
+#
+# \begin{doc}
+# \end{itemize}
+# \end{doc}
+#
+
+########################################################################
+# \begin{doc}
+# \obj{InChannel}
+#
+# Parent objects: \verb+Channel+.
+#
+# A \verb+InChannel+ is an input channel.  The variable \verb+stdin+ is the
+# standard input channel.
+#
+# It provides the following methods.
+# \begin{itemize}
+# \end{doc}
+#
+InChannel. +=
+    class InChannel
+    extends $(Channel)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(InChannel.fopen <file>)+: open a new input channel.
+    # \end{doc}
+    #
+    fopen(file) =
+       return $(public.fopen $(file), r)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(InChannel.of-string <string>)+: open a new input channel,
+    # using a string as input.
+    # \end{doc}
+    of-string = $(open-in-string)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(o.read <number>)+: reads the given number of characters from the channel
+    # \end{doc}
+    read(amount) =
+        return $(public.read $(this), $(amount))
+       
+    #
+    # \begin{doc}
+    # \item \verb+$(o.readln)+: reads a line from the channel
+    # \end{doc}
+    readln() =
+        return $(public.input-line $(this))
+       
+#
+# \begin{doc}
+# \end{itemize}
+# \end{doc}
+#
+
+########################################################################
+# \begin{doc}
+# \obj{OutChannel}
+#
+# Parent object: \verb+Channel+.
+#
+# A \verb+OutChannel+ is an output channel.  The variables \verb+stdout+
+# and \verb+stderr+ are the standard output and error channels.
+#
+# It provides the following methods.
+# \begin{itemize}
+# \end{doc}
+#
+OutChannel. +=
+    class OutChannel
+    extends $(Channel)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.fopen <file>)+: open a new output channel.
+    # \end{doc}
+    #
+    fopen(file) =
+       return $(public.fopen $(file), w)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.string)+: open a new output channel,
+    # writing to a string.
+    # \end{doc}
+    #
+    to-string() =
+       return $(public.open-out-string)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.to-string)+: get the current string of
+    # output, for an output channel created as \verb+OutChannel.open-string+.
+    # \end{doc}
+    #
+    contents() =
+       return $(public.out-contents $(this))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.append <file>)+: opens a new output channel,
+    # appending to the file.
+    # \end{doc}
+    #
+    append(file) =
+       return $(public.fopen $(file), a)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(c.flush)+: flush the output channel.
+    # \end{doc}
+    #
+    flush() =
+        return $(public.flush $(this))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(c.print <string>)+: print a string to the channel.
+    # \end{doc}
+    #
+    print(s) =
+        return $(public.fprint $(this), $(s))
+
+    #
+    # \begin{doc}
+    # \item \verb+$(c.println <string>)+: print a string to the channel,
+    # followed by a line terminator.
+    # \end{doc}
+    #
+    println(s) =
+        return $(public.fprintln $(this), $(s))
+#
+# \begin{doc}
+# \end{itemize}
+# \end{doc}
+#
+
+########################################################################
+# \begin{doc}
+# \obj{Location}
+#
+# Parent objects: \verb+Location+.
+#
+# The \verb+Location+ object represents a location in a file.
+# \end{doc}
+#
+Location. +=
+    class Location
+    extends $(Object)
+
+    to-string() =
+        string-of-location($(this))
+
+########################################################################
+# \begin{doc}
+# \obj{Exception}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Exception+ object is used as the base object for exceptions.
+# It has no fields.
+# \end{doc}
+#
+Exception. +=
+    class Exception
+    extends $(Object)
+
+public.Exception = $(Exception)
+
+#
+# \begin{doc}
+# \obj{RuntimeException}
+#
+# Parent objects: \verb+Exception+.
+#
+# The \verb+RuntimeException+ object represents an exception from the
+# runtime system.  It has the following fields.
+#
+# \begin{itemize}
+# \item \verb+position+: a string representing the location where the
+#    exception was raised.
+# \item \verb+message+: a string containing the exception message.
+# \end{itemize}
+# \end{doc}
+#
+RuntimeException. +=
+    class RuntimeException
+    extends $(Exception)
+
+    position = no position
+    message = no message
+
+#
+# \begin{doc}
+# \obj{UnbuildableException}
+#
+# Parent objects: \verb+Exception+.
+#
+# The \verb+UnbuildableException+ object should be used to signal that a target
+# is not buildable. It will be caught by functions such as
+# \hyperfunn{target-exists}.
+# This exception has the following fields:
+#
+# \begin{itemize}
+# \item \verb+target+: indicates which target is not buildable.
+# \item \verb+message+: a string containing the exception message.
+# \end{itemize}
+# \end{doc}
+#
+UnbuildableException. +=
+    class UnbuildableException
+    extends $(Exception)
+
+    message = no message
+    target = no target
+
+########################################################################
+# System objects.
+#
+Select. +=
+   class Select
+   extends $(Object)
+
+Pipe. +=
+   class Pipe
+   extends $(Object)
+
+Stat. +=
+   class Stat
+   extends $(Object)
+
+Passwd. +=
+   class Passwd
+   extends $(Object)
+
+Group. +=
+   class Group
+   extends $(Object)
+
+Tm. +=
+   class Tm
+   extends $(Object)
+   tm_sec = $(int 0)
+   tm_min = $(int 0)
+   tm_hour = $(int 0)
+   tm_mday = $(int 0)
+   tm_mon = $(int 0)
+   tm_year = $(int 0)
+   tm_wday = $(int 0)
+   tm_yday = $(int 0)
+   tm_isdst = false
+
+########################################################################
+# The shell object.
+#
+# \begin{doc}
+# \obj{Shell}
+#
+# Parent objects: \verb+Object+.
+#
+# The \verb+Shell+ object contains the collection of builtin functions
+# available as shell commands.
+#
+# You can define aliases by extending this object with additional methods.
+# All methods in this class are called with one argument: a single array
+# containing an argument list.
+#
+# \begin{itemize}
+# \end{doc}
+#
+Shell. +=
+   class Shell
+   extends $(Object)
+
+   #
+   # \begin{doc}
+   # \itemidx{echo}
+   #
+   # The \verb+echo+ function prints its arguments to the standard output channel.
+   # \end{doc}
+   #
+   echo = $(echo)
+
+   #
+   # \begin{doc}
+   # \itemidx{jobs}
+   #
+   # The \verb+jobs+ method prints the status of currently running commands.
+   # \end{doc}
+   #
+   jobs = $(jobs)
+
+   getpwnam = $(getpwnam)
+   getpwuid = $(getpwuid)
+   getgrnam = $(getgrnam)
+   getgrgid = $(getgrgid)
+
+   #
+   # \begin{doc}
+   # \itemidx{cd}
+   #
+   # The \verb+cd+ function changes the current directory.
+   # Note that the current directory follows the usual scoping
+   # rules.  For example, the following program lists the
+   # files in the \verb+foo+ directory, but the current
+   # directory is not changed.
+   #
+   # \begin{verbatim}
+   #    section
+   #       echo Listing files in the foo directory...
+   #       cd foo
+   #       ls
+   #
+   #    echo Listing files in the current directory...
+   #    ls
+   # \end{verbatim}
+   # \end{doc}
+   #
+   cd = $(cd)
+
+   #
+   # \begin{doc}
+   # \itemidx{bg}
+   #
+   # The \verb+bg+ method places a job in the background.
+   # The job is resumed if it has been suspended.
+   # \end{doc}
+   #
+   bg = $(bg)
+
+   #
+   # \begin{doc}
+   # \itemidx{fg}
+   #
+   # The \verb+fg+ method brings a job to the foreground.
+   # The job is resumed if it has been suspended.
+   # \end{doc}
+   #
+   fg = $(fg)
+
+   #
+   # \begin{doc}
+   # \itemidx{stop}
+   #
+   # The \verb+stop+ method suspends a running job.
+   # \end{doc}
+   #
+   stop = $(stop)
+
+   #
+   # \begin{doc}
+   # \itemidx{wait}
+   #
+   # The \verb+wait+ function waits for a running job to terminate.
+   # It is not possible to wait for a suspended job.
+   #
+   # The job is not brought to the foreground.  If the \verb+wait+
+   # is interrupted, the job continues to run in the background.
+   # \end{doc}
+   #
+   wait = $(wait)
+
+   #
+   # \begin{doc}
+   # \itemidx{kill}
+   #
+   # The \verb+kill+ function signal a job.
+   #
+   # \verb+kill [signal] <pid...>+.
+   #
+   # The signals are either numeric, or symbolic.
+   # The symbolic signals are named as follows.
+   #
+   # ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
+   # USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
+   # \end{doc}
+   #
+   kill = $(kill)
+
+   #
+   # \begin{doc}
+   # \itemidx{exit}
+   #
+   # The \verb+exit+ function terminates the current session.
+   # \end{doc}
+   #
+   exit = $(exit-parent)
+
+   #
+   # \begin{doc}
+   # \itemtwoidx{which}{where}
+   #
+   # See the documentation for the corresponding functions.
+   # \end{doc}
+   which(argv) =
+      println($(which $(argv)))
+
+   where(argv) =
+      res[] = $(where $(argv))
+      res.map($(println))
+      return $(int 0)
+
+   #
+   # \begin{doc}
+   # \itemidx{rehash}
+   #
+   # Reset the search path.
+   # \end{doc}
+   #
+   rehash(argv) =
+      rehash()
+
+   #
+   # \begin{doc}
+   # \itemidx{ln-or-cp} \em{src} \em{dst}
+   #
+   # Links or copies \em{src} to \em{dst}, overwriting \em{dst}. Namely, \verb+ln-or-cp+ would first
+   # delete the \em{dst} file (unless it is a directory), if it exists. Next it would try to create
+   # a symbolic link \em{dst} poiting to \em{src} (it will make all the necessary adjustmnents of
+   # relative paths). If symbolic link can not be created (\emph{e.g.} the OS or the filesystem does
+   # not support symbolic links), it will try to create a hard link. If that fails too, it will try
+   # to forcibly copy \em{src} to \em{dst}.
+   # \end{doc}
+   #
+   ln-or-cp(argv) =
+      if $(not $(eq $(length $(argv)), 2))
+         eprintln($"Shell.ln-or-cp: expected 2 arguments, received $(length $(argv)) arguments")
+         exit(1)
+      src = $(file $"$(nth 0, $(argv))")
+      dst = $(file $"$(nth 1, $(argv))")
+      if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
+         rm($(array -f, $(dst)))
+         if $(test -e $(dst))
+            # The dst might be read-only; on Windows this will prevent deletion.
+            # Will try to fix the permissions and rm again.
+            # If dst and src are already hardliked, this will break
+            # the permissions on src, so we will try to restore them.
+            src_was_ro = $(not $(test -w $(src)))
+            chmod -f -m u+w $(dst)
+            rm($(array -f, $(dst)))
+            if $(and $(src_was_ro), $(test -w $(src)))
+                chmod -f -m u-w $(src)
+      try
+         symlink($(src), $(dst))
+      default
+         try
+            link($(src), $(dst))
+         default
+            if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
+                # NB: $(dst) might already be a hardlink and we failed to delete it
+                # Trying to cp in that case might cause both $(src) and $(dst) to
+                # get truncated!
+                eprintln($"ln-or-cp: failed to remove the destination file $(dst) before overwriting; giving up.")
+                exit(1)
+            return $(cp $(array -f, $(src), $(dst)))
+
+   #
+   # \begin{doc}
+   # \itemidx{history}
+   #
+   # Print the current command-line history.
+   # \end{doc}
+   #
+   history(argv) =
+      lines = $(public.history)
+      lines.map($(println))
+      return $(int 0)
+
+   #
+   # \begin{doc}
+   # \itemidx{digest}
+   #
+   # Print the digests of the given files.
+   # \end{doc}
+   #
+   digest(argv) =
+       foreach(n => ..., $(argv))
+           println($"$n: $(digest $n)")
+       value
+
+   #
+   # \begin{doc}
+   # \item Win32 functions.
+   #
+   #     Win32 doesn't provide very many programs for scripting, except
+   #     for the functions that are builtin to the DOS \verb+cmd.exe+.
+   #     The following functions are defined on Win32 and only on Win32.
+   #     On other systems, it is expected that these programs already
+   #     exist.
+   #
+   # \begin{itemize}
+   # \end{doc}
+   #
+   if $(equal $(OSTYPE), Win32)
+       #
+       # \begin{doc}
+       # \itemidx{grep}
+       #
+       # \begin{verbatim}
+       #    grep [-q] [-n] [-v] [-h] pattern files...
+       # \end{verbatim}
+       #
+       # The \verb+grep+ alias calls the \Prog{omake}'s internal \hyperfun{grep}.
+       # \end{doc}
+       #
+       grep = $(builtin-grep)
+
+       export
+   #
+   # \begin{doc}
+   # \end{itemize}
+   # \end{doc}
+   #
+
+   #
+   # \begin{doc} Internal versions of standard system commands.
+   #
+   # By default, \Prog{omake} uses internal versions of the following commands:
+   # \verb+cp+, \verb+mv+, \verb+cat+, \verb+rm+, \verb+mkdir+, \verb+chmod+,
+   # \verb+test+, \verb+find+.
+   # If you really want to use the standard system versions of these
+   # commands, set the \verb+USE_SYSTEM_COMMANDS+ as one of the first
+   # definitions in your \verb+OMakeroot+ file.
+   #
+   # \begin{itemize}
+   # \end{doc}
+   #
+   declare [
+   declare true
+   if $(not $(defined USE_SYSTEM_COMMANDS))
+       #
+       # \begin{doc}
+       # \itemidx{pwd}
+       #
+       # \begin{verbatim}
+       #     pwd
+       # \end{verbatim}
+       #
+       # The \verb+pwd+ alias would print the absolute path to current directory.
+       # \end{doc}
+       #
+       pwd(argv) =
+           println($(absname .))
+
+       #
+       # \begin{doc}
+       # \itemidx{mkdir}
+       #
+       # \begin{verbatim}
+       #     mkdir [-m <mode>] [-p] files
+       # \end{verbatim}
+       #
+       # The \verb+mkdir+ function is used to create directories.
+       # The -verb+-m+ option can be used to specify the permission
+       # mode of the created directory.  If the \verb+-p+ option
+       # is specified, the full path is created.
+       # \end{doc}
+       #
+       mkdir = $(mkdir)
+
+       #
+       # \begin{doc}
+       # \itemtwoidx{cp}{mv}
+       #
+       # \begin{verbatim}
+       #     cp [-f] [-i] [-v] src dst
+       #     cp [-f] [-i] [-v] files dst
+       #     mv [-f] [-i] [-v] src dst
+       #     mv [-f] [-i] [-v] files dst
+       # \end{verbatim}
+       #
+       # The \verb+cp+ function copies a \verb+src+ file to
+       # a \verb+dst+ file, overwriting it if it already exists.
+       # If more than one source file is specified, the final file
+       # must be a directory, and the source files are copied
+       # into the directory.
+       #
+       # \begin{description}
+       # \item[-f] Copy files forcibly, do not prompt.
+       # \item[-i] Prompt before removing destination files.
+       # \item[-v] Explain what is happening.
+       # \end{description}
+       # \end{doc}
+       #
+       cp = $(cp)
+       mv = $(mv)
+
+       #
+       # \begin{doc}
+       # \itemidx{rm}
+       #
+       # \begin{verbatim}
+       #    rm [-f] [-i] [-v] [-r] files
+       #    rmdir [-f] [-i] [-v] [-r] dirs
+       # \end{verbatim}
+       #
+       # The \verb+rm+ function removes a set of files.
+       # No warnings are issued if the files do not exist, or if
+       # they cannot be removed.
+       #
+       # Options:
+       # \begin{description}
+       # \item[-f] Forcibly remove files, do not prompt.
+       # \item[-i] Prompt before removal.
+       # \item[-v] Explain what is happening.
+       # \item[-r] Remove contents of directories recursively.
+       # \end{description}
+       # \end{doc}
+       #
+       rm = $(rm)
+       rmdir = $(rmdir)
+
+       #
+       # \begin{doc}
+       # \itemidx{chmod}
+       #
+       # \begin{verbatim}
+       #     chmod [-r] [-v] [-f] mode files
+       # \end{verbatim}
+       #
+       # The \verb+chmod+ function changes the permissions on a set of
+       # files or directories.  This function does nothing on Win32.
+       # The \verb+mode+ may be specified as an octal number,
+       # or in symbolic form \verb+[ugoa]*[+-=][rwxXstugo]+.
+       # See the man page for \verb+chmod+ for details.
+       #
+       # Options:
+       # \begin{description}
+       # \item[-r] Change permissions of all files in a directory recursively.
+       # \item[-v] Explain what is happening.
+       # \item[-f] Continue on errors.
+       # \end{description}
+       # \end{doc}
+       #
+       chmod = $(chmod)
+
+       #
+       # \begin{doc}
+       # \itemidx{cat}
+       #
+       # \begin{verbatim}
+       #    cat files...
+       # \end{verbatim}
+       #
+       # The \verb+cat+ function prints the contents of the files to stdout
+       # \end{doc}
+       #
+       cat(argv)=
+           print($(cat $(argv)))
+
+       #
+       # \begin{doc}
+       # \itemidx{test}
+       #
+       #    \verb+test+ \emph{expression}\\
+       #    \verb+[+ \emph{expression} +]+\\
+       #    \verb+[ --help+\\
+       #    \verb+[ --version+\\
+       #
+       # See the documentation for the \hyperfun{test}.
+       #
+       # \end{doc}
+       #
+       test = $(builtin-test)
+       [ = $(builtin-test-brack)
+
+       #
+       # \begin{doc}
+       # \itemidx{find}
+       #
+       #    \verb+find+ \emph{expression}
+       #
+       # See the documentation for the \hyperfun{find}.
+       #
+       # \end{doc}
+       #
+       find = $(builtin-find)
+
+       true(argv) =
+          return true
+
+       export
+
+   #
+   # \begin{doc}
+   # \end{itemize}
+   # \end{doc}
+   #
+
+#
+# \begin{doc}
+# \end{itemize}
+# \end{doc}
+#
+
+#
+# These are all documented in Omake_builtin_io_fun.
+#
+declare parse-loc
+
+Token. =
+   class Token
+
+   loc =
+   name =
+   val =
+
+   unit(name) =
+      this.loc = $(parse-loc)
+      this.name = $(name)
+      return $(this)
+
+   pair(name, val) =
+      this.loc = $(parse-loc)
+      this.name = $(name)
+      this.val = $(val)
+      return $(this)
+
+   rename(name) =
+      this.name = $(name)
+      return $(this)
+
+Lexer. +=
+   class Lexer
+   extends $(Object)
+
+   declare channel
+
+   #
+   # For interpreting the rules
+   #
+   rule = $(lex-rule)
+
+   #
+   # To use a lexer, you would normally hand it a channel
+   #
+   from-channel(channel) =
+      this.channel = $(channel)
+      return $(this)
+
+   lex() =
+      return $(lex-engine $(this.channel))
+
+   lex-channel(channel) =
+      this.channel = $(channel)
+      return $(lex-engine $(channel))
+
+   set-line(filename, line) =
+      set-channel-line($(channel), $(filename), $(line))
+
+Parser. +=
+   class Parser
+   extends $(Object)
+
+   #
+   # For interpreting the rules
+   #
+   rule         = $(parse-rule)
+
+   #
+   # You must set the lexer
+   #
+   lexer =
+
+   #
+   # Start symbols
+   #
+   start        = $(parse-start)
+
+   #
+   # Precedence operations
+   #
+   left         = $(parse-left)
+   right        = $(parse-right)
+   nonassoc     = $(parse-nonassoc)
+
+   #
+   # Manipulating the current precedence level
+   #
+   prec-min     = $".min"
+   prec-max     = $".max"
+   current-prec = $".min"
+
+   #
+   # Build the parser
+   #
+   build        = $(parse-build)
+
+   #
+   # Main parsing function
+   #
+   parse(sym) =
+      return $(parse-engine $(sym))
+
+   parse-channel(sym, channel) =
+      lexer = $(lexer.from-channel $(channel))
+      return $(parse-engine $(sym))
+
+   parse-file(sym, file) =
+      channel = $(fopen $(file), r)
+      lexer = $(lexer.from-channel $(channel))
+      result = $(parse-engine $(sym))
+      close($(channel))
+      return $(result)

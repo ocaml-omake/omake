@@ -1,0 +1,98 @@
+%
+%
+%
+\chapter{The OSH shell}
+\label{chapter:osh}
+\cutname{osh.html}
+
+\OMake{} also includes a standalone command-line interpreter \Prog{osh} that can be used as an
+interactive shell.  The shell uses the same syntax, and provides the same features on all platforms
+\Prog{omake} supports, including Win32.
+
+\section{Startup}
+
+On startup, \Prog{osh} reads the file \verb+~/.oshrc+ if it exists.  The syntax of this file is the
+same as an \Prog{OMakefile}.  The following additional variables are significant.
+
+\var{prompt}  The \verb+prompt+ variable specifies the command-line prompt.
+It can be a simple string.
+
+\begin{verbatim}
+    prompt = osh>
+\end{verbatim}
+
+Or you may choose to define it as a function of no arguments.
+
+\begin{verbatim}
+    prompt() =
+        return $"<$(USER):$(HOST) $(homename $(CWD))>"
+\end{verbatim}
+
+An example of the latter prompt is as follows.
+
+\begin{verbatim}
+    <jyh:kenai.yapper.org ~>cd links/omake
+    <jyh:kenai.yapper.org ~/links/omake>
+\end{verbatim}
+
+If you include any "invisible" text in the prompt (such as various terminal
+escape sequences), they must be wrapped using the
+\hyperfun{prompt-invisible}. For example, to create a bold prompt on
+terminals that support it, you can use the following.
+\begin{verbatim}
+    prompt =
+       bold-begin = $(prompt-invisible $(tgetstr bold))
+       bold-end = $(prompt-invisible $(tgetstr sgr0))
+       value $(bold-begin)$"osh>"$(bold-end)
+\end{verbatim}
+
+\var{ignoreeof}
+   If the \verb+ignoreeof+ is \verb+true+, then \verb+osh+ will not exit on
+   a terminal end-of-file (usually \verb+^D+ on Unix systems).
+
+\section{Aliases}
+\index{aliases}
+
+Command aliases are defined by adding functions to the \verb+Shell.+ object.  The following alias
+adds the \verb+-AF+ option to the \verb+ls+ command.
+
+\begin{verbatim}
+    Shell. +=
+       ls(argv) =
+          "ls" -AF $(argv)
+\end{verbatim}
+
+Quoted commands do not undergo alias expansion.  The quotation \verb+"ls"+ prevents the alias from
+being recursive.
+
+\section{Interactive syntax}
+
+The interactive syntax in \verb+osh+ is the same as the syntax of an \verb+OMakefile+, with one
+exception in regard to indentation.  The line before an indented block must have a colon at the end
+of the line.  A block is terminated with a \verb+.+ on a line by itself, or \verb+^D+.  In the
+following example, the first line \verb+if true+ has no body, because there is no colon.
+
+\begin{verbatim}
+   # The following if has no body
+   osh>if true
+   # The following if has a body
+   osh>if true:
+   if>       if true:
+   if>          println(Hello world)
+   if>          .
+   Hello world
+\end{verbatim}
+
+Note that \verb+osh+ makes some effort to modify the prompt while in an indented body, and it
+auto-indents the text.
+
+The colon signifier is also allowed in files, although it is not required.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

@@ -1,0 +1,371 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<META name="GENERATOR" content="hevea 1.09">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>Additional language examples</TITLE>
+</HEAD>
+<BODY >
+
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
+
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc67">Chapter&#XA0;7</A>&#XA0;&#XA0;Additional language examples</H1><UL>
+<LI><A HREF="omake-language-examples.html#toc45">Strings and arrays</A></LI>
+<LI><A HREF="omake-language-examples.html#toc46">Quoted strings</A></LI>
+<LI><A HREF="omake-language-examples.html#toc47">Files and directories</A></LI>
+<LI><A HREF="omake-language-examples.html#toc48">Iteration, mapping, and foreach</A></LI>
+<LI><A HREF="omake-language-examples.html#toc49">Lazy expressions</A></LI>
+<LI><A HREF="omake-language-examples.html#toc50">Scoping and exports</A></LI>
+<LI><A HREF="omake-language-examples.html#toc51">Shell aliases</A></LI>
+<LI><A HREF="omake-language-examples.html#toc52">Input/output redirection on the cheap</A></LI>
+</UL>
+<P>
+<A NAME="chapter:language-examples"></A>
+</P><P>In this section, we'll explore the core language through a series of examples (examples of the build
+system are the topic of the Chapter&#XA0;<A HREF="omake-build-examples.html#chapter:build-examples">3</A>).</P><P>For most of these examples, we'll use the <CODE>osh</CODE> command interpreter. For simplicity, the
+values printed by <CODE>osh</CODE> have been abbreviated.</P><H2 CLASS="section"><A NAME="toc45"></A><A NAME="htoc68">7.1</A>&#XA0;&#XA0;Strings and arrays</H2><P>The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
+values separated by whitespace; the sequences are split on demand by functions that expect arrays.</P><PRE CLASS="verbatim">   osh&gt; X = 1 2
+   - : "1 2" : Sequence
+   osh&gt; addsuffix(.c, $X)
+   - : &lt;array 1.c 2.c&gt; : Array
+</PRE><P>Sometimes you want to define an array explicitly. For this, use the <CODE>[]</CODE> brackets after the
+variable name, and list each array entry on a single indented line.</P><PRE CLASS="verbatim">   osh&gt; A[] =
+           Hello world
+           $(getenv HOME)
+   - : &lt;array "Hello world" "/home/jyh"&gt; : Array
+</PRE><P>One central property of arrays is that whitespace in the elements is significant. This can be
+useful, especially for filenames that contain whitespace. </P><PRE CLASS="verbatim">   # List the current files in the directory
+    osh&gt; ls -Q
+    "fee"  "fi"  "foo"  "fum"
+    osh&gt; NAME[] = 
+            Hello world
+    - : &lt;array "Hello world"&gt; : Array
+    osh&gt; touch $(NAME)
+    osh&gt; ls -Q
+    "fee"  "fi"  "foo"  "fum"  "Hello world"
+</PRE><H2 CLASS="section"><A NAME="toc46"></A><A NAME="htoc69">7.2</A>&#XA0;&#XA0;Quoted strings</H2><P>
+<A NAME="section:quoted-strings"></A>
+<A NAME="@default40"></A></P><P>A <CODE>String</CODE> is a single value; whitespace is significant in a string. Strings are introduced
+with quotes. There are four kinds of quoted elements; the kind is determined by the opening quote.
+The symbols <CODE>'</CODE> (single-quote) and <CODE>"</CODE> (double-quote) introduce the normal shell-style
+quoted elements. The quotation symbols are <EM>included</EM> in the result string. Variables are
+always expanded within a quote of this kind. Note that the <TT>osh</TT>(1)
+(Chapter&#XA0;<A HREF="osh.html#chapter:osh">15</A>) printer
+escapes double-quotes within the string; these are only for printing, they are not part of the
+string itself.</P><PRE CLASS="verbatim">    osh&gt; A = 'Hello "world"'
+    - : "'Hello \"world\"'" : String
+    osh&gt; B = "$(A)"
+    - : "\"'Hello \"world\"'\"" : String
+    osh&gt; C = 'Hello \'world\''
+    - : "'Hello 'world''" : String
+</PRE><P>A second kind of quote is introduced with the <CODE>$'</CODE> and <CODE>$"</CODE>
+quotes. The number of opening and closing quote symbols is arbitrary.
+These quotations have several properties:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+The quote delimiters are not part of the string.
+</LI><LI CLASS="li-itemize">Backslash <CODE>\</CODE> symbols within the string are treated as normal characters.
+</LI><LI CLASS="li-itemize">The strings may span several lines.
+</LI><LI CLASS="li-itemize">Variables are expanded within <CODE>$"</CODE> sequences, but not within <CODE>$'</CODE>
+sequences.
+</LI></UL><PRE CLASS="verbatim">    osh&gt; A = $'''Here $(IS) an '''' \(example\) string['''
+    - : "Here $(IS) an '''' \\(example\\) string[" : String
+    osh&gt; B = $""""A is "$(A)" """"
+    - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+    osh&gt; value $(A.length)
+    - : 38 : Int
+    osh&gt; value $(A.nth 5)
+    - : "$" : String
+    osh&gt; value $(A.rev)
+    - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+</PRE><P>Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.</P><PRE CLASS="verbatim">    osh&gt; A = a b c
+    - : "a b c" : Sequence
+    osh&gt; B = $(A).c
+    - : &lt;sequence "a b c" : Sequence ".c" : Sequence&gt; : Sequence
+    osh&gt; value $(nth 2, $(B))
+    - : "c.c" : String
+    osh&gt; value $(length $(B))
+    - : 3 : Int
+</PRE><P>Arrays are different. The elements of an array are never merged with
+adjacent text of any kind. Arrays are defined by adding square
+brackets <CODE>[]</CODE> after a variable name and defining the elements
+with an indented body. The elements may include whitespace.</P><PRE CLASS="verbatim">    osh&gt; A[] =
+            a b
+            foo bar
+    - : &lt;array
+           "a b" : Sequence
+           "foo bar" : Sequence&gt;
+           : Array
+    osh&gt; echo $(A).c
+    a b foo bar .c
+    osh&gt; value $(A.length)
+    - : 2 : Int
+    osh&gt; value $(A.nth 1)
+    - : "foo bar" : Sequence
+</PRE><P>Arrays are quite helpful on systems where filenames often contain whitespace.</P><PRE CLASS="verbatim">    osh&gt; FILES[] =
+             c:\Documents and Settings\jyh\one file
+             c:\Program Files\omake\second file
+
+    osh&gt; CFILES = $(addsuffix .c, $(FILES))
+    osh&gt; echo $(CFILES)
+    c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
+</PRE><H2 CLASS="section"><A NAME="toc47"></A><A NAME="htoc70">7.3</A>&#XA0;&#XA0;Files and directories</H2><P>OMake projects usually span multiple directories, and different parts of the project execute
+commands in different directories. There is a need to define a location-independent name for a file
+or directory.</P><P>This is done with the <CODE>$(file &lt;names&gt;)</CODE> and <CODE>$(dir &lt;names&gt;)</CODE> functions.</P><PRE CLASS="verbatim">   osh&gt; mkdir tmp
+   osh&gt; F = $(file fee)
+   osh&gt; section:
+            cd tmp
+            echo $F
+   ../fee
+   osh&gt; echo $F
+   fee
+</PRE><P>Note the use of a <CODE>section:</CODE> to limit the scope of the <CODE>cd</CODE> command. The section
+temporarily changes to the <CODE>tmp</CODE> directory where the name of the file is <CODE>../fee</CODE>. Once
+the section completes, we are still in the current directory, where the name of the file is
+<CODE>fee</CODE>.</P><P>One common way to use the file functions is to define proper file names in your project
+<CODE>OMakefile</CODE>, so that references within the various parts of the project will refer to the same
+file.</P><PRE CLASS="verbatim">    osh&gt; cat OMakefile
+    ROOT = $(dir .)
+    TMP  = $(dir tmp)
+    BIN  = $(dir bin)
+    ...
+</PRE><H2 CLASS="section"><A NAME="toc48"></A><A NAME="htoc71">7.4</A>&#XA0;&#XA0;Iteration, mapping, and foreach</H2><P>Most builtin functions operate transparently on arrays.</P><PRE CLASS="verbatim">    osh&gt; addprefix(-D, DEBUG WIN32)
+    - : -DDEBUG -DWIN32 : Array
+    osh&gt; mapprefix(-I, /etc /tmp)
+    - : -I /etc -I /tmp : Array
+    osh&gt; uppercase(fee fi foo fum)
+    - : FEE FI FOO FUM : Array
+</PRE><P>The <CODE>mapprefix</CODE> and <CODE>addprefix</CODE> functions are slightly different (the <CODE>addsuffix</CODE> and
+<CODE>mapsuffix</CODE> functions are similar). The <CODE>addprefix</CODE> adds the prefex to each array
+element. The <CODE>mapprefix</CODE> doubles the length of the array, adding the prefix as a new array
+element before each of the original elements.</P><P>Even though most functions work on arrays, there are times when you will want to do it yourself.
+The <CODE>foreach</CODE> function is the way to go. The <CODE>foreach</CODE> function has two forms, but the
+form with a body is most useful. In this form, the function takes two arguments and a body. The
+second argument is an array, and the first is a variable. The body is evaluated once for each
+element of the array, where the variable is bound to the element. Let's define a function to add 1
+to each element of an array of numbers.</P><PRE CLASS="verbatim">   osh&gt; add1(l) =
+            foreach(i, $l):
+                add($i, 1)
+   osh&gt; add1(7 21 75)
+   - : 8 22 76 : Array
+</PRE><P>Sometimes you have an array of filenames, and you want to define a rule for each of them. Rules are
+not special, you can define them anywhere a statement is expected. Say we want to write a function
+that describes how to process each file, placing the result in the <CODE>tmp/</CODE> directory.</P><PRE CLASS="verbatim">   TMP = $(dir tmp)
+
+   my-special-rule(files) =
+      foreach(name, $(files))
+         $(TMP)/$(name): $(name)
+            process $&lt; &gt; $@
+</PRE><P>Later, in some other part of the project, we may decide that we want to use this function to process some files.</P><PRE CLASS="verbatim">   # These are the files to process in src/lib
+   MY_SPECIAL_FILES[] =
+       fee.src
+       fi.src
+       file with spaces in its name.src
+   my-special-rule($(MY_SPECIAL_FILES))
+</PRE><P>The result of calling <CODE>my-special-rule</CODE> is
+exactly the same as if we had written the following three rules explicitly.</P><PRE CLASS="verbatim">    $(TMP)/fee.src: fee.src
+        process fee &gt; $@
+    $(TMP)/fi.src: fi.src
+        process fi.src &gt; $@
+    $(TMP)/$"file with spaces in its name.src": $"file with spaces in its name.src"
+        process $&lt; &gt; $@
+</PRE><P>Of course, writing these rules is not nearly as pleasant as calling the function. The usual
+properties of function abstraction give us the usual benefits. The code is less redundant, and
+there is a single location (the <CODE>my-special-rule</CODE> function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one location.</P><H2 CLASS="section"><A NAME="toc49"></A><A NAME="htoc72">7.5</A>&#XA0;&#XA0;Lazy expressions</H2><P>
+<A NAME="section:lazy"></A></P><P>Evaluation in <TT>omake</TT> is normally eager. That is, expressions
+are evaluated as soon as they are encountered by the evaluator. One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.</P><P>There are two ways to control this behavior. The <CODE>$`(v)</CODE> form
+introduces lazy behavior, and the <CODE>$,(v)</CODE> form restores
+eager behavior. Consider the following sequence.</P><PRE CLASS="verbatim">    osh&gt; A = 1
+    - : "1" : Sequence
+    osh&gt; B = 2
+    - : "2" : Sequence
+    osh&gt; C = $`(add $(A), $,(B))
+    - : $(apply add $(apply A) "2" : Sequence)
+    osh&gt; println(C = $(C))
+    C = 3
+    osh&gt; A = 5
+    - : "5" : Sequence
+    osh&gt; B = 6
+    - : "6" : Sequence
+    osh&gt; println(C = $(C))
+    C = 7
+</PRE><P>The definition <CODE>C = $`(add $(A), $,(B))</CODE> defines a lazy application.
+The <CODE>add</CODE> function is not applied in this case until its value is needed.
+Within this expression, the value <CODE>$,(B)</CODE> specifies that <CODE>B</CODE> is
+to be evaluated immediately, even though it is defined in a lazy expression.</P><P>The first time that we print the value of <CODE>C</CODE>, it evaluates to 3
+since <CODE>A</CODE> is 1 and <CODE>B</CODE> is 2. The second time we evaluate <CODE>C</CODE>,
+it evaluates to 7 because <CODE>A</CODE> has been redefined to <CODE>5</CODE>. The second
+definition of <CODE>B</CODE> has no effect, since it was evaluated at definition time.</P><H3 CLASS="subsection"><A NAME="htoc73">7.5.1</A>&#XA0;&#XA0;A larger example of lazy expressions</H3><P>Lazy expressions are not evaluated until their result is needed. Some people,
+including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
+when evaluation actually happens. However, there are cases where they pay off.</P><P>One example comes from option processing. Consider the specification of &#X201C;include&#X201D; directories on
+the command line for a C compiler. If we want to include files from /home/jyh/include and ../foo,
+we specify it on the command line with the options <CODE>-I/home/jyh/include -I../foo</CODE>.</P><P>Suppose we want to define a generic rule for building C files. We could define a <CODE>INCLUDES</CODE>
+array to specify the directories to be included, and then define a generic implicit rule in our root
+OMakefile.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
+    CFLAGS = -g
+    INCLUDES[] =
+    %.o: %.c
+       $(CC) $(CFLAGS) $(INCLUDES) -c $&lt;
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += -I../include
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) -o $@ $(OFILES)
+</PRE><P>But this is not quite right. The problem is that INCLUDES is an array of options, not directories.
+If we later wanted to recover the directories, we would have to strip the leading <CODE>-I</CODE> prefix,
+which is a hassle. Furthermore, we aren't using proper names for the directories. The solution
+here is to use a lazy expression. We'll define INCLUDES as a directory array, and a new variable
+<CODE>PREFIXED_INCLUDES</CODE> that adds the -I prefix. The <CODE>PREFIXED_INCLUDES</CODE> is computed lazily,
+ensuring that the value uses the most recent value of the INCLUDES variable.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
+    CFLAGS = -g
+    INCLUDES[] =
+    PREFIXED_INCLUDES[] = $`(addprefix -I, $(INCLUDES))
+    %.o: %.c
+       $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $&lt;
+
+    # For this example, we define a proper name for the include directory
+    STDINCLUDE = $(dir include)
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += $(STDINCLUDE)
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) -o $@ $(OFILES)
+</PRE><P>Note that there is a close connection between lazy values and functions. In the example above, we
+could equivalently define <CODE>PREFIXED_INCLUDES</CODE> as a function with zero arguments.</P><PRE CLASS="verbatim">    PREFIXED_INCLUDES() =
+        addprefix(-I, $(INCLUDES))
+</PRE><H2 CLASS="section"><A NAME="toc50"></A><A NAME="htoc74">7.6</A>&#XA0;&#XA0;Scoping and exports</H2><P>The OMake language is functional (apart from IO and shell commands). This comes in two parts:
+functions are first-class, and variables are immutable (there is no assignment operator). The
+latter property may seem strange to users used to GNU make, but it is actually a central point of
+OMake. Since variables can't be modified, it is impossible (or at least hard) for one part of the
+project to interfere with another.</P><P>To be sure, pure functional programming can be awkward. In OMake, each new indentation level
+introduces a new scope, and new definitions in that scope are lost when the scope ends. If OMake
+were overly strict about scoping, we would wind up with a lot of convoluted code.</P><PRE CLASS="verbatim">   osh&gt; X = 1
+   osh&gt; setenv(BOO, 12)
+   osh&gt; if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+   osh&gt; println($X $(getenv BOO))
+   1 12
+</PRE><P>The <CODE>export</CODE> command presents a way out. It takes care of &#X201C;exporting&#X201D; a value (or the entire
+variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbatim">   osh&gt; X = 1
+   osh&gt; setenv(BOO, 12)
+   osh&gt; if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+            export
+   osh&gt; println($X $(getenv BOO))
+   2 17
+</PRE><P>Exports are especially useful in loop to export values from one iteration of a loop to the next.</P><PRE CLASS="verbatim">   # Ok, let's try to add up the elements of the array
+   osh&gt;sum(l) =
+           total = 0
+           foreach(i, $l)
+               total = $(add $(total), $i)
+           value $(total)
+   osh&gt;sum(1 2 3)
+   - : 0 : Int
+
+   # Oops, that didn't work!
+   osh&gt;sum(l) =
+           total = 0
+           foreach(i, $l)
+               total = $(add $(total), $i)
+               export
+           value $(total)
+   osh&gt;sum(1 2 3)
+   - : 6 : Int
+</PRE><P>A <CODE>while</CODE> loop is another form of loop, with an auto-export.</P><PRE CLASS="verbatim">    osh&gt;i = 0
+    osh&gt;total = 0
+    osh&gt;while $(lt $i, 10)
+            total = $(add $(total), $i)
+            i = $(add $i, 1)
+    osh&gt;println($(total))
+    45
+</PRE><H2 CLASS="section"><A NAME="toc51"></A><A NAME="htoc75">7.7</A>&#XA0;&#XA0;Shell aliases</H2><P>Sometimes you may want to define an <EM>alias</EM>, an OMake command that masquerades as a real shell
+command. You can do this by adding your function as a method to the <CODE>Shell</CODE> object.</P><P>For an example, suppose we use the <CODE>awk</CODE> function to print out all the comments in a file.</P><PRE CLASS="verbatim">    osh&gt;cat comment.om
+    # Comment function
+    comments(filename) =
+        awk($(filename))
+        case $'^#'
+            println($0)
+    # File finished
+    osh&gt;include comment
+    osh&gt;comments(comment.om)
+    # Comment function
+    # File finished
+</PRE><P>To add it as an alias, add the method (using += to preserve the existing entries in the Shell).</P><PRE CLASS="verbatim">   osh&gt;Shell. +=
+           printcom(argv) =
+               comments($(nth 0, $(argv)))
+   osh&gt;printcom comment.om &gt; output.txt
+   osh&gt;cat output.txt
+   # Comment function
+   # File finished
+</PRE><P>A shell command is passed an array of arguments <CODE>argv</CODE>. This does <EM>not</EM> include the name
+of the alias.</P><H2 CLASS="section"><A NAME="toc52"></A><A NAME="htoc76">7.8</A>&#XA0;&#XA0;Input/output redirection on the cheap</H2><P>As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
+have already written a lot of code that prints to the standard output channel, but now you decide
+you want to redirect it. One way to do it is using the technique in the previous example: define
+your function as an alias, and then use shell redirection to place the output where you want.</P><P>There is an alternate method that is easier in some cases. The variables <CODE>stdin</CODE>,
+<CODE>stdout</CODE>, and <CODE>stderr</CODE> define the standard I/O channels. To redirect output, redefine
+these variables as you see fit. Of course, you would normally do this in a nested scope, so that
+the outer channels are not affected.</P><PRE CLASS="verbatim">    osh&gt;f() =
+            println(Hello world)
+    osh&gt;f()
+    Hello world
+    osh&gt;section:
+            stdout = $(fopen output.txt, w)
+            f()
+            close($(stdout))
+    osh&gt;cat output.txt
+    Hello world
+</PRE><P>This also works for shell commands. If you like to gamble, you can try the following example.</P><PRE CLASS="verbatim">    osh&gt;f() =
+            println(Hello world)
+    osh&gt;f()
+    Hello world
+    osh&gt;section:
+            stdout = $(fopen output.txt, w)
+            f()
+            cat output.txt
+            close($(stdout))
+    osh&gt;cat output.txt
+    Hello world
+    Hello world
+</PRE>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
+&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
+&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
+&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
+&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
+&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+</BODY>
+</HTML>

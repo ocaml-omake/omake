@@ -1,0 +1,108 @@
+#
+# Collect all tests.
+#
+TESTS = $(find . -regex $'^Test[0-9]*$')
+TestMap = $(empty-map)
+foreach(tst => ..., $(TESTS))
+    d = $(dir $(dirname $(tst)))
+    TestMap =
+        if $(TestMap.mem $d)
+            value $(TestMap.add $d, $(array $(TestMap.find $d), $(tst)))
+        else
+            value $(TestMap.add $d, $(tst))
+    export TestMap
+
+private.TestDir = $(dir .)
+runtest(subtest) =
+    setenv(OMAKEPATH, $(absname $(ROOT)/lib))
+    setenv(OMAKEFLAGS, $"--no--progress --no--print-status")
+    PATH[] = $(absname $(ROOT)/src/main) $(PATH)
+    if $(test -f $(subtest))
+        echo "running osh $(subtest)" >> $(resultfile)
+        res = $(shell-code osh $(subtest) >>& $(resultfile))
+        export res
+    elseif $(test -f $(subtest)/run.osh)
+        cd $(subtest)
+        echo "running osh run.osh" >>& $(resultfile)
+        res = $(shell-code osh run.osh >>& $(resultfile))
+        export res
+    elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
+        cd $(subtest)
+        echo "running omake in $(absname .)" >> $(resultfile)
+        rm -f .omakedb
+        res = $(shell-code omake >>& $(resultfile))
+        export res
+    else
+        echo $"*** Don't know how to run tests in $(subtest)!" >> $(resultfile)
+        eprintln($"*** Don't know how to run tests in $(in $(TestDir), $(subtest))!")
+        res = 1
+        export res
+
+    # Exit code 2 is a suggestion, not an error
+    if $(equal $(res), 0)
+        value success
+    elseif $(equal $(res), 2)
+        value note
+    else
+        value failure
+
+static. =
+    HAS_DATE = $(CheckProg date)
+
+Shell. +=
+    testit(argv) =
+        result = $"Tested $(in .., $(dir .)): "
+        failures = false
+	notes = false
+        subtests = $(file $(set $(TestMap.find $(dir .))))
+        if $(public.HAS_DATE)
+            date > $(resultfile)
+        else
+            fprint($(resultfile), $"Starting tests in $(in $(ROOT), $(dir .)):")
+        foreach(subtest => ..., $(subtests))
+            echo >> $(resultfile)
+            echo $"==== $(subtest)" >> $(resultfile)
+            switch $(runtest $(subtest))
+            case success
+                result = $(result).
+                echo "--- success" >> $(resultfile)
+                export
+            case note
+                result = $(result)N
+		notes = true
+                echo "--- note" >> $(resultfile)
+                export
+            default
+                result = $(result)E
+                failures = true
+                echo "*** failure" >> $(resultfile)
+                export
+            export
+        if $(failures)
+            result += $"$(nl)    *** SOME TESTS FAILED! See $(in $(ROOT), $(resultfile)) for details"
+            export
+        elseif $(notes)
+            result += $"$(nl)    --- See notes $(in $(ROOT), $(resultfile)) for details"
+            export
+        println($(result))
+
+.SUBDIRS: $(TestMap.keys)
+    resultfile = $(file result.log)
+    check: /.PHONY/all :effects: $(resultfile)
+        testit $(resultfile)
+
+    clean:
+        rm -f $(resultfile) *.omc Test*/.omakedb* Test*/*.omc Test*/stdout Test*/output
+
+CLEAN[] =
+    awk/*/Subst.out
+    shell/Test1/sub
+    vmount/Test1/build/foo*
+    vmount/Test1/src/*omc
+    test/simple/Test1/x
+    test/simple/Test3/a
+    test/targets/Test1/A
+    test/targets/Test1/B
+
+clean:
+    rm -rf *.omc $(CLEAN)

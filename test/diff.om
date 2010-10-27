@@ -1,0 +1,61 @@
+open configure/Configure
+
+static. =
+    DIFF_AVAILABLE = $(CheckProg diff)
+
+if $(not $(DIFF_AVAILABLE))
+    Shell. +=
+        diff(argv) =
+            while $(and $(gt $(length $(argv)), 2), $(mem $(nth 0, $(argv)), -u -c))
+                argv = $(nth-tl 1, $(argv))
+
+            if $(not $(eq $(length $(argv)), 2))
+                eprintln($"Shell.diff: USAGE:")
+                eprintln($"    diff file1 file2")
+                exit 2
+            src = $(nth 0, $(argv))
+            dst = $(nth 1, $(argv))
+            if $(not $(test -r $(src)))
+                eprintln($"$(src) is not readable")
+                exit 2
+            if $(not $(test -r $(dst)))
+                eprintln($"$(dst) is not readable")
+                exit 2
+            eof = false
+            code = 0
+            ch_src = $(fopen $(src), r)
+            ch_dst = $(fopen $(dst), r)
+            l_dst =
+            l_src =
+            line = 0
+            eof_src = false
+            eof_dst = false
+            while $(not $(eof))
+                line = $(add $(line), 1)
+                eof_src = false
+                try
+                    l_src = $(ch_src.readln)
+                    export
+                default
+                    eof_src = true
+                    export
+                eof_dst = false
+                try
+                    l_dst = $(ch_dst.readln)
+                    export
+                default
+                    eof_dst = true
+                    export
+                if $(not $(and $(equal $(eof_src), $(eof_dst)), $(equal $(l_src), $(l_dst))))
+                    eprintln($"Mismatch on line $(line):")
+                    eprintln($"- $(src):")
+                    eprintln($"  $(if $(eof_src), END OF FILE, $(l_src))")
+                    eprintln($"- $(dst):")
+                    eprintln($"  $(if $(eof_dst), END OF FILE, $(l_dst))")
+                    exit 1
+                eof = $(or $(eof_src), $(eof_dst))
+            close($(ch_src)) 
+            close($(ch_dst)) 
+            return true
+
+    export

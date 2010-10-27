@@ -1,0 +1,33 @@
+#
+# Nested curried functions
+#
+curry.f(x) =
+   private.x = $x
+   curry.g(y) =
+      private.y = $y
+      curry.h(z) =
+         add($x, $y, $z)
+
+errors = false
+
+# Partial applications are not allowed
+try
+   i = $(f 0)
+   eprintln($"Error: partial application f(0) was allowed, result $i")
+   errors = true
+   export
+default
+   println($"f(0) failed [SUCCESS]")
+   # Supposed to fail
+
+# Should take 3 arguments exactly
+i = $(f 10, 20, 30)
+if $(not $(equal $i, 60))
+    eprintln($"f(10, 20, 30) evaluates to $i, expected 60 [ERROR]")
+    errors = true
+    export
+else
+    println($"f(10, 20, 30) = 60 [SUCCESS]")
+
+if $(errors)
+    exit 1

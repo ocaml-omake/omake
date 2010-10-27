@@ -1,0 +1,684 @@
+########################################################################
+# Building C files.
+#
+# Copyright (C) 2003-2007 Jason Hickey and Mojave Group
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the File
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the File.
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
+
+open build/Common
+open configure/Configure
+
+#
+# \begin{doc}
+# \section{Building C and C++ code}
+#
+# \OMake{} provides extensive support for building C and C++ programs. In order to use the functions
+# defined in this section, you need to make sure the line
+# \begin{verbatim}
+# open build/C
+# \end{verbatim}
+# is present in your \verb+OMakeroot+ file.
+#
+# \subsection{Autoconfiguration variables}
+# These variables will get defined based on the ``autoconf-style'' \verb+static.+ tests executed
+# when you run \OMake{} for the first time. You can use them to configure your project accordingly,
+# and you should not redefine them.
+#
+# You can use the \verb+--configure+ command line option (Section~\ref{option:--configure}) to force
+# re-execution of all the tests.
+#
+# A different set of autoconfiguration tests is performed depending on the build environment
+# involved --- one set of tests would be performed in a \verb+Win32+ environment, and another ---
+# in a Unix-like environment (including Linux, OS X and Cygwin).
+#
+# \subsubsection{Unix-like systems}
+# \varlabel{GCC_FOUND}{GCC\_FOUND} A boolean flag specifying whether the \verb+gcc+ binary was found in your path.
+# \varlabel{GXX_FOUND}{GXX\_FOUND} A boolean flag specifying whether the \verb.g++. binary was found in your path.
+#
+# \subsubsection{Win32}
+# \varlabel{CL_FOUND}{CL\_FOUND} A boolean flag specifying whether the \verb+cl+ binary was found in your path.
+# \varlabel{LIB_FOUND}{LIB\_FOUND} A boolean flag specifying whether the \verb+lib+ binary was found in your path.
+#
+# \subsection{C and C++ configuration variables}
+#
+# The following variables can be redefined in your project.
+#
+# \var{CC} The name of the C compiler (on \verb+Unix+ it defaults to \verb+gcc+ when \verb+gcc+ is present and
+#   to \verb+cc+ otherwise; on \verb+Win32+ defaults to \verb+cl /nologo+).
+# \var{CXX} The name of the C++ compiler (on \verb+Unix+ it defaults to \verb+gcc+ when \verb+gcc+ is present
+#   and to \verb+c+++ otherwise; on \verb+Win32+ defaults to \verb+cl /nologo+).
+# \var{CPP} The name of the C preprocessor (defaults to \verb+cpp+ on \verb+Unix+, and \verb+cl /E+ on \verb+Win32+).
+# \var{CFLAGS} Compilation flags to pass to the C compiler (default empty on \verb+Unix+, and \verb+/DWIN32+
+#   on \verb+Win32+).
+# \var{CXXFLAGS} Compilation flags to pass to the C++ compiler (default empty on \verb+Unix+, and \verb+/DWIN32+
+#   on \verb+Win32+).
+# \var{INCLUDES} Additional directories that specify the search path to the C and C++ compilers (default is \verb+.+).
+#   The directories are passed to the C and C++ compilers with the \verb+-I+ option.
+#   The include path with \verb+-I+ prefixes is defined in the \verb+PREFIXED_INCLUDES+ variable.
+# \var{LIBS} Additional libraries needed when building a program (default is empty).
+# \var{CCOUT} The option to use for specifying the output file in C and C++ compilers
+#     (defaults to \verb+-o+ on \verb+Unix+ and \verb+/Fo+ on \verb+Win32+).
+# \var{AS} The name of the assembler (defaults to \verb+as+ on \verb+Unix+, and \verb+ml+ on \verb+Win32+).
+# \var{ASFLAGS} Flags to pass to the assembler (default is empty on \verb+Unix+, and \verb+/c /coff+
+#     on \verb+Win32+).
+# \var{ASOUT} The option string that specifies the output file for \verb+AS+ (defaults to \verb+-o+
+#     on \verb+Unix+ and \verb+/Fo+ on \verb+Win32+).
+# \var{AR} The name of the program to create static libraries (defaults to \verb+ar cq+ on \verb+Unix+,
+#     and \verb+lib+ on \verb+Win32+).
+# \var{LD} The name of the linker (defaults to \verb+ld+ on \verb+Unix+, and \verb+cl+ on \verb+Win32+).
+# \var{LDFLAGS} Options to pass to the linker (default is empty).
+# \varlabel{LDFLAGS_DLL}{LDFLAGS\_DLL} Options to pass to the linker when compiling a shared library (defaults to \verb+-shared+ on \verb+Unix+ and \verb+/DLL+ on \verb+Win32+).
+# \var{LDOUT} The option to use for specifying the output file in C and C++ linkers
+#     (defaults to \verb+-o+ on \verb+Unix+ and \verb+/Fe+ on \verb+Win32+).
+# \var{YACC} The name of the \verb+yacc+ parser generator (default is \verb+yacc+ on \verb+Unix+, empty on \verb+Win32+).
+# \var{LEX} The name of the \verb+lex+ lexer generator (default is \verb+lex+ on \verb+Unix+, empty on \verb+Win32+).
+# \end{doc}
+#
+if $(equal $(OSTYPE), Win32)
+    public.CC = cl /nologo
+    public.CXX = cl /nologo
+    public.CPP = cl /nologo /E
+    public.CFLAGS = /DWIN32
+    public.CXXFLAGS = /DWIN32
+    public.AR(name) =
+        return(lib /nologo /debugtype:CV /out:$(name))
+    public.RANLIB = echo ranlib
+    public.INCLUDES[] = .
+    public.INCLUDES_OPT = /I
+    public.CCOUT = /Fo
+    public.LD = cl /nologo
+    public.YACC = echo yacc
+    public.LEX = echo lex
+    public.LIBS =
+    public.LDFLAGS =
+    public.LDFLAGS_DLL = /DLL
+    public.CDLL_IMPLIES_STATIC = true
+    public.LDOUT = /Fe
+
+    public.AS = ml /nologo
+    public.ASOUT = /Fo
+    public.ASFLAGS = /c /coff
+
+    .STATIC:
+        CL_FOUND = $(CheckProg cl)
+        LIB_FOUND = $(CheckProg lib)
+
+    export
+else
+    .STATIC:
+        GCC_FOUND = $(CheckProg gcc)
+        GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
+        CC = $(if $(GCC_FOUND), gcc, cc)
+        CXX = $(if $(GXX_FOUND), g++, c++)
+    public.CPP = cpp
+    public.CFLAGS =
+    public.CXXFLAGS =
+    public.AR(name) =
+        return(ar cq $(name))
+    public.RANLIB = ranlib
+    public.LD = ld
+    public.INCLUDES[] = .
+    public.INCLUDES_OPT = -I
+    public.CCOUT = $(array -o)
+    public.YACC = yacc
+    public.LEX = lex
+    public.LIBS =
+    public.LDFLAGS =
+    public.CDLL_IMPLIES_STATIC = false
+    public.LDOUT = $(array -o)
+
+    # MacOS X specific config
+    if $(equal $(SYSNAME), Darwin)
+        public.LDFLAGS_DLL = -dynamiclib
+        export
+    else
+        public.LDFLAGS_DLL = -shared
+        export
+
+    public.AS = as
+    public.ASOUT = $(array -o)
+    public.ASFLAGS =
+
+    export
+
+#
+# Add the -I option to the includes lazily.
+# Don't redefine this variable unless you know what you are doing.
+#
+public.PREFIXED_INCLUDES = $`(addprefix $(INCLUDES_OPT), $(INCLUDES))
+
+#
+# Special flags for compiling C files for use in OCaml
+#
+public.BYTE_CFLAGS =
+public.NATIVE_CFLAGS =
+
+#
+# Generic build rules
+#
+#
+public.CXX_EXTS[] = .cpp .cc .c++
+
+%$(EXT_OBJ): %.c :scanner: scan-c-%.c
+    $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $(CCOUT)$@ $<
+
+foreach(CXX_EXT => ..., $(CXX_EXTS))
+    %$(EXT_OBJ): %$(CXX_EXT) :scanner: scan-cxx-%$(CXX_EXT)
+        $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -c $(CCOUT)$@ $<
+
+    export
+
+%$(EXT_OBJ): %$(EXT_ASM)
+    $(AS) $(ASFLAGS) $(PREFIXED_INCLUDES) $(ASOUT)$@ $<
+
+%.c: %.y
+    $(YACC) $<
+
+%.c: %.l
+    $(LEX) $<
+
+#
+# Default C scanner
+#
+
+#
+# Make sure generated files are built before scanning
+#
+# \begin{doc}
+# \subsection{Generated C files}
+# Because the C scanners do not normally know anything about generated source files (such as
+# generated header files), these files may need to be created before running the scanner.
+# \twofuns{CGeneratedFiles}{LocalCGeneratedFiles}
+# \begin{verbatim}
+# CGeneratedFiles(files)
+# LocalCGeneratedFiles(files)
+# \end{verbatim}
+#
+# The \verb+CGeneratedFiles+ and \verb+LocalCGeneratedFiles+ functions specify files
+# that need to be generated before any C files are scanned for dependencies. For example,
+# if \verb+config.h+ and \verb+inputs.h+ are both generated files, specify:
+# \begin{verbatim}
+# CGeneratedFiles(config.h inputs.h)
+# \end{verbatim}
+#
+# The \verb+CGeneratedFiles+ function is \emph{global} --- its arguments will be generated
+# before any C files anywhere in the project are scanned for dependencies. The
+# \verb+LocalCGeneratedFiles+ function follows the normal scoping rules of OMake.
+#
+# \end{doc}
+#
+.PHONY: CGeneratedFilesTarget
+
+public.CGeneratedFiles(files) =
+    CGeneratedFilesTarget: $(files)
+
+public.LocalCGeneratedFiles(files) =
+    .SCANNER: scan-c-%: $(files)
+    .SCANNER: scan-cxx-%: $(files)
+    .SCANNER: %$(EXT_OBJ): $(files)
+    export
+
+#
+# We use digest-path-exists value dependency to make sure the SCANNER is re-run
+# whenever the scanned dependencies change.
+#
+if $(equal $(OSTYPE), Win32)
+    Shell. +=
+        builtin-cc-depend(argv) =
+           filename = $(nth 0, $(argv))
+           depends[] =
+           awk(b, $(stdin))
+           case $'Note:.*including file: *\(.*\)$'
+              depends[] += $(file $"$1")
+              export
+           case $'.[(][0-9][0-9]*[)] : (warning|(fatal |)error) [A-Z][0-9]*: '
+              eprintln($0)
+           depends = $(string-escaped $(set $(depends)))
+           objname = $(string-escaped $(rootname $(filename))$(EXT_OBJ))
+           println($"$(objname): $(depends)")
+
+    .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+
+    # Include default rule for backwards-compatibility
+    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+
+    foreach(CXX_EXT => ..., $(CXX_EXTS))
+        .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+
+        # Include default rule for backwards-compatibility
+        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+
+        export
+    export
+else
+    .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -MM $<
+
+    # Include default rule for backwards-compatibility
+    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -MM $<
+
+    foreach(CXX_EXT => ..., $(CXX_EXTS))
+        .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -MM $<
+
+        # Include default rule for backwards-compatibility
+        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -MM $<
+
+        export
+    export
+
+# Define a function to build a C-library
+#
+# \begin{doc}
+# \subsection{Building C programs and Libraries}
+# \twofuns{StaticCLibrary}{DynamicCLibrary}
+#
+# The \verb+StaticCLibrary+ builds a static library and the \verb+DynamicCLibrary+
+# function builds a shared library (DLL).
+#
+# \begin{verbatim}
+# StaticCLibrary(<target>, <files>)
+# DynamicCLibrary(<target>, <files>)
+# \end{verbatim}
+#
+# The \verb+<target>+ does \emph{not} include the library suffix, and
+# The \verb+<files>+ list does not include the object suffix.  These
+# are obtained from the \hypervarxn{EXT_LIB}{EXT\_LIB} (\hypervarxn{EXT_DLL}{EXT\_DLL})
+# and \hypervarxn{EXT_OBJ}{EXT\_OBJ} variables.
+#
+# This function returns the library filename.
+#
+# The following command builds the library \verb+libfoo.a+ from the
+# files \verb+a.o b.o c.o+ on \verb+Unix+, or the library
+# \verb+libfoo.lib+ from the files \verb+a.obj b.obj c.obj+
+# on \verb+Win32+.
+#
+# \begin{verbatim}
+# StaticCLibrary(libfoo, a b c)
+# .DEFAULT: $(StaticCLibrary libbar, a b c d)
+# \end{verbatim}
+#
+# \varlabel{CDLL_IMPLIES_STATIC}{CDLL\_IMPLIES\_STATIC} If the \verb+CDLL_IMPLIES_STATIC+
+# variable is enabled (this is default on \verb+Win32+), all the \verb+DynamicC+ functions
+# would assume that creating a shared library automatically created a static one.
+# \end{doc}
+#
+public.StaticCLibrary(name, files) =
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+    private.NORMALLIB = $(file $(name)$(EXT_LIB))
+
+    if $(equal $(OSTYPE), Win32)
+        $(NORMALLIB): $(OFILES)
+            echo $(OFILES) > $@.tmp
+            $(AR $@) @$@.tmp
+            rm -f $@.tmp
+
+    else
+        $(NORMALLIB): $(OFILES)
+            rm -f $@
+            $(AR $@) $(OFILES)
+            $(RANLIB) $@
+
+    return $(NORMALLIB)
+
+public.DynamicCLibrary(name, files) =
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+    private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
+
+    private.LIB = $(file $(name)$(EXT_DLL))
+    private.TARGETS = $(LIB)
+    if $(CDLL_IMPLIES_STATIC)
+        TARGETS[] += $(file $(name)$(EXT_LIB))
+        export TARGETS
+
+    $(TARGETS): $(OFILES) $(LFILES)
+        $(CC) $(CFLAGS) $(LDOUT)$(LIB) $(OFILES) $(LFILES) $(LDFLAGS) $(LDFLAGS_DLL)
+
+    return $(TARGETS)
+
+#
+# Copy to an install directory
+#
+# \begin{doc}
+# \twofuns{StaticCLibraryCopy}{DynamicCLibraryCopy}
+#
+# The \verb+StaticCLibraryCopy+ and \verb+DynamicCLibraryCopy+ functions copy a library
+# to an install location.
+#
+# \begin{verbatim}
+# StaticCLibraryCopy(<tag>, <dir>, <lib>)
+# DynamicCLibraryCopy(<tag>, <dir>, <lib>)
+# \end{verbatim}
+#
+# The \verb+<tag>+ is the name of a target (typically a \verb+.PHONY+ target);
+# the \verb+<dir>+ is the installation directory, and \verb+<lib>+ is
+# the library to be copied (without the library suffix).
+#
+# This function returns the filename of the library in the target directory.
+#
+# For example, the following code copies the library
+# \verb+libfoo.a+ to the \verb+/usr/lib+ directory.
+#
+# \begin{verbatim}
+# .PHONY: install
+#
+# StaticCLibraryCopy(install, /usr/lib, libfoo)
+# \end{verbatim}
+# \end{doc}
+#
+public.StaticCLibraryCopy(tag, lib, name) =
+    #
+    # Names of libs
+    #
+    private.NORMALLIB = $(file $(name)$(EXT_LIB))
+    private.LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_LIB))
+
+    #
+    # Linking the library into the root lib dir
+    #
+    $(LIBNORMAL): $(NORMALLIB) $(lib) :scanner: $(NOSCANNER)
+        ln-or-cp $< $@
+
+    #
+    # Add dependency to the tag
+    #
+    $(tag): $(LIBNORMAL)
+
+    return $(LIBNORMAL)
+
+public.DynamicCLibraryCopy(tag, lib, name) =
+    TARGETS =
+        EXT_LIB = $(EXT_DLL)
+        value $(StaticCLibraryCopy $(tag), $(lib), $(name))
+    if $(CDLL_IMPLIES_STATIC)
+        TARGETS[] += $(StaticCLibraryCopy $(tag), $(lib), $(name))
+        export TARGETS
+    return $(TARGETS)
+
+#
+# We often use them together
+#
+# \begin{doc}
+# \twofuns{StaticCLibraryInstall}{DynamicCLibraryInstall}
+#
+# The \verb+StaticCLibraryInstall+ and \verb+DynamicCLibraryInstall+ functions build a library, and
+# set the install location in one step. Return the filename of the library
+# in the target directory.
+#
+# \begin{verbatim}
+# StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+# DynamicCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+# \end{verbatim}
+#
+# \begin{verbatim}
+# StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+# \end{verbatim}
+# \end{doc}
+#
+public.StaticCLibraryInstall(tag, lib, name, files) =
+    StaticCLibrary($(name), $(files))
+    return $(StaticCLibraryCopy $(tag), $(lib), $(name))
+
+public.DynamicCLibraryInstall(tag, lib, name, files) =
+    DynamicCLibrary($(name), $(files))
+    return $(DynamicCLibraryCopy $(tag), $(lib), $(name))
+
+#
+# Build a .o file.  This is like a library,
+# but use the linker instead.
+#
+# \begin{doc}
+# \threefuns{StaticCObject}{StaticCObjectCopy}{StaticCObjectInstall}
+#
+# These functions mirror the \verb+StaticCLibrary+, \verb+StaticCLibraryCopy+,
+# and \verb+StaticCLibraryInstall+ functions, but they build an \emph{object}
+# file (a \verb+.o+ file on \verb+Unix+, and a \verb+.obj+ file on \verb+Win32+).
+# \end{doc}
+#
+public.StaticCObject(name, files) =
+    #
+    # Generic library that can be used on byte and native-code
+    #
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+
+    #
+    # Names of libs
+    #
+    private.NORMALLIB = $(file $(name)$(EXT_OBJ))
+
+    $(NORMALLIB): $(OFILES)
+        $(LD) $(LDFLAGS) -r $(LDOUT)$@ $(OFILES)
+
+    return $(NORMALLIB)
+
+#
+# Copy to an install directory
+#
+public.StaticCObjectCopy(tag, lib, name) =
+    #
+    # Names of libs
+    #
+    private.NORMALLIB = $(file $(name)$(EXT_OBJ))
+    private.LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_OBJ))
+
+    #
+    # Linking the library into the root lib dir
+    #
+    $(LIBNORMAL): $(NORMALLIB) $(lib) :scanner: $(NOSCANNER)
+        ln-or-cp $< $@
+
+    #
+    # Add dependency to the tag
+    #
+    $(tag): $(LIBNORMAL)
+
+    return $(LIBNORMAL)
+
+#
+# We often use them together
+#
+public.StaticCObjectInstall(tag, lib, name, files) =
+    StaticCObject($(name), $(files))
+    return $(StaticCObjectCopy $(tag), $(lib), $(name))
+
+#
+# Define a function to build a C-program
+#
+# \begin{doc}
+# \fun{CProgram}
+#
+# The \verb+CProgram+ function builds a C program from a set
+# of object files and libraries.
+#
+# \verb+CProgram(<name>, <files>)+
+#
+# The \verb+<name>+ argument specifies the name of the program to be built;
+# the \verb+<files>+ argument specifies the files to be linked. The function
+# returns the filename of the executable.
+#
+# Additional options can be passed through the following variables.
+# \begin{description}
+# \item[CFLAGS] Flags used by the C compiler during the link step.
+# \item[LDFLAGS] Flags to pass to the loader.
+# \item[LIBS] Additional libraries to be linked.
+# \end{description}
+#
+# For example, the following code specifies that the program
+# \verb+foo+ is to be produced by linking the files \verb+bar.o+
+# and \verb+baz.o+ and libraries \verb+libfoo.a+.
+#
+# \begin{verbatim}
+# section
+#    LIBS = libfoo
+#    LDFLAGS += -lbar
+#    CProgram(foo, bar baz)
+# \end{verbatim}
+# \end{doc}
+#
+public.CProgram(name, files) =
+   #
+   # Generic program
+   #
+   private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+   private.NAME   = $(file $(name)$(EXE))
+
+   #
+   # XXX: Backward compatibility: We used to confuse LIBS and LDFLAGS, so need to split things out.
+   #
+   private.FLAGS = $(filter -%, $(LIBS))
+   if $(FLAGS)
+      eprintln($""!!! WARNING: the LIBS variable should not include link flags "$(FLAGS)";"")
+      eprintln($""!!!          those should go into LDFLAGS"")
+      LDFLAGS += $(FLAGS)
+      LIBS = $(filter-out -%, $(LIBS))
+      export
+
+   if $(filter %$(EXT_LIB), $(LIBS))
+      eprintln($""!!! WARNING: the LIBS variable should contain libraries _without_ extensions."")
+      LIBS = $(replacesuffixes $(EXT_LIB), $"$(EMPTY)", $(LIBS))
+      export
+
+   private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
+
+   $(NAME): $(OFILES) $(LFILES)
+        $(CC) $(CFLAGS) $(LDOUT)$@ $,(OFILES) $(LFILES) $(LDFLAGS)
+
+   return $(NAME)
+
+#
+# Copy to a bin directory
+#
+# \begin{doc}
+# \fun{CProgramCopy}
+#
+# The \verb+CProgramCopy+ function copies a file to an install location.
+#
+# \verb+CProgramCopy(<tag>, <dir>, <program>)+
+#
+# \begin{verbatim}
+# CProgramCopy(install, /usr/bin, foo)
+# \end{verbatim}
+# \end{doc}
+#
+public.CProgramCopy(tag, bin, name) =
+   #
+   # Name of the program
+   #
+   private.NAME   = $(file $(name)$(EXE))
+   private.BINNAME = $(file $(bin)/$(basename $(name))$(EXE))
+
+   #
+   # Linking the program into the root bin dir
+   #
+   $(BINNAME): $(NAME) $(bin) :scanner: $(NOSCANNER)
+      ln-or-cp $< $@
+
+   #
+   # Add the dependency to the tag
+   #
+   $(tag): $(BINNAME)
+
+   return $(BINNAME)
+
+#
+# We often use them together
+#
+# \begin{doc}
+# \fun{CProgramInstall}
+#
+# The \verb+CProgramInstall+ function specifies a program to build,
+# and a location to install, simultaneously.
+#
+# \verb+CProgramInstall(<tag>, <dir>, <name>, <files>)+
+#
+# \begin{verbatim}
+# section
+#    LIBS = libfoo
+#    LDFLAGS += -lbar
+#    CProgramInstall(install, /usr/bin, foo, bar baz)
+# \end{verbatim}
+# \end{doc}
+#
+public.CProgramInstall(tag, bin, name, files) =
+   CProgram($(name), $(files))
+   return $(CProgramCopy $(tag), $(bin), $(name))
+
+#
+# The C++ versions.
+#
+# \begin{doc}
+# \twofuns{CXXProgram}{CXXProgramInstall}
+#
+# The \verb+CXXProgram+ and \verb+CXXProgramInstall+ functions are
+# equivalent to their C counterparts, except that would use \verb+$(CXX)+ and \verb+$(CXXFLAGS)+
+# for linking instead of \verb+$(CC)+ and \verb+$(CFLAGS)+.
+# \end{doc}
+#
+public.CXXProgram(name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(CProgram $(name), $(files))
+
+public.CXXProgramInstall(tag, bin, name, files) =
+   CXXProgram($(name), $(files))
+   return $(CProgramCopy $(tag), $(bin), $(name))
+
+# \begin{doc}
+# \sixfuns{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}{DynamicCXXLibrary}{DynamicCXXLibraryCopy}{DynamicCXXLibraryInstall}
+#
+# Similarly, the six \verb+CXXLibrary+ functions the C++ equivalents of the corresponding
+# \verb+CLibrary+ functions.
+# \end{doc}
+#
+public.StaticCXXLibrary(name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibrary $(name), $(files))
+
+public.StaticCXXLibraryCopy(tag, lib, name) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibraryCopy $(tag), $(lib), $(name))
+
+public.StaticCXXLibraryInstall(tag, lib, name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibraryInstall $(tag), $(lib), $(name), $(files))
+
+public.DynamicCXXLibrary(name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(DynamicCLibrary $(name), $(files))
+
+public.DynamicCXXLibraryCopy(tag, lib, name) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(DynamicCLibraryCopy $(tag), $(lib), $(name))
+
+public.DynamicCXXLibraryInstall(tag, lib, name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(DynamicCLibraryInstall $(tag), $(lib), $(name), $(files))
+

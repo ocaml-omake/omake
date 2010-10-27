@@ -1,0 +1,19 @@
+ROOT = $(dir .)
+
+pwd() =
+    println($"Current directory: $(in $(ROOT), $(dir .))")
+
+mkdir -p sub/sub
+
+x() =
+    cd sub
+    pwd()
+
+Shell. +=
+    foo(argv) =
+        cd sub
+        pwd()
+        x()
+
+foo 10
+x() 

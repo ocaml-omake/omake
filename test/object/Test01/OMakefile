@@ -1,0 +1,16 @@
+X. =
+      X = 1
+      Y = 2
+      F(Z) =
+         return($(X) + $(Y) + $(Z))
+      G(Z) =
+         W = $(F $(Z))
+         println(G[$(Z)] = $(W))
+
+Y = $(X.F 3)
+
+println(The following line should be: Y = 1 + 2 + 3)
+println($"Y = $Y")
+
+println(The following line should be: G[3] = 1 + 2 + 3)
+X.G(3)

@@ -1,0 +1,17 @@
+rm -f lock
+ROOT = $(dir .)
+OMAKEPATH[] += $(ROOT)
+
+echo $(OMAKEPATH)
+open ./test
+
+Shell. +=
+    create_lock(argv) =
+        touch $(LOCK)
+        echo $"Including $(LOCK)"
+
+.SUBDIRS: .
+    .INCLUDE: lock
+        create_lock
+
+println($"LOCK is $(LOCK)")

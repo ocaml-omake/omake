@@ -1,0 +1,24 @@
+#
+# Test the search function
+#
+println($"This should print 'foo'")
+match $'abcfofoodef'
+case $'foo'
+   println($0)
+default
+   println(Match failed)
+
+println($"This should print 'abcfofoo'")
+match $'abcfofoodef'
+case $'.*foo'
+   println($0)
+default
+   println(Match failed)
+
+println($"This should print 'fofoo'")
+match $'abcfofoodef'
+case $'f.*foo'
+   println($0)
+default
+   println(Match failed)
+

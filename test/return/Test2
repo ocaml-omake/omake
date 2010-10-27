@@ -1,0 +1,55 @@
+errors = false
+
+########################################################################
+# Return scoping.
+#
+g(f) =
+    value $"$(f 1)$(f 2)"
+
+h() =
+    g(x => ...)
+        return $x
+
+s = $h
+
+if $(equal $s, 1)
+    println($"h() = $s [SUCCESS]")
+else
+    eprintln($"h() = $s [FAILURE]")
+    errors = true
+    export
+
+########################################################################
+# Out of scope
+#
+public.G(x) =
+    value $x
+
+F(g) =
+    G = $g
+    export
+
+H() =
+    F(x => ...)
+        return $x
+    export
+
+H()
+s =
+   try
+      G(1)
+   default
+      value 2
+
+if $(equal $s, 2)
+    println($"G(1) aborted [SUCCESS]")
+else
+    eprintln($"G(1) = $s [FAILURE]")
+    errors = true
+    export
+
+########################################################################
+# Exit code
+#
+if $(errors)
+    exit 1

@@ -1,0 +1,4 @@
+include $(OMAKEPATH)/OMakeroot.install
+vmount(src, build)
+.SUBDIRS: build
+.DEFAULT: build/foo$(EXE)

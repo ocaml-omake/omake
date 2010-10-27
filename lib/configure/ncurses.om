@@ -1,0 +1,39 @@
+open configure/Configure
+
+#
+# ncurses configuration
+#
+# \begin{doc}
+# \subsection{NCurses library configuration}
+# Add \verb+open configure/ncurses+ line to your \verb+OMakefile+ to get access to the following
+# autoconfiguration variables.
+# \varlabel{NCURSES_AVAILABLE}{NCURSES\_AVAILABLE} A boolean flag that would be set when both
+# the \verb+curses.h+ header, the \verb+term.h+ header, and the \verb+ncurses+ library very found.
+#
+# \varlabel{NCURSES_TERMH_IN_NCURSES}{NCURSES\_TERMH\_IN\_NCURSES} A boolean flag that would be set
+# when \verb+term.h+ has to be included as \verb+<ncurses/term.h>+ instead of \verb+<term.h>+.
+#
+# \varlabel{NCURSES_CFLAGS}{NCURSES\_CFLAGS} The \verb+CFLAGS+ to use when compiling ncurses code.
+# Will include \verb+-DNCURSES+ and \verb+-DTERMH_IN_NCURSES+, respectively
+# when \verb+NCURSES_AVAILABLE+ and \verb+NCURSES_TERMH_IN_NCURSES+ are true.
+#
+# \varlabel{NCURSES_CLIBS}{NCURSES\_CLIBS} The \verb+LDFLAGS+ to use when linking ncurses code.
+# Will normally contain \verb+-lncurses+ when ncurses is found and remain empty otherwise.
+# \end{doc}
+#
+# \end{doc}
+#
+.STATIC:
+    NCURSES_AVAILABLE = false
+    NCURSES_TERMH_IN_NCURSES = false
+    if $(not $(equal $(OSTYPE), Win32))
+        ConfMsgChecking(for ncurses)
+        NCURSES_TERMH_IN_NCURSES = $(CheckHeader ncurses/term.h)
+        NCURSES_AVAILABLE = $(ConfMsgFound $(and $(CheckHeader ncurses.h), $(or $(NCURSES_TERMH_IN_NCURSES), $(CheckHeader term.h)), $(CheckLib ncurses, initscr setupterm tigetstr)))
+        export
+
+    NCURSES_CFLAGS[] =
+        $(if $(NCURSES_AVAILABLE), -DNCURSES, $(EMPTY_ARRAY))
+        $(if $(NCURSES_TERMH_IN_NCURSES), -DTERMH_IN_NCURSES, $(EMPTY_ARRAY))
+
+    NCURSES_CLIBS = $(if $(NCURSES_AVAILABLE), -lncurses)

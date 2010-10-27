@@ -1,0 +1,104 @@
+########################################################################
+# Copyright (C) 2006 Aleksey Nogin
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the File
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the File.
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
+
+########################################################################
+# This file defines an svn_realclean utility. The svn_realclean utility removes
+# all unversioned files in a subversion wc.
+#
+# Usage: svn_realclean [options] [dir1 [dir2 ...]]
+# Options are:
+#    -f         Do not ask whether to remove files
+#    -i <file>  Ignore the file
+#    -help      Display this list of options
+#    --help     Display this list of options
+# If no directories are given, . is used.
+
+open configure/Configure
+
+.STATIC:
+    SVN_AVAILABLE = $(CheckProg svn)
+
+Shell. +=
+    do_clean(IGNORES) =
+        awk()
+        case $'^[I?] '
+            f = $(file $2)
+            if $(not $(mem $f, $(IGNORES)))
+                println($"Removing $f...")
+                rm -rf $f
+
+    svn_realclean(argv) =
+        if $(SVN_AVAILABLE)
+            usage(msg,err) =
+                println($"""$(msg)
+
+Usage: svn_realclean [options] [dir1 [dir2 ...]]
+Options are:
+   -f         Do not ask whether to remove files
+   -i <file>  Ignore the file
+   -help      Display this list of options
+   --help     Display this list of options
+If no directories are given, . is used.
+""")
+                exit($(err))
+            FORCE=false
+            IGNORES[]=
+            DIRS[] = $(dir .)
+            while $(gt $(length $(argv)), 0)
+                match $(nth 0, $(argv))
+                case $'^-f$'
+                    FORCE=true
+                    argv = $(nth-tl 1, $(argv))
+                    export
+                case $'^-i$'
+                    if $(gt $(length $(argv)), 1)
+                        IGNORES[] += $(file $(nth 1, $(argv)))
+                        argv = $(nth-tl 2, $(argv))
+                        export
+                    else
+                        usage($"The -i option requires an argument", 1)
+                    export
+                case $'^--?help$'
+                    usage($"The svn_realclean utility removes all unversioned files in a subversion wc.", 0)
+                case $'^-'
+                    usage($"Unknown option: $(nth 0, $(argv))", 1)
+                default
+                    DIRS[] = $(dir $(argv)) 
+                    export
+            if $(FORCE)
+                svn st --no-ignore $(DIRS) | do_clean $(IGNORES)
+            else
+                # rm -ri will require a real stdin, so we can not use the same
+                # "svn ... | do_clean" pipeline here.
+                tmp = $(tmpfile svn_realclean)
+                svn st --no-ignore $(DIRS) > $(tmp)
+                awk($(tmp))
+                case $'^[I?] '
+                    f = $(file $2)
+                    if $(not $(mem $f, $(IGNORES)))
+                        # println($"Removing $f...")
+                        rm -ri $f
+                rm -f $(tmp)
+        else
+            eprintln($"svn_realclean requires the svn binary, but svn is missing")
+            exit(1)
+
+# vim:tw=80:ts=4:et

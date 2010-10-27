@@ -1,0 +1,5 @@
+\ifhtml
+\newcommand{\code}[1]{{\@style{CODE}#1\@clearstyle}}
+\else
+\newcommand{\code}[1]{'#1'}
+\fi

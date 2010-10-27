@@ -1,0 +1,12 @@
+map. =
+   extends $(Map)
+   $|key| = old
+
+map.foreach(key, val) =>
+   map = $(map.add $(key), new)
+   export map
+
+new = $(map.find key)
+if $(not $(equal $(new), new))
+   println($"Error: Map.foreach exports get hoisted")
+   exit 1

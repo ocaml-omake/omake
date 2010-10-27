@@ -1,0 +1,241 @@
+########################################################################
+# Configuration.
+#
+open build/C
+open build/svn_realclean
+include mk/defaults
+include mk/make_gen
+
+.PHONY: realclean clean install all main
+
+#
+# Architecture-specific configuration
+#
+if $(equal $(OSTYPE), Win32)
+    #
+    # Extra options for the C compiler
+    #
+    CFLAGS += /MT /DWIN32 /W4 /WX
+
+    #
+    # Don't build man pages
+    #
+    MAN_ENABLED = false
+
+    #
+    # Always use threads
+    #
+    THREADS_ENABLED = true
+
+    export
+
+else
+    #
+    # Extra options for the C compiler
+    #
+    CFLAGS += -g -O2 -Wall -Werror -Wno-unused
+
+    #
+    # We never need threads on Unix
+    #
+    THREADS_ENABLED = false
+
+    export
+
+#
+# General options
+#
+SCANNER_MODE = error
+
+#
+# Location of the OCaml library
+#
+if $(not $(defined CAMLLIB))
+    CAMLLIB = $(dir $(string $(getenv CAMLLIB, $(getenv OCAMLLIB, $(OCAMLLIB)))))
+    export
+
+#
+# OCaml options
+#
+OCAMLFLAGS[] += -w Ae$(if $(OCAML_ACCEPTS_Z_WARNING), z)
+if $(THREADS_ENABLED)
+    OCAMLFLAGS += -thread
+    export
+
+#
+# Support for profiling
+#
+if $(not $(defined NATIVE_PROFILE))
+   NATIVE_PROFILE = false
+   export
+
+if $(NATIVE_PROFILE)
+   OCAMLOPTFLAGS += -p -inline 0
+   if $(equal $(NATIVE_PROFILE), compact)
+      OCAMLOPTFLAGS += -compact
+      export
+   export
+
+#
+# Libraries (without suffixes)
+#
+OCAML_OTHER_LIBS = unix
+
+if $(THREADS_ENABLED)
+   OCAML_OTHER_LIBS += threads
+   export
+
+#
+# C options
+#
+INCLUDES += $(CAMLLIB) .
+EXTRA_CLIBS[] =
+
+if $(READLINE_ENABLED)
+    CFLAGS += $(READLINE_CFLAGS)
+    EXTRA_CLIBS += $(READLINE_CLIBS)
+    export
+
+if $(NCURSES_ENABLED)
+    CFLAGS += $(NCURSES_CFLAGS)
+    EXTRA_CLIBS += $(NCURSES_CLIBS)
+    export
+
+if $(FAM_ENABLED)
+    CFLAGS += $(FAM_CFLAGS)
+    EXTRA_CLIBS += $(FAM_CLIBS)
+    export
+
+OCAML_LINK_FLAGS = $(mapprefix -cclib, $(set $(EXTRA_CLIBS)))
+
+#
+# Name of the genmagic program
+#
+VERSION_TXT = $(file version.txt)
+GENMAGIC = $(file src/magic/omake_gen_magic)
+
+########################################################################
+# Clean up
+#
+CLEAN = rm -rf *.cm* *~ .\#* *.o *.obj *.a *.lib *.exe *.omc *.install *.tmp
+
+clean:
+    $(CLEAN) boot .config.omc .config.local.omc .omakedb* mk/*.omc .omake omake-boot$(EXE) lib/*.default download
+
+if $(not $(defined FORCE_REALCLEAN))
+    FORCE_REALCLEAN = false
+    export
+
+realclean: clean
+    svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock -i .config -i .config.local
+
+########################################################################
+# Source code
+#
+.SUBDIRS: src
+
+########################################################################
+# Packaging
+#
+.PHONY: rpm tar zip pkg dmg osxclean publish
+
+VERSION=$(string $(cat version.txt))
+RELEASE=0.devel
+match $(VERSION)
+case $'^\([^ ]*\)-\([^ ]*\)$'
+    VERSION=$1
+    RELEASE=$2
+    export
+case $'^\([^ ]*\) '
+    VERSION=$1
+    export
+
+BASENAME = omake-$(VERSION)-$(RELEASE)
+
+rpm: version.txt make_rpm make_checkout
+    ./make_rpm
+
+zip: download/$(BASENAME).src.zip
+tar: download/$(BASENAME).tar.gz
+
+download/$(BASENAME).src.zip: make_zip make_checkout
+   ./make_zip
+
+download/$(BASENAME).tar.gz: make_tar make_checkout
+   ./make_tar
+
+dmg: version.txt
+    ./make_dmg dmg
+
+pkg: version.txt
+    ./make_dmg pkg
+
+osxclean: version.txt
+    ./make_dmg clean
+
+publish: download/$(BASENAME).src.zip download/$(BASENAME).tar.gz
+   rsync --progress --stats -lrt $^ mojave.caltech.edu\:/home/mojave/public_html/download/omake
+
+omake.spec: omake.spec.in
+    echo $"%define index $(RELEASE)" > $@
+    echo $"Version: $(VERSION)" >> $@
+    cat $< >> $@
+
+.DEFAULT: omake.spec
+
+########################################################################
+# Documentation
+#
+.PHONY: txt info html tex doc
+
+doc: txt info html tex
+
+.SUBDIRS: doc
+
+########################################################################
+# Standard library
+#
+.SUBDIRS: $(subdirs C, lib)
+    %.install: %.om $(GENMAGIC)$(EXE) $(VERSION_TXT)
+        $(GENMAGIC) -o $@ --version $(VERSION_TXT) --root $<
+
+    clean:
+        $(CLEAN)
+
+STDLIBFILES  = $(find lib -name *.om)
+INSTALLFILES = $(replacesuffixes .om, .install, $(STDLIBFILES))
+STDLIBNAMES  = $(removesuffix .om, $(in lib, $(STDLIBFILES)))
+
+BOOTFILES[] =
+    lib/boot/License
+    lib/boot/Default
+
+DEFAULTFILES[] =
+    lib/OMakeroot.default
+    lib/OMakefile.default
+
+lib/OMakeroot.default: $(BOOTFILES)
+    fprint($@, $(OMakeroot))
+
+lib/OMakefile.default: $(BOOTFILES)
+    fprint($@, $(OMakefile))
+
+########################################################################
+# Installation
+#
+all: $(DEFAULTFILES)  $(INSTALLFILES)
+
+install: $(DEFAULTFILES)  $(INSTALLFILES)
+    mkdir -p $(INSTALL_LIBDIR)/omake
+    cp -f -m 444 $(DEFAULTFILES) $(INSTALL_LIBDIR)/omake/
+    foreach(name => ..., $(STDLIBNAMES))
+        node = $(file $(INSTALL_LIBDIR)/omake/$(name).om)
+        mkdir -p $(dirof $(node))
+        cp -f -m 444 lib/$(name).install $(node)
+
+########################################################################
+# Testing
+#
+.PHONY: check bench
+
+.SUBDIRS: test bench

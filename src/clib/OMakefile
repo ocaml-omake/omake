@@ -1,0 +1,70 @@
+#
+# This is indirecto to be compatible with nmake
+#
+EXTERNAL = ../libmojave-external
+
+CUTIL_FILES[] =
+    lm_heap.c
+    lm_heap.h
+    lm_channel.c
+    lm_compat_win32.c
+    lm_compat_win32.h
+    lm_ctype.c
+    lm_printf.c
+    lm_uname_ext.c
+    lm_unix_cutil.c
+    unixsupport.h
+    fam_win32.c
+    fam_kqueue.c
+    fam_inotify.c
+    fam_pseudo.h
+    lm_notify.c
+    inotify.h
+    inotify-syscalls.h
+    inotify.om
+    lm_termsize.c
+    lm_terminfo.c
+    lm_fs_case_sensitive.c
+
+MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
+
+CGeneratedFiles($(CUTIL_FILES))
+
+open configure/snprintf
+open configure/fs_case_sensitive
+
+if $(SNPRINTF_AVAILABLE)
+    CFLAGS += -DHAVE_SNPRINTF
+    export
+
+if $(DETECT_FS_CASE_SENSITIVE)
+    CFLAGS += $(DETECT_FS_CASE_SENSITIVE_CFLAGS)
+    export
+
+FILES[] =
+    lm_heap
+    lm_channel
+    lm_printf
+    lm_ctype
+    lm_uname_ext
+    lm_unix_cutil
+    lm_compat_win32
+    readline
+    omake_shell_sys
+    fam_win32
+    fam_kqueue
+    fam_inotify
+    lm_notify
+    lm_termsize
+    lm_terminfo
+    lm_fs_case_sensitive
+
+MakeStaticCLibrary(clib, $(FILES))
+
+clean:
+    $(CLEAN) $(CUTIL_FILES)
+
+#
+# Generate the Makefile
+#
+MakeMakefile()

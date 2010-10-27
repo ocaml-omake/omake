@@ -1,0 +1,857 @@
+%
+% A more formal description of the grammar.
+%
+\chapter{\OMake{} grammar}
+\label{chapter:grammar}
+\cutname{omake-grammar.html}
+
+\section{\OMake{} lexical conventions}
+
+The \OMake{} language is based on the language for GNU/BSD make, where there are few lexical
+conventions.  Strictly speaking, there are no keywords, and few special symbols.
+
+\subsection{Comments}
+
+Comments begin with the \verb+#+ character and continue to the end-of-line.
+Text within a comment is unrestricted.
+
+Examples.
+
+\begin{verbatim}
+   # This is a comment
+   # This $comment contains a quote " character
+\end{verbatim}
+
+\subsection{Special characters}
+
+The following characters are special in some contexts.
+
+\begin{verbatim}
+   $    (    )    ,    .   =    :    "    '    `    \    #
+\end{verbatim}
+
+\begin{itemize}
+\item \verb+$+ is used to denote a variable reference, or function application.
+\item Parentheses \verb+)+, \verb+(+ are argument deliminters.
+\item The command \verb+,+ is an argument separator.
+\item The period symbol \verb+.+ is a name separator.
+\item The equality symbol \verb+=+ denotes a definition.
+\item The colon symbol \verb+:+ is used to denote rules, and (optionally) to indicate
+   that an expression is followed by an indented body.
+\item The quotation symbols \verb+"+ and \verb+'+ delimit character strings.
+\item The symbol \verb+#+ is the first character of a constant.
+\item The escape symbol \verb+\+ is special \emph{only when} followed by another special
+   character.  In this case, the special status of the second character is removed,
+   and the sequence denotes the second character.  Otherwise, the \verb+\+ is not special.
+
+   Examples:
+
+   \begin{itemize}
+   \item \verb+\$+: the \verb+$+ character (as a normal character).
+   \item \verb+\#+: the \verb+#+ character (as a normal character).
+   \item \verb+\\+: the \verb+\+ character (as a normal character).
+   \item \verb+c\:\Windows\moo\#boo+: the string \verb+c:\Windows\moo#boo+.
+   \end{itemize}
+\end{itemize}
+
+\subsection{Identifiers}
+
+Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as \verb+_+,
+\verb+-+, \verb+~+, \verb+@+.  Case is significant; the following identifiers are distinct:
+\verb+FOO+, \verb+Foo+, \verb+foo+.  The identifier may begin with any of the valid characters,
+including digits.
+
+Using \verb+egrep+ notation, the regular expression for identifiers is defined as follows.
+
+\begin{verbatim}
+    identifier ::= [-@~_A-Za-z0-9]+
+\end{verbatim}
+
+The following are legal identifiers.
+
+\begin{verbatim}
+    Xyz    hello_world    seventy@nine
+    79-32  Gnus~Gnats     CFLAGS
+\end{verbatim}
+
+The following are not legal identifiers.
+
+\begin{verbatim}
+    x+y    hello&world
+\end{verbatim}
+
+\subsection{Command identifiers}
+
+The following words have special significance when they occur as the \emph{first} word
+of a program line.  They are not otherwise special.
+
+\begin{verbatim}
+    case     catch  class    declare    default
+    do       else   elseif   export     extends
+    finally  if     import   include    match
+    open     raise  return   section    switch
+    try      value  when     while
+\end{verbatim}
+
+\subsection{Variable references}
+
+A variable reference is denoted with the \verb+$+ special character followed by an identifier.  If
+the identifier name has more than one character, it must be enclosed in parentheses.  The
+parenthesized version is most common.  The following are legal variable references.
+
+\begin{verbatim}
+    $(Xyz)    $(hello_world)   $(seventy@nine)
+    $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
+\end{verbatim}
+
+Single-character references also include several additional identifiers, including \verb+&*<^?][+.
+The following are legal single-character references.
+
+\begin{verbatim}
+   $@   $&   $*   $<   $^   $+   $?   $[   $]
+   $A   $_   $a   $b   $x   $1   $2   $3
+\end{verbatim}
+
+Note that a non-parenthesized variable reference is limited to a single character, even if it is
+followed by additional legal identifier charqcters.  Suppose the value of the \verb+$x+ variable is
+17.  The following examples illustrate evaluation.
+
+\begin{verbatim}
+    $x           evaluates to    17
+    foo$xbar     evaluates to    foo17bar
+    foo$(x)bar   evaluates to    foo17bar
+\end{verbatim}
+
+The special sequence \verb+$$+ represents the character literal \verb+$+.  That is, the
+two-character sequences \verb+\$+ and \verb+$$+ are normally equalivalent.
+
+\subsection{String constants}
+\label{section:quotes}
+
+Literal strings are defined with matching string delimiters.  A left string delimiter begins with
+the dollar-sign \verb+$+, and a non-zero number of single-quote or double-quote characters.  The
+string is terminated with a matching sequence of quotation symbols.  The delimiter quotation may not
+be mixed; it must contain only single-quote characters, or double-quote characters.  The following
+are legal strings.
+
+\begin{verbatim}
+    $'Hello world'
+    $"""printf("Hello world\n")"""
+    $''''
+Large "block" of
+text # spanning ''multiple'' lines''''
+\end{verbatim}
+
+The string delimiters are \emph{not} included in the string constant.  In the single-quote form,
+the contents of the string are interpreted verbatim--there are no special characters.
+
+The double-quote form permits expression evaluation within the string, denoted with the \verb+$+ symbol.
+The following are some examples.
+
+\begin{verbatim}
+    X = Hello
+    Y = $""$X world""             # Hello world
+    Z = $'''$X world'''           # $X world
+    I = 3
+    W = $"6 > $(add $I, 2)"       # 6 > 5
+\end{verbatim}
+
+Note that quotation symbols without a leading \verb+$+ are not treated specially by \OMake{}.  The
+quotation symbols is included in the sequence.
+
+\begin{verbatim}
+    osh>println('Hello world')
+    'Hello world'
+    osh>println($'Hello world')
+    Hello world
+    osh>X = Hello
+    - : "Hello" : Sequence
+    osh>println('$X world')
+    Hello world
+\end{verbatim}
+
+\section{The \OMake{} grammar}
+
+\OMake{} programs are constructed from expressions and statements.  Generally, an input program
+consists of a sequence of statements, each of which consists of one or more lines.  Indentation is
+significant--if a statement consists of more than one line, the second and remaining lines (called
+the \emph{body}) are usually indented relative to the first line.
+
+\subsection{Expressions}
+
+The following table lists the syntax for expressions.
+
+\begin{tabular}{rcl}
+\emph{expr} & ::= &\\
+&   & \emph{(empty)}\\
+&   & -- Text (see note)\\
+& | & \emph{text}\\
+& | & \emph{string-literal}\\
+&   & -- Applications\\
+& | & \emph{dollar} \verb+<char>+\\
+& | & \emph{dollar} \verb+(+ \emph{pathid} \emph{args} \verb+)+\\
+&   & -- Concatenation\\
+& | & \emph{expr} \emph{expr}\\
+\\
+\emph{dollar} & ::= & \verb+$+ | \verb+$`+ | \verb+$,+
+\\
+\emph{pathid} & ::= &\\
+&   & \emph{id}\\
+& | & \emph{pathid} \verb+.+ \emph{id}\\
+\\
+\emph{arg} & ::= & \emph{expr}   -- excluding special characters \verb+)(,+)\\
+\emph{args} & ::= & \emph{(empty)} | \emph{arg}, ..., \emph{arg}
+\end{tabular}
+
+An \emph{expression} is a sequence composed of text, string-literals, variables references and
+function applications.  Text is any sequence of non-special characters.
+
+\subsubsection{Inline applications}
+
+An \emph{application} is the application of a function to zero-or-more arguments.  Inline
+applications begin with one of the ``dollar'' sequences \verb+$+, \verb+$`+, or \verb+$,+.  The
+application itself is specified as a single character (in which case it is a variable reference), or
+it is a parenthesized list including a function identifier \emph{pathid}, and zero-or-more
+comma-separated arguments \emph{args}.  The arguments are themselves a variant of the expressions
+where the special character \verb+)(,+ are not allowed (though any of these may be made non-special
+with the \verb+\+ escape character).  The following are some examples of valid expressions.
+
+\begin{itemize}
+\item \verb+xyz abc+
+
+The text sequence ``\verb+xyz abc+''
+
+\item \verb+xyz$wabc+
+
+A text sequence containing a reference to the variable \verb+w+.
+
+\item \verb+$(addsuffix .c, $(FILES))+
+
+An application of the function \verb+addsuffix+, with first argument \verb+.c+, and second argument \verb+$(FILES)+.
+
+\item \verb+$(a.b.c 12)+
+
+This is a method call.  The variable \verb+a+ must evaluate to an object with a field \verb+b+,
+which must be an object with a method \verb+c+.  This method is called with argument \verb+12+.
+\end{itemize}
+
+The additional dollar sequences specify evaluation order, \verb+$`+ (lazy) and \verb+$,+ (eager), as
+discussed in the section on dollar modifiers (Section~\ref{section:dollar}).
+
+\subsection{Statements and programs}
+
+The following table lists the syntax of statements and programs.
+
+\begin{tabular}{rcl}
+\emph{params} & ::= & \emph{(empty)} | \emph{id}, ..., \emph{id}\\
+\\
+\emph{target} & ::= & \emph{expr} -- excluding special character \verb+:+\\
+\\
+\emph{program} & ::= & \emph{stmt} \verb+<eol>+ ... \verb+<eol>+ \emph{stmt}\\
+\\
+\emph{stmt} & ::= &\\
+&   & -- Special forms\\
+& | & \texttt{command} \emph{expr} \emph{optcolon-body}\\
+& | & \texttt{command} ( \emph{args} ) \emph{optcolon-body}\\
+& | & \texttt{catch} \emph{id} ( \emph{id} ) \emph{optcolon-body}\\
+& | & \texttt{class} \emph{id} ... \emph{id}\\
+\\
+&   & -- Variable definitions\\
+& | & \emph{pathid} \{+\}= \emph{expr}\\
+& | & \emph{pathid} \{+\}= \verb+<eol>+ \emph{indented-body}\\
+& | & \emph{pathid}\verb+[]+ \{+\}= \emph{expr}\\
+& | & \emph{pathid}\verb+[]+ \{+\}= \verb+<eol>+ \emph{indented-exprs}\\
+\\
+&   & -- Functions\\
+& | & \emph{pathid}(\emph{args}) \emph{optcolon-body}\\
+& | & \emph{pathid}(\emph{params}) = \verb+<eol>+ \emph{indented-body}\\
+\\
+&   & -- Objects\\
+& | & \emph{pathid} \verb+.+ \{+\}= \verb+<eol>+ \emph{indented-body}\\
+\\
+&   & -- Rules\\
+& | & \emph{target} \texttt{:} \emph{target} \emph{rule-options} \verb+<eol>+ \emph{indented-body}\\
+& | & \emph{target} \texttt{::} \emph{target} \emph{rule-options} \verb+<eol>+ \emph{indented-body}\\
+& | & \emph{target} \texttt{:} \emph{target} \texttt{:} \emph{target} \emph{rule-options} \verb+<eol>+ \emph{indented-body}\\
+& | & \emph{target} \texttt{::} \emph{target} \texttt{:} \emph{target} \emph{rule-options} \verb+<eol>+ \emph{indented-body}\\
+\\
+&   & -- Shell commands\\
+& | & \emph{expr}\\
+\\
+\emph{indented-body} & ::= & \emph{(empty)}\\
+& | & \emph{indented-stmt} \verb+<eol>+ ... \verb+<eol>+ \emph{indented-stmt}\\
+\\
+\emph{indented-exprs} & ::= & \emph{(empty)}\\
+& | & \emph{indented-expr} \verb+<eol>+ ... \verb+<eol>+ \emph{indented-expr}\\
+\\
+\emph{optcolon-body} & ::= & \emph{(empty)}\\
+& | & \verb+<eol>+ \emph{indented-body}\\
+& | & \texttt{:} \verb+<eol>+ \emph{indented-body}\\
+\\
+\emph{rule-option} & ::= & \emph{:id:} \emph{target}\\
+\emph{rule-options} & ::= & \emph{(empty)}\\
+& | & \emph{rule-options} \emph{rule-option}
+\end{tabular}
+
+\subsubsection{Special forms}
+
+The special forms include the following.
+
+\index{if}\index{elseif}\index{else}%
+\textbf{Conditionals} (see the section on conditionals --- Section~\ref{section:conditionals}).  The \verb+if+ command
+should be followed by an expression that represents the condition, and an indented body.  The
+conditional may be followed by \verb+elseif+ and \verb+else+ blocks.
+
+\begin{verbatim}
+    if expr
+        indented-body
+    elseif expr
+        indented-body
+    ...
+    else
+        indented-body
+\end{verbatim}
+
+\index{match}%
+\textbf{matching} (see the section on matching --- Section~\ref{section:match}).  The \verb+switch+ and
+\verb+match+ commands perform pattern-matching.  All cases are optional.  Each case may include
+\verb+when+ clauses that specify additional matching conditions.
+
+\begin{verbatim}
+    match(expr)
+    case expr
+       indented-body
+    when expr
+       indented-body
+    ...
+    case expr
+       indented-body
+    default
+       indented-body
+\end{verbatim}
+
+\index{try}%
+\textbf{Exceptions} (see also the \hyperfun{try} documentation).  The \verb+try+ command
+introduces an exception handler.  Each \verb+name+ is the name of a class.  All cases, including
+\verb+catch+, \verb+default+, and \verb+finally+ are optional.  The \verb+catch+ and \verb+default+
+clauses contain optional \verb+when+ clauses.
+
+\begin{verbatim}
+    try
+        indented-body
+    catch name1(id1)
+        indented-body
+    when expr
+        indented-body
+    ...
+    catch nameN(idN)
+        indented-body
+    default
+        indented-body
+    finally
+        indented-body
+\end{verbatim}
+
+The \verb+raise+ command is used to raise an exception.
+
+\begin{verbatim}
+    raise expr
+\end{verbatim}        
+
+\index{section}%
+\textbf{section} (see the \verb+section+ description in Section~\ref{section:section}).  The \verb+section+ command
+introduces a new scope.
+
+\begin{verbatim}
+    section
+        indented-body
+\end{verbatim}
+
+\index{include}\index{open}%
+\textbf{include, open} (see also Section~\ref{section:include}).  The \verb+include+ command
+performs file inclusion.  The expression should evaluate to a file name.
+
+The \verb+open+ form is like include, but it performs the inclusion only if the inclusion has not
+already been performed.  The \verb+open+ form is usually used to include library files.  [jyh-- this
+behavior will change in subsequent revisions.]
+
+\begin{verbatim}
+    include expr
+    open expr
+\end{verbatim}
+
+\index{return}%
+\textbf{return} (see the description of functions in Section~\ref{section:functions}).  The \verb+return+ command
+terminates execution and returns a value from a function.
+
+\begin{verbatim}
+    return expr
+\end{verbatim}
+
+\index{value}%
+\textbf{value} (see the description of functions in Section~\ref{section:functions}).  The \verb+value+ command is an identity.
+Syntactically, it is used to coerce a n expression to a statement.
+
+\begin{verbatim}
+    value expr
+\end{verbatim}
+
+\index{export}%
+\textbf{export} (see the section on scoping --- Section~\ref{section:export}).  The \verb+export+ command exports
+a environment from a nested block.  If no arguments are given, the entire environment is exported.
+Otherwise, the export is limited to the specified identifiers.
+
+\begin{verbatim}
+    export expr
+\end{verbatim}
+
+\index{while}%
+\textbf{while} (see also the \hyperfun{while} description).  The \verb+while+ command introduces a \verb+while+ loop.
+
+\begin{verbatim}
+    while expr
+        indented-body
+\end{verbatim}
+
+\index{class}\index{extends}%
+\textbf{class, extends} (see the section on objects --- Section~\ref{section:objects}).  The \verb+class+ command
+specifies an identifier for an object.  The \verb+extends+ command specifies a parent object.
+
+\begin{verbatim}
+    class id
+    extends expr
+\end{verbatim}
+
+\subsubsection{Variable definitions}
+
+See the section on variables (Section~\ref{section:variables}).  The simplest variable definition has the
+following syntax.  The \verb+=+ form is a new definition.  The += form appends the value to
+an existing definition.
+
+\begin{verbatim}
+    id = expr
+    id += expr
+
+    osh> X = 1
+    - : "1" : Sequence
+    osh> X += 7
+    - : "1" " " "7" : Sequence
+\end{verbatim}
+
+A multi-line form is allowed, where the value is computed by an indented body.
+
+\begin{verbatim}
+    id {+}=
+        indented-body
+
+    osh> X =
+             Y = HOME
+             println(Y is $Y)
+             getenv($Y)
+    Y is HOME
+    - : "/home/jyh" : Sequence
+\end{verbatim}
+
+The name may be qualified qith one of the \verb+public+, \verb+prtected+, or \verb+private+
+modifiers.  Public variables are dynamically scoped.  Protected variables are fields in the current
+object.  Private variables are statically scoped.
+
+[jyh: revision 0.9.9 introduces modular namespaces; the meaning of these qualifiers is slightly changed.]
+
+\begin{verbatim}
+    public.X = $(addsuffix .c, 1 2 3)
+    protected.Y = $(getenv HOME)
+    private.Z = $"Hello world"
+\end{verbatim}
+
+\subsubsection{Applications and function definitions}
+
+See the section on functions (Section~\ref{section:functions}).  A function-application statement is specified as a
+function name, followed a parenthesized list of comma-separated arguments.
+
+\begin{verbatim}
+    osh> println($"Hello world")
+
+    osh> FILES = 1 2 3
+    - : 1 2 3
+    osh> addsuffix(.c, $(FILES))
+    - : 1.c 2.c 3.c
+
+    # The following forms are equivalent
+    osh> value $(println $"Hello world")
+    osh> value $(addsuffix .c, $(FILES))
+    - : 1.c 2.c 3.c
+\end{verbatim}
+
+If the function application has a body, the body is passed (lazily) to the function as its first
+argument.  [jyh: in revision 0.9.8 support is incomplete.]  When using \verb+osh+, the application
+must be followed by a colon \verb+:+ to indicate that the application has a body.
+
+\begin{verbatim}
+    # In its 3-argument form, the foreach function takes
+    # a body, a variable, and an array.  The body is evaluated
+    # for each element of the array, with the variable bound to
+    # the element value.
+    #
+    # The colon is required only for interactive sessions.
+    osh> foreach(x => 1 2 3):
+            add($x, 1)
+    - : 2 3 4
+\end{verbatim}
+
+Functions are defined in a similar form, where the parameter list is specified as a comma-separated
+list of identifiers, and the body of the function is indented.
+
+\begin{verbatim}
+    osh> f(i, j) =
+            add($i, $j)
+    - : <fun 2>
+    osh> f(3, 7)
+    - : 10 : Int
+\end{verbatim}
+
+\subsubsection{Objects}
+
+See the section on objects (Section~\ref{section:objects}).  Objects are defined as an identifier with a
+terminal period.  The body of the object is indented.
+
+\begin{verbatim}
+    Obj. =
+        class Obj
+
+        X = 1
+        Y = $(sub $X, 12)
+        new(i, j) =
+           X = $i
+           Y = $j
+           value $(this)
+        F() =
+           add($X, $Y)
+        println($Y)
+\end{verbatim}
+
+The body of the object has the usual form of an indented body, but new variable definitions are
+added to the object, not the global environment.  The object definition above defines an object with
+(at least) the fields \verb+X+ and \verb+Y+, and methods \verb+new+ and \verb+F+.  The name of the
+object is defined with the \verb+class+ command as \verb+Obj+.
+
+The \verb+Obj+ itself has fields \verb+X = 1+ and \verb+Y = -11+.  The \verb+new+ method has the
+typical form of a constructor-style method, where the fields of the object are initialized to new
+values, and the new object returned (\verb+$(this)+ refers to the current object).
+
+The \verb+F+ method returns the sum of the two fields \verb+X+ and \verb+Y+.
+
+When used in an object definition, the += form adds the new definitions to an existing object.
+
+\begin{verbatim}
+   pair. =
+      x = 1
+      y = 2
+
+   pair. +=
+      y = $(add $y, 3)
+   # pair now has fields (x = 1, and y = 5)
+\end{verbatim}
+
+The \verb+extends+ form specifies inheritance.  Multiple inheritance is allowed.  At evaluation
+time, the \verb+extends+ directive performs inclusion of the entire parent object.
+
+\begin{verbatim}
+   pair. =
+      x = 1
+      y = 2
+
+   depth. =
+      z = 3
+      zoom(dz) =
+         z = $(add $z, $(dz))
+         return $(this)
+
+   triple. =
+      extends $(pair)
+      extends $(depth)
+
+      crazy() =
+         zoom($(mul $x, $y))
+\end{verbatim}
+
+In this example, the \verb+triple+ object has three fields x, y, and z; and two methods \verb+zoom+
+and \verb+crazy+.
+
+\subsubsection{Rules}
+
+See the chapter on rules (Chapter~\ref{chapter:rules}).  A rule has the following parts.
+\begin{enumerate}
+\item A sequence of targets;
+\item one or two colons;
+\item a sequence of \emph{dependencies} and \emph{rule options};
+\item and an indented body.
+\end{enumerate}
+
+The targets are the files to be built, and the dependencies are the files it depends on.  If two
+colons are specified, it indicates that there may be multiple rules to build the given targets;
+otherwise only one rule is allowed.
+
+If the target contains a \verb+%+ character, the rule is called \emph{implicit}, and is considered
+whenever a file matching that pattern is to be built.  For example, the following rule specifies a
+default rule for compiling OCaml files.
+
+\begin{verbatim}
+    %.cmo: %.ml %.mli
+       $(OCAMLC) -c $<
+\end{verbatim}
+
+This rule would be consulted as a default way of building any file with a \verb+.cmo+ suffix.  The
+dependencies list is also constructed based on the pattern match.  For example, if this rule were
+used to build a file \verb+foo.cmo+, then the dependency list would be \verb+foo.ml foo.mli+.
+
+There is also a three-part version of a rule, where the rule specification has three parts.
+
+\begin{verbatim}
+    targets : patterns : dependencies rule-options
+       indented-body
+\end{verbatim}
+
+In this case, the patterns \emph{must} contain a single \verb+%+ character. Three-part rules are
+also considered \emph{implicit}. For example, the following defines a default rule for the
+\verb+clean+ target.
+
+\begin{verbatim}
+    .PHONY: clean
+    
+    clean: %:
+        rm -f *$(EXT_OBJ) *$(EXT_LIB)
+\end{verbatim}
+
+Three-part implicit rules are inherited by the subdirectories in the exact same way as with
+the usual two-part implicit rules.
+
+There are several special targets, including the following.
+
+\begin{itemize}
+\item \verb+.PHONY+ : declare a ``phony'' target.  That is, the target does not correspond to a file.
+\item \verb+.ORDER+ : declare a rule for dependency ordering.
+\item \verb+.INCLUDE+ : define a rule to generate a file for textual inclusion.
+\item \verb+.SUBDIRS+ : specify subdirectories that are part of the project.
+\item \verb+.SCANNER+ : define a rule for dependency scanning.
+\end{itemize}
+
+There are several rule options.
+
+\begin{itemize}
+\item \verb+:optional: dependencies+ the subsequent dependencies are optional, it is acceptable if they do not exist.
+\item \verb+:exists: dependencies+ the subsequent dependencies must exist, but changes to not affect
+whether this rule is considered out-of-date.
+\item \verb+:effects: targets+ the subsequent files are side-effects of the rule.  That is, they may be
+created and/or modified while the rule is executing.  Rules with overlapping side-effects are never
+executed in parallel.
+\item \verb+:scanner: name+ the subsequent name is the name of the \verb+.SCANNER+ rule for the target to be built.
+\item \verb+:value: expr+ the \verb+expr+ is a ``value'' dependency.  The rule is considered
+out-of-date whenever the value of the \verb+expr+ changes.
+\end{itemize}
+
+Several variables are defined during rule evaluation.
+
+% We use \char* even for printable chars for consistency.
+\begin{itemize}
+\item \verb+$*+\index{\char36\char42}\index[var]{\char42} : the name of the target with the outermost suffix removed.
+\item \verb+$>+\index{\char36\char62}\index[var]{\char62} : the name of the target with all suffixes removed.
+\item \verb+$@+\index{\char36\char64}\index[var]{\char64} : the name of the target.
+\item \verb+$^+\index{\char36\char94}\index[var]{\char94} : the explicit file dependencies, sorted alphabetically, with duplicates removed.
+\item \verb.$+.\index{\char36\char43}\index[var]{\char43} : all explicit file dependencies, with order preserved.
+\item \verb+$<+\index{\char36\char60}\index[var]{\char60} : the first explicit file dependency.
+\item \verb+$&+\index{\char36\char38}\index[var]{\char38} : the free values of the rule (often used in \verb+:value:+ dependencies).
+\end{itemize}
+
+\subsubsection{Shell commands}
+
+See the chapter on shell commands (Chapter~\ref{chapter:shell}).
+
+While it is possible to give a precise specification of shell commands, the informal description is
+simpler.  Any non-empty statement where each prefix is \emph{not} one of the other statements, is
+considered to be a shell command.  Here are some examples.
+
+\begin{verbatim}
+    ls                                 -- shell command
+    echo Hello world > /dev/null       -- shell command
+    echo(Hello world)                  -- function application
+    echo(Hello world) > /dev/null      -- syntax error
+    echo Hello: world                  -- rule
+    X=1 getenv X                       -- variable definition
+    env X=1 getenv X                   -- shell command
+    if true                            -- special form
+    \if true                           -- shell command
+    "if" true                          -- shell command
+\end{verbatim}
+    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Evaluation
+%
+\section{Dollar modifiers}
+\label{section:dollar}
+
+Inline applications have a function and zero-or-more arguments.  Evaluation is normally strict: when
+an application is evaluated, the function identifier is evaluated to a function, the arguments are
+then evaluated and the function is called with the evaluated arguments.
+
+The additional ``dollar'' sequences specify additional control over evaluation.  The token \verb+$`+
+defines a ``lazy'' application, where evaluation is delayed until a value is required.  The
+\verb+$,+ sequence performs an ``eager'' application within a lazy context.
+
+To illustrate, consider the expression \verb+$(addsuffix .c, $(FILES))+.  The \verb+addsuffix+
+function appends its first argument to each value in its second argument.  The following \verb+osh+
+interaction demonstrates the normal bahavior.
+
+\begin{verbatim}
+osh> FILES[] = a b c
+- : <array a b c>
+osh> X = $(addsuffix .c, $(FILES))
+- : <array ...>
+osh> FILES[] = 1 2 3 # redefine FILES
+- : <array 1 2 3>
+osh> println($"$X")  # force the evaluation and print
+a.c b.c c.c
+\end{verbatim}
+
+When the lazy operator \verb+$`+ is used instead, evaluation is delayed until it is printed.  In the
+following sample, the value for \verb+X+ has changed to the \verb+$(apply ..)+ form, but otherwise
+the result is unchanged because it it printed immediately.
+
+\begin{verbatim}
+osh> FILES[] = a b c
+- : <array a b c>
+osh> SUF = .c
+- : ".c"
+osh> X = $`(addsuffix $(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh> println($"$X")  # force the evaluation and print
+a.c b.c c.c
+\end{verbatim}
+
+However, consider what happens if we redefine the \verb+FILES+ variable after the definition for
+\verb+X+.  In the following sample, the result changes because evaluation occurs \emph{after} the
+values for \verb+FILES+ has been redefined.
+
+\begin{verbatim}
+osh> FILES[] = a b c
+- : <array a b c>
+osh> SUF = .c
+- : ".c"
+osh> X = $`(addsuffix $(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh> SUF = .x
+osh> FILES[] = 1 2 3
+osh> println($"$X")  # force the evaluation and print
+1.x 2.x 3.x
+\end{verbatim}
+
+In some cases, more explicit control is desired over evaluation.  For example, we may wish to
+evaluate \verb+SUF+ early, but allow for changes to the \verb+FILES+ variable.  The \verb+$,(SUF)+
+expression forces early evaluation.
+
+\begin{verbatim}
+osh> FILES[] = a b c
+- : <array a b c>
+osh> SUF = .c
+- : ".c"
+osh> X = $`(addsuffix $,(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh> SUF = .x
+osh> FILES[] = 1 2 3
+osh> println($"$X")  # force the evaluation and print
+1.c 2.c 3.c
+\end{verbatim}
+
+\section{Programming syntax}
+\label{section:program-syntax}
+
+\newinkeyword
+
+The standard OMake language is designed to make it easy to specify strings.  By default, all values
+are strings, and strings are any sequence of text and variable references; quote symbols are not
+necessary.
+
+\begin{verbatim}
+    CFLAGS += -g -Wall
+\end{verbatim}
+
+The tradeoff is that variable references are a bit longer, requiring the syntax \verb+$(...)+.
+
+The ``\emph{program syntax}'' inverts this behavior.  The main differences are the following.
+
+\begin{enumerate}
+\item Identifiers represent variables.
+\item Strings must be quoted.
+\item Function application is written \verb+f(exp1, ..., expN)+.
+\end{enumerate}
+
+It is only the syntax of expressions that changes.  The large scale program is as before: a program
+is a sequence of definitions, commands, indentation is significant, etc.  However, the syntax of expressions
+changes, where an expression is 1) the value on the right of a variable definition \verb+Var = <exp>+, or 2)
+an argument to a function.
+
+The following table lists the syntax for expressions.
+
+\begin{tabular}{rcll}
+e & ::= & 0, 1, 2, ...    & integers\\
+  & |   & 0.1, 1E+23, ... & floating-point constants\\
+  & |   & x, ABC, ...     & identifiers\\
+  & |   & id\verb+::+id   & scoped name\\
+  & |   & id.id. ... id   & projection\\
+  & |   & \verb+-+ e      & negation\\
+  & |   & e \verb/+/ e | e \verb/-/ e | e \verb+*+ e | e \verb+/+ e | e \verb+%+ e  & arithmetic\\
+  & |   & e \verb+^+ e | e \verb+&+ e | e \verb+|+ e & bitwise operations\\
+  & |   & e \verb+<<+ e  | e \verb+>>+  e | e \verb+>>>+ e & shifting\\
+  & |   & e \verb+&&+ e  | e \verb+||+ e & Boolean operations\\
+  & |   & e \verb+<+ e | e \verb+<=+ e | e \verb+=+ e | e \verb+>=+ e | e \verb+>+ e & comparisons\\
+  & |   & e\verb+(+e\verb+,+ ...\verb+,+ e\verb+)+ & function application\\
+  & |   & e\verb+[+e\verb+]+ & array subscripting\\
+  & |   & \verb+(+ e \verb+)+ & parenthesized expressions\\
+  & |   & \verb+"+ ... \verb+"+ | \verb+'+ ... \verb+'+ & strings\\
+  & |   & \verb+$"+ ... \verb+"+ | \verb+$'+ ... \verb+'+ & strings\\
+  & |   & \verb+$(+ ... \verb+)+ & variables and applications
+\end{tabular}
+
+Note that the \verb+$+-style expressions are still permitted.
+
+\subsection{Examples}
+
+The program-syntax is specified with the directive \verb+program-syntax+, which is scoped in the normal way.
+
+\begin{verbatim}
+    program-syntax
+
+    i = 0
+    l[] =
+    while i < 10
+        l[] += i
+        i = i + 1
+    println($"The indexes are: $l")
+\end{verbatim}
+
+You can mix normal and program syntax.
+
+\begin{verbatim}
+program-syntax
+
+add2(i) =
+    eprintln($"add2($i)")
+    return i + 2
+
+mul2(i, j) =
+    eprintln($"mul2($i, $j)")
+    return i * j
+
+println(mul2(mul2(3, 4), $(add2 1 << 20)))
+\end{verbatim}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-
+% vim:tw=100:fo=tcq:

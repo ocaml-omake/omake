@@ -1,0 +1,27 @@
+#
+# Required keyword parameters.
+#
+errors = 0
+check(debug, i, j) =
+   if $(equal $i, $j)
+       println($"$(debug) = $i [SUCCESS]")
+   else
+       eprintln($"$(debug) = $i, should be $j [FAILURE]")
+       errors = $(add $(errors), 1)
+       export
+   export
+
+f(~x, ~y) =
+   sub($x, $y)
+
+check($'$(f ~x = 7, ~y = 3)', $(f ~x = 7, ~y = 3), 4)
+
+try
+    f(~y = 7)
+    eprintln($'f(~y = 7) succeeded improperly [FAILURE]')
+    errors = $(add $(errors), 1)
+default
+    eprintln($'f(~y = 7) failed properly [SUCCESS]')
+
+if $(errors)
+    exit 1

@@ -1,0 +1,279 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Description
+%
+\chapter{Variables and Naming}
+\label{chapter:naming}
+\cutname{omake-language-naming.html}
+
+During evaluation, there are three different kinds of namespaces.  Variables can be \emph{private},
+or they may refer to fields in the current \emph{this} object, or they can be part of the
+\emph{global} namespace.  The namespace can be specified directly by including an explicit qualifier
+before the variable name.  The three namespaces are separate; a variable can be bound in one or more
+simultaneously.
+
+\begin{verbatim}
+    # private namespace
+    private.X = 1
+    # current object
+    this.X = 2
+    # public, globally defined
+    global.X = 3
+\end{verbatim}
+
+\section{private.}
+\label{section:private}\index{private.}
+
+The \verb+private.+ qualifier is used to define variables that are private to the current file/scope.
+The values are not accessible outside the scope.  Private variables are statically (lexically) scoped.
+
+\begin{verbatim}
+    Obj. =
+       private.X = 1
+
+       print() =
+          println(The value of X is: $X)
+
+    # Prints:
+    #    The private value of X is: 1
+    Obj.print()
+
+    # This is an error--X is private in Obj
+    y = $(Obj.X)
+\end{verbatim}
+
+In addition, private definitions do not affect the global value of a variable.
+
+\begin{verbatim}
+   # The public value of x is 1
+   x = 1
+
+   # This object uses a private value of x
+   Obj. =
+       private.x = 2
+
+       print() =
+          x = 3
+          println(The private value of x is: $x)
+          println(The public value of x is: $(public.x))
+          f()
+
+   # Prints:
+   #    The private value of x is: 3
+   #    The public value of x is: 1
+   Obj.print()
+\end{verbatim}
+
+Private variables have two additional properties.
+
+\begin{enumerate}
+\item Private variables are local to the file in which they are defined.
+\item Private variables are not exported by the \verb+export+ directive, unless they are
+  mentioned explicitly in the \verb+export+ directive.
+
+  \begin{verbatim}
+       private. =
+          FLAG = true
+
+       section
+          FLAG = false
+          export
+
+       # FLAG is still true
+       section
+          FLAG = false
+          export FLAG
+
+       # FLAG is now false
+  \end{verbatim}
+\end{enumerate}
+
+\section{this.}
+\index{this.}
+
+The \verb+this.+ qualifier is used to define fields that are local to an object.
+Object variables are dynamically scoped.
+
+\begin{verbatim}
+    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    # X is a protected field in the object
+    Obj. =
+       this.X = 3
+
+       print() =
+          println(The value of this.X is: $(X))
+          f()
+
+    # Prints:
+    #    The value of this.X is: 3
+    #    The public value of X is: 1
+    Obj.print()
+
+    # This is legal, it defines Y as 3
+    Y = $(Obj.X)
+\end{verbatim}
+
+In general, it is a good idea to define object variables as protected.  The resulting code is more
+modular because variables in your object will not produce unexpected clashes with variables defined
+in other parts of the project.
+
+\section{global.}
+\label{section:global}\index{global.}
+
+The \verb+global.+ qualifier is used to specify global dynamically-scoped variables.  In the following
+example, the \verb+global.+ definition specifies that the binding \verb+X = 4+ is to be dynamically
+scoped.  Global variables \emph{are not} defined as fields of an object.
+
+\begin{verbatim}
+    X = 1
+    f() =
+       println(The global value of X is: $(X))
+
+    # Prints:
+    #    The global value of X is: 2
+    section
+       X = 2
+       f()
+
+    Obj. =
+       this.X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          global.X = 4
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The global value of X is: 4
+    Obj.print()
+\end{verbatim}
+
+\section{protected.}
+\label{section:protected}\index{protected.}
+
+In OMake 0.9.8, \verb+protected+ is a synonym for \verb+this+.
+
+\begin{verbatim}
+    osh>protected.x = 1
+    - : "1" : Sequence
+    osh>value $(this.x)
+    - : "1" : Sequence
+\end{verbatim}
+%
+In 0.9.9, this will change, so that the qualifier \verb+protected+ means (in 0.9.9) that a variable
+is local to the current object or file, and may not be accessed outside it.
+
+\section{public.}
+\label{section:public}\index{public.}
+
+In OMake 0.9.8, \verb+public+ is a synonym for \verb+global+.
+
+\begin{verbatim}
+    osh>public.x = 1
+    - : "1" : Sequence
+    osh>value $(global.x)
+    - : "1" : Sequence
+\end{verbatim}
+%
+In 0.9.9, this will change, so that the qualifier \verb+public+ means (in 0.9.9) that a variable
+is to be accessible from outside the current file or object.
+
+\section{Qualified blocks}
+
+If several qualified variables are defined simultaneously, a block form of qualifier can be defined.
+The syntax is similar to an object definition, where the name of the object is the qualifier itself.
+For example, the following program defines two private variables \verb+X+ and \verb+Y+.
+
+\begin{verbatim}
+    private. =
+        X = 1
+        Y = 2
+\end{verbatim}
+%
+The qualifier specifies a default namespace for new definitions in the block.  The contents of the
+block is otherwise general.
+
+\begin{verbatim}
+    private. =
+        X = 1
+        Y = 2
+        public.Z = $(add $X, $Y)
+        # Prints "The value of Z is 3"
+        echo The value of Z is $Z
+\end{verbatim}
+%
+Stylistically, it is usually better to avoid large qualified blocks because the qualifier status can
+be easy to forget.  For example, consider the following fragment.
+
+\begin{verbatim}
+    private. =
+        # Large code sequence
+        ...
+        # build foo.o with -g option (ERROR)
+        CFLAGS = -g
+        foo.o:
+\end{verbatim}
+%
+In this case, the programmer probably forgot that the definition of the variable \verb+CFLAGS+ is in
+the \verb+private+ block, so a fresh variable \verb+private.CFLAGS+ is being defined, not the global
+one.  The target \verb+foo.o+ does \emph{not} use this definition of \verb+CFLAGS+.
+
+\section{declare}
+\label{section:declare}\index{declare}
+
+When a variable name is unqualified, its namespace is determined by the most recent definition or
+declaration that is in scope for that variable.  We have already seen this in the examples, where a
+variable definition is qualified, but the subsequent uses are not qualified explicitly.  In the
+following example, the first occurrence of \verb+$X+ refers to the \emph{private} definition,
+because that is the most recent.  The public definition of \verb+X+ is still \verb+0+, but the
+variable must be qualified explicitly in order to access the public value.
+
+\begin{verbatim}
+    public.X = 0
+    private.X = 1
+
+    public.print() =
+        println(The value of private.X is: $X)
+        println(The value of public.X is: $(public.X))
+\end{verbatim}
+%
+Sometimes it can be useful to declare a variable without defining it.  For example, we might have a
+function that uses a variable \verb+X+ that is to be defined later in the program.  The
+\verb+declare+ directive can be used for this.
+
+\begin{verbatim}
+    declare public.X
+
+    public.print() =
+        println(The value of X is $X)
+
+    # Prints "The value of X is 2"
+    X = 2
+    print()
+\end{verbatim}
+
+Finally, what about variables that are used but not explicitly qualified?  In this case, the following rules are used.
+
+\begin{itemize}
+\item If the variable is a function parameter, it is private.
+\item If the variable is defined in an object, it is qualified with \verb+this.+.
+\item Otherwise, the variable is public.
+\end{itemize}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

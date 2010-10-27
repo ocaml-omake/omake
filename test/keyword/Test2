@@ -1,0 +1,18 @@
+#!/usr/bin/env ../../src/main/osh -print-ir
+
+f(?X = 1, ?Y = 2) =
+   println($"X = $X; Y = $Y")
+
+println($"""Should print:
+X = 1; Y = 2
+X = 3; Y = 2
+X = 1; Y = 4
+X = 6; Y = 5
+X = 7; Y = 8
+----------""")
+
+f()
+f(~X = 3)
+f(~Y = 4)
+f(~Y = 5, ~X = 6)
+f(~X = 7, ~Y = 8)

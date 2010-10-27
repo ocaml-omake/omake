@@ -1,0 +1,254 @@
+BUILTIN = $(dir $(ROOT)/src/builtin)
+
+#
+# Documentation files
+#
+MAN_BASE_FILES[] =
+    $(BUILTIN)/omake_builtin_base.ml
+    $(BUILTIN)/omake_builtin_arith.ml
+    $(BUILTIN)/omake_builtin_fun.ml
+    $(BUILTIN)/omake_builtin_object.ml
+    $(BUILTIN)/omake_builtin_file.ml
+    $(BUILTIN)/omake_builtin_test.ml
+
+MAN_SYSTEM_FILES[] =
+    $(BUILTIN)/omake_builtin_io.ml
+    $(BUILTIN)/omake_builtin_io_fun.ml
+    $(BUILTIN)/omake_builtin_sys.ml
+    $(BUILTIN)/omake_builtin_shell.ml
+
+MAN_PERVASIVES_FILES[] =
+    $(LIB)/Pervasives.om
+    $(BUILTIN)/omake_builtin_rule.ml
+    $(BUILTIN)/omake_builtin_target.ml
+
+MAN_ROOT_FILES[] =
+    $(LIB)/build/Common.om
+    $(LIB)/build/C.om
+    $(LIB)/build/OCaml.om
+    $(LIB)/build/LaTeX.om
+
+MAN_CONFIGURE_FILES[] =
+    $(LIB)/configure/Configure.om
+    $(LIB)/configure/ncurses.om
+    $(LIB)/configure/readline.om
+    $(LIB)/configure/snprintf.om
+
+MAN_BASE_FILES       = $(file $(MAN_BASE_FILES))
+MAN_SYSTEM_FILES     = $(file $(MAN_SYSTEM_FILES))
+MAN_PERVASIVES_FILES = $(file $(MAN_PERVASIVES_FILES))
+MAN_ROOT_FILES       = $(file $(MAN_ROOT_FILES))
+MAN_CONFIGURE_FILES  = $(file $(MAN_CONFIGURE_FILES))
+MAN_ALL_FILES[] =
+    $(MAN_BASE_FILES)
+    $(MAN_SYSTEM_FILES)
+    $(MAN_PERVASIVES_FILES)
+    $(MAN_ROOT_FILES)
+    $(MAN_CONFIGURE_FILES)
+
+########################################################################
+# Documentation
+#
+Shell. +=
+   #
+   # Extract the text between the following delimiters.
+   #
+   # \begin{doc}
+   # ...
+   # \end{doc}
+   #
+   extract-doc-text(argv) =
+      print = false
+
+      awk(b, $(argv))
+      case $'\\end\{doc\}'
+         print = false
+         export
+      case $'\\begin\{doc\}'
+         print = true
+         export
+      default
+         if $(print)
+            println($0)
+
+   remove-leading-comment-text(argv) =
+      fsubst()
+      case $'^[ \t]*[*#] ?'
+         value
+
+   extract-docs(argv) =
+      extract-doc-text $(argv) | remove-leading-comment-text
+
+#
+# Extract the documentation from the src files.
+#
+ExtractManDocument(dst, files) =
+    tex/$(dst).tex: $(files)
+        extract-docs $(files) > $@
+
+ExtractManDocument(omake-base,       $(MAN_BASE_FILES))
+ExtractManDocument(omake-system,     $(MAN_SYSTEM_FILES))
+ExtractManDocument(omake-pervasives, $(MAN_PERVASIVES_FILES))
+ExtractManDocument(omake-root,       $(MAN_ROOT_FILES))
+ExtractManDocument(omake-autoconf,   $(MAN_CONFIGURE_FILES))
+
+#
+# All the TeX files - both generated and the source ones.
+#
+TEX_FILES[] =
+    src/omake-doc
+    src/omake-index
+    src/omake-examples
+    src/omake-detail
+    src/omake-build-examples
+    src/omake-detail
+    src/omake-language-naming
+    src/omake-language-examples
+    src/omake-options
+    src/omake-language
+    src/omake-detail
+    src/omake-rules
+    tex/omake-base
+    tex/omake-system
+    tex/omake-pervasives
+    tex/omake-root
+    tex/omake-autoconf
+    src/osh
+    src/omake-grammar
+
+TEX_FILES = $(file $(addsuffix .tex, $(TEX_FILES)))
+
+#
+# HTML files that will be generated out of the ocaml-doc one
+#
+HTML_FILES[] =
+    omake-doc.css
+    omake-contents.html
+    omake.html
+    omake-quickstart.html
+    omake-build-examples.html
+    omake-language.html
+    omake-detail.html
+    omake-language-naming.html
+    omake-language-examples.html
+    omake-rules.html
+    omake-base.html
+    omake-system.html
+    omake-shell.html
+    omake-pervasives.html
+    omake-build.html
+    osh.html
+    omake-options.html
+    omake-grammar.html
+    omake-all-index.html
+    omake-var-index.html
+    omake-fun-index.html
+    omake-obj-index.html
+    omake-target-index.html
+    omake-option-index.html
+    omake-references.html
+    omake-toc.html
+    omake-autoconf.html
+
+HTML_FILES = $(file $(addprefix html/, $(HTML_FILES)))
+
+#
+# Generated info files.
+#
+# XXX: HACK: we do not know how many pieces we'd have. For now we hardcode the number.
+#
+NUM_INFOS = 10
+INFO_BASE = $(file info/omake-doc.info)
+INFO_FILES[] = $(INFO_BASE)
+section
+    i = 1
+    while $(le $i, $(NUM_INFOS))
+        INFO_FILES[] += $(file $(INFO_BASE)-$(i))
+        i = $(add $i, 1)
+    export INFO_FILES
+
+#
+# At least 1.10 is needed, future versions may work as well.
+# Please do not add old versions here, as they will produce very different output. :-(
+#
+ALLOWED_HEVEA_VERSIONS[] =
+    1.10
+
+public.HEVEA = hevea
+public.HACHA = hacha
+.STATIC:
+    HEVEA_DIR =
+    HEVEA_VERSION =
+    HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
+    if $(HEVEA_OK)
+        ConfMsgChecking(for $(HEVEA) configs and version)
+        HEVEA_VERSION = $(shell $(HEVEA) -version)
+        HEVEA_DIR = $(dir $(last $(HEVEA_VERSION)))
+        HEVEA_VERSION = $(nth 1, $(HEVEA_VERSION))
+        ConfMsgResult($(HEVEA_VERSION) in $(HEVEA_DIR))
+        if $(mem $(HEVEA_VERSION), $(ALLOWED_HEVEA_VERSIONS))
+            ConfMsgChecking(if $(HEVEA_DIR) exists)
+            HEVEA_OK = $(ConfMsgYesNo $(test -d $(HEVEA_DIR)))
+            export
+        else
+            HEVEA_OK = false
+            ConfMsgWarn($"""Hevea version $(HEVEA_VERSION) is not allowed; allowed versions: $(concat $', ', $(ALLOWED_HEVEA_VERSIONS)).
+If you think this is a mistake, edit the ALLOWED_HEVEA_VERSIONS variable
+in $(in $(ROOT), $(file OMakefile))
+(HEVEA DISABLED)""")
+            export 
+        export HEVEA_DIR HEVEA_OK HEVEA_VERSION
+
+HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic -O -exec xxdate.exe
+HACHA_OPTIONS = -tocter -nolinks
+
+HEVEA_DEPS[] = 
+    $(glob src/*hva)
+
+if $(not $(VERBOSE))
+    HEVEA_OPTIONS += -s
+    export
+
+if $(HEVEA_OK)
+    .SUBDIRS: html
+        omake-doc.html: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
+            $(HEVEA) $(HEVEA_OPTIONS) omake-doc
+
+        $(HTML_FILES): omake-doc.html
+            $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
+
+    .SUBDIRS: txt
+        omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
+            $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
+
+    .SUBDIRS: info
+        $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
+            rm -f omake-doc.info*
+            $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
+            if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))
+                eprintln($"!!! Wrong number of info files!
+    Increase the NUM_INFOS variable in doc/OMakefile and make sure to add new info file(s) to svn")
+                exit 1
+            if $(not $(test -e $(INFO_BASE)-$(NUM_INFOS)))
+                eprintln($"!!! Wrong number of info files!
+    Decrease the NUM_INFOS variable in doc/OMakefile and make sure to remove old info file(s) from svn")
+                exit 1
+
+    .SUBDIRS: ps
+        TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
+
+        omake-doc.tex: ../src/omake-doc.tex
+            ln-or-cp $< $@
+
+        TEXDEPS[] += $(TEX_FILES)
+
+        LaTeXDocument(omake-doc, omake-doc)
+
+html: html/omake-doc.html $(HTML_FILES)
+tex: ps/omake-doc.ps ps/omake-doc.pdf
+txt: txt/omake-doc.txt
+info: $(INFO_FILES)
+
+clean:
+    rm -f {txt,html,info}/*.{hind,h{t,o,f,v,opt}ind,htoc,haux} *.omc
+    rm -f ps/*.{aux,fls,log,out,{t,o,v,f,opt}ids,ind,toc,ilg,{,v}idx,opts} ps/omake-doc.tex tex/*.tex

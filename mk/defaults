@@ -1,0 +1,120 @@
+#
+# Default values for the configuration variables
+#
+
+#
+# Name of the config file
+#
+public.CONFIG_FILE = $(file $(ROOT)/.config)
+
+#
+# Default installation path: check the environment (and the registry on Windows).
+# On Unix, use /usr/local by default.
+#
+public.PREFIX =
+    getenv(PREFIX)
+        get-registry(HKEY_CURRENT_USER, Software\MetaPRL\OMake, OMAKEDIR)
+            get-registry(HKEY_LOCAL_MACHINE, Software\MetaPRL\OMake, OMAKEDIR)
+                private.PREFIX = $(get-registry HKEY_LOCAL_MACHINE, Software\Microsoft\Windows\CurrentVersion, ProgramFilesDir, false)
+                if $(PREFIX)
+                    value $(PREFIX)\OMake
+                else
+                    value $(if $(equal $(OSTYPE), Win32), C:\OMake, /usr/local)
+
+PREFIX = $(dir $"$(PREFIX)")
+
+public.BINDIR = $(dir $"$(getenv BINDIR, $(PREFIX)/bin)")
+public.LIBDIR = $(dir $"$(getenv LIBDIR, $(PREFIX)/lib)")
+
+public.DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
+
+#
+# Profiling is disabled by default
+#
+public.NATIVE_PROFILE = false
+
+#
+# C compiler and flags - check the environment
+#
+CC = $(getenv CC, $(CC))
+CFLAGS = $(getenv CFLAGS, $(EMPTY))
+
+if $(file-exists $(CONFIG_FILE))
+    include $(CONFIG_FILE)
+    export
+
+if $(file-exists $(CONFIG_FILE).local)
+    include $(CONFIG_FILE).local
+    export
+
+#
+# Configure
+#
+open configure/fam
+open configure/readline
+open configure/ncurses
+
+public.FAM_ENABLED = $(FAM_AVAILABLE)
+public.READLINE_ENABLED = $(READLINE_AVAILABLE)
+public.NCURSES_ENABLED = $(NCURSES_AVAILABLE)
+
+#
+# ocamldep -modules is enabled by default.
+#
+OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+
+include mk/make_config
+
+if $(file-exists $(CONFIG_FILE))
+    include $(CONFIG_FILE)
+    export
+
+PREFIX = $(dir $"$(PREFIX)")
+BINDIR = $(dir $"$(BINDIR)")
+LIBDIR = $(dir $"$(LIBDIR)")
+
+#
+# XXX This is a big hack.
+#
+section
+   PREFIX = $(dir $(PREFIX))
+   INSTALL_ROOT = $(getenv INSTALL_ROOT, $(EMPTY))
+   INSTALL_PREFIX = $(dir $(getenv PREFIX, $(PREFIX)))
+
+   if $(INSTALL_ROOT)
+      INSTALL_BINDIR=$(dir $(INSTALL_ROOT)$(absname $(BINDIR)))
+      INSTALL_LIBDIR=$(dir $(INSTALL_ROOT)$(absname $(LIBDIR)))
+      export
+   elseif $(not $(equal $(INSTALL_PREFIX), $(PREFIX)))
+      eprintln($"""
+!!! WARNING !!!
+   Your environment variable "PREFIX" points to $(absname $(INSTALL_PREFIX))
+   but the PREFIX variable in .config points to $(absname $(PREFIX)).
+   I am guessing you are using a packaging system (like GODI) that means the two
+   to be different, want the installation to happen in $(absname $(INSTALL_PREFIX))
+   and will then relocate files to $(absname $(PREFIX)). If this is wrong, please
+   make sure your PREFIX variables agree or remove the PREFIX variable from your
+   environment.
+""")
+      INSTALL_BINDIR=$(dir $(getenv BINDIR, $(INSTALL_PREFIX)/bin))
+      INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(INSTALL_PREFIX)/lib))
+      export
+   else
+      INSTALL_BINDIR=$(dir $(getenv BINDIR, $(BINDIR)))
+      INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(LIBDIR)))
+      export
+   
+   export INSTALL_BINDIR INSTALL_LIBDIR
+
+if $(not $(file-exists $(CONFIG_FILE)))
+    eprintln($(CONFIG_FILE) does not exist)
+    MakeConfig($(CONFIG_FILE))
+    eprintln($"""!!!!! A new config file '$(CONFIG_FILE)' was created for you.
+!!!!! In that file, we filled in a number of default values for you.
+!!!!! You may want to edit the '$(CONFIG_FILE)' file before continuing.
+!!!!!
+!!!!! After you are done, run omake again to continue the build process.""")
+    exit(0)
+
+.INCLUDE: $(CONFIG_FILE): mk/make_config
+    MakeConfig($(CONFIG_FILE))

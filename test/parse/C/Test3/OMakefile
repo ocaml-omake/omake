@@ -1,0 +1,17 @@
+open parse/C/Lex
+open parse/C/Parse
+
+Print(outname, inname) =
+    prog = $(parser.parse-file prog, $(inname))
+    fprintln($(outname), $(prog.to-string))
+
+.STATIC:
+    GTK_INCLUDES[] = $(shell pkg-config --cflags-only-I gtk+-2.0)
+
+%.i: %.c
+    $(CC) -E $(GTK_INCLUDES) $< > $@
+
+%.dump: %.i
+    Print($@, $<)
+
+.DEFAULT: test.dump

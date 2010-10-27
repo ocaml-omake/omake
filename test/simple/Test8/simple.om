@@ -1,0 +1,14 @@
+section
+   private.x = 1
+   f(arg) =
+      println($"In f, x is $(private.x)")
+      println($"Body is $(arg)")
+   export f
+
+private.x = 2
+
+section
+   println($"In section, x is $(private.x)")
+   f()
+      println($"In body, x is $(private.x)")
+      value 10

@@ -1,0 +1,82 @@
+println(This should print $"'x'")
+match $'x'
+case $'.*'
+   println($0)
+default
+   println(Match failed)
+
+println($"This should print 'foo'")
+match $'abcfoodef'
+case $'foo'
+   println($0)
+default
+   println(Match failed)
+
+println(This should print $"'d'")
+match $'abcdef'
+case $'g'
+   println(Incorrect match)
+   println($0)
+case $'d'
+   println($0)
+default
+   println(Match failed)
+
+println(This should print $"'d'")
+match $'abcdef'
+case $'bc\(.*\)ef'
+   println($1)
+default
+   println(Match failed)
+
+println(This should print $"'foo'")
+match $'fooXbarZmoo'
+case $'\(.*\)X'
+   println($*)
+default
+   println(Match failed)
+
+#
+# Delimiters
+#
+println($"This should print 'foo bar' (no extra spaces)")
+match $'fooXbarYmoo'
+case $'\(.*\)X\(.*\)Y'
+   println($(string $*))
+default
+   println(Match failed)
+
+println($"This should print 'fooXbar moo' (no extra spaces)")
+match $'fooXbarXmooYbar'
+case $'\(.*\)X\(.*\)Y'
+   println($(string $*))
+default
+   println(Match failed)
+
+#
+# Nested arguments
+#
+println($"This should print 'moo' (no extra spaces)")
+match $'fooXbooXmooXgoo'
+case $'(\(.*\)X)*'
+   println($(string $*))
+default
+   println(Match failed)
+
+println($"This should print 'fooXbooXmooX moo' (no extra spaces)")
+match $'fooXbooXmooXgoo'
+case $'\((\(.*\)X)*\)'
+   println($(string $*))
+default
+   println(Match failed)
+
+#
+# Other tests
+#
+println($"This should print '1 is xyz' and '2 is bar'")
+match foo_xyz/bar.a
+case foo_\\\(.*\\\)/\\\(.*\\\)\.a
+   println(1 is $1)
+   println(2 is $2)
+default
+   println(Match failed)

@@ -1,0 +1,14 @@
+X. =
+   class X
+
+   fields[] = 1 2 3
+
+   resolve() =
+      fields = $(fields.foreach field => $(field))
+      value $(this)
+
+Y = $(X.resolve)
+
+if $(not $(Y.instanceof X))
+    eprintln(Y is not a X and it should be)
+    exit 1

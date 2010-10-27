@@ -1,0 +1,41 @@
+#
+# Curried functions with keyword arguments
+#
+curry.f(~A = 1, x) =
+   private.A = $A
+   private.x = $x
+   g(~B = 2, y) =
+      add($A, $B, $x, $y)
+
+errors = false
+
+# Omit all keywords
+i = $(f 10, 20)
+if $(not $(equal $i, 33))
+    eprintln($"f(10, 20) evaluates to $i, expected 33")
+    errors = true
+    export
+
+# Only f's keyword
+i = $(f 10, 20, ~A = 30)
+if $(not $(equal $i, 62))
+    eprintln($"f(10, 20, ~A = 30) evaluates to $i, expected 62")
+    errors = true
+    export
+
+# Only g's keyword
+i = $(f 10, 20, ~B = 30)
+if $(not $(equal $i, 61))
+    eprintln($"f(10, 20, ~B = 30) evaluates to $i, expected 61")
+    errors = true
+    export
+
+# Everything
+i = $(f ~B = 40, 10, 20, ~A = 30)
+if $(not $(equal $i, 100))
+    eprintln($"f(~B = 40, 10, 20, A = 30) evaluates to $i, expected 100")
+    errors = true
+    export
+
+if $(errors)
+    exit 1

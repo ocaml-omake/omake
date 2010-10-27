@@ -1,0 +1,24 @@
+#
+# Partial applications
+#
+errors = 0
+check(debug, i, j) =
+   if $(equal $i, $j)
+       println($"$(debug) = $i [SUCCESS]")
+   else
+       eprintln($"$(debug):
+computed  $i
+should be $j [FAILURE]")
+       errors = $(add $(errors), 1)
+       export
+   export
+
+f1(a, ?b = 2, ?c = 3, d) =
+   value $"a = $a, b = $b, c = $c, d = $d"
+
+f2 = $(apply $(f1), 10, ~b = 11)
+check($'f2(13)', $(f2 13), $'a = 10, b = 11, c = 3, d = 13')
+check($'f2(~c = 12, 13)', $(f2 ~c = 12, 13), $'a = 10, b = 11, c = 12, d = 13')
+
+if $(errors)
+    exit 1

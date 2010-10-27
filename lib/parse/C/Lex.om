@@ -1,0 +1,231 @@
+#
+# Lexer for C code
+#
+
+#
+# The types value keeps track of type definitions
+#
+public.types. =
+    extends $(Map)
+
+    # Initial base types
+    $|void|    = type_builtin
+    $|char|    = type_builtin
+    $|int|     = type_builtin
+    $|float|   = type_builtin
+    $|double|  = type_builtin
+
+    #
+    # GCC extensions
+    #
+    $|__builtin_va_list| = type
+
+public.const.add-type-name(v) =
+    types = $(types.add $(v), type)
+    export
+
+#
+# Keywords
+#
+public.keywords. =
+    extends $(Map)
+
+    $|auto|     = tyclass
+    $|break|    = break
+    $|case|     = case
+    $|const|    = tyqual
+    $|continue| = break
+    $|default|  = default
+    $|do|       = do
+    $|else|     = else
+    $|enum|     = enum
+    $|extern|   = tyclass
+    $|for|      = for
+    $|goto|     = goto
+    $|if|       = if
+    $|inline|   = tyclass
+    $|long|     = tymod
+    $|register| = tyclass
+    $|return|   = return
+    $|short|    = tymod
+    $|signed|   = tyqual
+    $|sizeof|   = sizeof
+    $|static|   = tyclass
+    $|struct|   = struct
+    $|switch|   = switch
+    $|typedef|  = typedef
+    $|union|    = struct
+    $|unsigned| = tyqual
+    $|volatile| = tyqual
+    $|while|    = while
+    $|asm|      = asm
+
+    #
+    # GCC extensions
+    #
+    $|__attribute__| = __attribute__
+    $|__extension__| = __extension__
+    $|__const|       = tyqual
+    $|__volatile|    = tyqual
+    $|__inline|      = tyclass
+    $|__inline__|    = tyclass
+    $|__restrict|    = tyqual
+    $|__signed|      = tyqual
+    $|__asm__|       = asm
+    $|__asm|         = asm
+
+    #
+    # Our extensions
+    #
+    $|__dll_callback| = callback
+    $|__dll_hidden|   = tyclass
+    $|__tagged_union| = __tagged_union
+
+#
+# Operators
+#
+public.operators. =
+    extends $(Map)
+
+    $|(|  = lparen
+    $|)|  = rparen
+    $|[|  = lbrack
+    $|]|  = rbrack
+    $|{|  = lbrace
+    $|}|  = rbrace
+
+    $|->| = binop0
+    $|.|  = binop0
+
+    $|!|  = unop1
+    $|~|  = unop1
+    $|++| = incop1
+    $|--| = incop1
+    $|*|  = star
+    $|&|  = amp
+    $|-|  = minus
+    $|+|  = plus
+
+    # |*| = binop2
+    $|/| = binop2
+    $|%| = binop2
+
+    # |+| = binop3
+    # |-| = binop3
+
+    $|<<| = binop4
+    $|>>| = binop4
+
+    $|<|  = binop5
+    $|<=| = binop5
+    $|>=| = binop5
+    $|>|  = binop5
+
+    $|==| = binop6
+    $|!=| = binop6
+
+    # |&| = binop7
+
+    $|^|  = binop8
+
+    $|&&| = binop10
+
+    $|?| = quest
+    $|:| = colon
+
+    $|+=| = eqop13
+    $|-=| = eqop13
+    $|*=| = eqop13
+    $|/=| = eqop13
+    $|&=| = eqop13
+    $|^=| = eqop13
+    $|%=| = eqop13
+    $|<<=| = eqop13
+    $|>>=| = eqop13
+    $|=|   = eq
+
+    $|,| = comma
+    $|;| = semi
+
+    $|...| = elide
+
+operators = $(operators.add |, binop9)
+operators = $(operators.add ||, binop11)
+operators = $(operators.add $'|=', eqop13)
+
+########################################################################
+# The lexer
+#
+public.c_lexer. =
+    extends $(Lexer)
+
+    #
+    # If all else fails, its a syntax error
+    #
+    other: .
+        eprintln(Illegal character: $0)
+        this.lex()
+
+    #
+    # Numbers
+    #
+    int: $'([[:digit:]]+|0x[[:xdigit:]]*)[UL]?[UL]?'
+        Token.pair(int, $0)
+
+    float: $'([[:digit:]]+[.][[:digit:]]*([eE][+-]?[[:digit:]]*)?|[.][[:digit:]]+([eE][+-]?[[:digit:]]*)?)L?'
+        Token.pair(float, $0)
+
+    #
+    # Strings and chars
+    #
+    string: $'"(\\.|[^"])*"'
+        Token.pair(string, $0)
+
+    char: $''['](\\.|[^'])*[']''
+        Token.pair(char, $0)
+
+    #
+    # Names
+    #
+    id: $'[[:alpha:]_][[:alnum:]_]*'
+        private.id = $0
+        if $(keywords.mem $(id))
+            Token.pair($(keywords.find $(id)), $(id))
+        elseif $(types.mem $(id))
+            Token.pair($(types.find $(id)), $(id))
+        else
+            Token.pair(id, $(id))
+
+    #
+    # Operators
+    #
+    op: $'[-+*/%^|&!~)(}{.<>?:=,;]|\[|\]|[|][|]|&&|<<|>>|->|++|--|[-+*/&^%<>=!|]=|<<=|>>=|[.][.][.]'
+        Token.pair($(operators.find $0), $0)
+
+    #
+    # CPP directive
+    #
+    cpp: $'#[[:space:]]*[[:alpha:]](\\\n|[^\n])*'
+        this.lex()
+
+    line: $'#[[:space:]]*\([[:digit:]]+\)[[:space:]]*"\((\\.|[^"\n])*\)"(\\\n|[^\n])*'
+        this.set-line($2, $1)
+        this.lex()
+
+    #
+    # Ignore comments and whitespace
+    #
+    white: $'[[:space:]]+'
+        this.lex()
+
+    normal-comment: $'/[*]([*][^/]|[^*])*[*]/'
+        this.lex()
+
+    line-comment: $'//[^\n]*\n'
+        this.lex()
+
+    #
+    # End of file
+    #
+    eof: $"\'"
+        Token.unit(eof)

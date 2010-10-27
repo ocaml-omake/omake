@@ -1,0 +1,442 @@
+########################################################################
+# Building LaTeX documents.
+#
+# Copyright (C) 2003-2007 Jason Hickey and Mojave Group
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the File
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the File.
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
+
+open build/Common
+
+########################################################################
+# LaTeX Section
+#
+
+#
+# LaTeX config
+#
+# \begin{doc}
+# \section{Building \LaTeX\ files}
+#
+# \OMake{} provides support for building \LaTeX\ documents, including support for automatically
+# running BiBTex and for producing PostScript and PDF files. In order to use the functions
+# defined in this section, you need to make sure the line
+# \begin{verbatim}
+# open build/LaTeX
+# \end{verbatim}
+# is present in your \verb+OMakeroot+ file.
+#
+# \subsection{Configuration variables}
+#
+# The following variables can be modified in your project.
+# \var{LATEX} The \LaTeX\ command (default \verb+latex+).
+# \varlabel{TETEX2_ENABLED}{TETEX2\_ENABLED} Flag indicating whether to use advanced \LaTeX\ options
+# present in TeTeX v.2 (default value is determined the first time omake reads \verb+LaTeX.src+
+# and depends on the version of \LaTeX\ you have installed).
+# \var{LATEXFLAGS} The \LaTeX\ flags (defaults depend on the \verb+TETEX2_ENABLED+ variable)
+# \var{BIBTEX} The BibTeX command (default \verb+bibtex+).
+# \var{MAKEINDEX} The command to build an index (default \verb+makeindex+).
+# \var{DVIPS} The \verb+.dvi+ to PostScript converter (default \verb+dvips+).
+# \var{DVIPSFLAGS} Flags to pass to \verb+dvips+ (default \verb+-t letter+).
+# \var{DVIPDFM} The \verb+.dvi+ to \verb+.pdf+ converter (default \verb+dvipdfm+).
+# \var{DVIPDFMFLAGS} Flags to pass to \verb+dvipdfm+ (default \verb+-p letter+).
+# \var{PDFLATEX} The \verb+.latex+ to \verb+.pdf+ converter (default \verb+pdflatex+).
+# \var{PDFLATEXFLAGS} Flags to pass to pdflatex (default is \verb+$`(LATEXFLAGS)+).
+# \var{USEPDFLATEX} Flag indicating whether to use pdflatex instead of dvipdfm
+# to generate the \verb+.pdf+ document (default \verb+false+).
+# \end{doc}
+#
+declare public.LATEXFLAGS
+
+public.BIBTEX = bibtex
+public.MAKEINDEX = makeindex
+public.DVIPS = dvips
+public.DVIPSFLAGS = -t letter $`(if $(VERBOSE), $(EMPTY), -q)
+public.DVIPDFM = dvipdfm
+public.DVIPDFMFLAGS = -p letter
+public.PDFLATEX = pdflatex
+public.PDFLATEXFLAGS = $`(LATEXFLAGS)
+public.USEPDFLATEX = false
+public.LATEX = latex
+
+#
+# Configure LaTeX by checking whether some LaTeX options exist.
+#
+public. =
+    declare FORCE_WIN32_LATEX
+    if $(not $(defined FORCE_WIN32_LATEX))
+        FORCE_WIN32_LATEX = false
+        export
+
+.STATIC:
+    open configure/Configure
+
+    #
+    # XXX: JYH: when Cygwin latex is called from Win32,
+    # it often segfaults, and pops up an annoying
+    # ignore/abort window.  Try to detect this case
+    # and disable LaTeX.
+    #
+    # XXX: We should move the uname test into configure/uname.
+    #
+    OUTPUT_COMMENT_SUPPORTED = false
+    TETEX2_ENABLED = false
+    FILE_LINE_ERROR =
+    LATEX_USABLE = $(CheckProg latex)
+    if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
+       match($(shell uname))
+       case CYGWIN
+          ConfMsgWarn($"""   You seem to be trying to use Cygwin LaTeX on a Win32 machine.
+   This usually doesn't work, but if you really want to
+   use it, add the following definition to your OMakeroot.
+       FORCE_WIN32_LATEX = true
+(latex disabled)""")
+          LATEX_USABLE = false
+          export
+       export
+
+    if $(and $(LATEX_USABLE), $(shell-success-null latex -help))
+        ConfMsgChecking(LaTeX capabilities)
+
+        #
+        # Various versions of LaTeX use different options
+        # Look through the -help info for tetex2 options
+        #
+        RECORDER_ENABLED = false
+        ERROR_ENABLED = false
+        BROKEN_MIKTEX = false
+
+        TETEX_CONFIG_TMP = $(tmpfile tetex)
+        latex -help > $(TETEX_CONFIG_TMP)
+
+        awk($(TETEX_CONFIG_TMP))
+        case ^-recorder
+            RECORDER_ENABLED = true
+            export
+        case $'.*-recorder.*Record file names\.'
+            # MikTeX 2.4 had a bug, where -recorder would swap inputs with outputs -
+            # http://bugzilla.metaprl.org/show_bug.cgi?id=632
+            BROKEN_MIKTEX = true
+            export
+        case $'^ *-output-comment='
+            OUTPUT_COMMENT_SUPPORTED = true
+            export
+        case $'^ *-recorder'
+            RECORDER_ENABLED = true
+            export
+        case ^-file-line-error-style
+            FILE_LINE_ERROR = -file-line-error-style
+            ERROR_ENABLED = true
+            export
+        case $'^\[-no\]-file-line-error'
+            FILE_LINE_ERROR = -file-line-error
+            ERROR_ENABLED = true
+            export
+        case $'^ *-c-style-errors'
+            FILE_LINE_ERROR = -c-style-errors
+            ERROR_ENABLED = true
+            export
+
+        #
+        # TeTeX2 if both the -recorder and -file-line-error options exist
+        #
+        RECORDER_ENABLED = $(and $(RECORDER_ENABLED), $(not $(BROKEN_MIKTEX)))
+        TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
+        ConfMsgResult(tetex2 mode $(if $(TETEX2_ENABLED), enabled, disabled))
+
+        rm $(TETEX_CONFIG_TMP)
+        export FILE_LINE_ERROR TETEX2_ENABLED OUTPUT_COMMENT_SUPPORTED
+
+    #
+    # Compute the default flags
+    #
+    LATEXFLAGS_BASE = $(if $(OUTPUT_COMMENT_SUPPORTED), $'-output-comment=LaTeX Output (built with OMake)')
+
+    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE OUTPUT_COMMENT_SUPPORTED LATEXFLAGS_BASE
+
+LATEXFLAGS() =
+    if $(TETEX2_ENABLED)
+        value $(FILE_LINE_ERROR) $(LATEXFLAGS_BASE)
+    else
+        value $'-interaction=errorstopmode' $(LATEXFLAGS_BASE)
+
+#
+# Dynamically defined list of files that the TeX source depends on.
+#
+public.TEXDEPS =
+
+#
+# Directories in the search path.
+# Split them at colons to get a directory list.
+#
+public.TEXINPUTS = $(split $(PATHSEP), $(getenv TEXINPUTS, .))
+
+#
+# TeX can log its inputs and outputs into an .fls file.  We use the internal awk
+# to turn an .fls file into in appropriate dependency file format.
+#
+Shell. +=
+    protected.builtin-tex-deps(argv) =
+        private. =
+            dep = $(nth 0, $(argv))
+            f = $(nth 1, $(argv))
+        public. =
+            DEPS[] =
+            WRITES[] = $(file $f.bbl $f.ind)
+            DEPDIR = $(dir .)
+        awk($f.fls)
+        case $'^PWD \(.*\)$'
+            DEPDIR = $(dir $1)
+            export
+        case $'^INPUT \(.*\)$'
+            DEPS += $(cd $(DEPDIR), $(file $1))
+            export
+        case $'^OUTPUT \(.*\)$'
+            WRITES += $(cd $(DEPDIR), $(file $1))
+            export
+        if $(file-exists $f.aux)
+            FS=$'[{}]'
+            awk($f.aux)
+            case $'\\bibdata\{.*\}'
+                BIBS = $(split \,, $2)
+                BIBS[] = $(BIBS) $(addsuffix .bib, $(BIBS))
+                DEPS += $(find-in-path-optional $(split \:, $(getenv BIBINPUTS)), $(BIBS))
+                export DEPS
+            case $'\\bibstyle\{.*\}'
+                BSTS = $(split \,, $2)
+                BSTS[] = $(BSTS) $(addsuffix .bst, $(BSTS))
+                DEPS += $(find-in-path-optional $(split \:, $(getenv BSTINPUTS)), $(BSTS))
+                export DEPS
+            export DEPS
+        DEPS = $(set-diff $(DEPS), $(WRITES))
+        println($"$(string-escaped $(dep)): $(string-escaped $(DEPS))")
+        eprintln($"$(string-escaped $(dep)): $(string-escaped $(DEPS))")
+
+    protected.stdout-to-stderr(argv) =
+        stdout = $(stderr)
+        $(argv)
+
+    protected.run-latex(argv) =
+        if $(TETEX2_ENABLED)
+            if $(not $(shell-success $(argv)))
+                private.f = $(replacesuffixes .tex, $(string $(EMPTY)), $(last $(argv)))
+                eprintln(*** Errors detected while running LaTeX on $(private.f).tex:)
+                stdout-to-stderr grep ':[1-9][0-9]*: ' $(private.f).log
+                exit 1
+        else
+            $(argv)
+
+#
+# Rules for building TeX documents.
+#
+# name: the name of the document
+# texfiles: the TeX source files, without suffix
+#
+# Dynamic variables:
+#    TEXINPUTS: extra directories to include in the search path
+#    TEXDEPS: files that are implicitly included, including suffixes
+#
+# \begin{doc}
+# \subsection{Building \LaTeX\ documents}
+# \fun{LaTeXDocument}
+#
+# The \verb+LaTeXDocument+ produces a \LaTeX\ document.
+#
+# \verb+LaTeXDocument(<name>, <texfiles>)+
+#
+# The document \verb+<name>+ and \verb+<texfiles>+ are listed without suffixes. This function
+# returns the filenames for the generated \verb+.ps+ and \verb+.pdf+ files.
+#
+# Additional variables used:
+# \var{TEXINPUTS}
+# The \LaTeX\ search path (an array of directories, default is
+#   taken from the \verb+TEXINPUTS+ environment variable).
+# \var{TEXDEPS} Additional files this document depends on.
+# \var{TEXVARS} An array of names of the environment variables
+#   that are to be updated based on the value of \OMake's \verb+TEXINPUTS+ variable.
+#   Defaults to \verb+TEXINPUTS+ \verb+BIBINPUTS+ \verb+BSTINPUTS+.
+# \end{doc}
+
+#
+# Make sure generated files are built before scanning
+#
+# \begin{doc}
+# \twofuns{TeXGeneratedFiles}{LocalTeXGeneratedFiles}
+# \begin{verbatim}
+# TeXGeneratedFiles(files)
+# LocalTeXGeneratedFiles(files)
+# \end{verbatim}
+#
+# The \verb+TeXGeneratedFiles+ and \verb+LocalTeXGeneratedFiles+ functions specify files
+# that need to be generated before any \LaTeX files are scanned for dependencies. For example,
+# if \verb+config.tex+ and \verb+inputs.tex+ are both generated files, specify:
+# \begin{verbatim}
+#     TeXGeneratedFiles(config.tex inputs.tex)
+# \end{verbatim}
+#
+# The \verb+TeXGeneratedFiles+ function is \emph{global} --- its arguments will be generated
+# before any TeX files anywhere in the project are scanned for dependencies. The
+# \verb+LocalTeXGeneratedFiles+ function follows the normal scoping rules of \OMake.
+#
+# \end{doc}
+
+public.TEXVARS[] =
+    TEXINPUTS
+    BIBINPUTS
+    BSTINPUTS
+
+.PHONY: TeXGeneratedFilesTarget
+
+public.TeXGeneratedFiles(files) =
+    TeXGeneratedFilesTarget: $(files)
+
+public.LocalTeXGeneratedFiles(files) =
+    .SCANNER: scan-tex-%: $(files)
+    export
+
+Shell. +=
+    protected.drop-dvips-junk(argv) =
+        private.print = true
+        awk()
+        case $'dvips: Could not find figure file pdf:[a-z]*; continuing':
+            print = false
+            export
+        case $'dvips: Unknown keyword [(].*[)] in \\special will be ignored':
+            print = false
+            export
+        case $"dvips: more errors in special, being ignored":
+            print = false
+            export
+        case $"dvips: [(]perhaps dvips doesn't support your macro package[?][)]":
+            print = false
+            export
+        default
+            if $(print)
+                println($0)
+            print = true
+            export
+        return true
+
+public.LaTeXDocument(name, texfiles) =
+    name = $(file $(name))
+
+    #
+    # TeX files all have the .tex suffix
+    #
+    protected.TEXFILES[] = $(name).tex $(addsuffix .tex, $(texfiles))
+
+    #
+    # Setting the proper TEXINPUTS environment
+    #
+    private.INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
+    foreach(var => ..., $(TEXVARS))
+        setenv($(var), $(private.INPUTS))
+        export
+
+    Rule(use_pdflatex) =
+        private.prog = $(if $(use_pdflatex), $(PDFLATEX), $(LATEX))
+        private.flags = $(if $(use_pdflatex), $(PDFLATEXFLAGS), $(LATEXFLAGS))
+        private.ext = $(if $(use_pdflatex), .pdf, .dvi)
+
+        $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
+            if $(gt $(length $(TEXVARS)), 0)
+                echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
+            run-latex $(prog) $(flags) $(name)
+            if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
+                $(BIBTEX) $(name)
+                run-latex $(prog) $(flags) $(name)
+            if $(and $(file-exists $(name).idx), $(grep q, $'\\indexentry', $(name).idx))
+                $(MAKEINDEX) $(name)
+                run-latex $(prog) $(flags) $(name)
+            if $(grep q, $'Rerun to get', $(name).log)
+                run-latex $(prog) $(flags) $(name)
+            if $(grep q, $'Rerun to get', $(name).log)
+                run-latex $(prog) $(flags) $(name)
+            if $(grep q, $'Rerun to get', $(name).log)
+                run-latex $(prog) $(flags) $(name)
+
+        #
+        # TeTeX2 has the ability to compute dependencies for us
+        #
+        if $(TETEX2_ENABLED)
+            protected.SCANNER = scan-$(if $(use_pdflatex), pdflatex, latex)-$(name).tex
+
+            .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
+              :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
+              :effects: $(name).aux $(name).log $(name).ind $(name).out $(name).dvi $(name).fls
+                echo | run-latex stdout-to-stderr $(prog) $(flags) -recorder $<
+                builtin-tex-deps $(name)$(ext) $(name)
+
+            $(name)$(ext): :scanner: $(SCANNER)
+
+    Rule(false)
+
+    if $(USEPDFLATEX)
+        Rule(true)
+    else
+       $(name).pdf: $(name).dvi
+           $(DVIPDFM) $(DVIPDFMFLAGS) -o $@ $(name).dvi
+
+    if $(VERBOSE)
+        $(name).ps: $(name).dvi
+            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi
+    else
+        $(name).ps: $(name).dvi
+            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi |& drop-dvips-junk
+
+    return $(file $(name).ps $(name).pdf)
+
+#
+# Copy the document to a library directory
+#
+# \begin{doc}
+# \fun{LaTeXDocumentCopy}
+#
+# The \verb+LaTeXDocumentCopy+ copies the document to an install location.
+#
+# \verb+LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)+
+#
+# This function copies just the \verb+.pdf+ and \verb+.ps+ files.
+# \end{doc}
+#
+public.LaTeXDocumentCopy(tag, lib, dst, src) =
+    $(lib)/$(dst).pdf: $(src).pdf $(lib) :scanner: $(NOSCANNER)
+        cp $< $@
+
+    $(lib)/$(dst).ps: $(src).ps $(lib) :scanner: $(NOSCANNER)
+        cp $< $@
+
+    $(tag): $(lib)/$(dst).pdf $(lib)/$(dst).ps
+
+    return $(file $(lib)/$(dst).pdf $(lib)/$(dst).ps)
+
+#
+# Build the document and copy it
+#
+# \begin{doc}
+# \fun{LaTeXDocumentInstall}
+#
+# The \verb+LaTeXDocumentInstall+ builds a document and copies it to an
+# install location in one step.
+#
+# \verb+LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>, <files>)+
+# \end{doc}
+#
+public.LaTeXDocumentInstall(tag, lib, dst, src, texfiles) =
+    LaTeXDocument($(src), $(texfiles))
+    return $(LaTeXDocumentCopy $(tag), $(lib), $(dst), $(src))

@@ -1,0 +1,4661 @@
+#
+# Parser for C code
+#
+# \begin{doc}
+# \section{C Parser}
+# \cutname{c-parser.html}
+#
+# The standard library file \verb+parse/C/Parse.om+ implements a
+# parser for the C language.  The following code fragment gives
+# an example of a function to parse a file.
+#
+# \begin{verbatim}
+#     open parse/C/Parse
+#
+#     parse-file(filename) =
+#         prog = $(parser.parse-file prog, $(filename))
+#         ...
+# \end{verbatim}
+#
+# The value \verb+prog+ that is returned is derived from the
+# object \verb+Prog+~\ref{object:C/Parse::Prog}, which splits
+# the program into the following parts: 1) an array of definitions,
+# 2) a table of \verb+struct+ definitions, 3) a table of
+# \verb+enum+ definitions, and 4) a table of \verb+typedef+s.
+#
+# Each of the programs parts is defined through the following
+# objects in the form of an \emph{abstract syntax tree} (AST),
+# with methods for performing some operations like resolving type
+# definitions, printing out the tree, \textit{etc}.
+#
+# The AST is defined through the following classes, where we use
+# the notation \verb+C/Parse::<object-name>+ to represent an
+# object in the C AST.
+# \end{doc}
+#
+open parse/C/Lex
+
+private. =
+    semi = $";"
+    space = $" "
+    tab = $"    "
+    tnl = $(nl)$(tab)
+    comma = $", "
+    eof = $"\\'"
+    empty[] =
+
+########################################################################
+# This is all the info we collect on the side.
+#
+public. =
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeTable}
+    # Extends: \verb+Map+~\ref{object:Map}
+    #
+    # This object represents a table that maps type names to
+    # \verb+Type+~\ref{object:C/Parse::Type} values.
+    # \end{doc}
+    #
+    TypeTable. =
+        extends $(Map)
+
+        this. =
+            name = type
+
+        this.const. =
+            to-string() =
+                s =
+                this.foreach(v, ty) =>
+                    s = $(s)$"/* $(name) $(v) = $(ty.to-string); */$(nl)"
+                    export
+                value $(s)
+
+    # For constructing type names
+    name-index = 0
+
+    # For prettier printing of struct names
+    PRINT_NAME = false
+
+    # Used to decide when removal of type qualifiers is allowed
+    IS_POINTER = false
+    IS_EXTERN = false
+
+public. =
+    #
+    # Are we parsing C++?
+    # NOTE: only the C fragment of C++ and references are currently supported.
+    #
+    Cxx = false
+
+#
+# The public types and parser
+#
+public. =
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Base}
+    #
+    # The base class from which all parser objects are derived.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+loc : Location+~\ref{object:Location} the location of the item.
+    # \end{itemize}
+    #
+    # Every parser item has a location, which is initialized to the value
+    # of \verb+parse-loc+ at the time the item is created.
+    #
+    # \textbf{Note:} if you are defining new items manually, you must define
+    # \verb+parse-loc+ manually.  For example, here is the definition of
+    # the method \verb+Type.reference()+.
+    #
+    # \begin{verbatim}
+    #     Type. =
+    #         class Type
+    #         ...
+    #         reference() =
+    #             parse-loc = $(this.loc)
+    #             return $(TypePoiunter.make $(this))
+    # \end{verbatim}
+    # \end{doc}
+    #
+    Base. =
+        class Base
+
+        declare loc
+
+        this.const. =
+            make-loc() =
+                loc = $(parse-loc)
+                return $(this)
+
+            array-to-string(l) =
+                s =
+                foreach(x => ..., $(l))
+                    s = $(s)$(x.to-string)
+                    export
+                value $(s)
+
+            array-to-string-pre(l, pre) =
+                s =
+                foreach(x => ..., $(l))
+                    s = $(s)$(pre)$(x.to-string)
+                    export
+                value $(s)
+
+            array-to-string-wrap(l, pre, post) =
+                s =
+                foreach(x => ..., $(l))
+                    s = $(s)$(pre)$(x.to-string)$(post)
+                    export
+                value $(s)
+
+            array-to-string-term(l, term) =
+                s =
+                foreach(x => ..., $(l))
+                    s = $(s)$(x.to-string)$(term)
+                    export
+                value $(s)
+
+            array-to-string-sep(l, sep) =
+                s =
+                sepx =
+                foreach(x => ..., $(l))
+                    s = $(s)$(sepx)$(x.to-string)
+                    sepx = $(sep)
+                    export
+                value $(s)
+
+            array-to-identifier-term(l, term) =
+                s =
+                foreach(x => ..., $(l))
+                    s = $(s)$(x.to-identifier)$(term)
+                    export
+                value $(s)
+
+            array-to-identifier-sep(l, sep) =
+                s =
+                sepx =
+                foreach(x => ..., $(l))
+                    s = $(s)$(sepx)$(x.to-identifier)
+                    sepx = $(sep)
+                    export
+                value $(s)
+
+    ########################################################################
+    # A complete program
+    # \begin{doc}
+    # \obj{C/Parse::Prog}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # The \verb+Prog+ object is used to represent the abstract
+    # syntax tree for a C program.  The program has four parts.
+    #
+    # \begin{itemize}
+    # \item \verb+defs : Definition Array+~\ref{object:C/Parse::Definition}
+    #   is the list of declarations and definitions
+    #   in the program.
+    # \item \verb+typedefs : TypeTable+~\ref{object:C/Parse::TypeTable}
+    #   is a table that maps type names to their definitions.
+    # \item \verb+structs : TypeTable+~\ref{object:C/Parse::TypeTable}
+    #   is a table of structure definitions.
+    # \item \verb+tagged-unions : TypeTable+~\ref{object:C/Parse::TypeTable}
+    #   is a table that maps ``tagged'' unions to their definitions.
+    #   A tagged union is a C union in which one integer field, the ``tag'',
+    #   specifies the variant.
+    # \item \verb+enums : TypeTable+~\ref{object:C/Parse::TypeTable}
+    #   is a table that maps enumeration names to their definitions.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Prog. =
+        class Prog
+        extends $(Base)
+
+        this. =
+            defs = $(empty)
+
+            typedefs. =
+                extends $(TypeTable)
+                name = typedef
+
+            structs. =
+                extends $(TypeTable)
+                name = struct
+
+            tagged-unions. =
+                extends $(TypeTable)
+                name = __tagged_union
+
+            enums. =
+                extends $(TypeTable)
+                name = enum
+
+            #
+            # Info about the anonymous types
+            #
+            type-names. =
+                extends $(Map)
+
+            anon-struct-types = $(empty)
+            anon-enum-types = $(empty)
+
+        this.const. =
+            #
+            # Adding to the tables
+            #
+            add-defs(defs) =
+                this.defs = $(defs)
+                return $(this)
+
+            add-struct(name, info) =
+                structs = $(structs.add $(name), $(info))
+                return $(this)
+
+            add-tagged-union(name, info) =
+                tagged-unions = $(tagged-unions.add $(name), $(info))
+                return $(this)
+
+            add-enum(name, info) =
+                enums = $(enums.add $(name), $(info))
+                return $(this)
+
+            add-typedef(name, def) =
+                typedefs = $(typedefs.add $(name), $(def))
+                return $(this)
+
+            add-type-name(name, def) =
+                type-names = $(type-names.add $(name), $(def))
+                return $(this)
+
+            add-anon-struct-type(info) =
+                anon-struct-types[] += $(info)
+                return $(this)
+
+            add-anon-enum-type(info) =
+                anon-enum-types[] += $(info)
+                return $(this)
+
+            #
+            # Print it out
+            #
+            to-string() =
+                value $"""$(array-to-string-term $(defs), $(nl))
+$(typedefs.to-string)"""
+# $(structs.to-string)
+# $(enums.to-string)"""
+
+#
+# This is the actual program
+#
+public.prog = $(Prog)
+
+public. =
+    ########################################################################
+    # Operators
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Op}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # The \verb+Op+ object represents an operator.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+op : String+ is the name of the operator
+    # \end{itemize}
+    #
+    # \obj{C/Parse::Unop}
+    #
+    # Extends: \verb+C/Parse::Op+~\ref{object:C/Parse::Op}.
+    #
+    # Unary operators.
+    #
+    # \obj{C/Parse::Binop}
+    #
+    # Extends: \verb+C/Parse::Op+~\ref{object:C/Parse::Op}.
+    #
+    # \obj{C/Parse::Ternop}
+    #
+    # Extends: \verb+C/Parse::Op+~\ref{object:C/Parse::Op}.
+    #
+    # Ternary operators (in C, this is only \verb+exp ? exp : exp+).
+    #
+    # \end{doc}
+    #    
+    Op. =
+        class Op
+        extends $(Base)
+
+        this.op =
+
+        this.const. =
+            make(op) =
+                this = $(make-loc)
+                this.op = $(op)
+                return $(this)
+
+            to-string() =
+                value $(op)
+
+    Unop. =
+        class Unop
+        extends $(Op)
+
+    Binop. =
+        class Binop
+        extends $(Op)
+
+    Ternop. =
+        class Ternop
+        extends $(Op)
+
+    ########################################################################
+    # Expressions
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Exp}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # The base class for expressions.
+    #
+    # \obj{C/Parse::LiteralExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A \verb+LiteralExp+ represents a constant.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+val : String+ the string representation of the constant.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::CharExp}
+    # 
+    # Extends: \verb+C/Parse::LiteralExp+~\ref{object:C/Parse::LiteralExp}.
+    #
+    # A character constant.  The field \verb+val+ is the constant \emph{with}
+    # quotations, for example \verb+'\n'+.
+    #
+    # \obj{C/Parse::IntExp}
+    #
+    # Extends: \verb+C/Parse::LiteralExp+~\ref{object:C/Parse::LiteralExp}.
+    #
+    # An integer constant.  The field \verb+val+ is the constant in source
+    # form, with any radix prefix and/or precision suffix, for example
+    # \verb+0xabcdL+.
+    #
+    # \obj{C/Parse::FloatExp}
+    #
+    # Extends: \verb+C/Parse::LiteralExp+~\ref{object:C/Parse::LiteralExp}.
+    #
+    # An floating-pointer constant.  The field \verb+val+ is the constant in source
+    # form, for example \verb+31.415926e-1+.
+    #
+    # \obj{C/Parse::StringExp}
+    #
+    # Extends: \verb+C/Parse::LiteralExp+~\ref{object:C/Parse::LiteralExp}.
+    #
+    # A string constant.  The field \verb+val+ is the constant in source
+    # form, with quotes, for example \verb+"Hello world\n"+.
+    #
+    # \obj{C/Parse::IdExp}
+    #
+    # Extends: \verb+C/Parse::LiteralExp+~\ref{object:C/Parse::LiteralExp}.
+    #
+    # An identifier (a type or variable name).  The field \verb+val+ is the
+    # name of the identifier.
+    # \end{doc}
+    #
+    Exp. =
+        class Exp
+        extends $(Base)
+
+        this.const. =
+            make-exp() =
+                value $(make-loc)
+
+    NoneExp. =
+        class NoneExp
+        extends $(Exp)
+
+        this.const. =
+            make() =
+                make-exp()
+
+            to-string() =
+
+    LiteralExp. =
+        class LiteralExp
+        extends $(Exp)
+
+        this. =
+            val =
+
+        this.const. =
+            make(val) =
+                this = $(make-exp)
+                this.val = $(val)
+                return $(this)
+
+            to-string() =
+                value $(val)
+
+    CharExp. =
+        class CharExp
+        extends $(LiteralExp)
+
+    IntExp. =
+        class IntExp
+        extends $(LiteralExp)
+
+    FloatExp. =
+        class FloatExp
+        extends $(LiteralExp)
+
+    StringExp. =
+        class StringExp
+        extends $(LiteralExp)
+
+    IdExp. =
+        class IdExp
+        extends $(LiteralExp)
+
+    #
+    # Objects in the AST.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Exp1}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # This is an expression with an operator an one subexpression.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+op : Unop+~\ref{object:C/Parse::Unop} the operator.
+    # \item \verb+arg : Exp+~\ref{object:C/Parse::Exp} the subexpression.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::PreExp1}
+    # 
+    # Extends: \verb+C/Parse::Exp1+~\ref{object:C/Parse::Exp1}.
+    #
+    # A pre-operation, such as \verb+--i+.
+    #
+    # \obj{C/Parse::PostExp1}
+    # 
+    # Extends: \verb+C/Parse::Exp1+~\ref{object:C/Parse::Exp1}.
+    #
+    # A post-operation, such as \verb+i--+.
+    #
+    # \end{doc}
+    #
+    Exp1. =
+        class Exp1
+        extends $(Exp)
+
+        this. =
+            op =
+            arg =
+
+        this.const. =
+            make(op, arg) =
+                this = $(make-exp)
+                this.op = $(Unop.make $(op))
+                this.arg = $(arg)
+                return $(this)
+
+            to-string() =
+                value $"$(op.to-string)$(arg.to-string)"
+
+    PreExp1. =
+        class PreExp1
+        extends $(Exp1)
+
+    PostExp1. =
+        class PostExp1
+        extends $(Exp1)
+
+        this.const. =
+            to-string() =
+                return $"$(arg.to-string)$(op.to-string)"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Exp2}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # An expression with an operator and two subexpressions,
+    # for example, \verb+1 - 2+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+op : Binop+~\ref{object:C/Parse::Binop} the operator.
+    # \item \verb+arg1, arg2 : Exp+~\ref{object:C/Parse::Exp} the subexpressions.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::AssignExp}
+    # 
+    # Extends: \verb+C/Parse::Exp2+~\ref{object:C/Parse::Exp2}.
+    #
+    # This represents an assignment operation.  The operator
+    # can be either a simple assignment \verb+x = 1+, or
+    # involve computation \verb+x *= 2+.
+    #
+    # \end{doc}
+    #
+    Exp2. =
+        class Exp2
+        extends $(Exp)
+
+        this. =
+            op =
+            arg1 =
+            arg2 =
+
+        this.const. =
+            make(op, arg1, arg2) =
+                this = $(make-exp)
+                this.op = $(Binop.make $(op))
+                this.arg1 = $(arg1)
+                this.arg2 = $(arg2)
+                return $(this)
+
+            to-string() =
+                value $"$(arg1.to-string) $(op.to-string) $(arg2.to-string)"
+
+    AssignExp. =
+        class AssignExp
+
+        extends $(Exp2)
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Exp3}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # This represents an expression with two operators and three
+    # subexpressions.  In plain C, there is only one expression
+    # of this form, \verb+exp ? exp : exp+.  The first operator
+    # is \verb+?+ and the second is \verb+:+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+op1, op2 : Ternop+~\ref{object:C/Parse::Ternop}.
+    # \item \verb+arg1, arg2, arg3 : Exp+~\ref{object:C/Parse::Exp}.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Exp3. =
+        class Exp3
+        extends $(Exp)
+
+        this. =
+            op1 =
+            op2 =
+            arg1 =
+            arg2 =
+            arg3 =
+
+        this.const. =
+            make(arg1, op1, arg2, op2, arg3) =
+                this = $(make-exp)
+                this.op1 = $(Ternop.make op1)
+                this.op2 = $(Ternop.make op2)
+                this.arg1 = $(arg1)
+                this.arg2 = $(arg2)
+                this.arg3 = $(arg3)
+                return $(this)
+
+            to-string() =
+                value $"$(arg1.to-string) $(op1.to-string) $(arg2.to-string) $(op2.to-string) $(arg3.to-string)"
+
+    #
+    # Other expressions
+    #
+    # \begin{doc}
+    # \obj{C/Parse::ParensExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A parenthesized expression.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the subexpression.
+    # \end{itemize}
+    # \end{doc}
+    #
+    ParensExp. =
+        class ParensExp
+        extends $(Exp)
+
+        this. =
+            exp =
+
+        this.const. =
+            make(exp) =
+                this = $(make-exp)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                return $"($(exp.to-string))"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::StmtExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # (GCC-specific) A compound statement expression,
+    # for example \verb+({ x = 1; y = 2; })+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+stmt : Exp+~\ref{object:C/Parse::Exp} the statement,
+    # represented as an expression.
+    # \end{itemize}
+    # \end{doc}
+    #
+    StmtExp. =
+        class StmtExp
+        extends $(Exp)
+
+        this. =
+            stmt =
+
+        this.const. =
+            make(stmt) =
+                this = $(make-exp)
+                this.stmt = $(stmt)
+                return $(this)
+
+            to-string() =
+                return $"($(stmt.to-string))"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::SubscriptExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A subscripting operation \verb+arg1[arg2]+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+arg1, arg2 : Exp+~\ref{object:C/Parse::Exp} the subexpressions.
+    # \end{itemize}
+    # \end{doc}
+    #
+    SubscriptExp. =
+        class SubscriptExp
+        extends $(Exp)
+
+        this. =
+            arg1 =
+            arg2 =
+
+        this.const. =
+            make(arg1, arg2) =
+                this = $(make-exp)
+                this.arg1 = $(arg1)
+                this.arg2 = $(arg2)
+                return $(this)
+
+            to-string() =
+                value $"$(arg1.to-string)[$(arg2.to-string)]"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::ApplyExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A function application \verb+f(arg1, ..., argN)+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+var : String+ the function.
+    # \item \verb+args : Exp Array+~\ref{object:C/Parse::Exp} the arguments to the function.
+    # \end{itemize}
+    # \end{doc}
+    #
+    ApplyExp. =
+        class ApplyExp
+        extends $(Exp)
+
+        this. =
+            var =
+            args =
+
+        this.const. =
+            make(var, args) =
+                this = $(make-exp)
+                this.var = $(var)
+                this.args = $(args)
+                return $(this)
+
+            to-string() =
+                value $"$(var)($(array-to-string-sep $(args), $(comma)))"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::CastExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A type cast \verb+(type) exp+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+type : Type+~\ref{object:C/Parse::Type} the type.
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression to be cast.
+    # \end{itemize}
+    # \end{doc}
+    #
+    CastExp. =
+        class CastExp
+        extends $(Exp)
+
+        this. =
+            type =
+            exp =
+
+        this.const. =
+            make(type, exp) =
+                this = $(make-exp)
+                this.type = $(type)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"($(type.to-string)) $(exp.to-string)"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::SizeofExp}
+    #
+    # Extends: \verb+C/Parse::Exp+~\ref{object:C/Parse::Exp}.
+    #
+    # A \verb+sizeof+ expression, for example \verb+sizeof(int)+ or \verb+sizeof(1 - 2)+.
+    #
+    # Fields:
+    #
+    # \begin{itemize}
+    # \item \verb+val : Type+~\ref{object:C/Parse::Type} or \verb+val : Exp+~\ref{object:C/Parse::Exp}.
+    # \end{itemize}
+    # \end{doc}
+    #
+    SizeofExp. =
+        class SizeofExp
+        extends $(Exp)
+
+        this. =
+            val =
+
+        this.const. =
+            make(val) =
+                this = $(make-exp)
+                this.val = $(val)
+                return $(this)
+
+            to-string() =
+                value $"sizeof($(val.to-string))"
+
+    ########################################################################
+    # Initializers
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Initializer}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # An initial value.
+    #
+    # \obj{C/Parse::InitExp}
+    # Extends: \verb+C/Parse::Initializer+~\ref{object:C/Parse::Initializer}.
+    #
+    # An expression initializer.  In plain C, the expression must be constant,
+    # for example the expression \verb+1 - 2+ in \verb+int x = 1 - 2+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::InitArray}
+    # Extends: \verb+C/Parse::Initializer+~\ref{object:C/Parse::Initializer}.
+    #
+    # An array initializer, for example \verb+int x[] = { 1, 2, 3 };+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp_list : Initializer Array+~\ref{object:C/Parse::Initializer} the list of initial values.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::InitField}
+    # Extends: \verb+C/Parse::Initializer+~\ref{object:C/Parse::Initializer}.
+    #
+    # A structure field initializer (GCC-specific).  The following definition
+    # contains field initializers of the form \verb+<identifier> : <exp>+.
+    #
+    # \begin{verbatim}
+    #     struct foo { int x, y; };
+    #     struct foo z = { y: 1; x: 1 + 2; };
+    # \end{verbatim}
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+name : String+ the identifier.
+    # \item \verb+exp : Initializer+~\ref{object:C/Parse::Initializer} the initializer.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Initializer. =
+        class Initializer
+        extends $(Base)
+
+        this.const. =
+            make-init() =
+                make-loc()
+
+            to-string() =
+                value Initializer
+
+    InitExp. =
+        class InitExp
+        extends $(Initializer)
+
+        this.exp =
+
+        this.const. =
+            make(exp) =
+                this = $(make-init)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"/*InitExp*/ $(exp.to-string)"
+
+    InitArray. =
+        class InitArray
+        extends $(Initializer)
+
+        this.exp_list =
+
+        this.const. =
+            make(exp_list) =
+                this = $(make-init)
+                this.exp_list = $(exp_list)
+                return $(this)
+
+            to-string() =
+                value $"/*InitArray*/{ ... }"
+
+    InitField. =
+        class InitField
+        extends $(Initializer)
+
+        this. =
+            name =
+            exp =
+
+        this.const. =
+            make(name, exp) =
+                this = $(make-init)
+                this.name = $(name)
+                this.exp  = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"/*InitField*/ $(name): $(exp.to-string)"
+
+    ########################################################################
+    # Statements
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Stmt}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A statement.
+    #
+    # \obj{C/Parse::EmptyStmt}
+    # Extends: \verb+C/Parse::Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # An empty statement, \verb+;+.
+    #
+    # \obj{C/Parse::ExpStmt}
+    # Extends: \verb+C/Parse::Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # An expression statement, for example \verb+1;+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression
+    # \end{itemize}
+    # \end{doc}
+    #
+    Stmt. =
+        class Stmt
+        extends $(Base)
+
+        this.const. =
+            make-stmt() =
+                make-loc()
+
+    EmptyStmt. =
+        class EmptyStmt
+        extends $(Stmt)
+
+        this.const. =
+            make() =
+                make-stmt()
+
+            to-string() =
+                return $";"
+
+    ExpStmt. =
+        class ExpStmt
+        extends $(Stmt)
+
+        this. =
+            exp =
+
+        this.const. =
+            make(exp) =
+                this = $(make-stmt)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                return $"$(exp.to-string);"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::DefaultStmt}
+    # Extends: \verb+C/Parse::Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # Labels and cases are modeled as statements.
+    # The \verb+DefaultStmt+ represents the syntax \verb+default:+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression
+    # \end{itemize}
+    #
+    # \obj{C/Parse::CaseStmt}
+    # Extends: \verb+C/Parse::Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # Labels and cases are modeled as statements.
+    # The \verb+CaseStmt+ represents the syntax \verb+case <exp>:+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::LabelStmt}
+    # Extends: \verb+C/Parse::Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # Labels and cases are modeled as statements.
+    # The \verb+LabelStmt+ represents the syntax \verb+<label>:+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+name : String+ the label.
+    # \end{itemize}
+    # \end{doc}
+    #
+    DefaultStmt. =
+        class DefaultStmt
+        extends $(Stmt)
+
+        this.const. =
+            make() =
+                make-stmt()
+
+            to-string() =
+                value $"default:"
+
+    CaseStmt. =
+        class CaseStmt
+        extends $(Stmt)
+
+        this.exp =
+
+        this.const. =
+            make(exp) =
+                this = $(make-stmt)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"case $(exp.to-string):"
+
+    LabelStmt. =
+        class LabelStmt
+        extends $(Stmt)
+
+        this.name =
+
+        this.const. =
+            make(name) =
+                this = $(make-stmt)
+                this.name = $(name)
+                return $(this)
+
+            to-string() =
+                value "$(name):"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::GotoStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A \verb+goto <label>;+ statement.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+name : String+ the label.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::ContinueStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A statement \verb+continue;+.
+    #
+    # \obj{C/Parse::BreakStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A statement \verb+break;+.
+    #
+    # \obj{C/Parse::ReturnStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A return statement, for example \verb+return 1;+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the expression to return.
+    # If the statement has no return value \verb+return;+, then \verb+exp+
+    # is an \verb+EmptyStmt+~\ref{object:C/Parse::EmptyStmt}.
+    # \end{itemize}
+    # \end{doc}
+    #
+    GotoStmt. =
+        class GotoStmt
+        extends $(Stmt)
+
+        this.name =
+
+        this.const. =
+            make(name) =
+                this = $(make-stmt)
+                this.name = $(name)
+                return $(this)
+
+            to-string() =
+                value $"goto $(name);"
+
+    ContinueStmt. =
+        class ContinueStmt
+        extends $(Stmt)
+
+        this.const. =
+            make() =
+                make-stmt()
+
+            to-string() =
+                value $"continue;"
+
+    BreakStmt. =
+        class BreakStmt
+        extends $(Stmt)
+
+        this.const. =
+            make() =
+                make-stmt()
+
+            to-string() =
+                value $"break;"
+
+    ReturnStmt. =
+        class ReturnStmt
+        extends $(Stmt)
+
+        this.exp =
+
+        this.const. =
+            make(exp) =
+                this = $(make-stmt)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"return $(exp.to-string);"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::BlockStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A compound statement, for example \verb+{ x = 1; y = 2; }+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+stmts : Stmt Array+~\ref{object:C/Parse::Stmt} the list of statements in the block.
+    # \end{itemize}
+    # \end{doc}
+    #
+    BlockStmt. =
+        class BlockStmt
+        extends $(Stmt)
+
+        this.stmts = $(empty)
+
+        this.const. =
+            make(stmts) =
+                this = $(make-stmt)
+                this.stmts = $(stmts)
+                return $(this)
+
+            empty() =
+                make-stmt()
+
+            to-string() =
+                value $"{$(nl)$(array-to-string-term $(stmts), $(nl))}"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::WhileStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A \verb+while+ statement \verb+while(test) body+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+test : Exp+~\ref{object:C/Parse::Exp} the loop test.
+    # \item \verb+body : Stmt+~\ref{object:C/Parse::Stmt} the loop body.
+    # \end{itemize}
+    # \end{doc}
+    #
+    WhileStmt. =
+        class WhileStmt
+        extends $(Stmt)
+
+        this. =
+            test =
+            body =
+
+        this.const. =
+            make(test, body) =
+                this = $(make-stmt)
+                this.test = $(test)
+                this.body = $(body)
+                return $(this)
+
+            to-string() =
+                value $"while($(test.to-string)) $(body.to-string)"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::DoStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A \verb+do+ statement \verb+do body while(exp)+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+body : Stmt+~\ref{object:C/Parse::Stmt} the loop body.
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the loop test.
+    # \end{itemize}
+    # \end{doc}
+    #
+    DoStmt. =
+        class DoStmt
+        extends $(Stmt)
+
+        this. =
+            body =
+            exp =
+
+        this.const. =
+            make(body, exp) =
+                this = $(make-stmt)
+                this.body = $(body)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"do $(body.to-string)$(nl)while($(exp.to-string));"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::ForStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A \verb+for+ statement \verb+for(init; test; post) body+.
+    # Any of the files may be empty.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+init, test, post : Exp+~\ref{object:C/Parse::Exp}.
+    # \item \verb+body : Stmt+~\ref{object:C/Parse::Stmt} the loop body.
+    # \end{itemize}
+    # \end{doc}
+    #
+    ForStmt. =
+        class ForStmt
+        extends $(Stmt)
+
+        this. =
+            init =
+            test =
+            post =
+            body =
+
+        this.const. =
+            make(init, test, post, body) =
+                this = $(make-stmt)
+                this.init = $(init)
+                this.test = $(test)
+                this.post = $(post)
+                this.body = $(body)
+                return $(this)
+
+            to-string() =
+                value $"for($(init.to-string); $(test.to-string); $(post.to-string)) $(body.to-string)"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::IfStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # An \verb+if+ statement \verb+if(test) stmt1 [else stmt2];+.
+    # Use \verb+$(defined stmt2)+ to determine if \verb+stmt2+
+    # is defined.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+test: Exp+~\ref{object:C/Parse::Exp}.
+    # \item \verb+stmt1, stmt2 : Stmt+~\ref{object:C/Parse::Stmt} the conditional bodies.
+    # \end{itemize}
+    # \end{doc}
+    #
+    IfStmt. =
+        class IfStmt
+        extends $(Stmt)
+
+        this. =
+            test =
+            stmt1 =
+            declare stmt2
+
+        this.const. =
+            make1(test, stmt1) =
+                this = $(make-stmt)
+                this.test = $(test)
+                this.stmt1 = $(stmt1)
+                return $(this)
+
+            make2(test, stmt1, stmt2) =
+                this = $(make-stmt)
+                this.test = $(test)
+                this.stmt1 = $(stmt1)
+                this.stmt2 = $(stmt2)
+                return $(this)
+
+            to-string() =
+                s = $"if($(test.to-string)) $(stmt1.to-string)"
+                if $(defined stmt2)
+                    s += $"$(nl)else $(stmt2.to-string)"
+                    export
+                return $(s)
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::SwitchStmt}
+    #
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # A \verb+switch+ statement \verb+switch(exp) body+.  The \verb+body+
+    # is a compound statement---a list of statements with the \verb+case+
+    # labels inline.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp: Exp+~\ref{object:C/Parse::Exp}.
+    # \item \verb+body : Stmt+~\ref{object:C/Parse::Stmt} the switch body.
+    # \end{itemize}
+    # \end{doc}
+    #
+    SwitchStmt. =
+        class SwitchStmt
+        extends $(Stmt)
+
+        this. =
+            exp =
+            body =
+
+        this.const. =
+            make(exp, body) =
+                this = $(make-stmt)
+                this.exp = $(exp)
+                this.body = $(body)
+                return $(this)
+
+            to-string() =
+                value $"switch($(exp.to-string))$(body.to-string)"
+		
+    #
+    # \begin{doc}
+    # \obj{C/Parse::AsmArg}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # An argument to an assembly directive.
+    # Syntax: \verb+: mode (arg)+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+mode : String+.
+    # \item \verb+arg : Exp+~\ref{object:C/Parse::Exp}.
+    # \end{itemize}
+    # \end{doc}
+    #
+    AsmArg. =
+        class AsmArg
+        extends $(Base)
+
+        this. =
+            mode =
+            arg =
+
+        this.const. =
+            make(mode, arg) =
+                this = $(make-loc)
+                this.mode = $(mode)
+                this.arg = $(arg)
+                value $(this)
+
+            to-string() =
+                value $" : $(mode.to-string) ($(arg.to-string))"
+
+    #
+    # \begin{doc}
+    # \obj{C/Parse::AsmStmt}
+    # Extends: \verb+Stmt+~\ref{object:C/Parse::Stmt}.
+    #
+    # An assembly directive.
+    #
+    # \begin{verbatim}
+    #     asm (exp args);
+    # \end{verbatim}
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+id : String+ the keyword, usually either \verb+asm+ or \verb+__asm__+.
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the assembly expression.
+    # \item \verb+args : AsmArg Array+~\ref{object:C/Parse::AsmArg} the assembly arguments.
+    # \end{itemize}
+    # \end{doc}
+    #
+    AsmStmt. =
+        class AsmStmt
+        extends $(Stmt)
+
+        this. =
+            id = asm
+            exp =
+            args =
+
+        this.const. =
+            make(id, exp, args) =
+               this = $(make-stmt)
+               this.id = $(id)
+               this.exp = $(exp)
+               this.args = $(args)
+               return $(this)
+
+            to-string() =
+	       s = $(args.map arg => $(arg.to-string))
+               value $"$(id)($(exp.to-string)$s)"
+
+    ########################################################################
+    # Type modifiers
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeModBase}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A type modifier.
+    #
+    # \obj{C/Parse::TypeModNamed}
+    # Extends: \verb+TypeModBase+~\ref{object:C/Parse::TypeModBase}.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+name : String+ the modifier.
+    # \end{itemize}
+    #
+    # There are three kinds of named type modifiers:
+    # \verb+TypeClass+, \verb+TypeMod+, and \verb+TypeQual+.
+    #
+    # \obj{C/Parse::TypeClass}
+    # Extends: \verb+TypeModNamed+~\ref{object:C/Parse::TypeModNamed}.
+    # 
+    # For plain C, one of the words \verb+auto+, \verb+extern+,
+    # \verb+inline+, \verb+register+, \verb+static+, \verb+volatile+,
+    # \verb+__volatile+, \verb+__inline+, \verb+__inline__+.
+    #
+    # \obj{C/Parse::TypeMod}
+    # Extends: \verb+TypeModNamed+~\ref{object:C/Parse::TypeModNamed}.
+    # 
+    # For plain C, one of the words \verb+long+, \verb+short+.
+    #
+    # \obj{C/Parse::TypeQual}
+    # Extends: \verb+TypeModNamed+~\ref{object:C/Parse::TypeModNamed}.
+    # 
+    # For plain C, one of the words \verb+const+, \verb+signed+,
+    # \verb+unsigned+, \verb+__const+, \verb+__restrict+,
+    # \verb+__signed+.
+    # \end{doc}
+    #
+    TypeModBase. =
+        class TypeModBase
+        extends $(Base)
+
+        this.const. =
+            make-mod() =
+                make-loc()
+
+            is-named(quals) =
+                return false
+
+    #
+    # gcc extensions
+    #
+    TypeModAttribute. =
+        class TypeModAttribute
+        extends $(TypeModBase)
+
+        this. =
+            qual =
+            exp =
+
+        this.const. =
+            make(qual, exp) =
+                this = $(make-mod)
+                this.qual = $(qual)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"$(qual)($(exp.to-string))"
+
+    #
+    # Name modifiers
+    #
+    TypeModNamed. =
+        class TypeModNamed
+        extends $(TypeModBase)
+
+        this.name =
+
+        this.const. =
+            make(name) =
+                this = $(make-mod)
+                this.name = $(name)
+                return $(this)
+
+            to-string() =
+                value $(name)
+
+            is-named(quals) =
+                mem($(name), $(quals))
+
+    TypeClass. =
+        class TypeClass
+        extends $(TypeModNamed)
+
+    TypeMod. =
+        class TypeMod
+        extends $(TypeModNamed)
+
+    TypeQual. =
+        class TypeQual
+        extends $(TypeModNamed)
+
+    ########################################################################
+    # Variable declarations.  These also serve as types.
+    #
+    # replace-var      : replace the variable part of the declaration
+    #                    with another declaration
+    # replace-fun      : replace the function part of the declaration
+    #                    with another declaration
+    # is-core          : the decl is just an identifier and nothing else
+    # is-none          : the decl is nothing, not even an identifier
+    # is-scalar        : can the data be represented in a machine word
+    #                    even if the type is not a scalar
+    # to-fun           : get the function part of the declaration.
+    # to-type          : produce a type from the decl
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Var}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A variable.
+    #
+    # Methods:
+    # \begin{itemize}
+    # \item \verb+is-core()+: this variable is a simple identifier.
+    # \item \verb+is-none()+: this is a null variable (used in parameter declarations).
+    # \item \verb+to-fun()+: translate the variable to a type.
+    # \item \verb+to-string() : String+ the string representation.
+    # \item \verb+to-identifier() : String+ the identifier name.
+    # \item \verb+to-id() : String+ the identifier name.
+    # \item \verb+to-var() : Var+~\ref{object:C/Parse::Var} translate to a variable.
+    # \item \verb+replace-var(x : String) : VarId+ replace the identifier with a new name \verb+x+.
+    # \item \verb+replace-fun(x : String) : VarId+ replace the identifier with a new name \verb+x+.
+    # \item \verb+to-type(ty : Type) : Type+~\ref{object:C/Parse::Type} produce a type from the declaration.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Var. =
+        class Var
+        extends $(Base)
+
+        this.const. =
+            make-var() =
+                make-loc()
+
+            is-core() =
+                return false
+
+            is-none() =
+                return false
+
+            to-fun() =
+                return $(this)
+
+    #
+    # The identifier is not named
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarNone}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A phony identifier, used as a placeholder in a parameter list.
+    # \end{doc}
+    #
+    VarNone. =
+        class VarNone
+        extends $(Var)
+
+        this.const. =
+            make() =
+                make-var()
+
+            to-string() =
+                return $(EMPTY)
+
+            to-identifier() =
+                return $(EMPTY)
+
+            to-id() =
+                return $(EMPTY)
+
+            to-var() =
+                return $(this)
+
+            is-core() =
+                return true
+
+            is-none() =
+                return true
+
+            replace-var(v) =
+                return $(v)
+
+            replace-fun(v) =
+                return $(v)
+
+            to-type(ty) =
+                return $(ty)
+
+    #
+    # Identifier
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarId}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A normal identifier.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+id : String+ the identifier.
+    # \end{itemize}
+    #
+    # \end{doc}
+    #
+    VarId. =
+        class VarId
+        extends $(Var)
+
+        this. =
+            id =
+
+        this.const. =
+            make(id) =
+                this = $(make-var)
+                this.id = $(id)
+                return $(this)
+
+            to-string() =
+                value $(id)
+
+            to-identifier() =
+                value $(id)
+
+            to-id() =
+                return $(id)
+
+            to-var() =
+                return $(this)
+
+            is-core() =
+                return true
+
+            replace-var(v) =
+                return $(v)
+
+            replace-fun(v) =
+                return $(v)
+
+            to-type(ty) =
+                return $(ty)
+
+    #
+    # A variable with an initializer
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarInit}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A variable with an initializer.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the initializer.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeInit
+
+    VarInit. =
+        class VarInit
+        extends $(Var)
+
+        this. =
+            declare var
+            declare exp
+
+        this.const. =
+            make(var, exp) =
+                this = $(make-var)
+                this.var = $(var)
+                this.exp = $(exp)
+                return $(this)
+
+            to-string() =
+                value $"$(var.to-string) = $(exp.to-string)"
+
+            to-identifier() =
+                var.to-identifier()
+
+            to-var() =
+                var.to-var()
+
+            is-core() =
+                var.is-core()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-fun() =
+                var.to-fun()
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeInit.make $(ty), $(exp)))
+
+    #
+    # A qualified variation, like "const int* const unsigned int x;
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarQualified}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A qualified variable, for example \verb+const x+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+qualifiers : TypeMod Array+ the qualifiers.
+    # \end{itemize}
+    # \end{doc}
+    #
+    #
+    declare TypeQualified
+
+    VarQualified. =
+        class VarQualified
+        extends $(Var)
+
+        this. =
+            declare var
+            declare qualifiers
+
+        this.const. =
+            make(var, qualifiers) =
+                if $(qualifiers)
+                    this = $(make-var)
+                    this.qualifiers = $(qualifiers)
+                    this.var = $(var)
+                    return $(this)
+                else
+                    return $(var)
+
+            to-string() =
+                return $"$(array-to-string-term $(qualifiers), $(space))$(var.to-string)"
+
+            to-identifier() =
+                return $"$(array-to-string-term $(qualifiers), _)$(var.to-identifier)"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            is-core() =
+                var.is-core()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeQualified.make $(ty), $(qualifiers)))
+
+    #
+    # Gcc __attribute__ extension
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarAttribute}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A variable with the GCC \verb+__attribute__+ extension.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+attribute : Exp+~\ref{object:C/Parse::Exp} the attribute.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeAttribute
+
+    VarAttribute. =
+        class VarAttribute
+        extends $(Var)
+
+        this. =
+            declare var
+            declare attribute
+
+        this.const. =
+            make(var, attribute) =
+                this = $(make-var)
+                this.var = $(var)
+                this.attribute = $(attribute)
+                return $(this)
+
+            to-string() =
+                value $"$(var.to-string) $(attribute.to-string)"
+
+            to-identifier() =
+                var.to-identifier()
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            is-core() =
+                var.is-core()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeAttribute.make $(ty), $(attribute)))
+
+    #
+    # Various kinds of pointers.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarPointer}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A pointer, for example \verb+*x+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypePointer
+
+    VarPointer. =
+        class VarPointer
+        extends $(Var)
+
+        this. =
+            declare var
+
+        this.const. =
+            make(var) =
+                this = $(make-var)
+                this.var = $(var)
+                return $(this)
+
+            to-string() =
+                return $"*$(var.to-string)"
+
+            to-identifier() =
+                return $"P$(var.to-identifier)"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypePointer.make $(ty)))
+
+    #
+    # References are like pointers.  This is a C++ thing.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarRef}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A reference, for example \verb+&x+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeRef
+
+    VarRef. =
+        class VarRef
+        extends $(Var)
+
+        this. =
+            declare var
+
+        this.const. =
+            make(var) =
+                this = $(make-var)
+                this.var = $(var)
+                return $(this)
+
+            to-string() =
+                value $"&$(var.to-string)"
+
+            to-identifier() =
+                value $"R$(var.to-identifier)"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeRef.make $(ty)))
+
+    #
+    # Arrays have possible dimensions.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarArray}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A reference, for example \verb+x[exp]+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the dimension.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeArray
+
+    VarArray. =
+        class VarArray
+        extends $(Var)
+
+        this. =
+            declare var
+            declare exp
+
+        this.const. =
+            make(var, exp) =
+                this = $(make-var)
+                this.var = $(var)
+                this.exp = $(exp)
+                return $(this)
+
+            make-empty(var) =
+                this = $(make-var)
+                this.var = $(var)
+                this.exp = $(NoneExp.make)
+                return $(this)
+
+            to-string() =
+                value $"$(var.to-string)[$(exp.to-string)]"
+
+            to-identifier() =
+                value $"$(var.to-identifier)_array"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeArray.make $(ty), $(exp)))
+
+    #
+    # A function (not a function pointer)
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarFunction}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A named function \verb+var(param1, ..., param2)+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the function.
+    # \item \verb+params : Definition Array+~\ref{object:C/Parse::Definition} the parameters.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeFun
+
+    VarFun. =
+        class VarFun
+        extends $(Var)
+
+        this. =
+            declare var
+            declare params
+
+        this.const. =
+            make(var, params) =
+                this = $(make-var)
+                this.var = $(var)
+                this.params = $(params)
+                return $(this)
+
+            to-string() =
+                value $"($(var.to-string))($(array-to-string-sep $(params), $(comma)))"
+
+            to-identifier() =
+                value $"$(var.to-identifier)_fun_$(array-to-identifier-sep $(params), _X_)"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                return $(this)
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                return $(v)
+
+            to-type(ty) =
+	    	parse-loc = $(loc)
+                var.to-type($(TypeFun.make $(ty), $(params)))
+
+    #
+    # Fields are really only valid in structs and unions.
+    # However, we allow them on any declaration.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarField}
+    # Extends: \verb+Var+~\ref{object:C/Parse::Var}.
+    #
+    # A variable with a field specifier, like \verb+var : bits+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+bits : Exp+~\ref{object:C/Parse::Exp} the bit-field width.
+    # \end{itemize}
+    # \end{doc}
+    #
+    declare TypeField
+
+    VarField. =
+        class VarField
+        extends $(Var)
+
+        this. =
+            declare var
+            declare bits
+
+        this.const. =
+            make(var, bits) =
+                this = $(make-var)
+                this.var = $(var)
+                this.bits = $(bits)
+                return $(this)
+
+            to-var() =
+                var.to-var()
+
+            to-string() =
+                value $"$(var.to-string) : $(bits.to-string)"
+
+            to-identifier() =
+                value $"$(var.to-identifier)_field"
+
+            is-core() =
+                var.is-core()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-fun(v) =
+                var.to-fun()
+
+            to-type(ty) =
+	        parse-loc = $(loc)
+                var.to-type($(TypeField.make $(ty), $(bits)))
+
+    ########################################################################
+    # Declarations with type information
+    #
+    # is-elide      : is the decl an elision
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Decl}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A declaration.
+    #
+    # Methods:
+    # \begin{itemize}
+    # \item \verb+is-elide() : Bool+ the declaration is an elision (\verb+...+).
+    # \item \verb+to-string() : String+ the string representation of the declaration.
+    # \item \verb+to-identifier() : String+ the identifier associated with the declaration.
+    # \item \verb+to-var() : Var+ the variable associated with the declaration.
+    # \item \verb+replace-var(v) : Decl+ replace the variable with a new one \verb+v+.
+    # \item \verb+to-type() : Type+ get the type for the declaration.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Decl. =
+        class Decl
+        extends $(Base)
+
+        this.const. =
+            make-decl() =
+                make-loc()
+
+            is-elide() =
+                return false
+
+    #
+    # An elision has no information
+    #
+    # \begin{doc}
+    # \obj{C/Parse::ElideDecl}
+    # Extends: \verb+Decl+~\ref{object:C/Parse::Decl}.
+    #
+    # The elision \verb+...+.
+    # \end{doc}
+    #
+    declare TypeElide
+
+    ElideDecl. =
+        class ElideDecl
+        extends $(Decl)
+
+        this.const. =
+            make() =
+                make-decl()
+
+            is-elide() =
+                return true
+
+            to-string() =
+                return ...
+
+            to-type() =
+	        parse-loc = $(loc)
+                return $(TypeElide.make)
+
+    #
+    # This is info about a variable, including the type info.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarDecl}
+    # Extends: \verb+Decl+~\ref{object:C/Parse::Decl}.
+    #
+    # A type variable declaration, like \verb+int x+ (the type is \verb+int+
+    # and the variable is \verb+x+).
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+type : Type+~\ref{object:C/Parse::Type} the type of the declaration.
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable being declared.
+    # \end{itemize}
+    # \end{doc}
+    #
+    VarDecl. =
+        class VarDecl
+        extends $(Decl)
+
+        this. =
+            declare type
+            declare var
+
+        this.const. =
+            make(type, var) =
+                this = $(make-decl)
+                this.type = $(type)
+                this.var = $(var)
+                return $(this)
+
+            to-string() =
+                if $(var.is-none)
+                    type.to-string()
+                else
+                    value $"$(type.to-string) $(var.to-string)"
+
+            to-identifier() =
+                if $(var.is-none)
+                    type.to-identifier()
+                else
+                    value $"$(type.to-identifier)_$(var.to-identifier)"
+
+            to-var() =
+                var.to-var()
+
+            to-fun() =
+                var.to-fun()
+
+            replace-var(v) =
+                var = $(var.replace-var $(v))
+                return $(this)
+
+            replace-fun(v) =
+                var = $(var.replace-fun $(v))
+                return $(this)
+
+            to-type() =
+                var.to-type($(type))
+
+    ########################################################################
+    # Named types
+    #
+    # Methods:
+    #    to-string            : produce a string representation of the type
+    #                           this is defined only for the core types
+    #    resolve              : resolve all typedefs
+    #    simplify             : like resolve, but also eliminate fields, remove
+    #                           const and extern, and turn outermost array into
+    #                           a pointer.
+    #    no-fields            : remove any field definitions from struct/union/enum.
+    #    is-void              : is this the void type?
+    #    is-scalar            : can the data be represented in a single machine word?
+    #    is-struct-or-enum    : is the data a struct, union, or enum type?
+    #    to-decl              : produce a variable declaration from the type
+    #    unqualified          : remove as many qualifiers (like extern, const, short, etc.)
+    #                           as possible.
+    #
+    #    storage-info          : What kind of item is this?  The result is one of the following.
+    #        false             : a scalar
+    #        nonscalar         : a nonscalar
+    #        pointer           : a pointer
+    #        ref               : a reference
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Type}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A type.
+    #
+    # Methods:
+    # \begin{itemize}
+    # \item \verb+is-void() : Bool+ is this the \verb+void+ type?
+    # \item \verb+is-scalar() : Bool+ is the type a scalar type (a number
+    #   character, or pointer)?
+    # \item \verb+is-struct-or-enum() : Bool+ is the type a \verb+struct+ or \verb+enum+ type.
+    # \item \verb+storage-info() : String+ one of the following values:
+    # \begin{itemize}
+    # \item \verb+false+ the type is a \verb+char+ or numeric type.
+    # \item \verb+nonscalar+ the type is not a scalar type.
+    # \item \verb+pointer+ the type is a pointer.
+    # \item \verb+ref+ the type is a reference type.
+    # \end{itemize}
+    #
+    # \item \verb+no-fields() : Type+~\ref{object:C/Parse::Type} remove any
+    # fields from a \verb+struct+, \verb+union+, or \verb+enum+ type.
+    #
+    # \item \verb+unqualified() : Type+~\ref{object:C/Parse::Type} remove
+    # any type qualifiers.
+    #
+    # \item \verb+to-extern() : Type+~\ref{object:C/Parse::Type} remove
+    # type qualifiers that are not useful for \verb+extern+ declarations.
+    #
+    # \item \verb+to-pointer() : Type+~\ref{object:C/Parse::Type} convert
+    # reference and array types to pointer types.
+    #
+    # \item \verb+dereference() : Type+~\ref{object:C/Parse::Type} dereference
+    # a pointer type (remove one level of indirection).
+    #
+    # \item \verb+reference() : Type+~\ref{object:C/Parse::Type} add
+    # a level of indirection.
+    #
+    # \item \verb+resolve() : Type+~\ref{object:C/Parse::Type} resolve
+    # type names to get complete type definitions.
+    #
+    # \item \verb+simplify() : Type+~\ref{object:C/Parse::Type} resolve
+    # the type definition and convert any outermost array or reference
+    # to a pointer type (useful for parameters).
+    #
+    # \item \verb+to-string() : String+~\ref{object:C/Parse::Type}
+    # produce the string representation of the type.
+    #
+    # \item \verb+to-ml-string() : String+~\ref{object:C/Parse::Type}
+    # produce an string representation of the type in OCaml form.
+    #
+    # \item \verb+to-name() : String+~\ref{object:C/Parse::Type}
+    # get a canonical name for the type if it has one.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Type. =
+        class Type
+        extends $(Base)
+
+        this.const. =
+            make-type() =
+                make-loc()
+
+            is-void() =
+                return false
+
+            is-scalar() =
+                return false
+
+            is-struct-or-enum() =
+                return false
+
+            storage-info() =
+                if $(is-scalar)
+                    return false
+                else
+                    return nonscalar
+
+            no-fields() =
+                return $(this)
+
+            unqualified() =
+                return $(this)
+
+            to-extern() =
+                IS_EXTERN = true
+                unqualified()
+
+            to-extern-field() =
+                IS_EXTERN = true
+                unqualified()
+
+            to-pointer() =
+                return $(this)
+
+            dereference() =
+                return $(this)
+
+            reference() =
+	        parse-loc = $(loc)
+                return $(TypePointer.make $(this))
+
+            resolve() =
+                return $(this)
+
+            resolve-and-prune() =
+                return $(this)
+
+            simplify() =
+                this = $(resolve-and-prune)
+                this = $(to-pointer)
+                return $(this)
+
+            #
+            # By default, turn the type back into a decl before printing
+            #
+            declare to-decl
+
+            to-string() =
+	        parse-loc = $(loc)
+                decl = $(to-decl $(VarNone.make))
+                decl.to-string()
+
+            to-identifier() =
+	        parse-loc = $(loc)
+                decl = $(to-decl $(VarNone.make))
+                decl.to-identifier()
+
+            to-name() =
+                PRINT_NAME = true
+                to-string()
+
+            to-ml-string() =
+                to-identifier()
+
+    #
+    # Named type
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeId}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}
+    #
+    # A type name.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+id : String+ the type name.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeId. =
+        class TypeId
+        extends $(Type)
+
+        this. =
+            declare id
+
+        this.const. =
+            make(id) =
+                this = $(make-type)
+                this.id = $(id)
+                return $(this)
+
+            to-string() =
+                value $(id)
+
+            to-identifier() =
+                value $(id)
+
+            to-ml-string() =
+                value t_$(id)
+
+            resolve() =
+                if $(prog.typedefs.mem $(id))
+                    ty = $(prog.typedefs.find $(id))
+                    ty = $(ty.resolve)
+                    return $(ty)
+                else
+                    return $(this)
+
+            resolve-and-prune() =
+                if $(prog.typedefs.mem $(id))
+                    ty = $(prog.typedefs.find $(id))
+                    ty = $(ty.resolve-and-prune)
+                    return $(ty)
+                else
+                    return $(this)
+
+            is-void() =
+                equal($(id), void)
+
+            is-scalar() =
+                mem($(id), void __bool char int float double)
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                VarDecl.make($(this), $(var))
+
+    #
+    # A fake type for elisions
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeElide}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}
+    #
+    # A fake type, for elisions \verb+...+.
+    # \end{doc}
+    #
+    TypeElide. =
+        class TypeElide
+        extends $(Type)
+
+	declare loc
+
+        this.const. =
+            make() =
+                make-type()
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ElideDecl.make()
+
+    #
+    # struct definition
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeStruct}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}
+    #
+    # A verb+struct+ or \verb+union+ type.  A struct type may be complete with fields,
+    # or the fields may be omitted.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+kind : String+ one of \verb+struct+ or \verb+union+.
+    # \item \verb+name : String+ the name of the struct.  In anonymous structs,
+    # as in \verb+struct { int x; } foo;+, the name will be fabricated.
+    #
+    # \item \verb+fields : VarDecl Array+~\ref{object:C/Parse::VarDecl} an
+    # optional list of field declarations.
+    # \end{itemize}
+    #
+    # Methods:
+    # \begin{itemize}
+    # \item \verb+is-struct-or-enum() : Bool+ returns \verb+true+.
+    # \item \verb+no-fields() : TypeStruct+~\ref{object:C/Parse::TypeStruct}
+    # returns the type without any field declarations.
+    #
+    # \item \verb+no-subfields() : TypeStruct+~\ref{object:C/Parse::TypeStruct}
+    # returns the type without any nested field definitions.
+    #
+    # \item \verb+to-name() : String+ get a canonical type name for the struct.
+    #
+    # \item \verb+resolve() : TypeStruct+~\ref{object:C/Parse::TypeStruct}
+    # if the fields are defined, resolve their definitions.
+    #
+    # \item \verb+find-fields() : TypeStruct+~\ref{object:C/Parse::TypeStruct}
+    # resolve and field definitions (from typedefs) and return a complete
+    # definition if possible.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeStruct. =
+        class TypeStruct
+        extends $(Type)
+
+        this. =
+            kind =
+            name = false
+            fields = false
+	    declare loc
+
+        this.const. =
+            make(kind, name, fields) =
+                this = $(make-type)
+                this.kind = $(kind)
+                this.name = $(name)
+                this.fields = $(fields)
+                return $(this)
+
+            undefined(kind, name) =
+                this = $(make-type)
+                this.kind = $(kind)
+                this.name = $(name)
+                return $(this)
+
+            is-struct-or-enum() =
+                return true
+
+            no-fields() =
+                fields = false
+                return $(this)
+
+            no-subfields() =
+                if $(not $(equal $(fields), false))
+                    fields = $(fields.map field => $(field.no-fields))
+                    return $(this)
+                else
+                    return $(this)
+
+            to-name() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $"$(kind) $(name)"
+
+            to-identifier() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $(name)
+
+            to-ml-string() =
+                value $(kind)_$(name)
+
+            to-string() =
+                if $(PRINT_NAME)
+                    to-name()
+                elseif $(equal $(fields), false)
+                    value $"$(kind) $(name)"
+                else
+                    value $"$(kind) $(name) {$(array-to-string-wrap $(fields), $(nl)$(tab), $(semi))$(nl)}"
+
+            resolve() =
+                if $(not $(equal $(fields), false))
+                    this.fields = $(fields.map field => $(field.resolve))
+                    value $(this)
+                else
+                    value $(this)
+
+            resolve-and-prune() =
+                fields = false
+                return $(this)
+
+            find-fields(prog) =
+                if $(not $(equal $(fields), false))
+                    value $(fields)
+                else
+                    ty = $(prog.structs.find $(name))
+                    ty.find-fields($(prog))
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                VarDecl.make($(this), $(var))
+
+    #
+    # A field in a tagged union.
+    #
+    TypeTaggedUnionField. =
+        class TypeTaggedUnionField
+        extends $(Base)
+
+        this. =
+            tag =
+            decl =
+
+        this.const. =
+            make(tag, decl) =
+                this = $(make-loc)
+                this.tag = $(tag)
+                this.decl = $(decl)
+                return $(this)
+
+            to-string() =
+                if $(tag)
+                    text[] = $"case $(tag.to-string):"
+                    export
+                else
+                    text[] = $"default:"
+                    export
+                text[] += $(decl.to-string)
+                return $(text)
+
+    #
+    # struct definition
+    #
+    TypeTaggedUnion. =
+        class TypeTaggedUnion
+        extends $(Type)
+
+        #
+        # The union has a name,
+        # a field that holds the tag,
+        # and a list of cases.
+        #
+        this. =
+            name =
+            tag =
+            fields[] =
+	    declare loc
+
+        this.const. =
+            #
+            # Compile the fields into their individual cases
+            #
+            make(name, cases) =
+                this = $(make-type)
+                this.name = $(name)
+		parse-loc = $(loc)
+                section
+                    export
+                    tags[] =
+                    defcase = false
+                    foreach(case => ..., $(cases))
+                        if $(case.instanceof DefaultStmt)
+                            defcase = true
+                            tags[] += false
+                        elseif $(case.instanceof CaseStmt)
+                            tags[] += $(case.exp)
+                        else
+                            fields[] += $(tags.map tag => $(TypeTaggedUnionField.make $(tag), $(case)))
+                            if $(defcase)
+                                tag = $(case)
+                            defcase = false
+                            tags[] =
+                return $(this)
+
+            is-struct-or-enum() =
+                return true
+
+            no-fields() =
+                fields = false
+                return $(this)
+
+            no-subfields() =
+                if $(not $(equal $(fields), false))
+                    fields = $(fields.map field => $(field.no-fields))
+                    return $(this)
+                else
+                    return $(this)
+
+            to-name() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $"__tagged_union $(name)"
+
+            to-identifier() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $(name)
+
+            to-ml-string() =
+                value tagged_union_$(name)
+
+            to-string() =
+                if $(PRINT_NAME)
+                    to-name()
+                elseif $(equal $(fields), false)
+                    value $"__tagged_union $(name)"
+                else
+                    value $"""__tagged_union $(name) {$(array-to-string-wrap $(fields), $(tnl), $(semi))$(nl)};"""
+
+            resolve() =
+                if $(not $(equal $(fields), false))
+                    fields = $(fields.map field => $(field.resolve))
+                    value $(this)
+                else
+                    value $(this)
+
+            resolve-and-prune() =
+                fields = false
+                return $(this)
+
+            find-fields(prog) =
+                if $(not $(equal $(fields), false))
+                    value $(fields)
+                else
+                    ty = $(prog.tagged-unions.find $(name))
+                    ty.find-fields($(prog))
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                VarDecl.make($(this), $(var))
+
+    #
+    # Enum fields are a special case
+    #
+    # \begin{doc}
+    # \obj{C/Parse::EnumFieldDecl}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A field in a \verb+enum+ type.  The field has a name
+    # and an optional value.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+name : String+ the name of the constant.
+    # \item \verb+val : Exp option+~\ref{object:C/Parse::Exp}
+    # the value of the field, if there is an explicit value.
+    # \end{itemize}
+    # \end{doc}
+    #
+    EnumFieldDecl. =
+        class EnumFieldDecl
+        extends $(Base)
+
+        this. =
+            name =
+            val = false
+
+        this.const. =
+            make(name) =
+                this = $(make-loc)
+                this.name = $(name)
+                return $(this)
+
+            make-value(name, val) =
+                this = $(make-loc)
+                this.name = $(name)
+                this.val = $(val)
+                return $(this)
+
+            to-string() =
+                s = $"$(name)"
+                if $(not $(equal $(val), false))
+                    s += $" = $(val.to-string)"
+                    export
+                return $(s)
+
+    #
+    # Enum definition
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeEnum}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}
+    #
+    # A \verb+enum+ definition.  A \verb+TypeEnum+ is like
+    # a \verb+TypeStruct+~\ref{object:C/Parse::TypeStruct},
+    # but the field definitions are of type
+    # \verb+EnumFieldDecl+~\ref{object:C/Parse::EnumFieldDecl}.
+    #
+    # \end{doc}
+    #
+    TypeEnum. =
+        class TypeEnum
+        extends $(Type)
+
+        this. =
+            name = false
+            fields = false
+	    declare loc
+
+        this.const. =
+            make(name, fields) =
+                this = $(make-type)
+                this.name = $(name)
+                this.fields = $(fields)
+                return $(this)
+
+            undefined(name) =
+                this = $(make-type)
+                this.name = $(name)
+                return $(this)
+
+            no-fields() =
+                fields = false
+                return $(this)
+
+            is-struct-or-enum() =
+                return true
+
+            no-subfields() =
+                return $(this)
+
+            resolve-and-prune() =
+                fields = false
+                return $(this)
+
+            to-name() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $"enum $(name)"
+
+            to-identifier() =
+                if $(prog.type-names.mem $(name))
+                    prog.type-names.find($(name))
+                else
+                    value $(name)
+
+            to-ml-string() =
+                value enum_$(name)
+
+            to-string() =
+                if $(PRINT_NAME)
+                    to-name()
+                elseif $(equal $(fields), false)
+                    value $"enum $(name)"
+                else
+                    value $"enum $(name) {$(array-to-string-wrap $(fields), $(nl)$(tab), $(comma))$(nl)}"
+
+            find-fields(prog) =
+                if $(not $(equal $(fields), false))
+                    value $(fields)
+                else
+                    ty = $(prog.enums.find $(name))
+                    ty.find-fields($(prog))
+
+            is-scalar() =
+                return true
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                VarDecl.make($(this), $(var))
+
+    ################################################
+    # Types with a single sub element
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Type1}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}.
+    #
+    # A type with one subterm.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+ty : Type+~\ref{object:C/Parse::Type} the subterm.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Type1. =
+        class Type1
+        extends $(Type)
+
+        this. =
+            declare ty
+	    declare loc
+
+        this.const. =
+            no-fields() =
+                ty = $(ty.no-fields)
+                return $(this)
+
+            resolve() =
+                ty = $(ty.resolve)
+                return $(this)
+
+            resolve-and-prune() =
+                ty = $(ty.resolve-and-prune)
+                return $(this)
+
+    ################################################
+    # Pointer types
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypePtr}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type1}.
+    #
+    # A pointer type.
+    # \end{doc}
+    #
+    TypePtr. =
+        class TypePtr
+        extends $(Type1)
+
+	declare ty
+
+        this.const. =
+            is-scalar() =
+                return true
+
+            storage-info() =
+                return pointer
+
+            dereference() =
+                return $(ty)
+
+            unqualified() =
+                IS_POINTER = true
+                ty = $(ty.unqualified)
+                return $(this)
+
+            to-ml-string() =
+                value $"($(ty.to-ml-string)) dll_pointer"
+
+    #
+    # Pointer
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypePointer}
+    # Extends: \verb+Type+~\ref{object:C/Parse::TypePtr}.
+    #
+    # A pointer type \verb+*ty+.
+    # \end{doc}
+    #
+    TypePointer. =
+        class TypePointer
+        extends $(TypePtr)
+
+	declare ty
+	declare loc
+
+        this.const. =
+            make(ty) =
+                this = $(make-type)
+                this.ty = $(ty)
+                return $(this)
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarPointer.make $(var)))
+
+    #
+    # Reference
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeRef}
+    # Extends: \verb+Type+~\ref{object:C/Parse::TypePtr}.
+    #
+    # A reference type \verb+&ty+.
+    # \end{doc}
+    #
+    TypeRef. =
+        class TypeRef
+        extends $(TypePtr)
+
+	declare ty
+	declare loc
+
+        this.const. =
+            make(ty) =
+                this = $(make-type)
+                this.ty = $(ty)
+                return $(this)
+
+            storage-info() =
+                return ref
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarRef.make $(var)))
+
+            to-ml-string() =
+                value $"($(ty.to-ml-string)) ref"
+
+    #
+    # Array
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeArray}
+    # Extends: \verb+Type+~\ref{object:C/Parse::TypePtr}.
+    #
+    # An array type \verb+ty[exp]+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the dimension of the array.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeArray. =
+        class TypeArray
+        extends $(TypePtr)
+
+        this. =
+	    declare ty
+            declare exp
+	    declare loc
+
+        this.const. =
+            make(ty, exp) =
+                this = $(make-type)
+                this.ty = $(ty)
+                this.exp = $(exp)
+                return $(this)
+
+            to-pointer() =
+	        parse-loc = $(loc)
+                TypePointer.make($(ty))
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarArray.make $(var), $(exp)))
+
+    ################################################
+    # Attribute types.  These modify a type, but any methods
+    # just examine the inner type.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeAttr}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type1}.
+    #
+    # A type with some attributes.
+    # \end{doc}
+    #
+    TypeAttr. =
+        class TypeAttr
+        extends $(Type1)
+
+        declare ty
+
+        this.const. =
+            to-pointer() =
+                ty = $(ty.to-pointer)
+                return $(ty)
+
+            is-void() =
+                ty.is-void()
+
+            is-scalar() =
+                ty.is-scalar()
+
+            storage-info() =
+                ty.storage-info()
+
+            unqualified() =
+                ty.unqualified()
+
+            dereference() =
+                ty = $(ty.dereference)
+                return $(this)
+
+            to-ml-string() =
+                ty.to-ml-string()
+
+    #
+    # A variable definition with the given type
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeVar}
+    # Extends: \verb+Type+~\ref{object:C/Parse::TypeAttr}.
+    #
+    # A type with a name (for named parameters like \verb+int *p+).
+    # 
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeVar. =
+        class TypeVar
+        extends $(TypeAttr)
+
+        this. =
+	    declare ty
+            declare var
+	    declare loc
+
+        this.const. =
+            make(ty, var) =
+                this = $(make-type)
+                this.var = $(var)
+                this.ty = $(ty)
+                return $(this)
+
+            to-id() =
+                var.to-id()
+
+            to-type() =
+                return $(ty)
+
+            replace-var(v) =
+                var = $(v)
+                return $(this)
+
+            unqualified() =
+                ty = $(ty.unqualified)
+                if $(IS_EXTERN)
+                    return $(ty)
+                else
+                    return $(this)
+
+            to-extern-field() =
+                ty = $(ty.to-extern)
+                return $(this)
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(var))
+
+            reference() =
+                ty = $(ty.reference)
+                return $(this)
+
+    #
+    # Qualified type
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeQualified}
+    # Extends: \verb+Type+~\ref{object:C/Parse::TypeAttr}.
+    #
+    # A type with qualifiers (like \verb+static+, \verb+long+, etc.).
+    # 
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+qualifiers : TypeMod Array+~\ref{object:C/Parse::TypeMod} the qualifiers.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeQualified. =
+        class TypeQualified
+        extends $(TypeAttr)
+
+        this. =
+	    declare ty
+            declare qualifiers
+	    declare loc
+
+        this.const. =
+            make(ty, qualifiers) =
+                if $(qualifiers)
+                    this = $(make-type)
+                    this.qualifiers = $(qualifiers)
+                    this.ty = $(ty)
+                    return $(this)
+                else
+                    return $(ty)
+
+            unqualified() =
+                if $(IS_POINTER)
+		    parse-loc = $(loc)
+                    ty = $(ty.unqualified)
+                    tymods[] =
+                    tyquals[] =
+                    foreach(qual => ..., $(qualifiers))
+                        if $(qual.instanceof TypeMod)
+                            tymods[] += $(qual)
+                            export
+                        elseif $(qual.instanceof TypeQual)
+                            tyquals[] += $(qual.name)
+                            export
+                        export
+                    tyquals = $(set $(tyquals))
+                    tyquals = $(tyquals.map name => $(TypeQual.make $(name)))
+                    qualifiers[] = $(if $(IS_EXTERN), $(tymods), $(array $(tyquals), $(tymods)))
+                    if $(qualifiers)
+                        return $(this)
+                    else
+                        return $(ty)
+                else
+                    ty.unqualified()
+
+            # During simplification, remove class modifiers
+            resolve-and-prune() =
+                ty = $(ty.resolve-and-prune)
+                quals[] =
+                foreach(qual => ..., $(qualifiers))
+                    if $(not $(qual.instanceof TypeClass))
+                        quals[] += $(qual)
+                        export
+                    export
+                qualifiers = $(quals)
+                if $(qualifiers)
+                    return $(this)
+                else
+                    return $(ty)
+
+            # Remove any const qualifier during pointer conversion
+            to-pointer() =
+                ty = $(ty.to-pointer)
+                quals[] =
+                foreach(qual => ..., $(qualifiers))
+                    if $(not $(qual.is-named const __const))
+                        quals[] += $(qual)
+                        export
+                    export
+                qualifiers = $(quals)
+                if $(qualifiers)
+                    return $(this)
+                else
+                    return $(ty)
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarQualified.make $(var), $(qualifiers)))
+
+
+    #
+    # Qualified type
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeCore}
+    # Extends: \verb+TypeQualified+~\ref{object:C/Parse::TypeQualified}.
+    #
+    # A type with qualifiers (like \verb+static+, \verb+long+, etc.).
+    # \end{doc}
+    #
+    TypeCore. =
+        class TypeCore
+        extends $(TypeQualified)
+
+	declare ty
+	declare loc
+
+        this.const. =
+            to-decl(var) =
+	        parse-loc = $(loc)
+                VarDecl.make($(this), $(var))
+
+            to-string() =
+                return $"$(array-to-string-term $(qualifiers), $(space))$(ty.to-string)"
+
+            to-identifier() =
+                return $"$(array-to-string-term $(qualifiers), _)$(ty.to-identifier)"
+
+    #
+    # GCC attributes
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeAttribute}
+    # Extends: \verb+TypeAttr+~\ref{object:C/Parse::TypeAttr}.
+    #
+    # A type with a GCC \verb+__attribute_++.
+    #
+    # \begin{itemize}
+    # \item \verb+attribute : Exp+~\ref{object:C/Parse::Exp} the attribute.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeAttribute. =
+        class TypeAttribute
+        extends $(TypeAttr)
+
+        this. =
+            declare attribute
+	    declare loc
+	    declare ty
+
+        this.const. =
+            make(ty, attribute) =
+                this = $(make-type)
+                this.ty = $(ty)
+                this.attribute = $(attribute)
+                return $(this)
+
+            unqualified() =
+                ty.unqualified()
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarAttribute.make $(var), $(attribute)))
+
+            resolve-and-prune() =
+                ty.resolve-and-prune()
+
+    #
+    # Field
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeField}
+    # Extends: \verb+TypeAttr+~\ref{object:C/Parse::TypeAttr}.
+    #
+    # A type with a bit length.  The type should be an integer type.
+    #
+    # \begin{itemize}
+    # \item \verb+bits : Exp+~\ref{object:C/Parse::Exp} the bit-field length.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeField. =
+        class TypeField
+        extends $(TypeAttr)
+
+        this. =
+            declare bits
+	    declare loc
+	    declare ty
+
+        this.const. =
+            make(ty, bits) =
+                this = $(make-type)
+                this.ty = $(ty)
+                this.bits = $(bits)
+                return $(this)
+
+            resolve-and-prune() =
+                ty.resolve-and-prune()
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarField.make $(var), $(bits)))
+
+            unqualified() =
+                ty.unqualified()
+
+    #
+    # Initializer (to go with VarInit)
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeInit}
+    # Extends: \verb+TypeAttr+~\ref{object:C/Parse::TypeAttr}.
+    #
+    # A type with an initializer.
+    #
+    # \begin{itemize}
+    # \item \verb+exp : Exp+~\ref{object:C/Parse::Exp} the initial value.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeInit. =
+        class TypeInit
+        extends $(TypeAttr)
+
+        this. =
+            declare exp
+	    declare loc
+	    declare ty
+
+        this.const. =
+            make(ty, exp) =
+                this = $(make-type)
+                this.ty = $(ty)
+                this.exp = $(exp)
+                return $(this)
+
+            unqualified() =
+                ty.unqualified()
+
+            to-decl(var) =
+	        parse-loc = $(loc)
+                ty.to-decl($(VarInit.make $(var), $(exp)))
+
+    ################################################
+    # Function (not a pointer).
+    #
+    # \begin{doc}
+    # \obj{C/Parse::TypeFun}
+    # Extends: \verb+Type+~\ref{object:C/Parse::Type}.
+    #
+    # A function type.  This isn't a pointer type; normally C function
+    # types are defined as a \verb+TypePointer+~\ref{object:C/Parse::TypePointer}
+    # to a \verb+TypeFun+.
+    #
+    # \begin{itemize}
+    # \item \verb+ty : Type+~\ref{object:C/Parse::Type} the return type.
+    # \item \verb+params : Type Array+~\ref{object:C/Parse::Type} the types of the parameters.
+    # \end{itemize}
+    # \end{doc}
+    #
+    TypeFun. =
+        class TypeFun
+        extends $(Type)
+
+        this. =
+            declare ty
+	    declare loc
+            declare params
+
+        this.const. =
+            make(ty, params) =
+                this = $(make-type)
+                this.ty = $(ty)
+                this.params = $(params)
+                return $(this)
+
+            unqualified() =
+                ty = $(ty.unqualified)
+                IS_POINTER = false
+                params = $(params.map param => $(param.unqualified))
+                return $(this)
+
+            resolve() =
+                ty = $(ty.resolve)
+                params = $(params.map param => $(param.resolve))
+                return $(this)
+
+            resolve-and-prune() =
+                ty = $(ty.resolve-and-prune)
+                params = $(params.map param => $(param.resolve-and-prune))
+                return $(this)
+
+            to-decl(var) =
+                parse-loc = $(loc)
+                ty.to-decl($(VarFun.make $(var), $(params)))
+
+            real-params() =
+                if $(params)
+                    param = $(params.nth 0)
+                    if $(param.is-void)
+                        return $(empty)
+                    else
+                        return $(params)
+                else
+                    return $(params)
+
+            to-ml-string() =
+                sep =
+                ty-params[] =
+                foreach(param => ..., $(params))
+                    ty-params = $"$(ty-params)$(sep)($(param.to-ml-string))"
+                    sep = $" * "
+                    export
+                if $(not $(sep))
+                    ty-params = unit
+                    export
+                ty-result = $(ty.to-ml-string)
+                return $"""($(ty-params), $(ty-result)) dll_function"""
+
+    ########################################################################
+    # Definitions
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Definition}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A variable definition.
+    # \end{doc}
+    #
+    Definition. =
+        class Definition
+        extends $(Base)
+
+        this.const. =
+            make-def() =
+                make-loc()
+
+    #
+    # Just a type, no identifiers.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarNoneDef}
+    # Extends: \verb+Definition+~\ref{object:C/Parse::Definition}.
+    #
+    # A simple definition without a variable.
+    # This rather silly case is for type-only definitions, like \verb+int;+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+type : Type+~\ref{object:C/Parse::Type} the type.
+    # \end{itemize}
+    # \end{doc}
+    #
+    VarNoneDef. =
+        class VarNoneDef
+        extends $(Definition)
+
+        this. =
+            type =
+
+        this. =
+            make(type) =
+                this = $(make-loc)
+                this.type = $(type)
+                return $(this)
+
+            to-string() =
+	        parse-loc = $(loc)
+                decl = $(type.to-decl $(VarNone.make))
+                return $"$(decl.to-string);"
+
+    ElideDef. =
+        class ElideDef
+        extends $(Definition)
+        extends $(ElideDecl)
+
+    #
+    # The variable definition uses the internal form
+    #
+    # \begin{doc}
+    # \obj{C/Parse::VarDefCore}
+    # Extends: \verb+Definition+~\ref{object:C/Parse::Definition}.
+    # Extends: \verb+TypeVar+~\ref{object:C/Parse::TypeVar}.
+    #
+    # A varable definition, like \verb+int x;+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+var : Var+~\ref{object:C/Parse::Var} the variable.
+    # \item \verb+ty : Type+~\ref{object:C/Parse::Type} the type.
+    # \end{itemize}
+    #
+    # \obj{C/Parse::ParamDef}
+    # Extends: \verb+VarDefCore+~\ref{object:C/Parse::VarDefCore}.
+    #
+    # A parameter definition.
+    #
+    # \obj{C/Parse::VarDef}
+    # Extends: \verb+VarDefCore+~\ref{object:C/Parse::VarDefCore}.
+    #
+    # A variable definition, like \verb+int x;+.
+    # 
+    # \obj{C/Parse::TypeDef}
+    # Extends: \verb+VarDefCore+~\ref{object:C/Parse::VarDefCore}.
+    #
+    # A \verb+typedef+, like \verb+typedef int x+.
+    # Typedefs basically have the same information as a variable definition.
+    # \end{doc}
+    #
+    VarDefCore. =
+        class TypeVar
+        extends $(Definition)
+        extends $(TypeVar)
+
+	declare var
+	declare ty
+
+        this.const. =
+            make(ty, decl) =
+                this = $(make-type)
+                this.var = $(decl.to-var)
+                this.ty = $(decl.to-type $(ty))
+                return $(this)
+
+            make-var(ty, var) =
+                this = $(make-type)
+                this.var = $(var)
+                this.ty = $(ty)
+                return $(this)
+
+            is-elide() =
+                return false
+
+    ParamDef. =
+        class ParamDef
+        extends $(VarDefCore)
+
+	declare var
+	declare ty
+
+        this. =
+            to-string() =
+                decl = $(ty.to-decl $(var))
+                decl.to-string()
+
+    VarDef. =
+        class VarDef
+        extends $(VarDefCore)
+
+	declare var
+	declare ty
+
+        this. =
+            to-string() =
+                decl = $(ty.to-decl $(var))
+                return $"$(decl.to-string);"
+
+    TypeDef. =
+        class TypeDef
+        extends $(VarDefCore)
+
+	declare var
+	declare ty
+
+        this. =
+            to-string() =
+                decl = $(ty.to-decl $(var))
+                return $"typedef $(decl.to-string);"
+
+    #
+    # Callbacks are wrappers around other definitions.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::CallbackDef}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A \verb+__dll_callback+ definition.
+    # Callbacks are used by the DLL generator to declare functions
+    # that are callback.  Syntactically, a callback definition is
+    # like a function declaration, but it uses the \verb+__dll_callback+
+    # keyword.
+    #
+    # \begin{verbatim}
+    #     __dll_callback int my_callback(int arg);
+    # \end{verbatim}
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+def : Definition+~\ref{object:C/Parse::Definition} the definition.
+    # \end{itemize}
+    # \end{doc}
+    #
+    CallbackDef. =
+        class CallbackDef
+        extends $(Base)
+
+        this.def =
+
+        this.const. =
+            make(def) =
+                this = $(make-loc)
+                this.def = $(def)
+                return $(this)
+
+            to-string() =
+                value $"CALLBACK $(def.to-string);"
+
+    #
+    # Function definitions
+    #
+    # \begin{doc}
+    # \obj{C/Parse::FunDef}
+    # Extends: \verb+Definition+~\ref{object:C/Parse::Definition}.
+    #
+    # A function definition with a body.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+def : Definition+~\ref{object:C/Parse::Definition} the definition
+    # (without the body).
+    # \item \verb+body : Stmt+~\ref{object:C/Parse::Stmt} the body.
+    # \end{itemize}
+    # \end{doc}
+    #
+    FunDef. =
+        class FunDef
+        extends $(Definition)
+
+        this. =
+            def =
+            body =
+
+        this.const. =
+            make(type, decl, body) =
+                this = $(make-def)
+                def = $(ParamDef.make $(type), $(decl))
+                this.body = $(body)
+                return $(this)
+
+            to-string() =
+                value $"$(def.to-string)$(nl){$(nl)$(array-to-string-term $(body), $(nl))}"
+
+    #
+    # Fake the preprocessor directives.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::CppItem}
+    # Extends: \verb+Definition+~\ref{object:C/Parse::Definition}.
+    #
+    # A pre-processor directive.  The parser interpretes these directives
+    # literally.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+line : String+ the directive (uninterpreted).
+    # \end{itemize}
+    # \end{doc}
+    #
+    CppItem. =
+        class CppItem
+        extends $(Definition)
+
+        this. =
+            line =
+
+        this.const. =
+            make(line) =
+                this = $(make-def)
+                this.line = $(line)
+                return $(this)
+
+            to-string() =
+                value $"$(line)"
+
+    #
+    # A GCC extension.
+    # This can wrap any kind of item.
+    #
+    # \begin{doc}
+    # \obj{C/Parse::Extension}
+    # Extends: \verb+Base+~\ref{object:C/Parse::Base}.
+    #
+    # A GCC extension, defined with \verb+__extension__ ...+.
+    #
+    # Fields:
+    # \begin{itemize}
+    # \item \verb+item : Exp+~\ref{object:C/Parse::Exp} the extension.
+    # The \verb+item+ is usually an \verb+Exp+, but for forward compatibility
+    # it may be a value of any type.
+    # \end{itemize}
+    # \end{doc}
+    #
+    Extension. =
+        class Extension
+        extends $(Base)
+
+        this.item =
+
+        this.const. =
+            make(item) =
+                this = $(make-loc)
+                this.item = $(item)
+                return $(this)
+
+            to-string() =
+                value $"__extension__ $(item.to-string)"
+
+    ########################################################################
+    # The actual parser
+    #
+    parser. =
+        extends $(Parser)
+
+        #
+        # Use the main lexer
+        #
+        lexer = $(c_lexer)
+
+        #
+        # Precedences, in ascending order
+        #
+        left(comma)
+        left(eqop13)
+        right(ternop12)
+        left(binop11)
+        left(binop10)
+        left(binop9)
+        left(binop8)
+        left(binop7)
+        left(binop6)
+        left(binop5)
+        left(binop4)
+        left(binop3)
+        left(binop2)
+        left(binop1)
+        right(unop1 incop1 cast sizeof)
+        left(binop0)
+        left(apply lparen)
+        nonassoc(ifthen)
+        nonassoc(else ifthenelse)
+        left(string)
+
+        #
+        # A program
+        #
+        start(prog)
+
+        prog: all_defs eof
+           prog.add-defs($1)
+
+        ########################################################################
+        # Declarations and definitions
+        #
+        all_defs:
+            array()
+
+        all_defs: all_defs all_def
+            array($1 $2)
+
+        all_def: __extension__ all_def
+            2.map(item => $(Extension.make $(item)))
+
+        all_def: var_defs
+            value $1
+
+        all_def: fun_def
+            value $1
+
+        all_def: type_defs
+            value $1
+
+        all_def: callback_defs
+            value $1
+
+        all_def: cpp
+            CppItem.make($1)
+
+        ########################################################################
+        # Type specifiers
+        #
+        # This is annoying.  After any "tymod" or "type", then type identifiers
+        # act like normal identifiers.
+        #
+        decl_spec: decl_spec_id
+            value $1
+
+        decl_spec: decl_spec_any
+            value $1
+
+        decl_spec_id: decl_specifiers_id
+            TypeCore.make($(TypeId.make int), $1)
+
+        decl_spec_any: decl_specifiers_mod
+            TypeCore.make($(TypeId.make int), $1)
+
+        decl_spec_any: decl_specifiers_id_opt type_id decl_specifiers_any_opt
+            TypeCore.make($(TypeId.make $2), $(array $1 $3))
+
+        decl_spec_any: decl_specifiers_id_opt type_struct decl_specifiers_any_opt
+            TypeCore.make($2, $(array $1 $3))
+
+        decl_spec_any: decl_specifiers_mod type_builtin decl_specifiers_any_opt
+            TypeCore.make($(TypeId.make $2), $(array $1 $3))
+
+        #
+        # Specifiers that may-or-may-not contain type modifiers.
+        #
+        decl_specifiers_any_opt:
+            array()
+
+        decl_specifiers_any_opt: decl_specifiers_any_opt decl_specifier_id
+            array($1 $2)
+
+        decl_specifiers_any_opt: decl_specifiers_any_opt type_mod
+            array($1 $2)
+
+        #
+        # Specifiers that contain a type modifier.
+        #
+        decl_specifiers_mod: type_mod
+            array($1)
+
+        decl_specifiers_mod: decl_specifiers_id type_mod
+            array($1 $2)
+
+        decl_specifiers_mod: decl_specifiers_mod decl_specifier_id
+            array($1 $2)
+
+        decl_specifiers_mod: decl_specifiers_mod type_mod
+            array($1 $2)
+
+        #
+        # Must not be followed by a type name
+        #
+        decl_specifiers_id_opt:
+            array()
+
+        decl_specifiers_id_opt: decl_specifiers_id
+            value $1
+
+        decl_specifiers_id: decl_specifier_id
+            array($1)
+
+        decl_specifiers_id: decl_specifiers_id decl_specifier_id
+            array($1 $2)
+
+        decl_specifier_id: type_class
+            value $1
+
+        decl_specifier_id: type_qual
+            value $1
+
+        decl_specifier_id: attribute
+            value $1
+
+        #
+        # Non-top-level modifiers
+        #
+        type_qualifiers_opt:
+            array()
+
+        type_qualifiers_opt: type_qualifiers
+            value $1
+
+        type_qualifiers: type_qualifier
+            array($1)
+
+        type_qualifiers: type_qualifiers type_qualifier
+            array($1 $2)
+
+        type_qualifier: type_qual
+            value $1
+
+        type_qualifier: attribute
+            value $1
+
+        #
+        # Type specification
+        #
+        type_id: type
+            value $1
+
+        type_id: type_builtin
+            value $1
+
+        type_struct: struct_spec
+            value $1
+
+        type_struct: tagged_union_spec
+            value $1
+
+        type_struct: enum_spec
+            value $1
+
+        #
+        # Generic qualifier
+        #
+        type_class: tyclass
+            TypeClass.make($1)
+
+        type_qual: tyqual
+            TypeQual.make($1)
+
+        type_mod: tymod
+            TypeMod.make($1)
+
+        attribute: __attribute__ lparen exp rparen
+            TypeModAttribute.make($1, $3)
+
+        #
+        # Struct
+        #
+        struct_spec: struct struct_declaration_list
+            private.name = $"$1$(name-index)"
+            name-index = $(add $(name-index), 1)
+            private.val = $(TypeStruct.make $1, $(name), $2)
+            prog = $(prog.add-struct $(name), $(val))
+            prog = $(prog.add-anon-struct-type $(val))
+	    value $(val)
+            export
+
+        struct_spec: struct type_or_id struct_declaration_list
+            private.val = $(TypeStruct.make $1, $2, $3)
+            prog = $(prog.add-struct $2, $(val))
+	    value $(val)
+            export
+
+        struct_spec: struct type_or_id
+            private.val = $(TypeStruct.undefined $1, $2)
+            prog = $(prog.add-struct $2, $(val))
+	    value $(val)
+            export
+
+        struct_declaration_list: lbrace struct_declaration_fields rbrace
+            value $2
+
+        struct_declaration_fields:
+            array()
+
+        struct_declaration_fields: struct_declaration_fields var_defs
+            array($1 $2)
+
+        #
+        # Tagged union
+        #
+        tagged_union_spec: __tagged_union type_or_id tagged_union_declaration_list
+            private.val = $(TypeTaggedUnion.make $2, $3)
+            prog = $(prog.add-tagged-union $2, $(val))
+	    value $(val)
+            export
+
+        tagged_union_declaration_list: lbrace tagged_union_declaration_fields rbrace
+            value $2
+
+        tagged_union_declaration_fields:
+            array()
+
+        tagged_union_declaration_fields: tagged_union_declaration_fields tagged_union_field
+            array($1 $2)
+
+        tagged_union_field: case exp colon
+            CaseStmt.make($2)
+
+        tagged_union_field: default colon
+            DefaultStmt.make()
+
+        tagged_union_field: var_defs
+            value $1
+
+        #
+        # Enum
+        #
+        enum_spec: enum enum_declaration_list
+            private.name = $"$1$(name-index)"
+            name-index = $(add $(name-index), 1)
+            private.val = $(TypeEnum.make $(name), $2)
+            prog = $(prog.add-enum $(name), $(val))
+            prog = $(prog.add-anon-enum-type $(val))
+	    value $(val)
+            export
+
+        enum_spec: enum type_or_id enum_declaration_list
+            private.val = $(TypeEnum.make $2, $3)
+            prog = $(prog.add-enum $2, $(val))
+	    value $(val)
+            export
+
+        enum_spec: enum type_or_id
+            TypeEnum.undefined($2)
+
+        enum_declaration_list: lbrace rbrace
+            array()
+
+        enum_declaration_list: lbrace enum_decl_list opt_comma rbrace
+            value $2
+
+        enum_decl_list: enum_decl
+            array($1)
+
+        enum_decl_list: enum_decl_list comma enum_decl
+            array($1 $3)
+
+        enum_decl: id :prec: apply
+            EnumFieldDecl.make($1)
+
+        enum_decl: id eq exp :prec: apply
+            EnumFieldDecl.make-value($1, $3)
+
+        ########################################################################
+        # Variable definitions
+        #
+
+        #
+        # Strict identifiers
+        #
+        id_init_decl_list_opt:
+            array()
+
+        id_init_decl_list_opt: id_init_decl_list
+            value $1
+
+        id_init_decl_list: id_init_decl
+            array($1)
+
+        id_init_decl_list: id_init_decl_list comma any_init_decl
+            array($1 $3)
+
+        id_init_decl: id_decl
+            value $1
+
+        id_init_decl: id_decl colon exp
+            VarField.make($1, $3)
+
+        id_init_decl: colon exp
+            VarField.make($(VarNone.make), $2)
+
+        id_init_decl: id_decl eq init
+            VarInit.make($1, $3)
+
+        id_decl: direct_decl_id
+            value $1
+
+        id_decl: star type_qualifiers_opt id_decl
+            VarPointer.make($(VarQualified.make $3, $2))
+
+        id_decl: amp type_qualifiers_opt id_decl
+            VarRef.make($(VarQualified.make $3, $2))
+
+        direct_decl_id: id
+            VarId.make($1)
+
+        direct_decl_id: lparen id_decl rparen
+            value $2
+
+        direct_decl_id: direct_decl_id lbrack rbrack
+            VarArray.make-empty($1)
+
+        direct_decl_id: direct_decl_id lbrack exp rbrack
+            VarArray.make($1, $3)
+
+        direct_decl_id: direct_decl_id lparen opt_param_list rparen :prec: apply
+            VarFun.make($1, $3)
+
+        direct_decl_id: direct_decl_id attribute
+            VarAttribute.make($1, $2)
+
+	# JYH: I'm sure this is not the way to handle asm, but I'm not
+	# really sure what it means.  Here is an example from stdio.h
+	# on Mac OS X, 10.5.
+	#
+	# int	 fputs(__const char * , FILE * ) __asm("_" "fputs" "$UNIX2003");
+        direct_decl_id: direct_decl_id asm_stmt
+            VarAttribute.make($1, $2)
+
+        #
+        # Any identifiers (type identifiers are treated as normal identifiers)
+        #
+        any_init_decl_list_opt:
+            array()
+
+        any_init_decl_list_opt: any_init_decl_list
+            value $1
+
+        any_init_decl_list: any_init_decl
+            array($1)
+
+        any_init_decl_list: any_init_decl_list comma any_init_decl
+            array($1 $3)
+
+        any_init_decl: any_decl
+            value $1
+
+        any_init_decl: any_decl colon exp
+            VarField.make($1, $3)
+
+        any_init_decl: colon exp
+            VarField.make($(VarNone.make), $2)
+
+        any_init_decl: any_decl eq init
+            VarInit.make($1, $3)
+
+        any_decl: direct_decl_any
+            value $1
+
+        any_decl: star type_qualifiers_opt any_decl
+            VarPointer.make($(VarQualified.make $3, $2))
+
+        any_decl: amp type_qualifiers_opt any_decl
+            VarRef.make($(VarQualified.make $3, $2))
+
+        direct_decl_any: id
+            VarId.make($1)
+
+        direct_decl_any: type
+            VarId.make($1)
+
+        direct_decl_any: lparen any_decl rparen
+            value $2
+
+        direct_decl_any: direct_decl_any lbrack rbrack
+            VarArray.make-empty($1)
+
+        direct_decl_any: direct_decl_any lbrack exp rbrack
+            VarArray.make($1, $3)
+
+        direct_decl_any: direct_decl_any lparen opt_param_list rparen :prec: apply
+            VarFun.make($1, $3)
+
+        direct_decl_any: direct_decl_any attribute
+            VarAttribute.make($1, $2)
+
+        direct_decl_any: direct_decl_any asm_stmt
+            VarAttribute.make($1, $2)
+
+        ########################################################################
+        # Function parameters.
+        #
+        # These are similar to a var_def, but only one variable at a time is
+        # allowed, and the variable name need not be mentioned.
+        #
+        opt_param_list:
+            array()
+
+        opt_param_list: param_list
+            value $1
+
+        param_list: param_decl
+            array($1)
+
+        param_list: param_list comma param_decl
+            array($1 $3)
+
+        param_decl: decl_spec_id id_decl
+            ParamDef.make($1, $2)
+
+        param_decl: decl_spec_any any_decl
+            ParamDef.make($1, $2)
+
+        param_decl: decl_spec_id abstract_decl
+            ParamDef.make($1, $2)
+
+        param_decl: decl_spec_any abstract_decl
+            ParamDef.make($1, $2)
+
+        param_decl: decl_spec
+            ParamDef.make($1, $(VarNone.make))
+
+        param_decl: elide
+            ElideDef.make()
+
+        fun_param_list: lparen opt_param_list rparen
+            value $2
+
+        abstract_decl: direct_abstract_decl
+            value $1
+
+        abstract_decl: star type_qualifiers_opt
+            VarPointer.make($(VarQualified.make $(VarNone.make), $2))
+
+        abstract_decl: star type_qualifiers_opt abstract_decl
+            VarPointer.make($(VarQualified.make $3, $2))
+
+        abstract_decl: amp type_qualifiers_opt
+            VarRef.make($(VarQualified.make $(VarNone.make), $2))
+
+        abstract_decl: amp type_qualifiers_opt abstract_decl
+            VarRef.make($(VarQualified.make $3, $2))
+
+        direct_abstract_decl: lparen abstract_decl rparen
+            value $2
+
+        direct_abstract_decl: direct_abstract_decl lbrack rbrack
+            VarArray.make-empty($1)
+
+        direct_abstract_decl: direct_abstract_decl lbrack exp rbrack
+            VarArray.make($1, $3)
+
+        direct_abstract_decl: direct_abstract_decl fun_param_list
+            VarFun.make($1, $2)
+
+        direct_abstract_decl: direct_abstract_decl attribute
+            VarAttribute($1, $2)
+
+        #
+        # Variable definitions
+        #
+        var_defs: decl_spec_id id_init_decl_list_opt semi
+            if $2
+                2.map(name => $(VarDef.make $1, $(name)))
+            else
+                array($(VarNoneDef.make $1))
+
+        var_defs: decl_spec_any any_init_decl_list_opt semi
+            if $2
+                2.map(name => $(VarDef.make $1, $(name)))
+            else
+                array($(VarNoneDef.make $1))
+
+        callback_defs: callback var_defs
+            2.map(def => $(CallbackDef.make $(def)))
+
+        #
+        # Type definitions
+        #
+        type_var_defs: decl_spec_id id_init_decl_list_opt
+            2.map(name => $(TypeDef.make $1, $(name)))
+
+        type_var_defs: decl_spec_any any_init_decl_list_opt
+            2.map(name => $(TypeDef.make $1, $(name)))
+
+        type_defs: decl_specifiers_id_opt typedef type_var_defs semi
+            private.val = $3
+            private.hidden-flag = $(1.exists spec => $(spec.is-named __dll_hidden))
+            foreach(def => ..., $3)
+                private.v = $(def.to-id)
+                private.ty = $(def.ty)
+                add-type-name($v)
+
+                # Add the typedef if it is not internal
+                if $(not $(hidden-flag))
+                    prog = $(prog.add-typedef $(v), $(ty))
+                    export
+
+                # Add the type name translation if this is an struct or enum
+                if $(ty.is-struct-or-enum)
+                    private.name = $(ty.name)
+                    if $(not $(prog.type-names.mem $(name)))
+                        prog = $(prog.add-type-name $(name), $(v))
+                        export
+                    export
+                export
+            value $(val)
+            export
+
+        #
+        # Function definition
+        #
+        fun_def: decl_spec_id id_decl lbrace stmt_list rbrace
+            FunDef.make($1, $2, $4)
+
+        fun_def: decl_spec_any any_decl lbrace stmt_list rbrace
+            FunDef.make($1, $2, $4)
+
+        ########################################################################
+        # Expressions
+        #
+
+        #
+        # Initializers
+        #
+        init: exp
+            InitExp.make($1)
+
+        init: lbrace init_list_opt opt_comma rbrace
+            InitArray.make($2)
+
+        init_list_opt:
+            array()
+
+        init_list_opt: init_list
+            value $1
+
+        init_list: init_field
+            array($1)
+
+        init_list: init_list comma init_field
+            array($1 $3)
+
+        init_field: init
+            value $1
+
+        init_field: id colon init
+            InitField.make($1, $3)
+
+        init_field: type colon init
+            InitField.make($1, $3)
+
+        #
+        # Constant expressions
+        #
+        exp: int
+            IntExp.make($1)
+
+        exp: float
+            FloatExp.make($1)
+
+        exp: char
+            CharExp.make($1)
+
+        exp: string_exp
+            value $1
+
+        exp: id
+            IdExp.make($1)
+
+        #
+        # Unary expressions
+        #
+        exp: unop1 exp
+            Exp1.make($1, $2)
+
+        exp: incop1 exp
+            PreExp1.make($1, $2)
+
+        exp: exp incop1
+            PostExp1.make($2, $1)
+
+        exp: minus exp :prec: unop1
+            Exp1.make($1, $2)
+
+        exp: plus exp :prec: unop1
+            Exp1.make($1, $2)
+
+        exp: star exp :prec: unop1
+            Exp1.make($1, $2)
+
+        exp: amp exp :prec: unop1
+            Exp1.make($1, $2)
+
+        exp: __extension__ exp :prec: unop1
+            Extension.make($2)
+
+        #
+        # Binary expressions
+        #
+        exp: exp binop0 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop2 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp star exp :prec: binop2
+            Exp2.make($2, $1, $3)
+
+        exp: exp minus exp :prec: binop3
+            Exp2.make($2, $1, $3)
+
+        exp: exp plus exp :prec: binop3
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop4 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop5 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop6 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop7 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp amp exp :prec: binop7
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop8 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop9 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop10 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp binop11 exp
+            Exp2.make($2, $1, $3)
+
+        exp: exp quest exp colon exp :prec: ternop12
+            Exp3.make($1, $2, $3, $4, $5)
+
+        exp: exp eqop13 exp
+            AssignExp.make($2, $1, $3)
+
+        exp: exp eq exp :prec: eqop13
+            AssignExp.make($2, $1, $3)
+
+        exp: exp comma exp
+            Exp2.make($2, $1, $3)
+
+        #
+        # Special expressions
+        #
+        exp: lparen exp rparen
+            ParensExp.make($2)
+
+        exp: lparen block_stmt rparen
+            StmtExp.make($2)
+
+        exp: exp lbrack exp rbrack :prec: unop1
+            SubscriptExp.make($1, $3)
+
+        exp: id lparen args_opt rparen :prec: apply
+            ApplyExp.make($1, $3)
+
+        exp: lparen cast_type rparen exp :prec: cast
+            CastExp.make($2, $4)
+
+        exp: sizeof lparen cast_type rparen :prec: sizeof
+            SizeofExp.make($3)
+
+        exp: sizeof lparen exp rparen :prec: sizeof
+            SizeofExp.make($3)
+
+        cast_type: decl_spec
+            ParamDef.make($1, $(VarNone.make))
+
+        cast_type: decl_spec abstract_decl
+            ParamDef.make($1, $2)
+
+        cast_type: lparen cast_type rparen
+            value $2
+
+        #
+        # Optional
+        #
+        opt_exp:
+            NoneExp.make()
+
+        opt_exp: exp
+            value $1
+
+        ########################################################################
+        # Statements
+        #
+        stmt: semi
+            EmptyStmt.make()
+
+        stmt: exp semi
+            ExpStmt.make($1)
+
+        stmt: if lparen exp rparen stmt :prec: ifthen
+            IfStmt.make1($3, $5)
+
+        stmt: if lparen exp rparen stmt else stmt :prec: ifthenelse
+            IfStmt.make2($3, $5, $7)
+
+        stmt: switch lparen exp rparen stmt
+            SwitchStmt.make($3, $5)
+
+        stmt: for lparen opt_exp semi opt_exp semi opt_exp rparen stmt
+            ForStmt.make($3, $5, $7, $9)
+
+        stmt: while lparen exp rparen stmt
+            WhileStmt.make($3, $5)
+
+        stmt: do stmt while lparen exp rparen semi
+            DoStmt.make($2, $5)
+
+        stmt: return semi
+            ReturnStmt.make($(NoneExp.make))
+
+        stmt: return exp semi
+            ReturnStmt.make($2)
+
+        stmt: break semi
+            BreakStmt.make()
+
+        stmt: continue semi
+            ContinueStmt.make()
+
+        stmt: goto id semi
+            GotoStmt.make($2)
+
+        stmt: block_stmt
+            value $1
+
+        block_stmt: lbrace stmt_list rbrace
+            BlockStmt.make($2)
+
+        stmt: all_def
+            value $1
+
+        stmt: id colon
+            LabelStmt.make($1)
+
+        stmt: case exp colon
+            CaseStmt.make($2)
+
+        stmt: default colon
+            DefaultStmt.make()
+
+        stmt: asm_stmt semi
+            value $1
+
+        asm_stmt: asm lparen exp asm_args rparen
+            AsmStmt.make($1, $3, $4)
+
+        stmt_list:
+            array()
+
+        stmt_list: stmt_list stmt
+            array($1 $2)
+
+        #
+        # Arguments
+        #
+        args_opt:
+            array()
+
+        args_opt: args
+            value $1
+
+        args: exp :prec: apply
+            array($1)
+
+        args: args comma exp :prec: apply
+            array($1 $3)
+
+        #
+        # Assembly arguments
+        #
+        asm_arg: colon string_exp lparen exp rparen
+            AsmArg.make($2, $4)
+
+        asm_args:
+            array()
+
+        asm_args: asm_args asm_arg
+            array($1, $2)
+
+        #
+        # C allows literal strings to be concatenated
+        #
+        string_exp: strings
+            StringExp.make($1)
+
+        strings: string
+            array($1)
+
+        strings: strings string
+            array($1 $2)
+
+        #
+        # Helpers
+        #
+        opt_comma:
+
+        opt_comma: comma
+
+        type_or_id: id
+            value $1
+
+        type_or_id: type
+            value $1
+
+        #
+        # Debug it
+        #
+        this.build(false)
