@@ -1,0 +1,12 @@
+.SUBDIRS: .
+
+   .SCANNER: scan-%: %.deps
+       cat %.deps
+
+   a: :scanner: scan-a
+       echo Done > a
+
+   a.deps:
+       touch $@
+
+   .DEFAULT: a
