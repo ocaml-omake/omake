@@ -162,7 +162,7 @@ type path =
  *)
 type command =
    CommandSection of value * free_vars * exp list   (* Name of the section, its free variables, and the expression *)
- | CommandValue of loc * value
+ | CommandValue of loc * env * string_exp
 
 (*
  * Kinds of rules.

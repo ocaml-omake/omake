@@ -221,8 +221,8 @@ let split_command venv (values1, lines1) command =
                match line with
                   CommandSection (_, _, e) ->
                      ValBody (e, ExportNone)
-                | CommandValue (_, v) ->
-                     v
+                | CommandValue (_, exp, v) ->
+                     ValStringExp(exp,v)
             in
                v :: lines) lines1 lines2
    in
