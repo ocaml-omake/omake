@@ -3,7 +3,7 @@
 #
 # Check out a fresh copy of omake
 #
-. make_checkout
+. ./make_checkout
 
 #
 # Make a tarball

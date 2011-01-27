@@ -3,7 +3,7 @@
 #
 # Configuration
 #
-. config_rpm
+. ./config_rpm
 
 #
 # Make a tarball

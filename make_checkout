@@ -1,7 +1,7 @@
 #
 # Configuration
 #
-. config_rpm
+. ./config_rpm
 
 #
 # Build an RPM package for omake
