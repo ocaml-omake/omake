@@ -652,8 +652,8 @@ Node: Subsection 13-7-2,	Next: Chapter 14,	Prev: Subsection 13-7-1,	Up: Section 
   The 'LaTeXDocument' produces a LaTeX document.
   'LaTeXDocument(<name>, <texfiles>)'
   The document '<name>' and '<texfiles>' are listed without suffixes.
-This function returns the filenames for the generated '.ps' and '.pdf'
-files.
+This function returns the filenames for the generated '.ps' (unless
+'USEPDFLATEX' variable is set) and '.pdf' files.
   Additional variables used: 
  TEXINPUTS
  The LaTeX search path (an array of

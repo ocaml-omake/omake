@@ -260,7 +260,7 @@ Shell. +=
 # \verb+LaTeXDocument(<name>, <texfiles>)+
 #
 # The document \verb+<name>+ and \verb+<texfiles>+ are listed without suffixes. This function
-# returns the filenames for the generated \verb+.ps+ and \verb+.pdf+ files.
+# returns the filenames for the generated \verb+.ps+ (unless \hypervar{USEPDFLATEX} is set) and \verb+.pdf+ files.
 #
 # Additional variables used:
 # \var{TEXINPUTS}
@@ -348,33 +348,32 @@ public.LaTeXDocument(name, texfiles) =
         setenv($(var), $(private.INPUTS))
         export
 
-    Rule(use_pdflatex) =
-        private.prog = $(if $(use_pdflatex), $(PDFLATEX), $(LATEX))
-        private.flags = $(if $(use_pdflatex), $(PDFLATEXFLAGS), $(LATEXFLAGS))
-        private.ext = $(if $(use_pdflatex), .pdf, .dvi)
+    private.prog = $(if $(USEPDFLATEX), $(PDFLATEX), $(LATEX))
+    private.flags = $(if $(USEPDFLATEX), $(PDFLATEXFLAGS), $(LATEXFLAGS))
+    private.ext = $(if $(USEPDFLATEX), .pdf, .dvi)
 
-        $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
-            if $(gt $(length $(TEXVARS)), 0)
-                echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
+    $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
+        if $(gt $(length $(TEXVARS)), 0)
+            echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
+        run-latex $(prog) $(flags) $(name)
+        if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
+            $(BIBTEX) $(name)
             run-latex $(prog) $(flags) $(name)
-            if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
-                $(BIBTEX) $(name)
-                run-latex $(prog) $(flags) $(name)
-            if $(and $(file-exists $(name).idx), $(grep q, $'\\indexentry', $(name).idx))
-                $(MAKEINDEX) $(name)
-                run-latex $(prog) $(flags) $(name)
-            if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(flags) $(name)
-            if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(flags) $(name)
-            if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(flags) $(name)
+        if $(and $(file-exists $(name).idx), $(grep q, $'\\indexentry', $(name).idx))
+            $(MAKEINDEX) $(name)
+            run-latex $(prog) $(flags) $(name)
+        if $(grep q, $'Rerun to get', $(name).log)
+            run-latex $(prog) $(flags) $(name)
+        if $(grep q, $'Rerun to get', $(name).log)
+            run-latex $(prog) $(flags) $(name)
+        if $(grep q, $'Rerun to get', $(name).log)
+            run-latex $(prog) $(flags) $(name)
 
         #
         # TeTeX2 has the ability to compute dependencies for us
         #
         if $(TETEX2_ENABLED)
-            protected.SCANNER = scan-$(if $(use_pdflatex), pdflatex, latex)-$(name).tex
+            protected.SCANNER = scan-$(if $(USEPDFLATEX), pdflatex, latex)-$(name).tex
 
             .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
               :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
@@ -384,22 +383,21 @@ public.LaTeXDocument(name, texfiles) =
 
             $(name)$(ext): :scanner: $(SCANNER)
 
-    Rule(false)
-
     if $(USEPDFLATEX)
-        Rule(true)
-    else
-       $(name).pdf: $(name).dvi
-           $(DVIPDFM) $(DVIPDFMFLAGS) -o $@ $(name).dvi
+        return $(file $(name).pdf)
 
-    if $(VERBOSE)
-        $(name).ps: $(name).dvi
-            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi
     else
-        $(name).ps: $(name).dvi
-            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi |& drop-dvips-junk
+        $(name).pdf: $(name).dvi
+            $(DVIPDFM) $(DVIPDFMFLAGS) -o $@ $(name).dvi
 
-    return $(file $(name).ps $(name).pdf)
+        if $(VERBOSE)
+            $(name).ps: $(name).dvi
+                $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi
+        else
+            $(name).ps: $(name).dvi
+                $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi |& drop-dvips-junk
+
+        return $(file $(name).ps $(name).pdf)
 
 #
 # Copy the document to a library directory

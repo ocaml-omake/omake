@@ -502,7 +502,7 @@ and depends on the version of L<sup>A</sup>T<sub>E</sub>X you have installed).
 </P><H5 CLASS="paragraph">USEPDFLATEX</H5><P><A NAME="var:USEPDFLATEX"></A><A NAME="@default549"></A><A NAME="@var110"></A> Flag indicating whether to use pdflatex instead of dvipdfm
 to generate the <CODE>.pdf</CODE> document (default <CODE>false</CODE>).
 </P><H3 CLASS="subsection"><A NAME="htoc410">13.7.2</A>&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X documents</H3><H4 CLASS="subsubsection"><A NAME="htoc411">13.7.2.1</A>&#XA0;&#XA0;LaTeXDocument</H4><P><A NAME="fun:LaTeXDocument"></A><A NAME="function:LaTeXDocument"></A><A NAME="@default550"></A><A NAME="@fun292"></A></P><P>The <CODE>LaTeXDocument</CODE> produces a L<sup>A</sup>T<sub>E</sub>X document.</P><P><CODE>LaTeXDocument(&lt;name&gt;, &lt;texfiles&gt;)</CODE></P><P>The document <CODE>&lt;name&gt;</CODE> and <CODE>&lt;texfiles&gt;</CODE> are listed without suffixes. This function
-returns the filenames for the generated <CODE>.ps</CODE> and <CODE>.pdf</CODE> files.</P><P>Additional variables used:
+returns the filenames for the generated <CODE>.ps</CODE> (unless <A HREF="#var:USEPDFLATEX"><CODE>USEPDFLATEX</CODE> variable</A> is set) and <CODE>.pdf</CODE> files.</P><P>Additional variables used:
 </P><H5 CLASS="paragraph">TEXINPUTS</H5><P><A NAME="var:TEXINPUTS"></A><A NAME="@default551"></A><A NAME="@var111"></A>
 The L<sup>A</sup>T<sub>E</sub>X search path (an array of directories, default is
 taken from the <CODE>TEXINPUTS</CODE> environment variable).

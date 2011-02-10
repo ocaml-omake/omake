@@ -5,8 +5,8 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                           26^thOctober, 2010
-                           ==================
+                          10^thFebruary, 2011
+                          ===================
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -10900,8 +10900,8 @@ generate the '.pdf' document (default 'false').
   The 'LaTeXDocument' produces a LaTeX document.
   'LaTeXDocument(<name>, <texfiles>)'
   The document '<name>' and '<texfiles>' are listed without suffixes.
-This function returns the filenames for the generated '.ps' and '.pdf'
-files.
+This function returns the filenames for the generated '.ps' (unless
+'USEPDFLATEX' variable is set) and '.pdf' files.
   Additional variables used: 
 TEXINPUTS
    The LaTeX search path (an array of directories, default is taken from
@@ -13837,7 +13837,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.6 of 26^thOctober, 2010.
+  Version: 0.9.8.6 of 10^thFebruary, 2011.
   
 
 C.3  License and Copyright
