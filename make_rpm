@@ -12,9 +12,8 @@
 
 #
 # Build the RPM
-# BUG: --nodeps is needed only for the build on Cygwin.
 #
-rpmbuild -ta --nodeps download/$TARBALL
+rpmbuild -ta download/$TARBALL "$@"
 
 #
 # Copy the packages back here
