@@ -805,7 +805,7 @@ let sequence_rev venv pos loc args =
  * \begin{verbatim}
  *     $(foreach <fun>, <args>)
  *
- *     foreach(<var> => <args>)
+ *     foreach(<var> => ..., <args>)
  *        <body>
  * \end{verbatim}
  *
@@ -814,11 +814,11 @@ let sequence_rev venv pos loc args =
  *
  * \begin{verbatim}
  *     X =
- *        foreach(x => a b c)
+ *        foreach(x => ..., a b c)
  *           value $(x).c
  *
  *     # Equivalent expression
- *     X = $(foreach $(fun x => $(x).c), a b c)
+ *     X = $(foreach $(fun x => ..., $(x).c), a b c)
  * \end{verbatim}
  *
  * There is also an abbreviated syntax.
@@ -828,7 +828,7 @@ let sequence_rev venv pos loc args =
  *
  * \begin{verbatim}
  *     X =
- *     foreach(x => a b c)
+ *     foreach(x => ..., a b c)
  *        X += $(x).c
  *        export
  * \end{verbatim}
