@@ -1,173 +1,253 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Synopsis</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Synopsis</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc434">Appendix&#XA0;A</A>&#XA0;&#XA0;Synopsis</H1><UL>
-<LI><A HREF="omake-options.html#toc110">General usage</A>
-</LI><LI><A HREF="omake-options.html#toc111">Output control</A>
-</LI><LI><A HREF="omake-options.html#toc112">Build options</A>
-</LI><LI><A HREF="omake-options.html#toc113">Additional options</A>
-</LI><LI><A HREF="omake-options.html#toc114">Environment variables</A>
-</LI><LI><A HREF="omake-options.html#toc115">Functions</A>
-</LI><LI><A HREF="omake-options.html#toc116">Option processing</A>
-</LI><LI><A HREF="omake-options.html#toc117">.omakerc</A>
-</LI></UL>
-<P>
-<A NAME="chapter:options"></A>
-</P><P><TT>omake</TT>
-[<TT>-j &lt;count&gt;</TT>]
-[<TT>-k</TT>]
-[<TT>-p</TT>]
-[<TT>-P</TT>]
-[<TT>-n</TT>]
-[<TT>-s</TT>] [<TT>-S</TT>]
-[<TT>-w</TT>]
-[<TT>-t</TT>]
-[<TT>-u</TT>]
-[<TT>-U</TT>]
-[<TT>-R</TT>]
-[<TT>--verbose</TT>]
-[<TT>--project</TT>]
-[<TT>--depend</TT>]
-[<TT>--progress</TT>]
-[<TT>--print-status</TT>]
-[<TT>--print-exit</TT>]
-[<TT>--print-dependencies</TT>]
-[<TT>--show-dependencies &lt;target&gt;</TT>]
-[<TT>--all-dependencies</TT>]
-[<TT>--verbose-dependencies</TT>]
-[<TT>--force-dotomake</TT>]
-[<TT>--dotomake &lt;dir&gt;</TT>]
-[<TT>--flush-includes</TT>]
-[<TT>--configure</TT>]
-[<TT>--save-interval &lt;seconds&gt;</TT>]
-[<TT>--install</TT>]
-[<TT>--install-all</TT>]
-[<TT>--install-force</TT>]
-[<TT>--version</TT>]
-[<TT>--absname</TT>]
-[<TT>--output-normal</TT>]
-[<TT>--output-postpone</TT>]
-[<TT>--output-only-errors</TT>]
-[<TT>--output-at-end</TT>]
-<TT>filename...</TT>
-[<TT>var-definition...</TT>]</P><H2 CLASS="section"><A NAME="toc110"></A><A NAME="htoc435">A.1</A>&#XA0;&#XA0;General usage</H2><P>For Boolean options (for example, <CODE>-s</CODE>, <CODE>--progress</CODE>, etc.) the option can include a
-prefix <CODE>--no</CODE>, which inverts the usual sense of the option. For example, the option
-<CODE>--progress</CODE> means &#X201C;print a progress bar,&#X201D; while the option <CODE>--no--progress</CODE> means
-&#X201C;do not print a progress bar.&#X201D;</P><P>If multiple instances of an option are specified, the final option determines the behavior of OMake.
-In the following command line, the final <CODE>--no-S</CODE> cancels the earlier <CODE>-S</CODE>.</P><PRE CLASS="verbatim">    % omake -S --progress --no-S
-</PRE><H2 CLASS="section"><A NAME="toc111"></A><A NAME="htoc436">A.2</A>&#XA0;&#XA0;Output control</H2><H3 CLASS="subsection"><A NAME="htoc437">A.2.1</A>&#XA0;&#XA0;<TT>-s</TT></H3><P><A NAME="@default592"></A><A NAME="@opt0"></A><A NAME="option:-s"></A> <CODE>-s</CODE></P><P>Never not print commands as they are executed (be &#X201C;silent&#X201D;).</P><H3 CLASS="subsection"><A NAME="htoc438">A.2.2</A>&#XA0;&#XA0;<TT>-S</TT></H3><P><A NAME="@default593"></A><A NAME="@opt1"></A><A NAME="option:-S"></A> <CODE>-S</CODE></P><P>Do not print commands as they are executed <EM>unless</EM> they produce output and/or
-fail. This is the default.</P><H3 CLASS="subsection"><A NAME="htoc439">A.2.3</A>&#XA0;&#XA0;<TT>-w</TT></H3><P><A NAME="@default594"></A><A NAME="@opt2"></A><A NAME="option:-w"></A> <CODE>-w</CODE></P><P>Print directory information in <TT>make</TT> format as commands are executed.
-This is mainly useful for editors that expect <TT>make</TT>-style
-directory information for determining the location of errors.</P><H3 CLASS="subsection"><A NAME="htoc440">A.2.4</A>&#XA0;&#XA0;<TT>--progress</TT></H3><P><A NAME="@default595"></A><A NAME="@opt3"></A><A NAME="option:--progress"></A> <CODE>--progress</CODE></P><P>Print a progress indicator. This option is enabled by default when the OMake&#X2019;s output
-(<CODE>stdout</CODE>) is on a terminal and disabled by default (except on Windows) when the OMake&#X2019;s
-output is redirected.</P><H3 CLASS="subsection"><A NAME="htoc441">A.2.5</A>&#XA0;&#XA0;<TT>--print-status</TT></H3><P><A NAME="@default596"></A><A NAME="@opt4"></A><A NAME="option:--print-status"></A> <CODE>--print-status</CODE></P><P>Print status lines (the <CODE>+</CODE> and <CODE>-</CODE> lines).</P><H3 CLASS="subsection"><A NAME="htoc442">A.2.6</A>&#XA0;&#XA0;<TT>--print-exit</TT></H3><P><A NAME="@default597"></A><A NAME="@opt5"></A><A NAME="option:--print-exit"></A> <CODE>--print-exit</CODE></P><P>Print termination codes when commands complete.</P><H3 CLASS="subsection"><A NAME="htoc443">A.2.7</A>&#XA0;&#XA0;<TT>--verbose</TT></H3><P><A NAME="@default598"></A><A NAME="@opt6"></A><A NAME="option:--verbose"></A> <CODE>--verbose</CODE></P><P>Make OMake very verbose. This option is equivalent to
-<CODE>--no-S --print-status --print-exit VERBOSE=true</CODE></P><H3 CLASS="subsection"><A NAME="htoc444">A.2.8</A>&#XA0;&#XA0;<TT>--output-normal</TT></H3><P><A NAME="@default599"></A><A NAME="@opt7"></A><A NAME="option:--output-normal"></A> <CODE>--output-normal</CODE></P><P>As rule commands are executed, relay their output to the OMake output right away. This is enabled
-by default, unless <CODE>--output-postpone</CODE> or <CODE>--output-only-errors</CODE> is enabled.</P><H3 CLASS="subsection"><A NAME="htoc445">A.2.9</A>&#XA0;&#XA0;<TT>--output-postpone</TT></H3><P><A NAME="@default600"></A><A NAME="@opt8"></A><A NAME="option:--output-postpone"></A> <CODE>--output-postpone</CODE></P><P>When a rule finishes, print the output as a single block. This is useful in combination <CODE>-j</CODE>
-option (see Section&#XA0;<A HREF="#option:-j">A.3.12</A>), where the output of multiple subprocesses can be garbled. The
-diversion is printed as a single coherent unit.</P><P>Note that enabling <CODE>--output-postpone</CODE> will by default disable the <CODE>--output-normal</CODE>
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec556">Appendix&#XA0;A&#XA0;&#XA0;Synopsis</h1>
+<ul>
+<li><a href="omake-options.html#sec557">General usage</a>
+</li><li><a href="omake-options.html#sec558">Output control</a>
+</li><li><a href="omake-options.html#sec571">Build options</a>
+</li><li><a href="omake-options.html#sec593">Additional options</a>
+</li><li><a href="omake-options.html#sec594">Environment variables</a>
+</li><li><a href="omake-options.html#sec597">Functions</a>
+</li><li><a href="omake-options.html#sec599">Option processing</a>
+</li><li><a href="omake-options.html#sec600">.omakerc</a>
+</li></ul>
+<p>
+<a id="chapter:options"></a>
+</p><p><span class="c001">omake</span>
+[<span class="c001">-j &lt;count&gt;</span>]
+[<span class="c001">-k</span>]
+[<span class="c001">-p</span>]
+[<span class="c001">-P</span>]
+[<span class="c001">-n</span>]
+[<span class="c001">-s</span>] [<span class="c001">-S</span>]
+[<span class="c001">-w</span>]
+[<span class="c001">-t</span>]
+[<span class="c001">-u</span>]
+[<span class="c001">-U</span>]
+[<span class="c001">-R</span>]
+[<span class="c001">--verbose</span>]
+[<span class="c001">--project</span>]
+[<span class="c001">--depend</span>]
+[<span class="c001">--progress</span>]
+[<span class="c001">--print-status</span>]
+[<span class="c001">--print-exit</span>]
+[<span class="c001">--print-dependencies</span>]
+[<span class="c001">--show-dependencies &lt;target&gt;</span>]
+[<span class="c001">--all-dependencies</span>]
+[<span class="c001">--verbose-dependencies</span>]
+[<span class="c001">--force-dotomake</span>]
+[<span class="c001">--dotomake &lt;dir&gt;</span>]
+[<span class="c001">--flush-includes</span>]
+[<span class="c001">--configure</span>]
+[<span class="c001">--save-interval &lt;seconds&gt;</span>]
+[<span class="c001">--install</span>]
+[<span class="c001">--install-all</span>]
+[<span class="c001">--install-force</span>]
+[<span class="c001">--version</span>]
+[<span class="c001">--absname</span>]
+[<span class="c001">--output-normal</span>]
+[<span class="c001">--output-postpone</span>]
+[<span class="c001">--output-only-errors</span>]
+[<span class="c001">--output-at-end</span>]
+<span class="c001">filename...</span>
+[<span class="c001">var-definition...</span>]</p>
+<h2 class="section" id="sec557">A.1&#XA0;&#XA0;General usage</h2>
+<p>For Boolean options (for example, <code>-s</code>, <code>--progress</code>, etc.) the option can include a
+prefix <code>--no</code>, which inverts the usual sense of the option. For example, the option
+<code>--progress</code> means &#X201C;print a progress bar,&#X201D; while the option <code>--no--progress</code> means
+&#X201C;do not print a progress bar.&#X201D;</p><p>If multiple instances of an option are specified, the final option determines the behavior of OMake.
+In the following command line, the final <code>--no-S</code> cancels the earlier <code>-S</code>.</p><pre class="verbatim">    % omake -S --progress --no-S
+</pre>
+<h2 class="section" id="sec558">A.2&#XA0;&#XA0;Output control</h2>
+<h3 class="subsection" id="sec559">A.2.1&#XA0;&#XA0;<span class="c001">-s</span></h3>
+<p><a id="hevea_default592"></a><a id="hevea_opt0"></a><a id="option:-s"></a> <code>-s</code></p><p>Never not print commands as they are executed (be &#X201C;silent&#X201D;).</p>
+<h3 class="subsection" id="sec560">A.2.2&#XA0;&#XA0;<span class="c001">-S</span></h3>
+<p><a id="hevea_default593"></a><a id="hevea_opt1"></a><a id="option:-S"></a> <code>-S</code></p><p>Do not print commands as they are executed <em>unless</em> they produce output and/or
+fail. This is the default.</p>
+<h3 class="subsection" id="sec561">A.2.3&#XA0;&#XA0;<span class="c001">-w</span></h3>
+<p><a id="hevea_default594"></a><a id="hevea_opt2"></a><a id="option:-w"></a> <code>-w</code></p><p>Print directory information in <span class="c001">make</span> format as commands are executed.
+This is mainly useful for editors that expect <span class="c001">make</span>-style
+directory information for determining the location of errors.</p>
+<h3 class="subsection" id="sec562">A.2.4&#XA0;&#XA0;<span class="c001">--progress</span></h3>
+<p><a id="hevea_default595"></a><a id="hevea_opt3"></a><a id="option:--progress"></a> <code>--progress</code></p><p>Print a progress indicator. This option is enabled by default when the OMake&#X2019;s output
+(<code>stdout</code>) is on a terminal and disabled by default (except on Windows) when the OMake&#X2019;s
+output is redirected.</p>
+<h3 class="subsection" id="sec563">A.2.5&#XA0;&#XA0;<span class="c001">--print-status</span></h3>
+<p><a id="hevea_default596"></a><a id="hevea_opt4"></a><a id="option:--print-status"></a> <code>--print-status</code></p><p>Print status lines (the <code>+</code> and <code>-</code> lines).</p>
+<h3 class="subsection" id="sec564">A.2.6&#XA0;&#XA0;<span class="c001">--print-exit</span></h3>
+<p><a id="hevea_default597"></a><a id="hevea_opt5"></a><a id="option:--print-exit"></a> <code>--print-exit</code></p><p>Print termination codes when commands complete.</p>
+<h3 class="subsection" id="sec565">A.2.7&#XA0;&#XA0;<span class="c001">--verbose</span></h3>
+<p><a id="hevea_default598"></a><a id="hevea_opt6"></a><a id="option:--verbose"></a> <code>--verbose</code></p><p>Make OMake very verbose. This option is equivalent to
+<code>--no-S --print-status --print-exit VERBOSE=true</code></p>
+<h3 class="subsection" id="sec566">A.2.8&#XA0;&#XA0;<span class="c001">--output-normal</span></h3>
+<p><a id="hevea_default599"></a><a id="hevea_opt7"></a><a id="option:--output-normal"></a> <code>--output-normal</code></p><p>As rule commands are executed, relay their output to the OMake output right away. This is enabled
+by default, unless <code>--output-postpone</code> or <code>--output-only-errors</code> is enabled.</p>
+<h3 class="subsection" id="sec567">A.2.9&#XA0;&#XA0;<span class="c001">--output-postpone</span></h3>
+<p><a id="hevea_default600"></a><a id="hevea_opt8"></a><a id="option:--output-postpone"></a> <code>--output-postpone</code></p><p>When a rule finishes, print the output as a single block. This is useful in combination <code>-j</code>
+option (see Section&#XA0;<a href="#option%3A-j">A.3.12</a>), where the output of multiple subprocesses can be garbled. The
+diversion is printed as a single coherent unit.</p><p>Note that enabling <code>--output-postpone</code> will by default disable the <code>--output-normal</code>
 option. This might be problematic if you have a command that decides to ask for interactive input.
-If the <CODE>--output-postpone</CODE> is enabled, but the <CODE>--output-normal</CODE> is not, the prompt of
+If the <code>--output-postpone</code> is enabled, but the <code>--output-normal</code> is not, the prompt of
 such a command will not be visible and it may be hard to figure out why the build appears &#X201C;stuck&#X201D;.
-You might also consider using the <CODE>--progress</CODE> flag (see Section&#XA0;<A HREF="#option:--progress">A.2.4</A>) so
-that you can see when the build is active. </P><H3 CLASS="subsection"><A NAME="htoc446">A.2.10</A>&#XA0;&#XA0;<TT>--output-only-errors</TT></H3><P><A NAME="@default601"></A><A NAME="@opt9"></A><A NAME="option:--output-only-errors"></A> <CODE>--output-only-errors</CODE> </P><P>Similar to <CODE>--output-postpone</CODE>, except that the postponed output from commands that were
+You might also consider using the <code>--progress</code> flag (see Section&#XA0;<a href="#option%3A--progress">A.2.4</a>) so
+that you can see when the build is active. </p>
+<h3 class="subsection" id="sec568">A.2.10&#XA0;&#XA0;<span class="c001">--output-only-errors</span></h3>
+<p><a id="hevea_default601"></a><a id="hevea_opt9"></a><a id="option:--output-only-errors"></a> <code>--output-only-errors</code> </p><p>Similar to <code>--output-postpone</code>, except that the postponed output from commands that were
 successful will be discarded. This can be useful in reducing unwanted output so that you can
-concentrate on any errors.</P><H3 CLASS="subsection"><A NAME="htoc447">A.2.11</A>&#XA0;&#XA0;<TT>--output-at-end</TT></H3><P><A NAME="@default602"></A><A NAME="@opt10"></A><A NAME="option:--output-at-end"></A> <CODE>--output-at-end</CODE></P><P>If any rules/commands fail, re-print the output of the failed commands when OMake finishes the
-build. This is especially useful when any of the <CODE>-k</CODE>, <CODE>-p</CODE>, or <CODE>-P</CODE> options are
-enabled.</P><P>This option is off by default. However, when <CODE>-k</CODE> is enabled &#X2014; either explicitly or via one
-of the <CODE>-p</CODE>/<CODE>-P</CODE> options &#X2014; <CODE>--output-at-end</CODE> will be enabled by default.</P><H3 CLASS="subsection"><A NAME="htoc448">A.2.12</A>&#XA0;&#XA0;<TT>-o</TT></H3><P><A NAME="@default603"></A><A NAME="@opt11"></A><A NAME="option:-o"></A> <CODE>-o [01jwWpPxXsS]</CODE></P><P>For brevity, the <CODE>-o</CODE> option is also provided to duplicate the above output options. The
-<CODE>-o</CODE> option takes a argument consisting of a sequence of characters. The characters are read
+concentrate on any errors.</p>
+<h3 class="subsection" id="sec569">A.2.11&#XA0;&#XA0;<span class="c001">--output-at-end</span></h3>
+<p><a id="hevea_default602"></a><a id="hevea_opt10"></a><a id="option:--output-at-end"></a> <code>--output-at-end</code></p><p>If any rules/commands fail, re-print the output of the failed commands when OMake finishes the
+build. This is especially useful when any of the <code>-k</code>, <code>-p</code>, or <code>-P</code> options are
+enabled.</p><p>This option is off by default. However, when <code>-k</code> is enabled &#X2014; either explicitly or via one
+of the <code>-p</code>/<code>-P</code> options &#X2014; <code>--output-at-end</code> will be enabled by default.</p>
+<h3 class="subsection" id="sec570">A.2.12&#XA0;&#XA0;<span class="c001">-o</span></h3>
+<p><a id="hevea_default603"></a><a id="hevea_opt11"></a><a id="option:-o"></a> <code>-o [01jwWpPxXsS]</code></p><p>For brevity, the <code>-o</code> option is also provided to duplicate the above output options. The
+<code>-o</code> option takes a argument consisting of a sequence of characters. The characters are read
 from left-to-right; each specifies a set of output options. In general, an uppercase character turns
-the option <EM>on</EM>; a lowercase character turns the option <EM>off</EM>.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>0</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>-s --output-only-errors --no-progress</CODE><P>This option specifies that <CODE>omake</CODE> should be as quiet as possible. If any errors occur
+the option <em>on</em>; a lowercase character turns the option <em>off</em>.</p><dl class="description"><dt class="dt-description">
+<span class="c004">0</span></dt><dd class="dd-description"> Equivalent to <code>-s --output-only-errors --no-progress</code><p>This option specifies that <code>omake</code> should be as quiet as possible. If any errors occur
 during the build, the output is delayed until the build terminates. Output from successful commands
-is discarded.</P></DD><DT CLASS="dt-description"><B>1</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>-S --progress --output-only-errors</CODE><P>This is a slightly more relaxed version of &#X201C;quiet&#X201D; output. The output from successful commands is
+is discarded.</p></dd><dt class="dt-description"><span class="c004">1</span></dt><dd class="dd-description"> Equivalent to <code>-S --progress --output-only-errors</code><p>This is a slightly more relaxed version of &#X201C;quiet&#X201D; output. The output from successful commands is
 discarded. The output from failed commands is printed immediately after the command complete. The
 output from failed commands is displayed twice: once immediately after the command completes, and
 again when the build completes. A progress bar is displayed so that you know when the build is
-active. Include the &#X2018;<CODE>p</CODE>&#X2019; option if you want to turn off the progress bar (for example
-<CODE>omake -o 1p</CODE>).</P></DD><DT CLASS="dt-description"><B>2</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--progress --output-postpone</CODE><P>The is even more relaxed, output from successful commands is printed.
-This is often useful for deinterleaving the output when using <CODE>-j</CODE>.</P></DD><DT CLASS="dt-description"><B>W</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>-w</CODE>
-</DD><DT CLASS="dt-description"><B>w</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--no-w</CODE>
-</DD><DT CLASS="dt-description"><B>P</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--progress</CODE>
-</DD><DT CLASS="dt-description"><B>p</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--no--progress</CODE>
-</DD><DT CLASS="dt-description"><B>X</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--print-exit</CODE>
-</DD><DT CLASS="dt-description"><B>x</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--no-print-exit</CODE>
-</DD><DT CLASS="dt-description"><B>S</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>-S</CODE>
-</DD><DT CLASS="dt-description"><B>s</B></DT><DD CLASS="dd-description"> Equivalent to <CODE>--no-S</CODE>
-</DD></DL><H2 CLASS="section"><A NAME="toc112"></A><A NAME="htoc449">A.3</A>&#XA0;&#XA0;Build options</H2><H3 CLASS="subsection"><A NAME="htoc450">A.3.1</A>&#XA0;&#XA0;<TT>-k</TT></H3><P><A NAME="@default604"></A><A NAME="@opt12"></A><A NAME="option:-k"></A> <CODE>-k</CODE></P><P>Do not abort when a build command fails; continue to build as much of the project as possible. This
-option is implied by both <CODE>-p</CODE> and <CODE>-P</CODE> options. In turn, this option would imply the
-<CODE>--output-at-end</CODE> option.</P><H3 CLASS="subsection"><A NAME="htoc451">A.3.2</A>&#XA0;&#XA0;<TT>-n</TT></H3><P><A NAME="@default605"></A><A NAME="@opt13"></A><A NAME="option:-n"></A> <CODE>-n</CODE></P><P>This can be used to see what would happen if the project were to be built.</P><H3 CLASS="subsection"><A NAME="htoc452">A.3.3</A>&#XA0;&#XA0;<TT>-p</TT></H3><P><A NAME="@default606"></A><A NAME="@opt14"></A><A NAME="option:-p"></A> <CODE>-p</CODE></P><P>Watch the filesystem for changes, and continue the build until it succeeds. If this
-option is specified, <TT>omake</TT> will restart the build whenever source files are modified. Implies
-<TT>-k</TT>.</P><H3 CLASS="subsection"><A NAME="htoc453">A.3.4</A>&#XA0;&#XA0;<TT>-P</TT></H3><P><A NAME="@default607"></A><A NAME="@opt15"></A><A NAME="option:-P"></A> <CODE>-P</CODE></P><P>Watch the filesystem for changes forever. If this option is specified, <TT>omake</TT>
+active. Include the &#X2018;<code>p</code>&#X2019; option if you want to turn off the progress bar (for example
+<code>omake -o 1p</code>).</p></dd><dt class="dt-description"><span class="c004">2</span></dt><dd class="dd-description"> Equivalent to <code>--progress --output-postpone</code><p>The is even more relaxed, output from successful commands is printed.
+This is often useful for deinterleaving the output when using <code>-j</code>.</p></dd><dt class="dt-description"><span class="c004">W</span></dt><dd class="dd-description"> Equivalent to <code>-w</code>
+</dd><dt class="dt-description"><span class="c004">w</span></dt><dd class="dd-description"> Equivalent to <code>--no-w</code>
+</dd><dt class="dt-description"><span class="c004">P</span></dt><dd class="dd-description"> Equivalent to <code>--progress</code>
+</dd><dt class="dt-description"><span class="c004">p</span></dt><dd class="dd-description"> Equivalent to <code>--no--progress</code>
+</dd><dt class="dt-description"><span class="c004">X</span></dt><dd class="dd-description"> Equivalent to <code>--print-exit</code>
+</dd><dt class="dt-description"><span class="c004">x</span></dt><dd class="dd-description"> Equivalent to <code>--no-print-exit</code>
+</dd><dt class="dt-description"><span class="c004">S</span></dt><dd class="dd-description"> Equivalent to <code>-S</code>
+</dd><dt class="dt-description"><span class="c004">s</span></dt><dd class="dd-description"> Equivalent to <code>--no-S</code>
+</dd></dl>
+<h2 class="section" id="sec571">A.3&#XA0;&#XA0;Build options</h2>
+<h3 class="subsection" id="sec572">A.3.1&#XA0;&#XA0;<span class="c001">-k</span></h3>
+<p><a id="hevea_default604"></a><a id="hevea_opt12"></a><a id="option:-k"></a> <code>-k</code></p><p>Do not abort when a build command fails; continue to build as much of the project as possible. This
+option is implied by both <code>-p</code> and <code>-P</code> options. In turn, this option would imply the
+<code>--output-at-end</code> option.</p>
+<h3 class="subsection" id="sec573">A.3.2&#XA0;&#XA0;<span class="c001">-n</span></h3>
+<p><a id="hevea_default605"></a><a id="hevea_opt13"></a><a id="option:-n"></a> <code>-n</code></p><p>This can be used to see what would happen if the project were to be built.</p>
+<h3 class="subsection" id="sec574">A.3.3&#XA0;&#XA0;<span class="c001">-p</span></h3>
+<p><a id="hevea_default606"></a><a id="hevea_opt14"></a><a id="option:-p"></a> <code>-p</code></p><p>Watch the filesystem for changes, and continue the build until it succeeds. If this
+option is specified, <span class="c001">omake</span> will restart the build whenever source files are modified. Implies
+<span class="c001">-k</span>.</p>
+<h3 class="subsection" id="sec575">A.3.4&#XA0;&#XA0;<span class="c001">-P</span></h3>
+<p><a id="hevea_default607"></a><a id="hevea_opt15"></a><a id="option:-P"></a> <code>-P</code></p><p>Watch the filesystem for changes forever. If this option is specified, <span class="c001">omake</span>
 will restart the build whenever source files are modified. Implies
-<TT>-k</TT>.</P><H3 CLASS="subsection"><A NAME="htoc454">A.3.5</A>&#XA0;&#XA0;<TT>-R</TT></H3><P><A NAME="@default608"></A><A NAME="@opt16"></A><A NAME="option:-R"></A> <CODE>-R</CODE></P><P>Ignore the current directory and build the project from its root directory. When <TT>omake</TT> is
+<span class="c001">-k</span>.</p>
+<h3 class="subsection" id="sec576">A.3.5&#XA0;&#XA0;<span class="c001">-R</span></h3>
+<p><a id="hevea_default608"></a><a id="hevea_opt16"></a><a id="option:-R"></a> <code>-R</code></p><p>Ignore the current directory and build the project from its root directory. When <span class="c001">omake</span> is
 run in a subdirectory of a project and no explicit targets are given on the command line, it would
 normally only build files within the current directory and its subdirectories (more precisely, it
-builds all the <CODE>.DEFAULT</CODE> targets in the current directory and its subdirectories). If the
-<TT>-R</TT> option is specified, the build is performed as if <TT>omake</TT> were run in the project
-root.</P><P>In other words, with the <CODE>-R</CODE> option, all the relative targets specified on the command line
+builds all the <code>.DEFAULT</code> targets in the current directory and its subdirectories). If the
+<span class="c001">-R</span> option is specified, the build is performed as if <span class="c001">omake</span> were run in the project
+root.</p><p>In other words, with the <code>-R</code> option, all the relative targets specified on the command line
 will be taken relative to the project root (instead of relative to the current directory). When no
-targets are given on the command line, all the <CODE>.DEFAULT</CODE> targets in the project will be built
-(regardless of the current directory).</P><H3 CLASS="subsection"><A NAME="htoc455">A.3.6</A>&#XA0;&#XA0;<TT>-t</TT></H3><P><A NAME="@default609"></A><A NAME="@opt17"></A><A NAME="option:-t"></A> <CODE>-t</CODE></P><P>Update the <TT>omake</TT> database to force the project to be considered up-to-date.</P><H3 CLASS="subsection"><A NAME="htoc456">A.3.7</A>&#XA0;&#XA0;<TT>-U</TT></H3><P><A NAME="@default610"></A><A NAME="@opt18"></A><A NAME="option:-U"></A> <CODE>-U</CODE></P><P>Do not trust cached build information. This will force the entire project to be rebuilt.</P><H3 CLASS="subsection"><A NAME="htoc457">A.3.8</A>&#XA0;&#XA0;<TT>--depend</TT></H3><P><A NAME="@default611"></A><A NAME="@opt19"></A><A NAME="option:--depend"></A> <CODE>--depend</CODE></P><P>Do not trust cached dependency information. This will force files to be rescanned
-for dependency information.</P><H3 CLASS="subsection"><A NAME="htoc458">A.3.9</A>&#XA0;&#XA0;<TT>--configure</TT></H3><P><A NAME="@default612"></A><A NAME="@opt20"></A><A NAME="option:--configure"></A> <CODE>--configure</CODE></P><P>Re-run <CODE>static.</CODE> sections of the included omake files, instead of
-trusting the cached results.</P><H3 CLASS="subsection"><A NAME="htoc459">A.3.10</A>&#XA0;&#XA0;<TT>--force-dotomake</TT></H3><P><A NAME="@default613"></A><A NAME="@opt21"></A><A NAME="option:--force-dotomake"></A> <CODE>--force-dotomake</CODE></P><P>Always use the <CODE>$HOME/.omake</CODE> for the <CODE>.omc</CODE> cache files.</P><H3 CLASS="subsection"><A NAME="htoc460">A.3.11</A>&#XA0;&#XA0;<TT>--dotomake</TT></H3><P><A NAME="@default614"></A><A NAME="@opt22"></A><A NAME="option:--dotomake"></A> <CODE>--dotomake &lt;dir&gt;</CODE></P><P>Use the specified directory instead of the <CODE>$HOME/.omake</CODE>
-for the placement of the <CODE>.omc</CODE> cache files.</P><H3 CLASS="subsection"><A NAME="htoc461">A.3.12</A>&#XA0;&#XA0;<TT>-j</TT></H3><P><A NAME="@default615"></A><A NAME="@opt23"></A><A NAME="option:-j"></A> <CODE>-j &lt;count&gt;</CODE></P><P>Run multiple build commands in parallel. The <TT>count</TT> specifies a
+targets are given on the command line, all the <code>.DEFAULT</code> targets in the project will be built
+(regardless of the current directory).</p>
+<h3 class="subsection" id="sec577">A.3.6&#XA0;&#XA0;<span class="c001">-t</span></h3>
+<p><a id="hevea_default609"></a><a id="hevea_opt17"></a><a id="option:-t"></a> <code>-t</code></p><p>Update the <span class="c001">omake</span> database to force the project to be considered up-to-date.</p>
+<h3 class="subsection" id="sec578">A.3.7&#XA0;&#XA0;<span class="c001">-U</span></h3>
+<p><a id="hevea_default610"></a><a id="hevea_opt18"></a><a id="option:-U"></a> <code>-U</code></p><p>Do not trust cached build information. This will force the entire project to be rebuilt.</p>
+<h3 class="subsection" id="sec579">A.3.8&#XA0;&#XA0;<span class="c001">--depend</span></h3>
+<p><a id="hevea_default611"></a><a id="hevea_opt19"></a><a id="option:--depend"></a> <code>--depend</code></p><p>Do not trust cached dependency information. This will force files to be rescanned
+for dependency information.</p>
+<h3 class="subsection" id="sec580">A.3.9&#XA0;&#XA0;<span class="c001">--configure</span></h3>
+<p><a id="hevea_default612"></a><a id="hevea_opt20"></a><a id="option:--configure"></a> <code>--configure</code></p><p>Re-run <code>static.</code> sections of the included omake files, instead of
+trusting the cached results.</p>
+<h3 class="subsection" id="sec581">A.3.10&#XA0;&#XA0;<span class="c001">--force-dotomake</span></h3>
+<p><a id="hevea_default613"></a><a id="hevea_opt21"></a><a id="option:--force-dotomake"></a> <code>--force-dotomake</code></p><p>Always use the <code>$HOME/.omake</code> for the <code>.omc</code> cache files.</p>
+<h3 class="subsection" id="sec582">A.3.11&#XA0;&#XA0;<span class="c001">--dotomake</span></h3>
+<p><a id="hevea_default614"></a><a id="hevea_opt22"></a><a id="option:--dotomake"></a> <code>--dotomake &lt;dir&gt;</code></p><p>Use the specified directory instead of the <code>$HOME/.omake</code>
+for the placement of the <code>.omc</code> cache files.</p>
+<h3 class="subsection" id="sec583">A.3.12&#XA0;&#XA0;<span class="c001">-j</span></h3>
+<p><a id="hevea_default615"></a><a id="hevea_opt23"></a><a id="option:-j"></a> <code>-j &lt;count&gt;</code></p><p>Run multiple build commands in parallel. The <span class="c001">count</span> specifies a
 bound on the number of commands to run simultaneously. In addition, the count may specify servers
-for remote execution of commands in the form <CODE>server=count</CODE>. For example, the option
-<CODE>-j 2:small.host.org=1:large.host.org=4</CODE> would specify that up to 2 jobs can be executed
-locally, 1 on the server <CODE>small.host.org</CODE> and 4 on <CODE>large.host.org</CODE>. Each remote server
-must use the same filesystem location for the project.</P><P>Remote execution is currently an experimental feature. Remote filesystems like NFS do not provide
-adequate file consistency for this to work.</P><H3 CLASS="subsection"><A NAME="htoc462">A.3.13</A>&#XA0;&#XA0;<TT>--print-dependencies</TT></H3><P><A NAME="@default616"></A><A NAME="@opt24"></A><A NAME="option:--print-dependencies"></A> <CODE>--print-dependencies</CODE></P><P>Print dependency information for the targets on the command line.</P><H3 CLASS="subsection"><A NAME="htoc463">A.3.14</A>&#XA0;&#XA0;<TT>--show-dependencies</TT></H3><P><A NAME="@default617"></A><A NAME="@opt25"></A><A NAME="option:--show-dependencies"></A> <CODE>--show-dependencies &lt;target&gt;</CODE></P><P>Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.</P><H3 CLASS="subsection"><A NAME="htoc464">A.3.15</A>&#XA0;&#XA0;<TT>--all-dependencies</TT></H3><P><A NAME="@default618"></A><A NAME="@opt26"></A><A NAME="option:--all-dependencies"></A> <CODE>--all-dependencies</CODE></P><P>If either of the options <TT>--print-dependencies</TT> or
-<TT>--show-dependencies</TT> is in effect, print transitive dependencies. That is, print all
-dependencies recursively. If neither option <TT>--print-dependencies</TT>,
-<TT>--show-dependencies</TT> is specified, this option has no effect.</P><H3 CLASS="subsection"><A NAME="htoc465">A.3.16</A>&#XA0;&#XA0;<TT>--verbose-dependencies</TT></H3><P><A NAME="@default619"></A><A NAME="@opt27"></A><A NAME="option:--verbose-dependencies"></A> <CODE>--verbose-dependencies</CODE></P><P>If either of the options <TT>--print-dependencies</TT> or
-<TT>--show-dependencies</TT> is in effect, also print listings for each dependency. The output is
-very verbose, consider redirecting to a file. If neither option <TT>--print-dependencies</TT>,
-<TT>--show-dependencies</TT> is specified, this option has no effect.</P><H3 CLASS="subsection"><A NAME="htoc466">A.3.17</A>&#XA0;&#XA0;<TT>--install</TT></H3><P><A NAME="@default620"></A><A NAME="@opt28"></A><A NAME="option:--install"></A> <CODE>--install</CODE></P><P>Install default files <TT>OMakefile</TT> and <TT>OMakeroot</TT> into the current directory. You would
-typically do this to start a project in the current directory.</P><H3 CLASS="subsection"><A NAME="htoc467">A.3.18</A>&#XA0;&#XA0;<TT>--install-all</TT></H3><P><A NAME="@default621"></A><A NAME="@opt29"></A><A NAME="option:--install-all"></A> <CODE>--install-all</CODE></P><P>In addition to installing files <TT>OMakefile</TT> and <TT>OMakeroot</TT>, install default
-<TT>OMakefile</TT>s into each subdirectory of the current directory. <TT>cvs</TT>(1) rules are used for
-filtering the subdirectory list. For example, <TT>OMakefile</TT>s are not copied into directories
-called <CODE>CVS</CODE>, <CODE>RCCS</CODE>, etc.</P><H3 CLASS="subsection"><A NAME="htoc468">A.3.19</A>&#XA0;&#XA0;<TT>--install-force</TT></H3><P><A NAME="@default622"></A><A NAME="@opt30"></A><A NAME="option:--install-force"></A> <CODE>--install-force</CODE></P><P>Normally, <TT>omake</TT> will prompt before it overwrites any existing <TT>OMakefile</TT>. If this
-option is given, all files are forcibly overwritten without prompting.</P><H3 CLASS="subsection"><A NAME="htoc469">A.3.20</A>&#XA0;&#XA0;<TT>--absname</TT></H3><P><A NAME="@default623"></A><A NAME="@opt31"></A><A NAME="option:--absname"></A> <CODE>--absname</CODE></P><P>Filenames should expand to absolute pathnames.</P><P><B>N.B.</B> This is an experimental option. It may become deprecated.</P><H3 CLASS="subsection"><A NAME="htoc470">A.3.21</A>&#XA0;&#XA0;<TT>variable definition</TT></H3><P><A NAME="@default624"></A><A NAME="@opt32"></A><A NAME="option:variable definition"></A> <CODE>name=[value]</CODE></P><P><TT>omake</TT> variables can also be defined on the command line in the form <CODE>name=value</CODE>. For
-example, the <CODE>CFLAGS</CODE> variable might be defined on the command line with the argument
-<CODE>CFLAGS="-Wall -g"</CODE>.</P><H2 CLASS="section"><A NAME="toc113"></A><A NAME="htoc471">A.4</A>&#XA0;&#XA0;Additional options</H2><P>In addition, <TT>omake</TT> supports a number of debugging flags on the command line. Run
-<CODE>omake --help</CODE> to get a summary of these flags.</P><H2 CLASS="section"><A NAME="toc114"></A><A NAME="htoc472">A.5</A>&#XA0;&#XA0;Environment variables</H2><H3 CLASS="subsection"><A NAME="htoc473">A.5.1</A>&#XA0;&#XA0;<TT>OMAKEFLAGS</TT></H3><P>
-<A NAME="@default625"></A></P><P>If defines, the <CODE>OMAKEFLAGS</CODE> should specify a set of options exactly as they are specified on
-the command line.</P><H3 CLASS="subsection"><A NAME="htoc474">A.5.2</A>&#XA0;&#XA0;<TT>OMAKELIB</TT></H3><P>
-<A NAME="@default626"></A></P><P>If defined, the <CODE>OMAKELIB</CODE> environment variable should refer to the installed location of the
-OMake standard library. This is the directory that contains <CODE>Pervasives.om</CODE> etc. On a Unix
-system, this is often <CODE>/usr/lib/omake</CODE> or <CODE>/usr/local/lib/omake</CODE>, and on Win32 systems it
-is often <CODE>c:\Program Files\OMake\lib</CODE>.</P><P>If not defined, <CODE>omake</CODE> uses the default configured location. You should normally leave this
-unset.</P><H2 CLASS="section"><A NAME="toc115"></A><A NAME="htoc475">A.6</A>&#XA0;&#XA0;Functions</H2><H3 CLASS="subsection"><A NAME="htoc476">A.6.1</A>&#XA0;&#XA0;<TT>OMakeFlags</TT></H3><P>The <CODE>OMakeFlags</CODE> function can be used within an <CODE>OMakefile</CODE> to modify
+for remote execution of commands in the form <code>server=count</code>. For example, the option
+<code>-j 2:small.host.org=1:large.host.org=4</code> would specify that up to 2 jobs can be executed
+locally, 1 on the server <code>small.host.org</code> and 4 on <code>large.host.org</code>. Each remote server
+must use the same filesystem location for the project.</p><p>Remote execution is currently an experimental feature. Remote filesystems like NFS do not provide
+adequate file consistency for this to work.</p>
+<h3 class="subsection" id="sec584">A.3.13&#XA0;&#XA0;<span class="c001">--print-dependencies</span></h3>
+<p><a id="hevea_default616"></a><a id="hevea_opt24"></a><a id="option:--print-dependencies"></a> <code>--print-dependencies</code></p><p>Print dependency information for the targets on the command line.</p>
+<h3 class="subsection" id="sec585">A.3.14&#XA0;&#XA0;<span class="c001">--show-dependencies</span></h3>
+<p><a id="hevea_default617"></a><a id="hevea_opt25"></a><a id="option:--show-dependencies"></a> <code>--show-dependencies &lt;target&gt;</code></p><p>Print dependency information <em>if</em> the <code>target</code> is built.</p>
+<h3 class="subsection" id="sec586">A.3.15&#XA0;&#XA0;<span class="c001">--all-dependencies</span></h3>
+<p><a id="hevea_default618"></a><a id="hevea_opt26"></a><a id="option:--all-dependencies"></a> <code>--all-dependencies</code></p><p>If either of the options <span class="c001">--print-dependencies</span> or
+<span class="c001">--show-dependencies</span> is in effect, print transitive dependencies. That is, print all
+dependencies recursively. If neither option <span class="c001">--print-dependencies</span>,
+<span class="c001">--show-dependencies</span> is specified, this option has no effect.</p>
+<h3 class="subsection" id="sec587">A.3.16&#XA0;&#XA0;<span class="c001">--verbose-dependencies</span></h3>
+<p><a id="hevea_default619"></a><a id="hevea_opt27"></a><a id="option:--verbose-dependencies"></a> <code>--verbose-dependencies</code></p><p>If either of the options <span class="c001">--print-dependencies</span> or
+<span class="c001">--show-dependencies</span> is in effect, also print listings for each dependency. The output is
+very verbose, consider redirecting to a file. If neither option <span class="c001">--print-dependencies</span>,
+<span class="c001">--show-dependencies</span> is specified, this option has no effect.</p>
+<h3 class="subsection" id="sec588">A.3.17&#XA0;&#XA0;<span class="c001">--install</span></h3>
+<p><a id="hevea_default620"></a><a id="hevea_opt28"></a><a id="option:--install"></a> <code>--install</code></p><p>Install default files <span class="c001">OMakefile</span> and <span class="c001">OMakeroot</span> into the current directory. You would
+typically do this to start a project in the current directory.</p>
+<h3 class="subsection" id="sec589">A.3.18&#XA0;&#XA0;<span class="c001">--install-all</span></h3>
+<p><a id="hevea_default621"></a><a id="hevea_opt29"></a><a id="option:--install-all"></a> <code>--install-all</code></p><p>In addition to installing files <span class="c001">OMakefile</span> and <span class="c001">OMakeroot</span>, install default
+<span class="c001">OMakefile</span>s into each subdirectory of the current directory. <span class="c001">cvs</span>(1) rules are used for
+filtering the subdirectory list. For example, <span class="c001">OMakefile</span>s are not copied into directories
+called <code>CVS</code>, <code>RCCS</code>, etc.</p>
+<h3 class="subsection" id="sec590">A.3.19&#XA0;&#XA0;<span class="c001">--install-force</span></h3>
+<p><a id="hevea_default622"></a><a id="hevea_opt30"></a><a id="option:--install-force"></a> <code>--install-force</code></p><p>Normally, <span class="c001">omake</span> will prompt before it overwrites any existing <span class="c001">OMakefile</span>. If this
+option is given, all files are forcibly overwritten without prompting.</p>
+<h3 class="subsection" id="sec591">A.3.20&#XA0;&#XA0;<span class="c001">--absname</span></h3>
+<p><a id="hevea_default623"></a><a id="hevea_opt31"></a><a id="option:--absname"></a> <code>--absname</code></p><p>Filenames should expand to absolute pathnames.</p><p><span class="c004">N.B.</span> This is an experimental option. It may become deprecated.</p>
+<h3 class="subsection" id="sec592">A.3.21&#XA0;&#XA0;<span class="c001">variable definition</span></h3>
+<p><a id="hevea_default624"></a><a id="hevea_opt32"></a><a id="option:variable definition"></a> <code>name=[value]</code></p><p><span class="c001">omake</span> variables can also be defined on the command line in the form <code>name=value</code>. For
+example, the <code>CFLAGS</code> variable might be defined on the command line with the argument
+<code>CFLAGS="-Wall -g"</code>.</p>
+<h2 class="section" id="sec593">A.4&#XA0;&#XA0;Additional options</h2>
+<p>In addition, <span class="c001">omake</span> supports a number of debugging flags on the command line. Run
+<code>omake --help</code> to get a summary of these flags.</p>
+<h2 class="section" id="sec594">A.5&#XA0;&#XA0;Environment variables</h2>
+<h3 class="subsection" id="sec595">A.5.1&#XA0;&#XA0;<span class="c001">OMAKEFLAGS</span></h3>
+<p>
+<a id="hevea_default625"></a></p><p>If defines, the <code>OMAKEFLAGS</code> should specify a set of options exactly as they are specified on
+the command line.</p>
+<h3 class="subsection" id="sec596">A.5.2&#XA0;&#XA0;<span class="c001">OMAKELIB</span></h3>
+<p>
+<a id="hevea_default626"></a></p><p>If defined, the <code>OMAKELIB</code> environment variable should refer to the installed location of the
+OMake standard library. This is the directory that contains <code>Pervasives.om</code> etc. On a Unix
+system, this is often <code>/usr/lib/omake</code> or <code>/usr/local/lib/omake</code>, and on Win32 systems it
+is often <code>c:\Program Files\OMake\lib</code>.</p><p>If not defined, <code>omake</code> uses the default configured location. You should normally leave this
+unset.</p>
+<h2 class="section" id="sec597">A.6&#XA0;&#XA0;Functions</h2>
+<h3 class="subsection" id="sec598">A.6.1&#XA0;&#XA0;<span class="c001">OMakeFlags</span></h3>
+<p>The <code>OMakeFlags</code> function can be used within an <code>OMakefile</code> to modify
 the set of options. The options should be specified exactly as they are on the command line. For
 example, if you want some specific project to be silent and display a progress bar, you can add the
-following line to your <CODE>OMakefile</CODE>.</P><PRE CLASS="verbatim">    OMakeFlags(-S --progress)
-</PRE><P>For options where it makes sense, the options are scoped like variables. For example, if you want
+following line to your <code>OMakefile</code>.</p><pre class="verbatim">    OMakeFlags(-S --progress)
+</pre><p>For options where it makes sense, the options are scoped like variables. For example, if you want
 OMake to be silent for a single rule (instead of for the entire project), you can use scoping the
-restrict the range of the option.</P><PRE CLASS="verbatim">    section
+restrict the range of the option.</p><pre class="verbatim">    section
         # Do not display command output when foo is constructed
         OMakeFlags(-S)
 
@@ -175,30 +255,36 @@ restrict the range of the option.</P><PRE CLASS="verbatim">    section
            echo "This is a generated file" &gt; foo
            cat fee &gt;&gt; foo
            chmod 555 foo
-</PRE><H2 CLASS="section"><A NAME="toc116"></A><A NAME="htoc477">A.7</A>&#XA0;&#XA0;Option processing</H2><P>When <CODE>omake</CODE> is invoked, the options are processed in the following order.</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
-All options specified by the <CODE>OMAKEFLAGS</CODE> environment variable are defined globally.
-</LI><LI CLASS="li-enumerate">All options from the command line are defined globally.
-</LI><LI CLASS="li-enumerate">Any individual calls the the <CODE>OMakeFlags</CODE> function modify the options locally.
-</LI></OL><H2 CLASS="section"><A NAME="toc117"></A><A NAME="htoc478">A.8</A>&#XA0;&#XA0;.omakerc</H2><P>
-<A NAME="section:.omakerc"></A>
-<A NAME="@default627"></A></P><P>If the <CODE>$(HOME)/.omakerc</CODE> exists, it is read before any of the <CODE>OMakefiles</CODE> in your
-project. The <CODE>.omakerc</CODE> file is frequently used for user-specific customization.
-For example, instead of defining the <CODE>OMAKEFLAGS</CODE> environment variable, you could add
-a line to your <CODE>.omakerc</CODE>.</P><PRE CLASS="verbatim">    $(HOME)/.omakerc:
+</pre>
+<h2 class="section" id="sec599">A.7&#XA0;&#XA0;Option processing</h2>
+<p>When <code>omake</code> is invoked, the options are processed in the following order.</p><ol class="enumerate" type=1><li class="li-enumerate">
+All options specified by the <code>OMAKEFLAGS</code> environment variable are defined globally.
+</li><li class="li-enumerate">All options from the command line are defined globally.
+</li><li class="li-enumerate">Any individual calls the the <code>OMakeFlags</code> function modify the options locally.
+</li></ol>
+<h2 class="section" id="sec600">A.8&#XA0;&#XA0;.omakerc</h2>
+<p>
+<a id="section:.omakerc"></a>
+<a id="hevea_default627"></a></p><p>If the <code>$(HOME)/.omakerc</code> exists, it is read before any of the <code>OMakefiles</code> in your
+project. The <code>.omakerc</code> file is frequently used for user-specific customization.
+For example, instead of defining the <code>OMAKEFLAGS</code> environment variable, you could add
+a line to your <code>.omakerc</code>.</p><pre class="verbatim">    $(HOME)/.omakerc:
         # My private options
         OMakeFlags(-S --progress)
-</PRE>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</pre>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

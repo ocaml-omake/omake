@@ -1,104 +1,118 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>OMake grammar</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>OMake grammar</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc479">Appendix&#XA0;B</A>&#XA0;&#XA0;OMake grammar</H1><UL>
-<LI><A HREF="omake-grammar.html#toc118">OMake lexical conventions</A>
-</LI><LI><A HREF="omake-grammar.html#toc119">The OMake grammar</A>
-</LI><LI><A HREF="omake-grammar.html#toc120">Dollar modifiers</A>
-</LI><LI><A HREF="omake-grammar.html#toc121">Programming syntax</A>
-</LI></UL>
-<P>
-<A NAME="chapter:grammar"></A>
-</P><H2 CLASS="section"><A NAME="toc118"></A><A NAME="htoc480">B.1</A>&#XA0;&#XA0;OMake lexical conventions</H2><P>The OMake language is based on the language for GNU/BSD make, where there are few lexical
-conventions. Strictly speaking, there are no keywords, and few special symbols.</P><H3 CLASS="subsection"><A NAME="htoc481">B.1.1</A>&#XA0;&#XA0;Comments</H3><P>Comments begin with the <CODE>#</CODE> character and continue to the end-of-line.
-Text within a comment is unrestricted.</P><P>Examples.</P><PRE CLASS="verbatim">   # This is a comment
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec601">Appendix&#XA0;B&#XA0;&#XA0;OMake grammar</h1>
+<ul>
+<li><a href="omake-grammar.html#sec602">OMake lexical conventions</a>
+</li><li><a href="omake-grammar.html#sec609">The OMake grammar</a>
+</li><li><a href="omake-grammar.html#sec619">Dollar modifiers</a>
+</li><li><a href="omake-grammar.html#sec620">Programming syntax</a>
+</li></ul>
+<p>
+<a id="chapter:grammar"></a>
+</p>
+<h2 class="section" id="sec602">B.1&#XA0;&#XA0;OMake lexical conventions</h2>
+<p>The OMake language is based on the language for GNU/BSD make, where there are few lexical
+conventions. Strictly speaking, there are no keywords, and few special symbols.</p>
+<h3 class="subsection" id="sec603">B.1.1&#XA0;&#XA0;Comments</h3>
+<p>Comments begin with the <code>#</code> character and continue to the end-of-line.
+Text within a comment is unrestricted.</p><p>Examples.</p><pre class="verbatim">   # This is a comment
    # This $comment contains a quote " character
-</PRE><H3 CLASS="subsection"><A NAME="htoc482">B.1.2</A>&#XA0;&#XA0;Special characters</H3><P>The following characters are special in some contexts.</P><PRE CLASS="verbatim">   $    (    )    ,    .   =    :    "    '    `    \    #
-</PRE><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$</CODE> is used to denote a variable reference, or function application.
-</LI><LI CLASS="li-itemize">Parentheses <CODE>)</CODE>, <CODE>(</CODE> are argument deliminters.
-</LI><LI CLASS="li-itemize">The command <CODE>,</CODE> is an argument separator.
-</LI><LI CLASS="li-itemize">The period symbol <CODE>.</CODE> is a name separator.
-</LI><LI CLASS="li-itemize">The equality symbol <CODE>=</CODE> denotes a definition.
-</LI><LI CLASS="li-itemize">The colon symbol <CODE>:</CODE> is used to denote rules, and (optionally) to indicate
+</pre>
+<h3 class="subsection" id="sec604">B.1.2&#XA0;&#XA0;Special characters</h3>
+<p>The following characters are special in some contexts.</p><pre class="verbatim">   $    (    )    ,    .   =    :    "    '    `    \    #
+</pre><ul class="itemize"><li class="li-itemize">
+<code>$</code> is used to denote a variable reference, or function application.
+</li><li class="li-itemize">Parentheses <code>)</code>, <code>(</code> are argument deliminters.
+</li><li class="li-itemize">The command <code>,</code> is an argument separator.
+</li><li class="li-itemize">The period symbol <code>.</code> is a name separator.
+</li><li class="li-itemize">The equality symbol <code>=</code> denotes a definition.
+</li><li class="li-itemize">The colon symbol <code>:</code> is used to denote rules, and (optionally) to indicate
 that an expression is followed by an indented body.
-</LI><LI CLASS="li-itemize">The quotation symbols <CODE>"</CODE> and <CODE>'</CODE> delimit character strings.
-</LI><LI CLASS="li-itemize">The symbol <CODE>#</CODE> is the first character of a constant.
-</LI><LI CLASS="li-itemize">The escape symbol <CODE>\</CODE> is special <EM>only when</EM> followed by another special
+</li><li class="li-itemize">The quotation symbols <code>"</code> and <code>'</code> delimit character strings.
+</li><li class="li-itemize">The symbol <code>#</code> is the first character of a constant.
+</li><li class="li-itemize">The escape symbol <code>\</code> is special <em>only when</em> followed by another special
 character. In this case, the special status of the second character is removed,
-and the sequence denotes the second character. Otherwise, the <CODE>\</CODE> is not special.<P>Examples:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>\$</CODE>: the <CODE>$</CODE> character (as a normal character).
-</LI><LI CLASS="li-itemize"><CODE>\#</CODE>: the <CODE>#</CODE> character (as a normal character).
-</LI><LI CLASS="li-itemize"><CODE>\\</CODE>: the <CODE>\</CODE> character (as a normal character).
-</LI><LI CLASS="li-itemize"><CODE>c\:\Windows\moo\#boo</CODE>: the string <CODE>c:\Windows\moo#boo</CODE>.
-</LI></UL></LI></UL><H3 CLASS="subsection"><A NAME="htoc483">B.1.3</A>&#XA0;&#XA0;Identifiers</H3><P>Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as <CODE>_</CODE>,
-<CODE>-</CODE>, <CODE>~</CODE>, <CODE>@</CODE>. Case is significant; the following identifiers are distinct:
-<CODE>FOO</CODE>, <CODE>Foo</CODE>, <CODE>foo</CODE>. The identifier may begin with any of the valid characters,
-including digits.</P><P>Using <CODE>egrep</CODE> notation, the regular expression for identifiers is defined as follows.</P><PRE CLASS="verbatim">    identifier ::= [-@~_A-Za-z0-9]+
-</PRE><P>The following are legal identifiers.</P><PRE CLASS="verbatim">    Xyz    hello_world    seventy@nine
+and the sequence denotes the second character. Otherwise, the <code>\</code> is not special.<p>Examples:</p><ul class="itemize"><li class="li-itemize">
+<code>\$</code>: the <code>$</code> character (as a normal character).
+</li><li class="li-itemize"><code>\#</code>: the <code>#</code> character (as a normal character).
+</li><li class="li-itemize"><code>\\</code>: the <code>\</code> character (as a normal character).
+</li><li class="li-itemize"><code>c\:\Windows\moo\#boo</code>: the string <code>c:\Windows\moo#boo</code>.
+</li></ul></li></ul>
+<h3 class="subsection" id="sec605">B.1.3&#XA0;&#XA0;Identifiers</h3>
+<p>Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as <code>_</code>,
+<code>-</code>, <code>~</code>, <code>@</code>. Case is significant; the following identifiers are distinct:
+<code>FOO</code>, <code>Foo</code>, <code>foo</code>. The identifier may begin with any of the valid characters,
+including digits.</p><p>Using <code>egrep</code> notation, the regular expression for identifiers is defined as follows.</p><pre class="verbatim">    identifier ::= [-@~_A-Za-z0-9]+
+</pre><p>The following are legal identifiers.</p><pre class="verbatim">    Xyz    hello_world    seventy@nine
     79-32  Gnus~Gnats     CFLAGS
-</PRE><P>The following are not legal identifiers.</P><PRE CLASS="verbatim">    x+y    hello&amp;world
-</PRE><H3 CLASS="subsection"><A NAME="htoc484">B.1.4</A>&#XA0;&#XA0;Command identifiers</H3><P>The following words have special significance when they occur as the <EM>first</EM> word
-of a program line. They are not otherwise special.</P><PRE CLASS="verbatim">    case     catch  class    declare    default
+</pre><p>The following are not legal identifiers.</p><pre class="verbatim">    x+y    hello&amp;world
+</pre>
+<h3 class="subsection" id="sec606">B.1.4&#XA0;&#XA0;Command identifiers</h3>
+<p>The following words have special significance when they occur as the <em>first</em> word
+of a program line. They are not otherwise special.</p><pre class="verbatim">    case     catch  class    declare    default
     do       else   elseif   export     extends
     finally  if     import   include    match
     open     raise  return   section    switch
     try      value  when     while
-</PRE><H3 CLASS="subsection"><A NAME="htoc485">B.1.5</A>&#XA0;&#XA0;Variable references</H3><P>A variable reference is denoted with the <CODE>$</CODE> special character followed by an identifier. If
+</pre>
+<h3 class="subsection" id="sec607">B.1.5&#XA0;&#XA0;Variable references</h3>
+<p>A variable reference is denoted with the <code>$</code> special character followed by an identifier. If
 the identifier name has more than one character, it must be enclosed in parentheses. The
-parenthesized version is most common. The following are legal variable references.</P><PRE CLASS="verbatim">    $(Xyz)    $(hello_world)   $(seventy@nine)
+parenthesized version is most common. The following are legal variable references.</p><pre class="verbatim">    $(Xyz)    $(hello_world)   $(seventy@nine)
     $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
-</PRE><P>Single-character references also include several additional identifiers, including <CODE>&amp;*&lt;^?][</CODE>.
-The following are legal single-character references.</P><PRE CLASS="verbatim">   $@   $&amp;   $*   $&lt;   $^   $+   $?   $[   $]
+</pre><p>Single-character references also include several additional identifiers, including <code>&amp;*&lt;^?][</code>.
+The following are legal single-character references.</p><pre class="verbatim">   $@   $&amp;   $*   $&lt;   $^   $+   $?   $[   $]
    $A   $_   $a   $b   $x   $1   $2   $3
-</PRE><P>Note that a non-parenthesized variable reference is limited to a single character, even if it is
-followed by additional legal identifier charqcters. Suppose the value of the <CODE>$x</CODE> variable is
-17. The following examples illustrate evaluation.</P><PRE CLASS="verbatim">    $x           evaluates to    17
+</pre><p>Note that a non-parenthesized variable reference is limited to a single character, even if it is
+followed by additional legal identifier charqcters. Suppose the value of the <code>$x</code> variable is
+17. The following examples illustrate evaluation.</p><pre class="verbatim">    $x           evaluates to    17
     foo$xbar     evaluates to    foo17bar
     foo$(x)bar   evaluates to    foo17bar
-</PRE><P>The special sequence <CODE>$$</CODE> represents the character literal <CODE>$</CODE>. That is, the
-two-character sequences <CODE>\$</CODE> and <CODE>$$</CODE> are normally equalivalent.</P><H3 CLASS="subsection"><A NAME="htoc486">B.1.6</A>&#XA0;&#XA0;String constants</H3><P>
-<A NAME="section:quotes"></A></P><P>Literal strings are defined with matching string delimiters. A left string delimiter begins with
-the dollar-sign <CODE>$</CODE>, and a non-zero number of single-quote or double-quote characters. The
+</pre><p>The special sequence <code>$$</code> represents the character literal <code>$</code>. That is, the
+two-character sequences <code>\$</code> and <code>$$</code> are normally equalivalent.</p>
+<h3 class="subsection" id="sec608">B.1.6&#XA0;&#XA0;String constants</h3>
+<p>
+<a id="section:quotes"></a></p><p>Literal strings are defined with matching string delimiters. A left string delimiter begins with
+the dollar-sign <code>$</code>, and a non-zero number of single-quote or double-quote characters. The
 string is terminated with a matching sequence of quotation symbols. The delimiter quotation may not
 be mixed; it must contain only single-quote characters, or double-quote characters. The following
-are legal strings.</P><PRE CLASS="verbatim">    $'Hello world'
+are legal strings.</p><pre class="verbatim">    $'Hello world'
     $"""printf("Hello world\n")"""
     $''''
 Large "block" of
 text # spanning ''multiple'' lines''''
-</PRE><P>The string delimiters are <EM>not</EM> included in the string constant. In the single-quote form,
-the contents of the string are interpreted verbatim&#X2013;there are no special characters.</P><P>The double-quote form permits expression evaluation within the string, denoted with the <CODE>$</CODE> symbol.
-The following are some examples.</P><PRE CLASS="verbatim">    X = Hello
+</pre><p>The string delimiters are <em>not</em> included in the string constant. In the single-quote form,
+the contents of the string are interpreted verbatim&#X2013;there are no special characters.</p><p>The double-quote form permits expression evaluation within the string, denoted with the <code>$</code> symbol.
+The following are some examples.</p><pre class="verbatim">    X = Hello
     Y = $""$X world""             # Hello world
     Z = $'''$X world'''           # $X world
     I = 3
     W = $"6 &gt; $(add $I, 2)"       # 6 &gt; 5
-</PRE><P>Note that quotation symbols without a leading <CODE>$</CODE> are not treated specially by OMake. The
-quotation symbols is included in the sequence.</P><PRE CLASS="verbatim">    osh&gt;println('Hello world')
+</pre><p>Note that quotation symbols without a leading <code>$</code> are not treated specially by OMake. The
+quotation symbols is included in the sequence.</p><pre class="verbatim">    osh&gt;println('Hello world')
     'Hello world'
     osh&gt;println($'Hello world')
     Hello world
@@ -106,98 +120,111 @@ quotation symbols is included in the sequence.</P><PRE CLASS="verbatim">    osh&
     - : "Hello" : Sequence
     osh&gt;println('$X world')
     Hello world
-</PRE><H2 CLASS="section"><A NAME="toc119"></A><A NAME="htoc487">B.2</A>&#XA0;&#XA0;The OMake grammar</H2><P>OMake programs are constructed from expressions and statements. Generally, an input program
+</pre>
+<h2 class="section" id="sec609">B.2&#XA0;&#XA0;The OMake grammar</h2>
+<p>OMake programs are constructed from expressions and statements. Generally, an input program
 consists of a sequence of statements, each of which consists of one or more lines. Indentation is
 significant&#X2013;if a statement consists of more than one line, the second and remaining lines (called
-the <EM>body</EM>) are usually indented relative to the first line.</P><H3 CLASS="subsection"><A NAME="htoc488">B.2.1</A>&#XA0;&#XA0;Expressions</H3><P>The following table lists the syntax for expressions.</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=right NOWRAP><EM>expr</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Text (see note)</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>text</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>string-literal</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Applications</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>dollar</EM> <CODE>&lt;char&gt;</CODE></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>dollar</EM> <CODE>(</CODE> <EM>pathid args</EM> <CODE>)</CODE></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Concatenation</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>expr expr</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>dollar</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><CODE>$</CODE> | <CODE>$`</CODE> | <CODE>$,</CODE></TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>pathid</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP><EM>id</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM> <CODE>.</CODE> <EM>id</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>arg</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>expr</EM> &#X2013; excluding special characters <CODE>)(,</CODE>)</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>args</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM> | <EM>arg</EM>, ..., <EM>arg</EM></TD></TR>
-</TABLE><P>An <EM>expression</EM> is a sequence composed of text, string-literals, variables references and
-function applications. Text is any sequence of non-special characters.</P><H4 CLASS="subsubsection"><A NAME="htoc489">B.2.1.1</A>&#XA0;&#XA0;Inline applications</H4><P>An <EM>application</EM> is the application of a function to zero-or-more arguments. Inline
-applications begin with one of the &#X201C;dollar&#X201D; sequences <CODE>$</CODE>, <CODE>$`</CODE>, or <CODE>$,</CODE>. The
+the <em>body</em>) are usually indented relative to the first line.</p>
+<h3 class="subsection" id="sec610">B.2.1&#XA0;&#XA0;Expressions</h3>
+<p>The following table lists the syntax for expressions.</p><table class="c000 cellpading0"><tr><td class="c007"><em>expr</em></td><td class="c005">::=</td><td class="c006">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006"><em>(empty)</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Text (see note)</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>text</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>string-literal</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Applications</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>dollar</em> <code>&lt;char&gt;</code></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>dollar</em> <code>(</code> <em>pathid args</em> <code>)</code></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Concatenation</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>expr expr</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>dollar</em></td><td class="c005">::=</td><td class="c006"><code>$</code> | <code>$`</code> | <code>$,</code>
+</td></tr>
+<tr><td class="c007"><em>pathid</em></td><td class="c005">::=</td><td class="c006">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006"><em>id</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em> <code>.</code> <em>id</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>arg</em></td><td class="c005">::=</td><td class="c006"><em>expr</em> &#X2013; excluding special characters <code>)(,</code>)</td></tr>
+<tr><td class="c007"><em>args</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em> | <em>arg</em>, ..., <em>arg</em>
+</td></tr>
+</table><p>An <em>expression</em> is a sequence composed of text, string-literals, variables references and
+function applications. Text is any sequence of non-special characters.</p>
+<h4 class="subsubsection" id="sec611">B.2.1.1&#XA0;&#XA0;Inline applications</h4>
+<p>An <em>application</em> is the application of a function to zero-or-more arguments. Inline
+applications begin with one of the &#X201C;dollar&#X201D; sequences <code>$</code>, <code>$`</code>, or <code>$,</code>. The
 application itself is specified as a single character (in which case it is a variable reference), or
-it is a parenthesized list including a function identifier <EM>pathid</EM>, and zero-or-more
-comma-separated arguments <EM>args</EM>. The arguments are themselves a variant of the expressions
-where the special character <CODE>)(,</CODE> are not allowed (though any of these may be made non-special
-with the <CODE>\</CODE> escape character). The following are some examples of valid expressions.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>xyz abc</CODE><P>The text sequence &#X201C;<CODE>xyz abc</CODE>&#X201D;</P></LI><LI CLASS="li-itemize"><CODE>xyz$wabc</CODE><P>A text sequence containing a reference to the variable <CODE>w</CODE>.</P></LI><LI CLASS="li-itemize"><CODE>$(addsuffix .c, $(FILES))</CODE><P>An application of the function <CODE>addsuffix</CODE>, with first argument <CODE>.c</CODE>, and second argument <CODE>$(FILES)</CODE>.</P></LI><LI CLASS="li-itemize"><CODE>$(a.b.c 12)</CODE><P>This is a method call. The variable <CODE>a</CODE> must evaluate to an object with a field <CODE>b</CODE>,
-which must be an object with a method <CODE>c</CODE>. This method is called with argument <CODE>12</CODE>.
-</P></LI></UL><P>The additional dollar sequences specify evaluation order, <CODE>$`</CODE> (lazy) and <CODE>$,</CODE> (eager), as
-discussed in the section on dollar modifiers (Section&#XA0;<A HREF="#section:dollar">B.3</A>).</P><H3 CLASS="subsection"><A NAME="htoc490">B.2.2</A>&#XA0;&#XA0;Statements and programs</H3><P>The following table lists the syntax of statements and programs.</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=right NOWRAP><EM>params</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM> | <EM>id</EM>, ..., <EM>id</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>target</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>expr</EM> &#X2013; excluding special character <CODE>:</CODE></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>program</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>stmt</EM> <CODE>&lt;eol&gt;</CODE> ... <CODE>&lt;eol&gt;</CODE> <EM>stmt</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>stmt</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Special forms</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>command</TT> <EM>expr optcolon-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>command</TT> ( <EM>args</EM> ) <EM>optcolon-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>catch</TT> <EM>id</EM> ( <EM>id</EM> ) <EM>optcolon-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>class</TT> <EM>id</EM> ... <EM>id</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Variable definitions</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM> {+}= <EM>expr</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM> {+}= <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM><CODE>[]</CODE> {+}= <EM>expr</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM><CODE>[]</CODE> {+}= <CODE>&lt;eol&gt;</CODE> <EM>indented-exprs</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Functions</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM>(<EM>args</EM>) <EM>optcolon-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM>(<EM>params</EM>) = <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Objects</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>pathid</EM> <CODE>.</CODE> {+}= <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Rules</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>target</EM> <TT>:</TT> <EM>target rule-options</EM> <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>target</EM> <TT>::</TT> <EM>target rule-options</EM> <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>target</EM> <TT>:</TT> <EM>target</EM> <TT>:</TT> <EM>target rule-options</EM> <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>target</EM> <TT>::</TT> <EM>target</EM> <TT>:</TT> <EM>target rule-options</EM> <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>&nbsp;</TD><TD ALIGN=left NOWRAP>&#X2013; Shell commands</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>expr</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>indented-body</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>indented-stmt</EM> <CODE>&lt;eol&gt;</CODE> ... <CODE>&lt;eol&gt;</CODE> <EM>indented-stmt</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>indented-exprs</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>indented-expr</EM> <CODE>&lt;eol&gt;</CODE> ... <CODE>&lt;eol&gt;</CODE> <EM>indented-expr</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>optcolon-body</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><TT>:</TT> <CODE>&lt;eol&gt;</CODE> <EM>indented-body</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>rule-option</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>:id: target</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP><EM>rule-options</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>rule-options rule-option</EM></TD></TR>
-</TABLE><H4 CLASS="subsubsection"><A NAME="htoc491">B.2.2.1</A>&#XA0;&#XA0;Special forms</H4><P>The special forms include the following.</P><P><A NAME="@default628"></A><A NAME="@default629"></A><A NAME="@default630"></A><B>Conditionals</B> (see the section on conditionals &#X2014; Section&#XA0;<A HREF="omake-language.html#section:conditionals">4.10</A>). The <CODE>if</CODE> command
+it is a parenthesized list including a function identifier <em>pathid</em>, and zero-or-more
+comma-separated arguments <em>args</em>. The arguments are themselves a variant of the expressions
+where the special character <code>)(,</code> are not allowed (though any of these may be made non-special
+with the <code>\</code> escape character). The following are some examples of valid expressions.</p><ul class="itemize"><li class="li-itemize">
+<code>xyz abc</code><p>The text sequence &#X201C;<code>xyz abc</code>&#X201D;</p></li><li class="li-itemize"><code>xyz$wabc</code><p>A text sequence containing a reference to the variable <code>w</code>.</p></li><li class="li-itemize"><code>$(addsuffix .c, $(FILES))</code><p>An application of the function <code>addsuffix</code>, with first argument <code>.c</code>, and second argument <code>$(FILES)</code>.</p></li><li class="li-itemize"><code>$(a.b.c 12)</code><p>This is a method call. The variable <code>a</code> must evaluate to an object with a field <code>b</code>,
+which must be an object with a method <code>c</code>. This method is called with argument <code>12</code>.
+</p></li></ul><p>The additional dollar sequences specify evaluation order, <code>$`</code> (lazy) and <code>$,</code> (eager), as
+discussed in the section on dollar modifiers (Section&#XA0;<a href="#section%3Adollar">B.3</a>).</p>
+<h3 class="subsection" id="sec612">B.2.2&#XA0;&#XA0;Statements and programs</h3>
+<p>The following table lists the syntax of statements and programs.</p><table class="c000 cellpading0"><tr><td class="c007"><em>params</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em> | <em>id</em>, ..., <em>id</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>target</em></td><td class="c005">::=</td><td class="c006"><em>expr</em> &#X2013; excluding special character <code>:</code></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>program</em></td><td class="c005">::=</td><td class="c006"><em>stmt</em> <code>&lt;eol&gt;</code> ... <code>&lt;eol&gt;</code> <em>stmt</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>stmt</em></td><td class="c005">::=</td><td class="c006">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Special forms</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><span class="c001">command</span> <em>expr optcolon-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><span class="c001">command</span> ( <em>args</em> ) <em>optcolon-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><span class="c001">catch</span> <em>id</em> ( <em>id</em> ) <em>optcolon-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><span class="c001">class</span> <em>id</em> ... <em>id</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Variable definitions</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em> {+}= <em>expr</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em> {+}= <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em><code>[]</code> {+}= <em>expr</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em><code>[]</code> {+}= <code>&lt;eol&gt;</code> <em>indented-exprs</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Functions</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em>(<em>args</em>) <em>optcolon-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em>(<em>params</em>) = <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Objects</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>pathid</em> <code>.</code> {+}= <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Rules</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>target</em> <span class="c001">:</span> <em>target rule-options</em> <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>target</em> <span class="c001">::</span> <em>target rule-options</em> <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>target</em> <span class="c001">:</span> <em>target</em> <span class="c001">:</span> <em>target rule-options</em> <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>target</em> <span class="c001">::</span> <em>target</em> <span class="c001">:</span> <em>target rule-options</em> <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">&nbsp;</td><td class="c006">&#X2013; Shell commands</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>expr</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>indented-body</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>indented-stmt</em> <code>&lt;eol&gt;</code> ... <code>&lt;eol&gt;</code> <em>indented-stmt</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>indented-exprs</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>indented-expr</em> <code>&lt;eol&gt;</code> ... <code>&lt;eol&gt;</code> <em>indented-expr</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>optcolon-body</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><span class="c001">:</span> <code>&lt;eol&gt;</code> <em>indented-body</em></td></tr>
+<tr><td class="c007">&nbsp;</td></tr>
+<tr><td class="c007"><em>rule-option</em></td><td class="c005">::=</td><td class="c006"><em>:id: target</em></td></tr>
+<tr><td class="c007"><em>rule-options</em></td><td class="c005">::=</td><td class="c006"><em>(empty)</em></td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><em>rule-options rule-option</em>
+</td></tr>
+</table>
+<h4 class="subsubsection" id="sec613">B.2.2.1&#XA0;&#XA0;Special forms</h4>
+<p>The special forms include the following.</p><p><a id="hevea_default628"></a><a id="hevea_default629"></a><a id="hevea_default630"></a><span class="c004">Conditionals</span> (see the section on conditionals &#X2014; Section&#XA0;<a href="omake-language.html#section%3Aconditionals">4.10</a>). The <code>if</code> command
 should be followed by an expression that represents the condition, and an indented body. The
-conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.</P><PRE CLASS="verbatim">    if expr
+conditional may be followed by <code>elseif</code> and <code>else</code> blocks.</p><pre class="verbatim">    if expr
         indented-body
     elseif expr
         indented-body
     ...
     else
         indented-body
-</PRE><P><A NAME="@default631"></A><B>matching</B> (see the section on matching &#X2014; Section&#XA0;<A HREF="omake-language.html#section:match">4.11</A>). The <CODE>switch</CODE> and
-<CODE>match</CODE> commands perform pattern-matching. All cases are optional. Each case may include
-<CODE>when</CODE> clauses that specify additional matching conditions.</P><PRE CLASS="verbatim">    match(expr)
+</pre><p><a id="hevea_default631"></a><span class="c004">matching</span> (see the section on matching &#X2014; Section&#XA0;<a href="omake-language.html#section%3Amatch">4.11</a>). The <code>switch</code> and
+<code>match</code> commands perform pattern-matching. All cases are optional. Each case may include
+<code>when</code> clauses that specify additional matching conditions.</p><pre class="verbatim">    match(expr)
     case expr
        indented-body
     when expr
@@ -207,10 +234,10 @@ conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.
        indented-body
     default
        indented-body
-</PRE><P><A NAME="@default632"></A><B>Exceptions</B> (see also the <A HREF="omake-base.html#fun:try"><CODE>try</CODE> function</A> documentation). The <CODE>try</CODE> command
-introduces an exception handler. Each <CODE>name</CODE> is the name of a class. All cases, including
-<CODE>catch</CODE>, <CODE>default</CODE>, and <CODE>finally</CODE> are optional. The <CODE>catch</CODE> and <CODE>default</CODE>
-clauses contain optional <CODE>when</CODE> clauses.</P><PRE CLASS="verbatim">    try
+</pre><p><a id="hevea_default632"></a><span class="c004">Exceptions</span> (see also the <a href="omake-base.html#fun%3Atry"><CODE>try</CODE> function</a> documentation). The <code>try</code> command
+introduces an exception handler. Each <code>name</code> is the name of a class. All cases, including
+<code>catch</code>, <code>default</code>, and <code>finally</code> are optional. The <code>catch</code> and <code>default</code>
+clauses contain optional <code>when</code> clauses.</p><pre class="verbatim">    try
         indented-body
     catch name1(id1)
         indented-body
@@ -223,37 +250,39 @@ clauses contain optional <CODE>when</CODE> clauses.</P><PRE CLASS="verbatim">   
         indented-body
     finally
         indented-body
-</PRE><P>The <CODE>raise</CODE> command is used to raise an exception.</P><PRE CLASS="verbatim">    raise expr
-</PRE><P><A NAME="@default633"></A><B>section</B> (see the <CODE>section</CODE> description in Section&#XA0;<A HREF="omake-language.html#section:section">4.9</A>). The <CODE>section</CODE> command
-introduces a new scope.</P><PRE CLASS="verbatim">    section
+</pre><p>The <code>raise</code> command is used to raise an exception.</p><pre class="verbatim">    raise expr
+</pre><p><a id="hevea_default633"></a><span class="c004">section</span> (see the <code>section</code> description in Section&#XA0;<a href="omake-language.html#section%3Asection">4.9</a>). The <code>section</code> command
+introduces a new scope.</p><pre class="verbatim">    section
         indented-body
-</PRE><P><A NAME="@default634"></A><A NAME="@default635"></A><B>include, open</B> (see also Section&#XA0;<A HREF="omake-language.html#section:include">4.8</A>). The <CODE>include</CODE> command
-performs file inclusion. The expression should evaluate to a file name.</P><P>The <CODE>open</CODE> form is like include, but it performs the inclusion only if the inclusion has not
-already been performed. The <CODE>open</CODE> form is usually used to include library files. [jyh&#X2013; this
-behavior will change in subsequent revisions.]</P><PRE CLASS="verbatim">    include expr
+</pre><p><a id="hevea_default634"></a><a id="hevea_default635"></a><span class="c004">include, open</span> (see also Section&#XA0;<a href="omake-language.html#section%3Ainclude">4.8</a>). The <code>include</code> command
+performs file inclusion. The expression should evaluate to a file name.</p><p>The <code>open</code> form is like include, but it performs the inclusion only if the inclusion has not
+already been performed. The <code>open</code> form is usually used to include library files. [jyh&#X2013; this
+behavior will change in subsequent revisions.]</p><pre class="verbatim">    include expr
     open expr
-</PRE><P><A NAME="@default636"></A><B>return</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>return</CODE> command
-terminates execution and returns a value from a function.</P><PRE CLASS="verbatim">    return expr
-</PRE><P><A NAME="@default637"></A><B>value</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>value</CODE> command is an identity.
-Syntactically, it is used to coerce a n expression to a statement.</P><PRE CLASS="verbatim">    value expr
-</PRE><P><A NAME="@default638"></A><B>export</B> (see the section on scoping &#X2014; Section&#XA0;<A HREF="omake-detail.html#section:export">6.3</A>). The <CODE>export</CODE> command exports
+</pre><p><a id="hevea_default636"></a><span class="c004">return</span> (see the description of functions in Section&#XA0;<a href="omake-language.html#section%3Afunctions">4.5</a>). The <code>return</code> command
+terminates execution and returns a value from a function.</p><pre class="verbatim">    return expr
+</pre><p><a id="hevea_default637"></a><span class="c004">value</span> (see the description of functions in Section&#XA0;<a href="omake-language.html#section%3Afunctions">4.5</a>). The <code>value</code> command is an identity.
+Syntactically, it is used to coerce a n expression to a statement.</p><pre class="verbatim">    value expr
+</pre><p><a id="hevea_default638"></a><span class="c004">export</span> (see the section on scoping &#X2014; Section&#XA0;<a href="omake-detail.html#section%3Aexport">6.3</a>). The <code>export</code> command exports
 a environment from a nested block. If no arguments are given, the entire environment is exported.
-Otherwise, the export is limited to the specified identifiers.</P><PRE CLASS="verbatim">    export expr
-</PRE><P><A NAME="@default639"></A><B>while</B> (see also the <A HREF="omake-base.html#fun:while"><CODE>while</CODE> function</A> description). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.</P><PRE CLASS="verbatim">    while expr
+Otherwise, the export is limited to the specified identifiers.</p><pre class="verbatim">    export expr
+</pre><p><a id="hevea_default639"></a><span class="c004">while</span> (see also the <a href="omake-base.html#fun%3Awhile"><CODE>while</CODE> function</a> description). The <code>while</code> command introduces a <code>while</code> loop.</p><pre class="verbatim">    while expr
         indented-body
-</PRE><P><A NAME="@default640"></A><A NAME="@default641"></A><B>class, extends</B> (see the section on objects &#X2014; Section&#XA0;<A HREF="omake-language.html#section:objects">4.12</A>). The <CODE>class</CODE> command
-specifies an identifier for an object. The <CODE>extends</CODE> command specifies a parent object.</P><PRE CLASS="verbatim">    class id
+</pre><p><a id="hevea_default640"></a><a id="hevea_default641"></a><span class="c004">class, extends</span> (see the section on objects &#X2014; Section&#XA0;<a href="omake-language.html#section%3Aobjects">4.12</a>). The <code>class</code> command
+specifies an identifier for an object. The <code>extends</code> command specifies a parent object.</p><pre class="verbatim">    class id
     extends expr
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc492">B.2.2.2</A>&#XA0;&#XA0;Variable definitions</H4><P>See the section on variables (Section&#XA0;<A HREF="omake-language.html#section:variables">4.1</A>). The simplest variable definition has the
-following syntax. The <CODE>=</CODE> form is a new definition. The += form appends the value to
-an existing definition.</P><PRE CLASS="verbatim">    id = expr
+</pre>
+<h4 class="subsubsection" id="sec614">B.2.2.2&#XA0;&#XA0;Variable definitions</h4>
+<p>See the section on variables (Section&#XA0;<a href="omake-language.html#section%3Avariables">4.1</a>). The simplest variable definition has the
+following syntax. The <code>=</code> form is a new definition. The += form appends the value to
+an existing definition.</p><pre class="verbatim">    id = expr
     id += expr
 
     osh&gt; X = 1
     - : "1" : Sequence
     osh&gt; X += 7
     - : "1" " " "7" : Sequence
-</PRE><P>A multi-line form is allowed, where the value is computed by an indented body.</P><PRE CLASS="verbatim">    id {+}=
+</pre><p>A multi-line form is allowed, where the value is computed by an indented body.</p><pre class="verbatim">    id {+}=
         indented-body
 
     osh&gt; X =
@@ -262,13 +291,15 @@ an existing definition.</P><PRE CLASS="verbatim">    id = expr
              getenv($Y)
     Y is HOME
     - : "/home/jyh" : Sequence
-</PRE><P>The name may be qualified qith one of the <CODE>public</CODE>, <CODE>prtected</CODE>, or <CODE>private</CODE>
+</pre><p>The name may be qualified qith one of the <code>public</code>, <code>prtected</code>, or <code>private</code>
 modifiers. Public variables are dynamically scoped. Protected variables are fields in the current
-object. Private variables are statically scoped.</P><P>[jyh: revision 0.9.9 introduces modular namespaces; the meaning of these qualifiers is slightly changed.]</P><PRE CLASS="verbatim">    public.X = $(addsuffix .c, 1 2 3)
+object. Private variables are statically scoped.</p><p>[jyh: revision 0.9.9 introduces modular namespaces; the meaning of these qualifiers is slightly changed.]</p><pre class="verbatim">    public.X = $(addsuffix .c, 1 2 3)
     protected.Y = $(getenv HOME)
     private.Z = $"Hello world"
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc493">B.2.2.3</A>&#XA0;&#XA0;Applications and function definitions</H4><P>See the section on functions (Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). A function-application statement is specified as a
-function name, followed a parenthesized list of comma-separated arguments.</P><PRE CLASS="verbatim">    osh&gt; println($"Hello world")
+</pre>
+<h4 class="subsubsection" id="sec615">B.2.2.3&#XA0;&#XA0;Applications and function definitions</h4>
+<p>See the section on functions (Section&#XA0;<a href="omake-language.html#section%3Afunctions">4.5</a>). A function-application statement is specified as a
+function name, followed a parenthesized list of comma-separated arguments.</p><pre class="verbatim">    osh&gt; println($"Hello world")
 
     osh&gt; FILES = 1 2 3
     - : 1 2 3
@@ -279,9 +310,9 @@ function name, followed a parenthesized list of comma-separated arguments.</P><P
     osh&gt; value $(println $"Hello world")
     osh&gt; value $(addsuffix .c, $(FILES))
     - : 1.c 2.c 3.c
-</PRE><P>If the function application has a body, the body is passed (lazily) to the function as its first
-argument. [jyh: in revision 0.9.8 support is incomplete.] When using <CODE>osh</CODE>, the application
-must be followed by a colon <CODE>:</CODE> to indicate that the application has a body.</P><PRE CLASS="verbatim">    # In its 3-argument form, the foreach function takes
+</pre><p>If the function application has a body, the body is passed (lazily) to the function as its first
+argument. [jyh: in revision 0.9.8 support is incomplete.] When using <code>osh</code>, the application
+must be followed by a colon <code>:</code> to indicate that the application has a body.</p><pre class="verbatim">    # In its 3-argument form, the foreach function takes
     # a body, a variable, and an array.  The body is evaluated
     # for each element of the array, with the variable bound to
     # the element value.
@@ -290,14 +321,16 @@ must be followed by a colon <CODE>:</CODE> to indicate that the application has 
     osh&gt; foreach(x =&gt; 1 2 3):
             add($x, 1)
     - : 2 3 4
-</PRE><P>Functions are defined in a similar form, where the parameter list is specified as a comma-separated
-list of identifiers, and the body of the function is indented.</P><PRE CLASS="verbatim">    osh&gt; f(i, j) =
+</pre><p>Functions are defined in a similar form, where the parameter list is specified as a comma-separated
+list of identifiers, and the body of the function is indented.</p><pre class="verbatim">    osh&gt; f(i, j) =
             add($i, $j)
     - : &lt;fun 2&gt;
     osh&gt; f(3, 7)
     - : 10 : Int
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc494">B.2.2.4</A>&#XA0;&#XA0;Objects</H4><P>See the section on objects (Section&#XA0;<A HREF="omake-language.html#section:objects">4.12</A>). Objects are defined as an identifier with a
-terminal period. The body of the object is indented.</P><PRE CLASS="verbatim">    Obj. =
+</pre>
+<h4 class="subsubsection" id="sec616">B.2.2.4&#XA0;&#XA0;Objects</h4>
+<p>See the section on objects (Section&#XA0;<a href="omake-language.html#section%3Aobjects">4.12</a>). Objects are defined as an identifier with a
+terminal period. The body of the object is indented.</p><pre class="verbatim">    Obj. =
         class Obj
 
         X = 1
@@ -309,20 +342,20 @@ terminal period. The body of the object is indented.</P><PRE CLASS="verbatim">  
         F() =
            add($X, $Y)
         println($Y)
-</PRE><P>The body of the object has the usual form of an indented body, but new variable definitions are
+</pre><p>The body of the object has the usual form of an indented body, but new variable definitions are
 added to the object, not the global environment. The object definition above defines an object with
-(at least) the fields <CODE>X</CODE> and <CODE>Y</CODE>, and methods <CODE>new</CODE> and <CODE>F</CODE>. The name of the
-object is defined with the <CODE>class</CODE> command as <CODE>Obj</CODE>.</P><P>The <CODE>Obj</CODE> itself has fields <CODE>X = 1</CODE> and <CODE>Y = -11</CODE>. The <CODE>new</CODE> method has the
+(at least) the fields <code>X</code> and <code>Y</code>, and methods <code>new</code> and <code>F</code>. The name of the
+object is defined with the <code>class</code> command as <code>Obj</code>.</p><p>The <code>Obj</code> itself has fields <code>X = 1</code> and <code>Y = -11</code>. The <code>new</code> method has the
 typical form of a constructor-style method, where the fields of the object are initialized to new
-values, and the new object returned (<CODE>$(this)</CODE> refers to the current object).</P><P>The <CODE>F</CODE> method returns the sum of the two fields <CODE>X</CODE> and <CODE>Y</CODE>.</P><P>When used in an object definition, the += form adds the new definitions to an existing object.</P><PRE CLASS="verbatim">   pair. =
+values, and the new object returned (<code>$(this)</code> refers to the current object).</p><p>The <code>F</code> method returns the sum of the two fields <code>X</code> and <code>Y</code>.</p><p>When used in an object definition, the += form adds the new definitions to an existing object.</p><pre class="verbatim">   pair. =
       x = 1
       y = 2
 
    pair. +=
       y = $(add $y, 3)
    # pair now has fields (x = 1, and y = 5)
-</PRE><P>The <CODE>extends</CODE> form specifies inheritance. Multiple inheritance is allowed. At evaluation
-time, the <CODE>extends</CODE> directive performs inclusion of the entire parent object.</P><PRE CLASS="verbatim">   pair. =
+</pre><p>The <code>extends</code> form specifies inheritance. Multiple inheritance is allowed. At evaluation
+time, the <code>extends</code> directive performs inclusion of the entire parent object.</p><pre class="verbatim">   pair. =
       x = 1
       y = 2
 
@@ -338,57 +371,61 @@ time, the <CODE>extends</CODE> directive performs inclusion of the entire parent
 
       crazy() =
          zoom($(mul $x, $y))
-</PRE><P>In this example, the <CODE>triple</CODE> object has three fields x, y, and z; and two methods <CODE>zoom</CODE>
-and <CODE>crazy</CODE>.</P><H4 CLASS="subsubsection"><A NAME="htoc495">B.2.2.5</A>&#XA0;&#XA0;Rules</H4><P>See the chapter on rules (Chapter&#XA0;<A HREF="omake-rules.html#chapter:rules">8</A>). A rule has the following parts.
-</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+</pre><p>In this example, the <code>triple</code> object has three fields x, y, and z; and two methods <code>zoom</code>
+and <code>crazy</code>.</p>
+<h4 class="subsubsection" id="sec617">B.2.2.5&#XA0;&#XA0;Rules</h4>
+<p>See the chapter on rules (Chapter&#XA0;<a href="omake-rules.html#chapter%3Arules">8</a>). A rule has the following parts.
+</p><ol class="enumerate" type=1><li class="li-enumerate">
 A sequence of targets;
-</LI><LI CLASS="li-enumerate">one or two colons;
-</LI><LI CLASS="li-enumerate">a sequence of <EM>dependencies</EM> and <EM>rule options</EM>;
-</LI><LI CLASS="li-enumerate">and an indented body.
-</LI></OL><P>The targets are the files to be built, and the dependencies are the files it depends on. If two
+</li><li class="li-enumerate">one or two colons;
+</li><li class="li-enumerate">a sequence of <em>dependencies</em> and <em>rule options</em>;
+</li><li class="li-enumerate">and an indented body.
+</li></ol><p>The targets are the files to be built, and the dependencies are the files it depends on. If two
 colons are specified, it indicates that there may be multiple rules to build the given targets;
-otherwise only one rule is allowed.</P><P>If the target contains a <CODE>%</CODE> character, the rule is called <EM>implicit</EM>, and is considered
+otherwise only one rule is allowed.</p><p>If the target contains a <code>%</code> character, the rule is called <em>implicit</em>, and is considered
 whenever a file matching that pattern is to be built. For example, the following rule specifies a
-default rule for compiling OCaml files.</P><PRE CLASS="verbatim">    %.cmo: %.ml %.mli
+default rule for compiling OCaml files.</p><pre class="verbatim">    %.cmo: %.ml %.mli
        $(OCAMLC) -c $&lt;
-</PRE><P>This rule would be consulted as a default way of building any file with a <CODE>.cmo</CODE> suffix. The
+</pre><p>This rule would be consulted as a default way of building any file with a <code>.cmo</code> suffix. The
 dependencies list is also constructed based on the pattern match. For example, if this rule were
-used to build a file <CODE>foo.cmo</CODE>, then the dependency list would be <CODE>foo.ml foo.mli</CODE>.</P><P>There is also a three-part version of a rule, where the rule specification has three parts.</P><PRE CLASS="verbatim">    targets : patterns : dependencies rule-options
+used to build a file <code>foo.cmo</code>, then the dependency list would be <code>foo.ml foo.mli</code>.</p><p>There is also a three-part version of a rule, where the rule specification has three parts.</p><pre class="verbatim">    targets : patterns : dependencies rule-options
        indented-body
-</PRE><P>In this case, the patterns <EM>must</EM> contain a single <CODE>%</CODE> character. Three-part rules are
-also considered <EM>implicit</EM>. For example, the following defines a default rule for the
-<CODE>clean</CODE> target.</P><PRE CLASS="verbatim">    .PHONY: clean
+</pre><p>In this case, the patterns <em>must</em> contain a single <code>%</code> character. Three-part rules are
+also considered <em>implicit</em>. For example, the following defines a default rule for the
+<code>clean</code> target.</p><pre class="verbatim">    .PHONY: clean
     
     clean: %:
         rm -f *$(EXT_OBJ) *$(EXT_LIB)
-</PRE><P>Three-part implicit rules are inherited by the subdirectories in the exact same way as with
-the usual two-part implicit rules.</P><P>There are several special targets, including the following.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>.PHONY</CODE> : declare a &#X201C;phony&#X201D; target. That is, the target does not correspond to a file.
-</LI><LI CLASS="li-itemize"><CODE>.ORDER</CODE> : declare a rule for dependency ordering.
-</LI><LI CLASS="li-itemize"><CODE>.INCLUDE</CODE> : define a rule to generate a file for textual inclusion.
-</LI><LI CLASS="li-itemize"><CODE>.SUBDIRS</CODE> : specify subdirectories that are part of the project.
-</LI><LI CLASS="li-itemize"><CODE>.SCANNER</CODE> : define a rule for dependency scanning.
-</LI></UL><P>There are several rule options.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>:optional: dependencies</CODE> the subsequent dependencies are optional, it is acceptable if they do not exist.
-</LI><LI CLASS="li-itemize"><CODE>:exists: dependencies</CODE> the subsequent dependencies must exist, but changes to not affect
+</pre><p>Three-part implicit rules are inherited by the subdirectories in the exact same way as with
+the usual two-part implicit rules.</p><p>There are several special targets, including the following.</p><ul class="itemize"><li class="li-itemize">
+<code>.PHONY</code> : declare a &#X201C;phony&#X201D; target. That is, the target does not correspond to a file.
+</li><li class="li-itemize"><code>.ORDER</code> : declare a rule for dependency ordering.
+</li><li class="li-itemize"><code>.INCLUDE</code> : define a rule to generate a file for textual inclusion.
+</li><li class="li-itemize"><code>.SUBDIRS</code> : specify subdirectories that are part of the project.
+</li><li class="li-itemize"><code>.SCANNER</code> : define a rule for dependency scanning.
+</li></ul><p>There are several rule options.</p><ul class="itemize"><li class="li-itemize">
+<code>:optional: dependencies</code> the subsequent dependencies are optional, it is acceptable if they do not exist.
+</li><li class="li-itemize"><code>:exists: dependencies</code> the subsequent dependencies must exist, but changes to not affect
 whether this rule is considered out-of-date.
-</LI><LI CLASS="li-itemize"><CODE>:effects: targets</CODE> the subsequent files are side-effects of the rule. That is, they may be
+</li><li class="li-itemize"><code>:effects: targets</code> the subsequent files are side-effects of the rule. That is, they may be
 created and/or modified while the rule is executing. Rules with overlapping side-effects are never
 executed in parallel.
-</LI><LI CLASS="li-itemize"><CODE>:scanner: name</CODE> the subsequent name is the name of the <CODE>.SCANNER</CODE> rule for the target to be built.
-</LI><LI CLASS="li-itemize"><CODE>:value: expr</CODE> the <CODE>expr</CODE> is a &#X201C;value&#X201D; dependency. The rule is considered
-out-of-date whenever the value of the <CODE>expr</CODE> changes.
-</LI></UL><P>Several variables are defined during rule evaluation.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$*</CODE><A NAME="@default642"></A><A NAME="@var125"></A> : the name of the target with the outermost suffix removed.
-</LI><LI CLASS="li-itemize"><CODE>$&gt;</CODE><A NAME="@default643"></A><A NAME="@var126"></A> : the name of the target with all suffixes removed.
-</LI><LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default644"></A><A NAME="@var127"></A> : the name of the target.
-</LI><LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default645"></A><A NAME="@var128"></A> : the explicit file dependencies, sorted alphabetically, with duplicates removed.
-</LI><LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default646"></A><A NAME="@var129"></A> : all explicit file dependencies, with order preserved.
-</LI><LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default647"></A><A NAME="@var130"></A> : the first explicit file dependency.
-</LI><LI CLASS="li-itemize"><CODE>$&amp;</CODE><A NAME="@default648"></A><A NAME="@var131"></A> : the free values of the rule (often used in <CODE>:value:</CODE> dependencies).
-</LI></UL><H4 CLASS="subsubsection"><A NAME="htoc496">B.2.2.6</A>&#XA0;&#XA0;Shell commands</H4><P>See the chapter on shell commands (Chapter&#XA0;<A HREF="omake-shell.html#chapter:shell">11</A>).</P><P>While it is possible to give a precise specification of shell commands, the informal description is
-simpler. Any non-empty statement where each prefix is <EM>not</EM> one of the other statements, is
-considered to be a shell command. Here are some examples.</P><PRE CLASS="verbatim">    ls                                 -- shell command
+</li><li class="li-itemize"><code>:scanner: name</code> the subsequent name is the name of the <code>.SCANNER</code> rule for the target to be built.
+</li><li class="li-itemize"><code>:value: expr</code> the <code>expr</code> is a &#X201C;value&#X201D; dependency. The rule is considered
+out-of-date whenever the value of the <code>expr</code> changes.
+</li></ul><p>Several variables are defined during rule evaluation.</p><ul class="itemize"><li class="li-itemize">
+<code>$*</code><a id="hevea_default642"></a><a id="hevea_var125"></a> : the name of the target with the outermost suffix removed.
+</li><li class="li-itemize"><code>$&gt;</code><a id="hevea_default643"></a><a id="hevea_var126"></a> : the name of the target with all suffixes removed.
+</li><li class="li-itemize"><code>$@</code><a id="hevea_default644"></a><a id="hevea_var127"></a> : the name of the target.
+</li><li class="li-itemize"><code>$^</code><a id="hevea_default645"></a><a id="hevea_var128"></a> : the explicit file dependencies, sorted alphabetically, with duplicates removed.
+</li><li class="li-itemize"><code>$+</code><a id="hevea_default646"></a><a id="hevea_var129"></a> : all explicit file dependencies, with order preserved.
+</li><li class="li-itemize"><code>$&lt;</code><a id="hevea_default647"></a><a id="hevea_var130"></a> : the first explicit file dependency.
+</li><li class="li-itemize"><code>$&amp;</code><a id="hevea_default648"></a><a id="hevea_var131"></a> : the free values of the rule (often used in <code>:value:</code> dependencies).
+</li></ul>
+<h4 class="subsubsection" id="sec618">B.2.2.6&#XA0;&#XA0;Shell commands</h4>
+<p>See the chapter on shell commands (Chapter&#XA0;<a href="omake-shell.html#chapter%3Ashell">11</a>).</p><p>While it is possible to give a precise specification of shell commands, the informal description is
+simpler. Any non-empty statement where each prefix is <em>not</em> one of the other statements, is
+considered to be a shell command. Here are some examples.</p><pre class="verbatim">    ls                                 -- shell command
     echo Hello world &gt; /dev/null       -- shell command
     echo(Hello world)                  -- function application
     echo(Hello world) &gt; /dev/null      -- syntax error
@@ -398,14 +435,16 @@ considered to be a shell command. Here are some examples.</P><PRE CLASS="verbati
     if true                            -- special form
     \if true                           -- shell command
     "if" true                          -- shell command
-</PRE><H2 CLASS="section"><A NAME="toc120"></A><A NAME="htoc497">B.3</A>&#XA0;&#XA0;Dollar modifiers</H2><P>
-<A NAME="section:dollar"></A></P><P>Inline applications have a function and zero-or-more arguments. Evaluation is normally strict: when
+</pre>
+<h2 class="section" id="sec619">B.3&#XA0;&#XA0;Dollar modifiers</h2>
+<p>
+<a id="section:dollar"></a></p><p>Inline applications have a function and zero-or-more arguments. Evaluation is normally strict: when
 an application is evaluated, the function identifier is evaluated to a function, the arguments are
-then evaluated and the function is called with the evaluated arguments.</P><P>The additional &#X201C;dollar&#X201D; sequences specify additional control over evaluation. The token <CODE>$`</CODE>
+then evaluated and the function is called with the evaluated arguments.</p><p>The additional &#X201C;dollar&#X201D; sequences specify additional control over evaluation. The token <code>$`</code>
 defines a &#X201C;lazy&#X201D; application, where evaluation is delayed until a value is required. The
-<CODE>$,</CODE> sequence performs an &#X201C;eager&#X201D; application within a lazy context.</P><P>To illustrate, consider the expression <CODE>$(addsuffix .c, $(FILES))</CODE>. The <CODE>addsuffix</CODE>
-function appends its first argument to each value in its second argument. The following <CODE>osh</CODE>
-interaction demonstrates the normal bahavior.</P><PRE CLASS="verbatim">osh&gt; FILES[] = a b c
+<code>$,</code> sequence performs an &#X201C;eager&#X201D; application within a lazy context.</p><p>To illustrate, consider the expression <code>$(addsuffix .c, $(FILES))</code>. The <code>addsuffix</code>
+function appends its first argument to each value in its second argument. The following <code>osh</code>
+interaction demonstrates the normal bahavior.</p><pre class="verbatim">osh&gt; FILES[] = a b c
 - : &lt;array a b c&gt;
 osh&gt; X = $(addsuffix .c, $(FILES))
 - : &lt;array ...&gt;
@@ -413,9 +452,9 @@ osh&gt; FILES[] = 1 2 3 # redefine FILES
 - : &lt;array 1 2 3&gt;
 osh&gt; println($"$X")  # force the evaluation and print
 a.c b.c c.c
-</PRE><P>When the lazy operator <CODE>$`</CODE> is used instead, evaluation is delayed until it is printed. In the
-following sample, the value for <CODE>X</CODE> has changed to the <CODE>$(apply ..)</CODE> form, but otherwise
-the result is unchanged because it it printed immediately.</P><PRE CLASS="verbatim">osh&gt; FILES[] = a b c
+</pre><p>When the lazy operator <code>$`</code> is used instead, evaluation is delayed until it is printed. In the
+following sample, the value for <code>X</code> has changed to the <code>$(apply ..)</code> form, but otherwise
+the result is unchanged because it it printed immediately.</p><pre class="verbatim">osh&gt; FILES[] = a b c
 - : &lt;array a b c&gt;
 osh&gt; SUF = .c
 - : ".c"
@@ -423,9 +462,9 @@ osh&gt; X = $`(addsuffix $(SUF), $(FILES))
 - : $(apply global.addsuffix ...)
 osh&gt; println($"$X")  # force the evaluation and print
 a.c b.c c.c
-</PRE><P>However, consider what happens if we redefine the <CODE>FILES</CODE> variable after the definition for
-<CODE>X</CODE>. In the following sample, the result changes because evaluation occurs <EM>after</EM> the
-values for <CODE>FILES</CODE> has been redefined.</P><PRE CLASS="verbatim">osh&gt; FILES[] = a b c
+</pre><p>However, consider what happens if we redefine the <code>FILES</code> variable after the definition for
+<code>X</code>. In the following sample, the result changes because evaluation occurs <em>after</em> the
+values for <code>FILES</code> has been redefined.</p><pre class="verbatim">osh&gt; FILES[] = a b c
 - : &lt;array a b c&gt;
 osh&gt; SUF = .c
 - : ".c"
@@ -435,9 +474,9 @@ osh&gt; SUF = .x
 osh&gt; FILES[] = 1 2 3
 osh&gt; println($"$X")  # force the evaluation and print
 1.x 2.x 3.x
-</PRE><P>In some cases, more explicit control is desired over evaluation. For example, we may wish to
-evaluate <CODE>SUF</CODE> early, but allow for changes to the <CODE>FILES</CODE> variable. The <CODE>$,(SUF)</CODE>
-expression forces early evaluation.</P><PRE CLASS="verbatim">osh&gt; FILES[] = a b c
+</pre><p>In some cases, more explicit control is desired over evaluation. For example, we may wish to
+evaluate <code>SUF</code> early, but allow for changes to the <code>FILES</code> variable. The <code>$,(SUF)</code>
+expression forces early evaluation.</p><pre class="verbatim">osh&gt; FILES[] = a b c
 - : &lt;array a b c&gt;
 osh&gt; SUF = .c
 - : ".c"
@@ -447,35 +486,40 @@ osh&gt; SUF = .x
 osh&gt; FILES[] = 1 2 3
 osh&gt; println($"$X")  # force the evaluation and print
 1.c 2.c 3.c
-</PRE><H2 CLASS="section"><A NAME="toc121"></A><A NAME="htoc498">B.4</A>&#XA0;&#XA0;Programming syntax</H2><P>
-<A NAME="section:program-syntax"></A></P><P><I>This feature was introduced in version 0.9.8.6.</I></P><P>The standard OMake language is designed to make it easy to specify strings. By default, all values
+</pre>
+<h2 class="section" id="sec620">B.4&#XA0;&#XA0;Programming syntax</h2>
+<p>
+<a id="section:program-syntax"></a></p><p><span class="c003">This feature was introduced in version 0.9.8.6.</span></p><p>The standard OMake language is designed to make it easy to specify strings. By default, all values
 are strings, and strings are any sequence of text and variable references; quote symbols are not
-necessary.</P><PRE CLASS="verbatim">    CFLAGS += -g -Wall
-</PRE><P>The tradeoff is that variable references are a bit longer, requiring the syntax <CODE>$(...)</CODE>.</P><P>The &#X201C;<EM>program syntax</EM>&#X201D; inverts this behavior. The main differences are the following.</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+necessary.</p><pre class="verbatim">    CFLAGS += -g -Wall
+</pre><p>The tradeoff is that variable references are a bit longer, requiring the syntax <code>$(...)</code>.</p><p>The &#X201C;<em>program syntax</em>&#X201D; inverts this behavior. The main differences are the following.</p><ol class="enumerate" type=1><li class="li-enumerate">
 Identifiers represent variables.
-</LI><LI CLASS="li-enumerate">Strings must be quoted.
-</LI><LI CLASS="li-enumerate">Function application is written <CODE>f(exp1, ..., expN)</CODE>.
-</LI></OL><P>It is only the syntax of expressions that changes. The large scale program is as before: a program
+</li><li class="li-enumerate">Strings must be quoted.
+</li><li class="li-enumerate">Function application is written <code>f(exp1, ..., expN)</code>.
+</li></ol><p>It is only the syntax of expressions that changes. The large scale program is as before: a program
 is a sequence of definitions, commands, indentation is significant, etc. However, the syntax of expressions
-changes, where an expression is 1) the value on the right of a variable definition <CODE>Var = &lt;exp&gt;</CODE>, or 2)
-an argument to a function.</P><P>The following table lists the syntax for expressions.</P><TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=right NOWRAP>e</TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP>0, 1, 2, ...</TD><TD ALIGN=left NOWRAP>integers</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>0.1, 1E+23, ...</TD><TD ALIGN=left NOWRAP>floating-point constants</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>x, ABC, ...</TD><TD ALIGN=left NOWRAP>identifiers</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>id<CODE>::</CODE>id</TD><TD ALIGN=left NOWRAP>scoped name</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>id.id. ... id</TD><TD ALIGN=left NOWRAP>projection</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>-</CODE> e</TD><TD ALIGN=left NOWRAP>negation</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e <CODE>+</CODE> e | e <CODE>-</CODE> e | e <CODE>*</CODE> e | e <CODE>/</CODE> e | e <CODE>%</CODE> e</TD><TD ALIGN=left NOWRAP>arithmetic</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e <CODE>^</CODE> e | e <CODE>&amp;</CODE> e | e <CODE>|</CODE> e</TD><TD ALIGN=left NOWRAP>bitwise operations</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e <CODE>&lt;&lt;</CODE> e | e <CODE>&gt;&gt;</CODE> e | e <CODE>&gt;&gt;&gt;</CODE> e</TD><TD ALIGN=left NOWRAP>shifting</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e <CODE>&amp;&amp;</CODE> e | e <CODE>||</CODE> e</TD><TD ALIGN=left NOWRAP>Boolean operations</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e <CODE>&lt;</CODE> e | e <CODE>&lt;=</CODE> e | e <CODE>=</CODE> e | e <CODE>&gt;=</CODE> e | e <CODE>&gt;</CODE> e</TD><TD ALIGN=left NOWRAP>comparisons</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e<CODE>(</CODE>e<CODE>,</CODE> ...<CODE>,</CODE> e<CODE>)</CODE></TD><TD ALIGN=left NOWRAP>function application</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP>e<CODE>[</CODE>e<CODE>]</CODE></TD><TD ALIGN=left NOWRAP>array subscripting</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>(</CODE> e <CODE>)</CODE></TD><TD ALIGN=left NOWRAP>parenthesized expressions</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>"</CODE> ... <CODE>"</CODE> | <CODE>'</CODE> ... <CODE>'</CODE></TD><TD ALIGN=left NOWRAP>strings</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>$"</CODE> ... <CODE>"</CODE> | <CODE>$'</CODE> ... <CODE>'</CODE></TD><TD ALIGN=left NOWRAP>strings</TD></TR>
-<TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><CODE>$(</CODE> ... <CODE>)</CODE></TD><TD ALIGN=left NOWRAP>variables and applications</TD></TR>
-</TABLE><P>Note that the <CODE>$</CODE>-style expressions are still permitted.</P><H3 CLASS="subsection"><A NAME="htoc499">B.4.1</A>&#XA0;&#XA0;Examples</H3><P>The program-syntax is specified with the directive <CODE>program-syntax</CODE>, which is scoped in the normal way.</P><PRE CLASS="verbatim">    program-syntax
+changes, where an expression is 1) the value on the right of a variable definition <code>Var = &lt;exp&gt;</code>, or 2)
+an argument to a function.</p><p>The following table lists the syntax for expressions.</p><table class="c000 cellpading0"><tr><td class="c007">e</td><td class="c005">::=</td><td class="c006">0, 1, 2, ...</td><td class="c006">integers</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">0.1, 1E+23, ...</td><td class="c006">floating-point constants</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">x, ABC, ...</td><td class="c006">identifiers</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">id<code>::</code>id</td><td class="c006">scoped name</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">id.id. ... id</td><td class="c006">projection</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>-</code> e</td><td class="c006">negation</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e <code>+</code> e | e <code>-</code> e | e <code>*</code> e | e <code>/</code> e | e <code>%</code> e</td><td class="c006">arithmetic</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e <code>^</code> e | e <code>&amp;</code> e | e <code>|</code> e</td><td class="c006">bitwise operations</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e <code>&lt;&lt;</code> e | e <code>&gt;&gt;</code> e | e <code>&gt;&gt;&gt;</code> e</td><td class="c006">shifting</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e <code>&amp;&amp;</code> e | e <code>||</code> e</td><td class="c006">Boolean operations</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e <code>&lt;</code> e | e <code>&lt;=</code> e | e <code>=</code> e | e <code>&gt;=</code> e | e <code>&gt;</code> e</td><td class="c006">comparisons</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e<code>(</code>e<code>,</code> ...<code>,</code> e<code>)</code></td><td class="c006">function application</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006">e<code>[</code>e<code>]</code></td><td class="c006">array subscripting</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>(</code> e <code>)</code></td><td class="c006">parenthesized expressions</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>"</code> ... <code>"</code> | <code>'</code> ... <code>'</code></td><td class="c006">strings</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>$"</code> ... <code>"</code> | <code>$'</code> ... <code>'</code></td><td class="c006">strings</td></tr>
+<tr><td class="c007">&nbsp;</td><td class="c005">|</td><td class="c006"><code>$(</code> ... <code>)</code></td><td class="c006">variables and applications
+</td></tr>
+</table><p>Note that the <code>$</code>-style expressions are still permitted.</p>
+<h3 class="subsection" id="sec621">B.4.1&#XA0;&#XA0;Examples</h3>
+<p>The program-syntax is specified with the directive <code>program-syntax</code>, which is scoped in the normal way.</p><pre class="verbatim">    program-syntax
 
     i = 0
     l[] =
@@ -483,7 +527,7 @@ an argument to a function.</P><P>The following table lists the syntax for expres
         l[] += i
         i = i + 1
     println($"The indexes are: $l")
-</PRE><P>You can mix normal and program syntax.</P><PRE CLASS="verbatim">program-syntax
+</pre><p>You can mix normal and program syntax.</p><pre class="verbatim">program-syntax
 
 add2(i) =
     eprintln($"add2($i)")
@@ -494,18 +538,19 @@ mul2(i, j) =
     return i * j
 
 println(mul2(mul2(3, 4), $(add2 1 &lt;&lt; 20)))
-</PRE>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</pre>
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

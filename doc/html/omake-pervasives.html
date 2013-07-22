@@ -1,120 +1,133 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>The standard objects</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>The standard objects</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc334">Chapter&#XA0;12</A>&#XA0;&#XA0;The standard objects</H1><UL>
-<LI><A HREF="omake-pervasives.html#toc96">Pervasives objects</A>
-</LI></UL>
-<P>
-<A NAME="chapter:pervasives"></A>
-</P><P><CODE>Pervasives</CODE> defines the objects that are defined in all
-programs. The following objects are defined.</P><H2 CLASS="section"><A NAME="toc96"></A><A NAME="htoc335">12.1</A>&#XA0;&#XA0;Pervasives objects</H2><H3 CLASS="subsection"><A NAME="htoc336">12.1.1</A>&#XA0;&#XA0;Object</H3><P><A NAME="obj:Object"></A><A NAME="object:Object"></A><A NAME="@default368"></A><A NAME="@obj10"></A></P><P>Parent objects: none.</P><P>The <CODE>Object</CODE> object is the root object.
-Every class is a subclass of <CODE>Object</CODE>.</P><P>It provides the following fields:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(o.object-length)</CODE>: the number of fields and methods in the object.
-</LI><LI CLASS="li-itemize"><CODE>$(o.object-mem &lt;var&gt;)</CODE>: returns <CODE>true</CODE> iff the <CODE>&lt;var&gt;</CODE> is a field
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec354">Chapter&#XA0;12&#XA0;&#XA0;The standard objects</h1>
+<ul>
+<li><a href="omake-pervasives.html#sec355">Pervasives objects</a>
+</li></ul>
+<p>
+<a id="chapter:pervasives"></a>
+</p><p><code>Pervasives</code> defines the objects that are defined in all
+programs. The following objects are defined.</p>
+<h2 class="section" id="sec355">12.1&#XA0;&#XA0;Pervasives objects</h2>
+<h3 class="subsection" id="sec356">12.1.1&#XA0;&#XA0;Object</h3>
+<p><a id="obj:Object"></a><a id="object:Object"></a><a id="hevea_default368"></a><a id="hevea_obj10"></a></p><p>Parent objects: none.</p><p>The <code>Object</code> object is the root object.
+Every class is a subclass of <code>Object</code>.</p><p>It provides the following fields:</p><ul class="itemize"><li class="li-itemize">
+<code>$(o.object-length)</code>: the number of fields and methods in the object.
+</li><li class="li-itemize"><code>$(o.object-mem &lt;var&gt;)</code>: returns <code>true</code> iff the <code>&lt;var&gt;</code> is a field
 or method of the object.
-</LI><LI CLASS="li-itemize"><CODE>$(o.object-add &lt;var&gt;, &lt;value&gt;)</CODE>: adds the field to the object,
+</li><li class="li-itemize"><code>$(o.object-add &lt;var&gt;, &lt;value&gt;)</code>: adds the field to the object,
 returning a new object.
-</LI><LI CLASS="li-itemize"><CODE>$(o.object-find &lt;var&gt;)</CODE>: fetches the field or method from the object;
-it is equivalent to <CODE>$(o.&lt;var&gt;)</CODE>, but the variable can be non-constant.
-</LI><LI CLASS="li-itemize"><CODE>$(o.object-map &lt;fun&gt;)</CODE>: maps a function over the object. The function
+</li><li class="li-itemize"><code>$(o.object-find &lt;var&gt;)</code>: fetches the field or method from the object;
+it is equivalent to <code>$(o.&lt;var&gt;)</code>, but the variable can be non-constant.
+</li><li class="li-itemize"><code>$(o.object-map &lt;fun&gt;)</code>: maps a function over the object. The function
 should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
-</LI><LI CLASS="li-itemize"><CODE>o.object-foreach</CODE>: the <CODE>object-foreach</CODE> form is equivalent to <CODE>object-map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
+</li><li class="li-itemize"><code>o.object-foreach</code>: the <code>object-foreach</code> form is equivalent to <code>object-map</code>,
+but with altered syntax.<pre class="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
-   </PRE><P>For example, the following function prints all the fields of an
-object <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintObject(o) =
+   </pre><p>For example, the following function prints all the fields of an
+object <code>o</code>.</p><pre class="verbatim">   PrintObject(o) =
       o.object-foreach(v, x) =&gt;
          println($(v) = $(x))
-   </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>object-foreach</CODE> body. The following
-function collects just the field names of an object.</P><PRE CLASS="verbatim">   FieldNames(o) =
+   </pre><p>The <code>export</code> form is valid in a <code>object-foreach</code> body. The following
+function collects just the field names of an object.</p><pre class="verbatim">   FieldNames(o) =
       names[] =
       o.object-foreach(v, x) =&gt;
          names[] += $(v)
          export
       return $(names)
-   </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc337">12.1.2</A>&#XA0;&#XA0;Map</H3><P><A NAME="obj:Map"></A><A NAME="object:Map"></A><A NAME="@default369"></A><A NAME="@obj11"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Map</CODE> object is a dictionary from values to values. The <CODE>&lt;key&gt;</CODE>
+   </pre></li></ul>
+<h3 class="subsection" id="sec357">12.1.2&#XA0;&#XA0;Map</h3>
+<p><a id="obj:Map"></a><a id="object:Map"></a><a id="hevea_default369"></a><a id="hevea_obj11"></a></p><p>Parent objects: <code>Object</code>.</p><p>A <code>Map</code> object is a dictionary from values to values. The <code>&lt;key&gt;</code>
 values are restricted to simple values: integers, floating-point numbers,
-strings, files, directories, and arrays of simple values.</P><P>The Map object provides the following methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(o.length)</CODE>: the number of items in the map.
-</LI><LI CLASS="li-itemize"><CODE>$(o.mem &lt;key&gt;)</CODE>: returns <CODE>true</CODE> iff the <CODE>&lt;key&gt;</CODE> is defined
+strings, files, directories, and arrays of simple values.</p><p>The Map object provides the following methods.</p><ul class="itemize"><li class="li-itemize">
+<code>$(o.length)</code>: the number of items in the map.
+</li><li class="li-itemize"><code>$(o.mem &lt;key&gt;)</code>: returns <code>true</code> iff the <code>&lt;key&gt;</code> is defined
 in the map.
-</LI><LI CLASS="li-itemize"><CODE>$(o.add &lt;key&gt;, &lt;value&gt;)</CODE>: adds the field to the map,
+</li><li class="li-itemize"><code>$(o.add &lt;key&gt;, &lt;value&gt;)</code>: adds the field to the map,
 returning a new map.
-</LI><LI CLASS="li-itemize"><CODE>$(o.find &lt;key&gt;)</CODE>: fetches the field from the map.
-</LI><LI CLASS="li-itemize"><CODE>$(o.keys)</CODE>: fetches an array of all the keys in the map, in alphabetical order.
-</LI><LI CLASS="li-itemize"><CODE>$(o.values)</CODE>: fetches an array of all the values in the map,
+</li><li class="li-itemize"><code>$(o.find &lt;key&gt;)</code>: fetches the field from the map.
+</li><li class="li-itemize"><code>$(o.keys)</code>: fetches an array of all the keys in the map, in alphabetical order.
+</li><li class="li-itemize"><code>$(o.values)</code>: fetches an array of all the values in the map,
 in the alphabetical order of the corresponding keys.
-</LI><LI CLASS="li-itemize"><CODE>$(o.map &lt;fun&gt;)</CODE>: maps a function over the map. The function
+</li><li class="li-itemize"><code>$(o.map &lt;fun&gt;)</code>: maps a function over the map. The function
 should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
-</LI><LI CLASS="li-itemize"><CODE>o.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
+</li><li class="li-itemize"><code>o.foreach</code>: the <code>foreach</code> form is equivalent to <code>map</code>,
+but with altered syntax.<pre class="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
-   </PRE><P>For example, the following function prints all the fields of a
-map <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintMap(o) =
+   </pre><p>For example, the following function prints all the fields of a
+map <code>o</code>.</p><pre class="verbatim">   PrintMap(o) =
       o.foreach(v, x) =&gt;
          println($(v) = $(x))
-   </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
-function reimplements the <CODE>key</CODE> method.</P><PRE CLASS="verbatim">   FieldNames(o) =
+   </pre><p>The <code>export</code> form is valid in a <code>foreach</code> body. The following
+function reimplements the <code>key</code> method.</p><pre class="verbatim">   FieldNames(o) =
       names =
       o.foreach(v, x) =&gt;
          names += $(v)
          export
       return $(names)
-   </PRE></LI></UL><P>There is also simpler syntax when the key is a string. The table can be
-defined using definitions with the form <CODE>$|key|</CODE>
-(the number of pipe symbols <CODE>|</CODE> is allowed to vary).</P><PRE CLASS="verbatim">    $|key 1| = value1
+   </pre></li></ul><p>There is also simpler syntax when the key is a string. The table can be
+defined using definitions with the form <code>$|key|</code>
+(the number of pipe symbols <code>|</code> is allowed to vary).</p><pre class="verbatim">    $|key 1| = value1
     $||key1|key2|| = value2    # The key is key1|key2
     X = $|key 1|               # Define X to be the value of field $|key 1|
-</PRE><P>The usual modifiers are also allowed. The expression <CODE>$`|key|</CODE> represents
-lazy evaluation of the key, and <CODE>$,|key|</CODE> is normal evaluation.</P><H3 CLASS="subsection"><A NAME="htoc338">12.1.3</A>&#XA0;&#XA0;Number</H3><P><A NAME="obj:Number"></A><A NAME="object:Number"></A><A NAME="@default370"></A><A NAME="@obj12"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Number</CODE> object is the parent object for integers
+</pre><p>The usual modifiers are also allowed. The expression <code>$`|key|</code> represents
+lazy evaluation of the key, and <code>$,|key|</code> is normal evaluation.</p>
+<h3 class="subsection" id="sec358">12.1.3&#XA0;&#XA0;Number</h3>
+<p><a id="obj:Number"></a><a id="object:Number"></a><a id="hevea_default370"></a><a id="hevea_obj12"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Number</code> object is the parent object for integers
 and floating-point numbers.
-</P><H3 CLASS="subsection"><A NAME="htoc339">12.1.4</A>&#XA0;&#XA0;Int</H3><P><A NAME="obj:Int"></A><A NAME="object:Int"></A><A NAME="@default371"></A><A NAME="@obj13"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Int</CODE> object represents integer values.
-</P><H3 CLASS="subsection"><A NAME="htoc340">12.1.5</A>&#XA0;&#XA0;Float</H3><P><A NAME="obj:Float"></A><A NAME="object:Float"></A><A NAME="@default372"></A><A NAME="@obj14"></A></P><P>Parent objects: <CODE>Number</CODE>.</P><P>The <CODE>Float</CODE> object represents floating-point numbers.
-</P><H3 CLASS="subsection"><A NAME="htoc341">12.1.6</A>&#XA0;&#XA0;Sequence</H3><P><A NAME="obj:Sequence"></A><A NAME="object:Sequence"></A><A NAME="@default373"></A><A NAME="@obj15"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Sequence</CODE> object represents a generic object containing
-sequential elements. It provides the following methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(s.length)</CODE>: the number of elements in the sequence.
-</LI><LI CLASS="li-itemize"><CODE>$(s.is-nonempty)</CODE>: true iff the expression <CODE>$(s.nth 0)</CODE>
+</p>
+<h3 class="subsection" id="sec359">12.1.4&#XA0;&#XA0;Int</h3>
+<p><a id="obj:Int"></a><a id="object:Int"></a><a id="hevea_default371"></a><a id="hevea_obj13"></a></p><p>Parent objects: <code>Number</code>.</p><p>The <code>Int</code> object represents integer values.
+</p>
+<h3 class="subsection" id="sec360">12.1.5&#XA0;&#XA0;Float</h3>
+<p><a id="obj:Float"></a><a id="object:Float"></a><a id="hevea_default372"></a><a id="hevea_obj14"></a></p><p>Parent objects: <code>Number</code>.</p><p>The <code>Float</code> object represents floating-point numbers.
+</p>
+<h3 class="subsection" id="sec361">12.1.6&#XA0;&#XA0;Sequence</h3>
+<p><a id="obj:Sequence"></a><a id="object:Sequence"></a><a id="hevea_default373"></a><a id="hevea_obj15"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Sequence</code> object represents a generic object containing
+sequential elements. It provides the following methods.</p><ul class="itemize"><li class="li-itemize">
+<code>$(s.length)</code>: the number of elements in the sequence.
+</li><li class="li-itemize"><code>$(s.is-nonempty)</code>: true iff the expression <code>$(s.nth 0)</code>
 will complete without failure.
-</LI><LI CLASS="li-itemize"><CODE>$(s.nth &lt;i&gt;)</CODE>: return the n&#X2019;th element of the sequence.
-</LI><LI CLASS="li-itemize"><CODE>$(s.nth-tl &lt;i&gt;)</CODE>: return the n&#X2019;th tail of the sequence.
-</LI><LI CLASS="li-itemize"><CODE>$(s.map &lt;fun&gt;)</CODE>: maps a function over the fields in the sequence.
+</li><li class="li-itemize"><code>$(s.nth &lt;i&gt;)</code>: return the n&#X2019;th element of the sequence.
+</li><li class="li-itemize"><code>$(s.nth-tl &lt;i&gt;)</code>: return the n&#X2019;th tail of the sequence.
+</li><li class="li-itemize"><code>$(s.map &lt;fun&gt;)</code>: maps a function over the fields in the sequence.
 The function should take one argument. The result is a new sequence
 constructed from the values returned by the function.
-</LI><LI CLASS="li-itemize"><CODE>s.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   s.foreach(&lt;var&gt;) =&gt;
+</li><li class="li-itemize"><code>s.foreach</code>: the <code>foreach</code> form is equivalent to <code>map</code>,
+but with altered syntax.<pre class="verbatim">   s.foreach(&lt;var&gt;) =&gt;
       &lt;body&gt;
-   </PRE><P>For example, the following function prints all the elements of the sequence.</P><PRE CLASS="verbatim">   PrintSequence(s) =
+   </pre><p>For example, the following function prints all the elements of the sequence.</p><pre class="verbatim">   PrintSequence(s) =
       s.foreach(x) =&gt;
          println(Elem = $(x))
-   </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
-function counts the number of zeros in the sequence.</P><PRE CLASS="verbatim">   Zeros(s) =
+   </pre><p>The <code>export</code> form is valid in a <code>foreach</code> body. The following
+function counts the number of zeros in the sequence.</p><pre class="verbatim">   Zeros(s) =
       count = $(int 0)
       s.foreach(v) =&gt;
          if $(equal $(v), 0)
@@ -122,225 +135,259 @@ function counts the number of zeros in the sequence.</P><PRE CLASS="verbatim">  
             export
          export
       return $(count)
-   </PRE></LI><LI CLASS="li-itemize"><CODE>$(s.forall &lt;fun&gt;)</CODE>: tests whether each element of the sequence
+   </pre></li><li class="li-itemize"><code>$(s.forall &lt;fun&gt;)</code>: tests whether each element of the sequence
 satifies a predicate.
-</LI><LI CLASS="li-itemize"><CODE>$(s.exists &lt;fun&gt;)</CODE>: tests whether the sequence contains an element
+</li><li class="li-itemize"><code>$(s.exists &lt;fun&gt;)</code>: tests whether the sequence contains an element
 that satisfies a predicate.
-</LI><LI CLASS="li-itemize"><CODE>$(s.sort &lt;fun&gt;)</CODE>: sorts a sequence. The <CODE>&lt;fun&gt;</CODE> is a comparison
-function. It takes two elements <CODE>(x, y)</CODE> of the sequence, compares them, and returns
-a negative number if <I>x</I> &lt; <I>y</I>, a positive number if <I>x</I> &gt; <I>y</I>, and zero if the two elements
-are equal.<PRE CLASS="verbatim">  osh&gt; items = $(int 0 3 -2)
+</li><li class="li-itemize"><code>$(s.sort &lt;fun&gt;)</code>: sorts a sequence. The <code>&lt;fun&gt;</code> is a comparison
+function. It takes two elements <code>(x, y)</code> of the sequence, compares them, and returns
+a negative number if <span class="c003">x</span> &lt; <span class="c003">y</span>, a positive number if <span class="c003">x</span> &gt; <span class="c003">y</span>, and zero if the two elements
+are equal.<pre class="verbatim">  osh&gt; items = $(int 0 3 -2)
   osh&gt; items.forall(x =&gt; $(gt $x, 0))
   - : bool = false
   osh&gt; items.exists(x =&gt; $(gt $x, 0))
   - : bool = true
   osh&gt; items.sort($(compare))
   - : Array = -2 3 0
-  </PRE></LI></UL><H3 CLASS="subsection"><A NAME="htoc342">12.1.7</A>&#XA0;&#XA0;Array</H3><P><A NAME="obj:Array"></A><A NAME="object:Array"></A><A NAME="@default374"></A><A NAME="@obj16"></A></P><P>Parent objects: <CODE>Sequence</CODE>.</P><P>The <CODE>Array</CODE> is a random-access sequence.
-It provides the following additional methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(s.nth &lt;i&gt;)</CODE>: returns element <CODE>i</CODE> of the sequence.
-</LI><LI CLASS="li-itemize"><CODE>$(s.rev &lt;i&gt;)</CODE>: returns the reversed sequence.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc343">12.1.8</A>&#XA0;&#XA0;String</H3><P><A NAME="obj:String"></A><A NAME="object:String"></A><A NAME="@default375"></A><A NAME="@obj17"></A></P><P>Parent objects: <CODE>Array</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc344">12.1.9</A>&#XA0;&#XA0;Fun</H3><P><A NAME="obj:Fun"></A><A NAME="object:Fun"></A><A NAME="@default376"></A><A NAME="@obj18"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Fun</CODE> object provides the following methods.
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(f.arity)</CODE>: the arity if the function.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc345">12.1.10</A>&#XA0;&#XA0;Rule</H3><P><A NAME="obj:Rule"></A><A NAME="object:Rule"></A><A NAME="@default377"></A><A NAME="@obj19"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Rule</CODE> object represents a build rule.
+  </pre></li></ul>
+<h3 class="subsection" id="sec362">12.1.7&#XA0;&#XA0;Array</h3>
+<p><a id="obj:Array"></a><a id="object:Array"></a><a id="hevea_default374"></a><a id="hevea_obj16"></a></p><p>Parent objects: <code>Sequence</code>.</p><p>The <code>Array</code> is a random-access sequence.
+It provides the following additional methods.</p><ul class="itemize"><li class="li-itemize">
+<code>$(s.nth &lt;i&gt;)</code>: returns element <code>i</code> of the sequence.
+</li><li class="li-itemize"><code>$(s.rev &lt;i&gt;)</code>: returns the reversed sequence.
+</li></ul>
+<h3 class="subsection" id="sec363">12.1.8&#XA0;&#XA0;String</h3>
+<p><a id="obj:String"></a><a id="object:String"></a><a id="hevea_default375"></a><a id="hevea_obj17"></a></p><p>Parent objects: <code>Array</code>.
+</p>
+<h3 class="subsection" id="sec364">12.1.9&#XA0;&#XA0;Fun</h3>
+<p><a id="obj:Fun"></a><a id="object:Fun"></a><a id="hevea_default376"></a><a id="hevea_obj18"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Fun</code> object provides the following methods.
+</p><ul class="itemize"><li class="li-itemize">
+<code>$(f.arity)</code>: the arity if the function.
+</li></ul>
+<h3 class="subsection" id="sec365">12.1.10&#XA0;&#XA0;Rule</h3>
+<p><a id="obj:Rule"></a><a id="object:Rule"></a><a id="hevea_default377"></a><a id="hevea_obj19"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Rule</code> object represents a build rule.
 It does not currently have any methods.
-</P><H3 CLASS="subsection"><A NAME="htoc346">12.1.11</A>&#XA0;&#XA0;Target</H3><P><A NAME="obj:Target"></A><A NAME="object:Target"></A><A NAME="@default378"></A><A NAME="@obj20"></A></P><P>Parent object: <CODE>Object</CODE>.</P><P>The <CODE>Target</CODE> object contains information collected for
-a specific target file.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>target</CODE>: the target file.
-</LI><LI CLASS="li-itemize"><CODE>effects</CODE>: the files that may be modified by a
+</p>
+<h3 class="subsection" id="sec366">12.1.11&#XA0;&#XA0;Target</h3>
+<p><a id="obj:Target"></a><a id="object:Target"></a><a id="hevea_default378"></a><a id="hevea_obj20"></a></p><p>Parent object: <code>Object</code>.</p><p>The <code>Target</code> object contains information collected for
+a specific target file.</p><ul class="itemize"><li class="li-itemize">
+<code>target</code>: the target file.
+</li><li class="li-itemize"><code>effects</code>: the files that may be modified by a
 side-effect when this target is built.
-</LI><LI CLASS="li-itemize"><CODE>scanner_deps</CODE>: static dependencies that must be built
+</li><li class="li-itemize"><code>scanner_deps</code>: static dependencies that must be built
 before this target can be scanned.
-</LI><LI CLASS="li-itemize"><CODE>static-deps</CODE>: statically-defined build dependencies
+</li><li class="li-itemize"><code>static-deps</code>: statically-defined build dependencies
 of this target.
-</LI><LI CLASS="li-itemize"><CODE>build-deps</CODE>: all the build dependencies for the target,
+</li><li class="li-itemize"><code>build-deps</code>: all the build dependencies for the target,
 including static and scanned dependencies.
-</LI><LI CLASS="li-itemize"><CODE>build-values</CODE>: all the value dependencies associated
+</li><li class="li-itemize"><code>build-values</code>: all the value dependencies associated
 with the build.
-</LI><LI CLASS="li-itemize"><CODE>build-commands</CODE>: the commands to build the target.
-</LI><LI CLASS="li-itemize"><CODE>output-file</CODE>: if output was diverted to a file,
-with one of the <CODE>--output-*</CODE> options&#XA0;<A HREF="omake-options.html#chapter:options">A</A>,
-this field names that file. Otherwise it is <CODE>false</CODE>.
-</LI></UL><P>The object supports the following methods.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>find(file)</CODE>: returns a Target object for the given file.
-Raises a <CODE>RuntimeException</CODE> if the specified target is
+</li><li class="li-itemize"><code>build-commands</code>: the commands to build the target.
+</li><li class="li-itemize"><code>output-file</code>: if output was diverted to a file,
+with one of the <code>--output-*</code> options&#XA0;<a href="omake-options.html#chapter%3Aoptions">A</a>,
+this field names that file. Otherwise it is <code>false</code>.
+</li></ul><p>The object supports the following methods.</p><ul class="itemize"><li class="li-itemize">
+<code>find(file)</code>: returns a Target object for the given file.
+Raises a <code>RuntimeException</code> if the specified target is
 not part of the project.
-</LI><LI CLASS="li-itemize"><CODE>find-optional(file)</CODE>: returns a <CODE>Target</CODE> object
-for the given file, or <CODE>false</CODE> if the file is not
+</li><li class="li-itemize"><code>find-optional(file)</code>: returns a <code>Target</code> object
+for the given file, or <code>false</code> if the file is not
 part of the project.
-</LI></UL><P>NOTE: the information for a target is constructed dynamically,
-so it is possible that the <CODE>Target</CODE> object for a node will
+</li></ul><p>NOTE: the information for a target is constructed dynamically,
+so it is possible that the <code>Target</code> object for a node will
 contain different values in different contexts. The easiest way
-to make sure that the <CODE>Target</CODE> information is complete is
+to make sure that the <code>Target</code> information is complete is
 to compute it within a rule body, where the rule depends on
 the target file, or the dependencies of the target file.
-</P><H3 CLASS="subsection"><A NAME="htoc347">12.1.12</A>&#XA0;&#XA0;Node</H3><P><A NAME="obj:Node"></A><A NAME="object:Node"></A><A NAME="@default379"></A><A NAME="@obj21"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Node</CODE> object is the parent object for files and directories.
+</p>
+<h3 class="subsection" id="sec367">12.1.12&#XA0;&#XA0;Node</h3>
+<p><a id="obj:Node"></a><a id="object:Node"></a><a id="hevea_default379"></a><a id="hevea_obj21"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Node</code> object is the parent object for files and directories.
 It supports the following operations.
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(node.stat)</CODE>: returns a <CODE>stat</CODE> object for the file. If the
-file is a symbolic link, the <CODE>stat</CODE> information is for the destination of
-the link, not the link itself.</LI><LI CLASS="li-itemize"><CODE>$(node.lstat)</CODE>: returns a <CODE>stat</CODE> object for the file or symbolic link.
-</LI><LI CLASS="li-itemize"><CODE>$(node.unlink)</CODE>: removes the file.
-</LI><LI CLASS="li-itemize"><CODE>$(node.rename &lt;file&gt;)</CODE>: renames the file.
-</LI><LI CLASS="li-itemize"><CODE>$(node.link &lt;file&gt;)</CODE>: creates a hard link <CODE>&lt;dst&gt;</CODE> to this file.
-</LI><LI CLASS="li-itemize"><CODE>$(node.symlink &lt;file&gt;)</CODE>: create a symbolic link <CODE>&lt;dst&gt;</CODE> to this file.
-</LI><LI CLASS="li-itemize"><CODE>$(node.chmod &lt;perm&gt;)</CODE>: change the permission of this file.
-</LI><LI CLASS="li-itemize"><CODE>$(node.chown &lt;uid&gt;, &lt;gid&gt;)</CODE>: change the owner and group id of this file.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc348">12.1.13</A>&#XA0;&#XA0;File</H3><P><A NAME="obj:File"></A><A NAME="object:File"></A><A NAME="@default380"></A><A NAME="@obj22"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The file object represents the name of a file.
-</P><H3 CLASS="subsection"><A NAME="htoc349">12.1.14</A>&#XA0;&#XA0;Dir</H3><P><A NAME="obj:Dir"></A><A NAME="object:Dir"></A><A NAME="@default381"></A><A NAME="@obj23"></A></P><P>Parent objects: <CODE>Node</CODE>.</P><P>The <CODE>Dir</CODE> object represents the name of a directory.
-</P><H3 CLASS="subsection"><A NAME="htoc350">12.1.15</A>&#XA0;&#XA0;Channel</H3><P><A NAME="obj:Channel"></A><A NAME="object:Channel"></A><A NAME="@default382"></A><A NAME="@obj24"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>A <CODE>Channel</CODE> is a generic IO channel.
+</p><ul class="itemize"><li class="li-itemize">
+<code>$(node.stat)</code>: returns a <code>stat</code> object for the file. If the
+file is a symbolic link, the <code>stat</code> information is for the destination of
+the link, not the link itself.</li><li class="li-itemize"><code>$(node.lstat)</code>: returns a <code>stat</code> object for the file or symbolic link.
+</li><li class="li-itemize"><code>$(node.unlink)</code>: removes the file.
+</li><li class="li-itemize"><code>$(node.rename &lt;file&gt;)</code>: renames the file.
+</li><li class="li-itemize"><code>$(node.link &lt;file&gt;)</code>: creates a hard link <code>&lt;dst&gt;</code> to this file.
+</li><li class="li-itemize"><code>$(node.symlink &lt;file&gt;)</code>: create a symbolic link <code>&lt;dst&gt;</code> to this file.
+</li><li class="li-itemize"><code>$(node.chmod &lt;perm&gt;)</code>: change the permission of this file.
+</li><li class="li-itemize"><code>$(node.chown &lt;uid&gt;, &lt;gid&gt;)</code>: change the owner and group id of this file.
+</li></ul>
+<h3 class="subsection" id="sec368">12.1.13&#XA0;&#XA0;File</h3>
+<p><a id="obj:File"></a><a id="object:File"></a><a id="hevea_default380"></a><a id="hevea_obj22"></a></p><p>Parent objects: <code>Node</code>.</p><p>The file object represents the name of a file.
+</p>
+<h3 class="subsection" id="sec369">12.1.14&#XA0;&#XA0;Dir</h3>
+<p><a id="obj:Dir"></a><a id="object:Dir"></a><a id="hevea_default381"></a><a id="hevea_obj23"></a></p><p>Parent objects: <code>Node</code>.</p><p>The <code>Dir</code> object represents the name of a directory.
+</p>
+<h3 class="subsection" id="sec370">12.1.15&#XA0;&#XA0;Channel</h3>
+<p><a id="obj:Channel"></a><a id="object:Channel"></a><a id="hevea_default382"></a><a id="hevea_obj24"></a></p><p>Parent objects: <code>Object</code>.</p><p>A <code>Channel</code> is a generic IO channel.
 It provides the following methods.
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(o.close)</CODE>: close the channel.
-</LI><LI CLASS="li-itemize"><CODE>$(o.name)</CODE>: returns the file name associated with the channel.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc351">12.1.16</A>&#XA0;&#XA0;InChannel</H3><P><A NAME="obj:InChannel"></A><A NAME="object:InChannel"></A><A NAME="@default383"></A><A NAME="@obj25"></A></P><P>Parent objects: <CODE>Channel</CODE>.</P><P>A <CODE>InChannel</CODE> is an input channel. The variable <CODE>stdin</CODE> is the
-standard input channel.</P><P>It provides the following methods.
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(InChannel.fopen &lt;file&gt;)</CODE>: open a new input channel.
-</LI><LI CLASS="li-itemize"><CODE>$(InChannel.of-string &lt;string&gt;)</CODE>: open a new input channel,
+</p><ul class="itemize"><li class="li-itemize">
+<code>$(o.close)</code>: close the channel.
+</li><li class="li-itemize"><code>$(o.name)</code>: returns the file name associated with the channel.
+</li></ul>
+<h3 class="subsection" id="sec371">12.1.16&#XA0;&#XA0;InChannel</h3>
+<p><a id="obj:InChannel"></a><a id="object:InChannel"></a><a id="hevea_default383"></a><a id="hevea_obj25"></a></p><p>Parent objects: <code>Channel</code>.</p><p>A <code>InChannel</code> is an input channel. The variable <code>stdin</code> is the
+standard input channel.</p><p>It provides the following methods.
+</p><ul class="itemize"><li class="li-itemize">
+<code>$(InChannel.fopen &lt;file&gt;)</code>: open a new input channel.
+</li><li class="li-itemize"><code>$(InChannel.of-string &lt;string&gt;)</code>: open a new input channel,
 using a string as input.
-</LI><LI CLASS="li-itemize"><CODE>$(o.read &lt;number&gt;)</CODE>: reads the given number of characters from the channel
-</LI><LI CLASS="li-itemize"><CODE>$(o.readln)</CODE>: reads a line from the channel
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc352">12.1.17</A>&#XA0;&#XA0;OutChannel</H3><P><A NAME="obj:OutChannel"></A><A NAME="object:OutChannel"></A><A NAME="@default384"></A><A NAME="@obj26"></A></P><P>Parent object: <CODE>Channel</CODE>.</P><P>A <CODE>OutChannel</CODE> is an output channel. The variables <CODE>stdout</CODE>
-and <CODE>stderr</CODE> are the standard output and error channels.</P><P>It provides the following methods.
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$(OutChannel.fopen &lt;file&gt;)</CODE>: open a new output channel.
-</LI><LI CLASS="li-itemize"><CODE>$(OutChannel.string)</CODE>: open a new output channel,
+</li><li class="li-itemize"><code>$(o.read &lt;number&gt;)</code>: reads the given number of characters from the channel
+</li><li class="li-itemize"><code>$(o.readln)</code>: reads a line from the channel
+</li></ul>
+<h3 class="subsection" id="sec372">12.1.17&#XA0;&#XA0;OutChannel</h3>
+<p><a id="obj:OutChannel"></a><a id="object:OutChannel"></a><a id="hevea_default384"></a><a id="hevea_obj26"></a></p><p>Parent object: <code>Channel</code>.</p><p>A <code>OutChannel</code> is an output channel. The variables <code>stdout</code>
+and <code>stderr</code> are the standard output and error channels.</p><p>It provides the following methods.
+</p><ul class="itemize"><li class="li-itemize">
+<code>$(OutChannel.fopen &lt;file&gt;)</code>: open a new output channel.
+</li><li class="li-itemize"><code>$(OutChannel.string)</code>: open a new output channel,
 writing to a string.
-</LI><LI CLASS="li-itemize"><CODE>$(OutChannel.to-string)</CODE>: get the current string of
-output, for an output channel created as <CODE>OutChannel.open-string</CODE>.
-</LI><LI CLASS="li-itemize"><CODE>$(OutChannel.append &lt;file&gt;)</CODE>: opens a new output channel,
+</li><li class="li-itemize"><code>$(OutChannel.to-string)</code>: get the current string of
+output, for an output channel created as <code>OutChannel.open-string</code>.
+</li><li class="li-itemize"><code>$(OutChannel.append &lt;file&gt;)</code>: opens a new output channel,
 appending to the file.
-</LI><LI CLASS="li-itemize"><CODE>$(c.flush)</CODE>: flush the output channel.
-</LI><LI CLASS="li-itemize"><CODE>$(c.print &lt;string&gt;)</CODE>: print a string to the channel.
-</LI><LI CLASS="li-itemize"><CODE>$(c.println &lt;string&gt;)</CODE>: print a string to the channel,
+</li><li class="li-itemize"><code>$(c.flush)</code>: flush the output channel.
+</li><li class="li-itemize"><code>$(c.print &lt;string&gt;)</code>: print a string to the channel.
+</li><li class="li-itemize"><code>$(c.println &lt;string&gt;)</code>: print a string to the channel,
 followed by a line terminator.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc353">12.1.18</A>&#XA0;&#XA0;Location</H3><P><A NAME="obj:Location"></A><A NAME="object:Location"></A><A NAME="@default385"></A><A NAME="@obj27"></A></P><P>Parent objects: <CODE>Location</CODE>.</P><P>The <CODE>Location</CODE> object represents a location in a file.
-</P><H3 CLASS="subsection"><A NAME="htoc354">12.1.19</A>&#XA0;&#XA0;Exception</H3><P><A NAME="obj:Exception"></A><A NAME="object:Exception"></A><A NAME="@default386"></A><A NAME="@obj28"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Exception</CODE> object is used as the base object for exceptions.
+</li></ul>
+<h3 class="subsection" id="sec373">12.1.18&#XA0;&#XA0;Location</h3>
+<p><a id="obj:Location"></a><a id="object:Location"></a><a id="hevea_default385"></a><a id="hevea_obj27"></a></p><p>Parent objects: <code>Location</code>.</p><p>The <code>Location</code> object represents a location in a file.
+</p>
+<h3 class="subsection" id="sec374">12.1.19&#XA0;&#XA0;Exception</h3>
+<p><a id="obj:Exception"></a><a id="object:Exception"></a><a id="hevea_default386"></a><a id="hevea_obj28"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Exception</code> object is used as the base object for exceptions.
 It has no fields.
-</P><H3 CLASS="subsection"><A NAME="htoc355">12.1.20</A>&#XA0;&#XA0;RuntimeException</H3><P><A NAME="obj:RuntimeException"></A><A NAME="object:RuntimeException"></A><A NAME="@default387"></A><A NAME="@obj29"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>RuntimeException</CODE> object represents an exception from the
-runtime system. It has the following fields.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>position</CODE>: a string representing the location where the
+</p>
+<h3 class="subsection" id="sec375">12.1.20&#XA0;&#XA0;RuntimeException</h3>
+<p><a id="obj:RuntimeException"></a><a id="object:RuntimeException"></a><a id="hevea_default387"></a><a id="hevea_obj29"></a></p><p>Parent objects: <code>Exception</code>.</p><p>The <code>RuntimeException</code> object represents an exception from the
+runtime system. It has the following fields.</p><ul class="itemize"><li class="li-itemize">
+<code>position</code>: a string representing the location where the
 exception was raised.
-</LI><LI CLASS="li-itemize"><CODE>message</CODE>: a string containing the exception message.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc356">12.1.21</A>&#XA0;&#XA0;UnbuildableException</H3><P><A NAME="obj:UnbuildableException"></A><A NAME="object:UnbuildableException"></A><A NAME="@default388"></A><A NAME="@obj30"></A></P><P>Parent objects: <CODE>Exception</CODE>.</P><P>The <CODE>UnbuildableException</CODE> object should be used to signal that a target
+</li><li class="li-itemize"><code>message</code>: a string containing the exception message.
+</li></ul>
+<h3 class="subsection" id="sec376">12.1.21&#XA0;&#XA0;UnbuildableException</h3>
+<p><a id="obj:UnbuildableException"></a><a id="object:UnbuildableException"></a><a id="hevea_default388"></a><a id="hevea_obj30"></a></p><p>Parent objects: <code>Exception</code>.</p><p>The <code>UnbuildableException</code> object should be used to signal that a target
 is not buildable. It will be caught by functions such as
-<CODE><A HREF="omake-system.html#fun:target-exists">target-exists</A></CODE>.
-This exception has the following fields:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>target</CODE>: indicates which target is not buildable.
-</LI><LI CLASS="li-itemize"><CODE>message</CODE>: a string containing the exception message.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc357">12.1.22</A>&#XA0;&#XA0;Shell</H3><P><A NAME="obj:Shell"></A><A NAME="object:Shell"></A><A NAME="@default389"></A><A NAME="@obj31"></A></P><P>Parent objects: <CODE>Object</CODE>.</P><P>The <CODE>Shell</CODE> object contains the collection of builtin functions
-available as shell commands.</P><P>You can define aliases by extending this object with additional methods.
+<a href="omake-system.html#fun%3Atarget-exists"><CODE>target-exists</CODE></a>.
+This exception has the following fields:</p><ul class="itemize"><li class="li-itemize">
+<code>target</code>: indicates which target is not buildable.
+</li><li class="li-itemize"><code>message</code>: a string containing the exception message.
+</li></ul>
+<h3 class="subsection" id="sec377">12.1.22&#XA0;&#XA0;Shell</h3>
+<p><a id="obj:Shell"></a><a id="object:Shell"></a><a id="hevea_default389"></a><a id="hevea_obj31"></a></p><p>Parent objects: <code>Object</code>.</p><p>The <code>Shell</code> object contains the collection of builtin functions
+available as shell commands.</p><p>You can define aliases by extending this object with additional methods.
 All methods in this class are called with one argument: a single array
-containing an argument list.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>echo</CODE><A NAME="@default390"></A><P>The <CODE>echo</CODE> function prints its arguments to the standard output channel.
-</P></LI><LI CLASS="li-itemize"><CODE>jobs</CODE><A NAME="@default391"></A><P>The <CODE>jobs</CODE> method prints the status of currently running commands.
-</P></LI><LI CLASS="li-itemize"><CODE>cd</CODE><A NAME="@default392"></A><P>The <CODE>cd</CODE> function changes the current directory.
+containing an argument list.</p><ul class="itemize"><li class="li-itemize">
+<CODE>echo</CODE><a id="hevea_default390"></a><p>The <code>echo</code> function prints its arguments to the standard output channel.
+</p></li><li class="li-itemize"><CODE>jobs</CODE><a id="hevea_default391"></a><p>The <code>jobs</code> method prints the status of currently running commands.
+</p></li><li class="li-itemize"><CODE>cd</CODE><a id="hevea_default392"></a><p>The <code>cd</code> function changes the current directory.
 Note that the current directory follows the usual scoping
 rules. For example, the following program lists the
-files in the <CODE>foo</CODE> directory, but the current
-directory is not changed.</P><PRE CLASS="verbatim">   section
+files in the <code>foo</code> directory, but the current
+directory is not changed.</p><pre class="verbatim">   section
       echo Listing files in the foo directory...
       cd foo
       ls
 
    echo Listing files in the current directory...
    ls
-</PRE></LI><LI CLASS="li-itemize"><CODE>bg</CODE><A NAME="@default393"></A><P>The <CODE>bg</CODE> method places a job in the background.
+</pre></li><li class="li-itemize"><CODE>bg</CODE><a id="hevea_default393"></a><p>The <code>bg</code> method places a job in the background.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>fg</CODE><A NAME="@default394"></A><P>The <CODE>fg</CODE> method brings a job to the foreground.
+</p></li><li class="li-itemize"><CODE>fg</CODE><a id="hevea_default394"></a><p>The <code>fg</code> method brings a job to the foreground.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>stop</CODE><A NAME="@default395"></A><P>The <CODE>stop</CODE> method suspends a running job.
-</P></LI><LI CLASS="li-itemize"><CODE>wait</CODE><A NAME="@default396"></A><P>The <CODE>wait</CODE> function waits for a running job to terminate.
-It is not possible to wait for a suspended job.</P><P>The job is not brought to the foreground. If the <CODE>wait</CODE>
+</p></li><li class="li-itemize"><CODE>stop</CODE><a id="hevea_default395"></a><p>The <code>stop</code> method suspends a running job.
+</p></li><li class="li-itemize"><CODE>wait</CODE><a id="hevea_default396"></a><p>The <code>wait</code> function waits for a running job to terminate.
+It is not possible to wait for a suspended job.</p><p>The job is not brought to the foreground. If the <code>wait</code>
 is interrupted, the job continues to run in the background.
-</P></LI><LI CLASS="li-itemize"><CODE>kill</CODE><A NAME="@default397"></A><P>The <CODE>kill</CODE> function signal a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>.</P><P>The signals are either numeric, or symbolic.
-The symbolic signals are named as follows.</P><P>ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
+</p></li><li class="li-itemize"><CODE>kill</CODE><a id="hevea_default397"></a><p>The <code>kill</code> function signal a job.</p><p><code>kill [signal] &lt;pid...&gt;</code>.</p><p>The signals are either numeric, or symbolic.
+The symbolic signals are named as follows.</p><p>ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
 USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
-</P></LI><LI CLASS="li-itemize"><CODE>exit</CODE><A NAME="@default398"></A><P>The <CODE>exit</CODE> function terminates the current session.
-</P></LI><LI CLASS="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><A NAME="@default399"></A><A NAME="@default400"></A><P>See the documentation for the corresponding functions.
-</P></LI><LI CLASS="li-itemize"><CODE>rehash</CODE><A NAME="@default401"></A><P>Reset the search path.
-</P></LI><LI CLASS="li-itemize"><CODE>ln-or-cp</CODE><A NAME="@default402"></A> <EM>src</EM> dst<P>Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, <CODE>ln-or-cp</CODE> would first
-delete the </EM>dst file (unless it is a directory), if it exists. Next it would try to create
-a symbolic link <EM>dst poiting to </EM>src (it will make all the necessary adjustmnents of
-relative paths). If symbolic link can not be created (<EM>e.g.</EM> the OS or the filesystem does
+</p></li><li class="li-itemize"><CODE>exit</CODE><a id="hevea_default398"></a><p>The <code>exit</code> function terminates the current session.
+</p></li><li class="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><a id="hevea_default399"></a><a id="hevea_default400"></a><p>See the documentation for the corresponding functions.
+</p></li><li class="li-itemize"><CODE>rehash</CODE><a id="hevea_default401"></a><p>Reset the search path.
+</p></li><li class="li-itemize"><CODE>ln-or-cp</CODE><a id="hevea_default402"></a> <em>src</em> dst<p>Links or copies <em>src to </em>dst, overwriting <em>dst. Namely, <code>ln-or-cp</code> would first
+delete the </em>dst file (unless it is a directory), if it exists. Next it would try to create
+a symbolic link <em>dst poiting to </em>src (it will make all the necessary adjustmnents of
+relative paths). If symbolic link can not be created (<em>e.g.</em> the OS or the filesystem does
 not support symbolic links), it will try to create a hard link. If that fails too, it will try
-to forcibly copy <EM>src to </EM>dst.
-</P></LI><LI CLASS="li-itemize"><CODE>history</CODE><A NAME="@default403"></A><P>Print the current command-line history.
-</P></LI><LI CLASS="li-itemize"><CODE>digest</CODE><A NAME="@default404"></A><P>Print the digests of the given files.
-</P></LI><LI CLASS="li-itemize">Win32 functions.<P>Win32 doesn&#X2019;t provide very many programs for scripting, except
-for the functions that are builtin to the DOS <CODE>cmd.exe</CODE>.
+to forcibly copy <em>src to </em>dst.
+</p></li><li class="li-itemize"><CODE>history</CODE><a id="hevea_default403"></a><p>Print the current command-line history.
+</p></li><li class="li-itemize"><CODE>digest</CODE><a id="hevea_default404"></a><p>Print the digests of the given files.
+</p></li><li class="li-itemize">Win32 functions.<p>Win32 doesn&#X2019;t provide very many programs for scripting, except
+for the functions that are builtin to the DOS <code>cmd.exe</code>.
 The following functions are defined on Win32 and only on Win32.
 On other systems, it is expected that these programs already
-exist.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>grep</CODE><A NAME="@default405"></A><PRE CLASS="verbatim">   grep [-q] [-n] [-v] [-h] pattern files...
-</PRE><P>The <CODE>grep</CODE> alias calls the <TT>omake</TT>&#X2019;s internal <A HREF="omake-system.html#fun:grep"><CODE>grep</CODE> function</A>.
-</P></LI></UL><P>By default, <TT>omake</TT> uses internal versions of the following commands:
-<CODE>cp</CODE>, <CODE>mv</CODE>, <CODE>cat</CODE>, <CODE>rm</CODE>, <CODE>mkdir</CODE>, <CODE>chmod</CODE>,
-<CODE>test</CODE>, <CODE>find</CODE>.
+exist.</p><ul class="itemize"><li class="li-itemize">
+<CODE>grep</CODE><a id="hevea_default405"></a><pre class="verbatim">   grep [-q] [-n] [-v] [-h] pattern files...
+</pre><p>The <code>grep</code> alias calls the <span class="c001">omake</span>&#X2019;s internal <a href="omake-system.html#fun%3Agrep"><CODE>grep</CODE> function</a>.
+</p></li></ul><p>By default, <span class="c001">omake</span> uses internal versions of the following commands:
+<code>cp</code>, <code>mv</code>, <code>cat</code>, <code>rm</code>, <code>mkdir</code>, <code>chmod</code>,
+<code>test</code>, <code>find</code>.
 If you really want to use the standard system versions of these
-commands, set the <CODE>USE_SYSTEM_COMMANDS</CODE> as one of the first
-definitions in your <CODE>OMakeroot</CODE> file.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>pwd</CODE><A NAME="@default406"></A><PRE CLASS="verbatim">    pwd
-</PRE><P>The <CODE>pwd</CODE> alias would print the absolute path to current directory.
-</P></LI><LI CLASS="li-itemize"><CODE>mkdir</CODE><A NAME="@default407"></A><PRE CLASS="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
-</PRE><P>The <CODE>mkdir</CODE> function is used to create directories.
+commands, set the <code>USE_SYSTEM_COMMANDS</code> as one of the first
+definitions in your <code>OMakeroot</code> file.</p><ul class="itemize"><li class="li-itemize">
+<CODE>pwd</CODE><a id="hevea_default406"></a><pre class="verbatim">    pwd
+</pre><p>The <code>pwd</code> alias would print the absolute path to current directory.
+</p></li><li class="li-itemize"><CODE>mkdir</CODE><a id="hevea_default407"></a><pre class="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
+</pre><p>The <code>mkdir</code> function is used to create directories.
 The -verb+-m+ option can be used to specify the permission
-mode of the created directory. If the <CODE>-p</CODE> option
+mode of the created directory. If the <code>-p</code> option
 is specified, the full path is created.
-</P></LI><LI CLASS="li-itemize"><CODE>cp</CODE>, <CODE>mv</CODE><A NAME="@default408"></A><A NAME="@default409"></A><PRE CLASS="verbatim">    cp [-f] [-i] [-v] src dst
+</p></li><li class="li-itemize"><CODE>cp</CODE>, <CODE>mv</CODE><a id="hevea_default408"></a><a id="hevea_default409"></a><pre class="verbatim">    cp [-f] [-i] [-v] src dst
     cp [-f] [-i] [-v] files dst
     mv [-f] [-i] [-v] src dst
     mv [-f] [-i] [-v] files dst
-</PRE><P>The <CODE>cp</CODE> function copies a <CODE>src</CODE> file to
-a <CODE>dst</CODE> file, overwriting it if it already exists.
+</pre><p>The <code>cp</code> function copies a <code>src</code> file to
+a <code>dst</code> file, overwriting it if it already exists.
 If more than one source file is specified, the final file
 must be a directory, and the source files are copied
-into the directory.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>-f</B></DT><DD CLASS="dd-description"> Copy files forcibly, do not prompt.
-</DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removing destination files.
-</DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>rm</CODE><A NAME="@default410"></A><PRE CLASS="verbatim">   rm [-f] [-i] [-v] [-r] files
+into the directory.</p><dl class="description"><dt class="dt-description">
+<span class="c004">-f</span></dt><dd class="dd-description"> Copy files forcibly, do not prompt.
+</dd><dt class="dt-description"><span class="c004">-i</span></dt><dd class="dd-description"> Prompt before removing destination files.
+</dd><dt class="dt-description"><span class="c004">-v</span></dt><dd class="dd-description"> Explain what is happening.
+</dd></dl></li><li class="li-itemize"><CODE>rm</CODE><a id="hevea_default410"></a><pre class="verbatim">   rm [-f] [-i] [-v] [-r] files
    rmdir [-f] [-i] [-v] [-r] dirs
-</PRE><P>The <CODE>rm</CODE> function removes a set of files.
+</pre><p>The <code>rm</code> function removes a set of files.
 No warnings are issued if the files do not exist, or if
-they cannot be removed.</P><P>Options:
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>-f</B></DT><DD CLASS="dd-description"> Forcibly remove files, do not prompt.
-</DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removal.
-</DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
-</DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Remove contents of directories recursively.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>chmod</CODE><A NAME="@default411"></A><PRE CLASS="verbatim">    chmod [-r] [-v] [-f] mode files
-</PRE><P>The <CODE>chmod</CODE> function changes the permissions on a set of
+they cannot be removed.</p><p>Options:
+</p><dl class="description"><dt class="dt-description">
+<span class="c004">-f</span></dt><dd class="dd-description"> Forcibly remove files, do not prompt.
+</dd><dt class="dt-description"><span class="c004">-i</span></dt><dd class="dd-description"> Prompt before removal.
+</dd><dt class="dt-description"><span class="c004">-v</span></dt><dd class="dd-description"> Explain what is happening.
+</dd><dt class="dt-description"><span class="c004">-r</span></dt><dd class="dd-description"> Remove contents of directories recursively.
+</dd></dl></li><li class="li-itemize"><CODE>chmod</CODE><a id="hevea_default411"></a><pre class="verbatim">    chmod [-r] [-v] [-f] mode files
+</pre><p>The <code>chmod</code> function changes the permissions on a set of
 files or directories. This function does nothing on Win32.
-The <CODE>mode</CODE> may be specified as an octal number,
-or in symbolic form <CODE>[ugoa]*[</CODE>-=][rwxXstugo]+.
-See the man page for <CODE>chmod</CODE> for details.</P><P>Options:
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>-r</B></DT><DD CLASS="dd-description"> Change permissions of all files in a directory recursively.
-</DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
-</DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>cat</CODE><A NAME="@default412"></A><PRE CLASS="verbatim">   cat files...
-</PRE><P>The <CODE>cat</CODE> function prints the contents of the files to stdout
-</P></LI><LI CLASS="li-itemize"><CODE>test</CODE><A NAME="@default413"></A><P><CODE>test</CODE> <EM>expression</EM><BR>
- <CODE>[</CODE> <EM>expression</EM> +]+<BR>
- <CODE>[ --help</CODE><BR>
- <CODE>[ --version</CODE><BR>
+The <code>mode</code> may be specified as an octal number,
+or in symbolic form <code>[ugoa]*[</code>-=][rwxXstugo]+.
+See the man page for <code>chmod</code> for details.</p><p>Options:
+</p><dl class="description"><dt class="dt-description">
+<span class="c004">-r</span></dt><dd class="dd-description"> Change permissions of all files in a directory recursively.
+</dd><dt class="dt-description"><span class="c004">-v</span></dt><dd class="dd-description"> Explain what is happening.
+</dd><dt class="dt-description"><span class="c004">-f</span></dt><dd class="dd-description"> Continue on errors.
+</dd></dl></li><li class="li-itemize"><CODE>cat</CODE><a id="hevea_default412"></a><pre class="verbatim">   cat files...
+</pre><p>The <code>cat</code> function prints the contents of the files to stdout
+</p></li><li class="li-itemize"><CODE>test</CODE><a id="hevea_default413"></a><p><code>test</code> <em>expression</em><br>
+ <code>[</code> <em>expression</em> +]+<br>
+ <code>[ --help</code><br>
+ <code>[ --version</code><br>
 
-See the documentation for the <A HREF="omake-system.html#fun:test"><CODE>test</CODE> function</A>.</P></LI><LI CLASS="li-itemize"><CODE>find</CODE><A NAME="@default414"></A><P><CODE>find</CODE> <EM>expression</EM></P><P>See the documentation for the <A HREF="omake-system.html#fun:find"><CODE>find</CODE> function</A>.</P></LI></UL></LI></UL>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+See the documentation for the <a href="omake-system.html#fun%3Atest"><CODE>test</CODE> function</a>.</p></li><li class="li-itemize"><CODE>find</CODE><a id="hevea_default414"></a><p><code>find</code> <em>expression</em></p><p>See the documentation for the <a href="omake-system.html#fun%3Afind"><CODE>find</CODE> function</a>.</p></li></ul></li></ul>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

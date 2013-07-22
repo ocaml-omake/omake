@@ -1,696 +1,696 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Contents</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Contents</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter">Contents</H1><UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake.html#htoc1">Chapter&#XA0;1&#XA0;&#XA0;Guide</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc2">Chapter&#XA0;2&#XA0;&#XA0;OMake quickstart guide</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-quickstart.html#htoc3">2.1&#XA0;&#XA0;Description</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-quickstart.html#htoc4">2.1.1&#XA0;&#XA0;Automatic dependency analysis</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc5">2.1.2&#XA0;&#XA0;Content-based dependency analysis</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc6">2.2&#XA0;&#XA0;For users already familiar with make</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc7">2.3&#XA0;&#XA0;Building a small C program</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc8">2.4&#XA0;&#XA0;Larger projects</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc9">2.5&#XA0;&#XA0;Subdirectories</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc10">2.6&#XA0;&#XA0;Other things to consider</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc11">2.7&#XA0;&#XA0;Building OCaml programs</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc12">2.8&#XA0;&#XA0;The OMakefile and OMakeroot files</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc13">2.9&#XA0;&#XA0;Multiple version support</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-quickstart.html#htoc14">2.10&#XA0;&#XA0;Notes</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc15">Chapter&#XA0;3&#XA0;&#XA0;Additional build examples</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build-examples.html#htoc16">3.1&#XA0;&#XA0;OMakeroot vs. OMakefile</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc17">3.2&#XA0;&#XA0;An example C project</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc18">3.3&#XA0;&#XA0;An example OCaml project</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc19">3.4&#XA0;&#XA0;Handling new languages</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build-examples.html#htoc20">3.4.1&#XA0;&#XA0;Defining a default compilation rule</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc21">3.4.2&#XA0;&#XA0;Defining a rule for linking</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc22">3.4.3&#XA0;&#XA0;Dependency scanning</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc23">3.4.4&#XA0;&#XA0;Pulling it all together</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc24">3.4.5&#XA0;&#XA0;Finishing up</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc25">3.5&#XA0;&#XA0;Collapsing the hierarchy, .SUBDIRS bodies</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build-examples.html#htoc26">3.5.1&#XA0;&#XA0;Using glob patterns</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc27">3.5.2&#XA0;&#XA0;Simplified sub-configurations</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc28">3.5.3&#XA0;&#XA0;Computing the subdirectory list</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build-examples.html#htoc29">3.5.4&#XA0;&#XA0;Temporary directories</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc30">Chapter&#XA0;4&#XA0;&#XA0;OMake concepts and syntax</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language.html#htoc31">4.1&#XA0;&#XA0;Variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc32">4.2&#XA0;&#XA0;Adding to a variable definition</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc33">4.3&#XA0;&#XA0;Arrays</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc34">4.4&#XA0;&#XA0;Special characters and quoting</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc35">4.5&#XA0;&#XA0;Function definitions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language.html#htoc36">4.5.1&#XA0;&#XA0;Keyword arguments</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc37">4.6&#XA0;&#XA0;Curried functions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc38">4.7&#XA0;&#XA0;Comments</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc39">4.8&#XA0;&#XA0;File inclusion</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc40">4.9&#XA0;&#XA0;Scoping, sections</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc41">4.10&#XA0;&#XA0;Conditionals</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc42">4.11&#XA0;&#XA0;Matching</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc43">4.12&#XA0;&#XA0;Objects</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc44">4.13&#XA0;&#XA0;Classes</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc45">4.14&#XA0;&#XA0;Inheritance</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc46">4.15&#XA0;&#XA0;static.</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language.html#htoc47">4.15.1&#XA0;&#XA0;.STATIC</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language.html#htoc48">4.15.1.1&#XA0;&#XA0;.MEMO</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc49">4.15.1.2&#XA0;&#XA0;:key:</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language.html#htoc50">4.16&#XA0;&#XA0;Constants</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc51">Chapter&#XA0;5&#XA0;&#XA0;Variables and Naming</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language-naming.html#htoc52">5.1&#XA0;&#XA0;private.</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc53">5.2&#XA0;&#XA0;this.</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc54">5.3&#XA0;&#XA0;global.</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc55">5.4&#XA0;&#XA0;protected.</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc56">5.5&#XA0;&#XA0;public.</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc57">5.6&#XA0;&#XA0;Qualified blocks</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-naming.html#htoc58">5.7&#XA0;&#XA0;declare</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc59">Chapter&#XA0;6&#XA0;&#XA0;Expressions and values</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-detail.html#htoc60">6.1&#XA0;&#XA0;Dynamic scoping</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc61">6.2&#XA0;&#XA0;Functional evaluation</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc62">6.3&#XA0;&#XA0;Exporting the environment</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-detail.html#htoc63">6.3.1&#XA0;&#XA0;Export regions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc64">6.3.2&#XA0;&#XA0;Returning values from exported regions</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc65">6.4&#XA0;&#XA0;Objects</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc66">6.5&#XA0;&#XA0;Field and method calls</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc67">6.6&#XA0;&#XA0;Method override</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-detail.html#htoc68">6.7&#XA0;&#XA0;Super calls</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc69">Chapter&#XA0;7&#XA0;&#XA0;Additional language examples</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language-examples.html#htoc70">7.1&#XA0;&#XA0;Strings and arrays</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc71">7.2&#XA0;&#XA0;Quoted strings</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc72">7.3&#XA0;&#XA0;Files and directories</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc73">7.4&#XA0;&#XA0;Iteration, mapping, and foreach</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc74">7.5&#XA0;&#XA0;Lazy expressions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-language-examples.html#htoc75">7.5.1&#XA0;&#XA0;A larger example of lazy expressions</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc76">7.6&#XA0;&#XA0;Scoping and exports</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc77">7.7&#XA0;&#XA0;Shell aliases</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-language-examples.html#htoc78">7.8&#XA0;&#XA0;Input/output redirection on the cheap</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc79">Chapter&#XA0;8&#XA0;&#XA0;Rules</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-rules.html#htoc80">8.1&#XA0;&#XA0;Implicit rules</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc81">8.2&#XA0;&#XA0;Bounded implicit rules</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc82">8.3&#XA0;&#XA0;section</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc83">8.4&#XA0;&#XA0;section rule</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc84">8.5&#XA0;&#XA0;Special dependencies</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-rules.html#htoc85">8.5.1&#XA0;&#XA0;:exists:</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc86">8.5.2&#XA0;&#XA0;:effects:</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc87">8.5.3&#XA0;&#XA0;:value:</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc88">8.6&#XA0;&#XA0;<CODE>.SCANNER</CODE> rules</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-rules.html#htoc89">8.6.1&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc90">8.6.2&#XA0;&#XA0;Notes</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc91">8.7&#XA0;&#XA0;.DEFAULT</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc92">8.8&#XA0;&#XA0;.SUBDIRS</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc93">8.9&#XA0;&#XA0;.INCLUDE</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc94">8.10&#XA0;&#XA0;.PHONY</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc95">8.11&#XA0;&#XA0;Rule scoping</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-rules.html#htoc96">8.11.1&#XA0;&#XA0;Scoping of implicit rules</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc97">8.11.2&#XA0;&#XA0;Scoping of <CODE>.SCANNER</CODE> rules</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc98">8.11.3&#XA0;&#XA0;Scoping for <CODE>.PHONY</CODE> targets</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc99">8.12&#XA0;&#XA0;Running OMake from a subdirectory</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-rules.html#htoc100">8.12.1&#XA0;&#XA0;Phony targets in a subdirectory</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc101">8.12.2&#XA0;&#XA0;Hierarchy of <CODE>.PHONY</CODE> targets</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-rules.html#htoc102">8.13&#XA0;&#XA0;Pathnames in rules</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc103">Chapter&#XA0;9&#XA0;&#XA0;Base library</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc104">9.1&#XA0;&#XA0;Builtin variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc105">9.2&#XA0;&#XA0;Logic, Boolean functions, and control flow</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc106">9.2.1&#XA0;&#XA0;not</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc107">9.2.2&#XA0;&#XA0;equal</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc108">9.2.3&#XA0;&#XA0;and</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc109">9.2.4&#XA0;&#XA0;or</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc110">9.2.5&#XA0;&#XA0;if</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc111">9.2.6&#XA0;&#XA0;switch, match</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc112">9.2.7&#XA0;&#XA0;try</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc113">9.2.8&#XA0;&#XA0;raise</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc114">9.2.9&#XA0;&#XA0;exit</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc115">9.2.10&#XA0;&#XA0;defined</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc116">9.2.11&#XA0;&#XA0;defined-env</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc117">9.2.12&#XA0;&#XA0;getenv</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc118">9.2.13&#XA0;&#XA0;setenv</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc119">9.2.14&#XA0;&#XA0;unsetenv</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc120">9.2.15&#XA0;&#XA0;get-registry</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc121">9.2.16&#XA0;&#XA0;getvar</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc122">9.2.17&#XA0;&#XA0;setvar</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc123">9.3&#XA0;&#XA0;Arrays and sequences</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc124">9.3.1&#XA0;&#XA0;array</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc125">9.3.2&#XA0;&#XA0;split</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc126">9.3.3&#XA0;&#XA0;concat</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc127">9.3.4&#XA0;&#XA0;length</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc128">9.3.5&#XA0;&#XA0;nth</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc129">9.3.6&#XA0;&#XA0;replace-nth</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc130">9.3.7&#XA0;&#XA0;nth-hd</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc131">9.3.8&#XA0;&#XA0;nth-tl</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc132">9.3.9&#XA0;&#XA0;subrange</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc133">9.3.10&#XA0;&#XA0;rev</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc134">9.3.11&#XA0;&#XA0;join</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc135">9.3.12&#XA0;&#XA0;string</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc136">9.3.13&#XA0;&#XA0;string-length</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc137">9.3.14&#XA0;&#XA0;string-escaped, ocaml-escaped, html-escaped, html-pre-escaped</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc138">9.3.15&#XA0;&#XA0;c-escaped, id-escaped, sql-escaped, uri-escaped</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc139">9.3.16&#XA0;&#XA0;hexify, unhexify</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc140">9.3.17&#XA0;&#XA0;decode-uri, encode-uri</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc141">9.3.18&#XA0;&#XA0;quote</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc142">9.3.19&#XA0;&#XA0;quote-argv</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc143">9.3.20&#XA0;&#XA0;html-string</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc144">9.3.21&#XA0;&#XA0;addsuffix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc145">9.3.22&#XA0;&#XA0;mapsuffix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc146">9.3.23&#XA0;&#XA0;addsuffixes, addprefixes</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc147">9.3.24&#XA0;&#XA0;removeprefix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc148">9.3.25&#XA0;&#XA0;removesuffix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc149">9.3.26&#XA0;&#XA0;replacesuffixes</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc150">9.3.27&#XA0;&#XA0;addprefix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc151">9.3.28&#XA0;&#XA0;mapprefix</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc152">9.3.29&#XA0;&#XA0;add-wrapper</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc153">9.3.30&#XA0;&#XA0;set</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc154">9.3.31&#XA0;&#XA0;mem</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc155">9.3.32&#XA0;&#XA0;intersection</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc156">9.3.33&#XA0;&#XA0;intersects</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc157">9.3.34&#XA0;&#XA0;set-diff</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc158">9.3.35&#XA0;&#XA0;filter</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc159">9.3.36&#XA0;&#XA0;filter-out</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc160">9.3.37&#XA0;&#XA0;capitalize</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc161">9.3.38&#XA0;&#XA0;uncapitalize</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc162">9.3.39&#XA0;&#XA0;uppercase</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc163">9.3.40&#XA0;&#XA0;lowercase</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc164">9.3.41&#XA0;&#XA0;system</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc165">9.3.42&#XA0;&#XA0;shell</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc166">9.3.43&#XA0;&#XA0;export</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc167">9.3.44&#XA0;&#XA0;while</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc168">9.3.45&#XA0;&#XA0;break</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc169">9.3.46&#XA0;&#XA0;random, random-init</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc170">9.4&#XA0;&#XA0;Arithmetic</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc171">9.4.1&#XA0;&#XA0;int</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc172">9.4.2&#XA0;&#XA0;float</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc173">9.4.3&#XA0;&#XA0;Basic arithmetic</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc174">9.4.4&#XA0;&#XA0;Comparisons</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc175">9.5&#XA0;&#XA0;First-class functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc176">9.5.1&#XA0;&#XA0;fun</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc177">9.5.2&#XA0;&#XA0;apply</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc178">9.5.3&#XA0;&#XA0;applya</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc179">9.5.4&#XA0;&#XA0;create-map, create-lazy-map</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc180">9.6&#XA0;&#XA0;Iteration and mapping</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc181">9.6.1&#XA0;&#XA0;foreach</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc182">9.7&#XA0;&#XA0;Boolean tests</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-base.html#htoc183">9.7.1&#XA0;&#XA0;sequence-forall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc184">9.7.2&#XA0;&#XA0;sequence-exists</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc185">9.7.3&#XA0;&#XA0;sequence-sort</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-base.html#htoc186">9.7.4&#XA0;&#XA0;compare</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc187">Chapter&#XA0;10&#XA0;&#XA0;File, I/O and system operations</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc188">10.1&#XA0;&#XA0;File names</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc189">10.1.1&#XA0;&#XA0;file, dir</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc190">10.1.2&#XA0;&#XA0;tmpfile</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc191">10.1.3&#XA0;&#XA0;in</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc192">10.1.4&#XA0;&#XA0;basename</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc193">10.1.5&#XA0;&#XA0;dirname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc194">10.1.6&#XA0;&#XA0;rootname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc195">10.1.7&#XA0;&#XA0;dirof</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc196">10.1.8&#XA0;&#XA0;fullname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc197">10.1.9&#XA0;&#XA0;absname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc198">10.1.10&#XA0;&#XA0;homename</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc199">10.1.11&#XA0;&#XA0;suffix</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc200">10.2&#XA0;&#XA0;Path search</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc201">10.2.1&#XA0;&#XA0;which</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc202">10.2.2&#XA0;&#XA0;where</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc203">10.2.3&#XA0;&#XA0;rehash</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc204">10.2.4&#XA0;&#XA0;exists-in-path</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc205">10.2.5&#XA0;&#XA0;digest, digest-optional, digest-string</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc206">10.2.6&#XA0;&#XA0;find-in-path, find-in-path-optional</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc207">10.2.7&#XA0;&#XA0;digest-in-path, digest-in-path-optional</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc208">10.3&#XA0;&#XA0;File stats</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc209">10.3.1&#XA0;&#XA0;file-exists, target-exists, target-is-proper</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc210">10.3.2&#XA0;&#XA0;stat-reset</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc211">10.3.3&#XA0;&#XA0;filter-exists, filter-targets, filter-proper-targets</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc212">10.3.4&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc213">10.3.5&#XA0;&#XA0;find-ocaml-targets-in-path-optional</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc214">10.3.6&#XA0;&#XA0;file-sort</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc215">10.3.6.1&#XA0;&#XA0;sort rule</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc216">10.3.7&#XA0;&#XA0;file-check-sort</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc217">10.4&#XA0;&#XA0;Globbing and file listings</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc218">10.4.1&#XA0;&#XA0;glob</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc219">10.4.2&#XA0;&#XA0;ls</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc220">10.4.3&#XA0;&#XA0;subdirs</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc221">10.5&#XA0;&#XA0;Filesystem operations</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc222">10.5.1&#XA0;&#XA0;mkdir</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc223">10.5.2&#XA0;&#XA0;Stat</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc224">10.5.3&#XA0;&#XA0;stat, lstat</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc225">10.5.4&#XA0;&#XA0;unlink</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc226">10.5.5&#XA0;&#XA0;rename</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc227">10.5.6&#XA0;&#XA0;link</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc228">10.5.7&#XA0;&#XA0;symlink, symlink-raw</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc229">10.5.8&#XA0;&#XA0;readlink, readlink-raw</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc230">10.5.9&#XA0;&#XA0;chmod</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc231">10.5.10&#XA0;&#XA0;chown</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc232">10.5.11&#XA0;&#XA0;utimes</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc233">10.5.12&#XA0;&#XA0;truncate</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc234">10.5.13&#XA0;&#XA0;umask</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc235">10.6&#XA0;&#XA0;vmount</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc236">10.6.1&#XA0;&#XA0;vmount</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc237">10.6.2&#XA0;&#XA0;add-project-directories</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc238">10.6.3&#XA0;&#XA0;remove-project-directories</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc239">10.7&#XA0;&#XA0;File predicates</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc240">10.7.1&#XA0;&#XA0;test</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc241">10.7.2&#XA0;&#XA0;find</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc242">10.8&#XA0;&#XA0;IO functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc243">10.8.1&#XA0;&#XA0;Standard channels</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc244">10.8.2&#XA0;&#XA0;open-in-string</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc245">10.8.3&#XA0;&#XA0;open-out-string, out-contents</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc246">10.8.4&#XA0;&#XA0;fopen</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc247">10.8.5&#XA0;&#XA0;close</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc248">10.8.6&#XA0;&#XA0;read, input-line</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc249">10.8.7&#XA0;&#XA0;write</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc250">10.8.8&#XA0;&#XA0;lseek</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc251">10.8.9&#XA0;&#XA0;rewind</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc252">10.8.10&#XA0;&#XA0;tell</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc253">10.8.11&#XA0;&#XA0;flush</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc254">10.8.12&#XA0;&#XA0;channel-name</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc255">10.8.13&#XA0;&#XA0;dup</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc256">10.8.14&#XA0;&#XA0;dup2</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc257">10.8.15&#XA0;&#XA0;set-nonblock</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc258">10.8.16&#XA0;&#XA0;set-close-on-exec-mode</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc259">10.8.17&#XA0;&#XA0;pipe</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc260">10.8.18&#XA0;&#XA0;mkfifo</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc261">10.8.19&#XA0;&#XA0;select</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc262">10.8.20&#XA0;&#XA0;lockf</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc263">10.8.21&#XA0;&#XA0;InetAddr</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc264">10.8.22&#XA0;&#XA0;Host</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc265">10.8.23&#XA0;&#XA0;gethostbyname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc266">10.8.24&#XA0;&#XA0;Protocol</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc267">10.8.25&#XA0;&#XA0;getprotobyname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc268">10.8.26&#XA0;&#XA0;Service</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc269">10.8.27&#XA0;&#XA0;getservbyname</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc270">10.8.28&#XA0;&#XA0;socket</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc271">10.8.29&#XA0;&#XA0;bind</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc272">10.8.30&#XA0;&#XA0;listen</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc273">10.8.31&#XA0;&#XA0;accept</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc274">10.8.32&#XA0;&#XA0;connect</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc275">10.8.33&#XA0;&#XA0;getchar</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc276">10.8.34&#XA0;&#XA0;gets</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc277">10.8.35&#XA0;&#XA0;fgets</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc278">10.9&#XA0;&#XA0;Printing functions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc279">10.10&#XA0;&#XA0;Value printing functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc280">10.10.1&#XA0;&#XA0;Miscellaneous functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc281">10.10.1.1&#XA0;&#XA0;set-channel-line</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc282">10.11&#XA0;&#XA0;Higher-level IO functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-system.html#htoc283">10.11.1&#XA0;&#XA0;Regular expressions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc284">10.11.2&#XA0;&#XA0;cat</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc285">10.11.3&#XA0;&#XA0;grep</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc286">10.11.4&#XA0;&#XA0;scan</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc287">10.11.5&#XA0;&#XA0;awk</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc288">10.11.6&#XA0;&#XA0;fsubst</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc289">10.11.7&#XA0;&#XA0;lex</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc290">10.11.8&#XA0;&#XA0;lex-search</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc291">10.11.9&#XA0;&#XA0;Lexer</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc292">10.11.10&#XA0;&#XA0;Lexer matching</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc293">10.11.11&#XA0;&#XA0;Extending lexer definitions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc294">10.11.12&#XA0;&#XA0;Threading the lexer object</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc295">10.11.13&#XA0;&#XA0;Parser</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc296">10.11.14&#XA0;&#XA0;Calling the parser</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc297">10.11.15&#XA0;&#XA0;Parsing control</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc298">10.11.16&#XA0;&#XA0;Extending parsers</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc299">10.11.17&#XA0;&#XA0;Passwd</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc300">10.11.18&#XA0;&#XA0;getpwnam, getpwuid</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc301">10.11.19&#XA0;&#XA0;getpwents</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc302">10.11.20&#XA0;&#XA0;Group</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc303">10.11.21&#XA0;&#XA0;getgrnam, getgrgid</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc304">10.11.22&#XA0;&#XA0;tgetstr</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc305">10.11.23&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc306">10.11.24&#XA0;&#XA0;xterm-escape</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc307">10.11.25&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc308">10.11.26&#XA0;&#XA0;prompt-invisible</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc309">10.11.27&#XA0;&#XA0;gettimeofday</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc310">10.11.28&#XA0;&#XA0;Tm</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc311">10.11.29&#XA0;&#XA0;gmtime, localtime</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-system.html#htoc312">10.11.30&#XA0;&#XA0;mktime, normalize-time</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc313">Chapter&#XA0;11&#XA0;&#XA0;Shell commands</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-shell.html#htoc314">11.1&#XA0;&#XA0;Simple commands</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc315">11.2&#XA0;&#XA0;Globbing</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc316">11.3&#XA0;&#XA0;Background jobs</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc317">11.4&#XA0;&#XA0;File redirection</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc318">11.5&#XA0;&#XA0;Pipelines</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc319">11.6&#XA0;&#XA0;Conditional execution</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc320">11.7&#XA0;&#XA0;Grouping</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc321">11.8&#XA0;&#XA0;What is a shell command?</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc322">11.9&#XA0;&#XA0;Basic builtin functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-shell.html#htoc323">11.9.1&#XA0;&#XA0;echo</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc324">11.9.2&#XA0;&#XA0;cd</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc325">11.10&#XA0;&#XA0;Job control builtin functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-shell.html#htoc326">11.10.1&#XA0;&#XA0;jobs</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc327">11.10.2&#XA0;&#XA0;bg</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc328">11.10.3&#XA0;&#XA0;fg</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc329">11.10.4&#XA0;&#XA0;stop</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc330">11.10.5&#XA0;&#XA0;wait</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc331">11.10.6&#XA0;&#XA0;kill</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-shell.html#htoc332">11.11&#XA0;&#XA0;Command history</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-shell.html#htoc333">11.11.1&#XA0;&#XA0;history</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc334">Chapter&#XA0;12&#XA0;&#XA0;The standard objects</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-pervasives.html#htoc335">12.1&#XA0;&#XA0;Pervasives objects</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-pervasives.html#htoc336">12.1.1&#XA0;&#XA0;Object</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc337">12.1.2&#XA0;&#XA0;Map</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc338">12.1.3&#XA0;&#XA0;Number</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc339">12.1.4&#XA0;&#XA0;Int</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc340">12.1.5&#XA0;&#XA0;Float</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc341">12.1.6&#XA0;&#XA0;Sequence</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc342">12.1.7&#XA0;&#XA0;Array</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc343">12.1.8&#XA0;&#XA0;String</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc344">12.1.9&#XA0;&#XA0;Fun</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc345">12.1.10&#XA0;&#XA0;Rule</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc346">12.1.11&#XA0;&#XA0;Target</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc347">12.1.12&#XA0;&#XA0;Node</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc348">12.1.13&#XA0;&#XA0;File</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc349">12.1.14&#XA0;&#XA0;Dir</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc350">12.1.15&#XA0;&#XA0;Channel</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc351">12.1.16&#XA0;&#XA0;InChannel</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc352">12.1.17&#XA0;&#XA0;OutChannel</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc353">12.1.18&#XA0;&#XA0;Location</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc354">12.1.19&#XA0;&#XA0;Exception</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc355">12.1.20&#XA0;&#XA0;RuntimeException</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc356">12.1.21&#XA0;&#XA0;UnbuildableException</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-pervasives.html#htoc357">12.1.22&#XA0;&#XA0;Shell</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc358">Chapter&#XA0;13&#XA0;&#XA0;Build functions and utilities</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc359">13.1&#XA0;&#XA0;Builtin .PHONY targets</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc360">13.2&#XA0;&#XA0;Options and versioning</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc361">13.2.1&#XA0;&#XA0;OMakeFlags</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc362">13.2.2&#XA0;&#XA0;OMakeVersion</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc363">13.2.3&#XA0;&#XA0;cmp-versions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc364">13.2.4&#XA0;&#XA0;DefineCommandVars</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc365">13.3&#XA0;&#XA0;Examining the dependency graph</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc366">13.3.1&#XA0;&#XA0;dependencies, dependencies-all, dependencies-proper</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc367">13.3.2&#XA0;&#XA0;target</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc368">13.3.3&#XA0;&#XA0;find-build-targets</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc369">13.3.4&#XA0;&#XA0;project-directories</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc370">13.3.5&#XA0;&#XA0;rule</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc371">13.3.6&#XA0;&#XA0;build</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc372">13.4&#XA0;&#XA0;The OMakeroot file</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc373">13.4.1&#XA0;&#XA0;Variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc374">13.4.2&#XA0;&#XA0;System variables</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc375">13.5&#XA0;&#XA0;Building C and C++ code</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc376">13.5.1&#XA0;&#XA0;Autoconfiguration variables</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc377">13.5.1.1&#XA0;&#XA0;Unix-like systems</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc378">13.5.1.2&#XA0;&#XA0;Win32</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc379">13.5.2&#XA0;&#XA0;C and C++ configuration variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc380">13.5.3&#XA0;&#XA0;Generated C files</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc381">13.5.3.1&#XA0;&#XA0;CGeneratedFiles, LocalCGeneratedFiles</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc382">13.5.4&#XA0;&#XA0;Building C programs and Libraries</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc383">13.5.4.1&#XA0;&#XA0;StaticCLibrary, DynamicCLibrary</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc384">13.5.4.2&#XA0;&#XA0;StaticCLibraryCopy, DynamicCLibraryCopy</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc385">13.5.4.3&#XA0;&#XA0;StaticCLibraryInstall, DynamicCLibraryInstall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc386">13.5.4.4&#XA0;&#XA0;StaticCObject, StaticCObjectCopy, StaticCObjectInstall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc387">13.5.4.5&#XA0;&#XA0;CProgram</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc388">13.5.4.6&#XA0;&#XA0;CProgramCopy</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc389">13.5.4.7&#XA0;&#XA0;CProgramInstall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc390">13.5.4.8&#XA0;&#XA0;CXXProgram, CXXProgramInstall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc391">13.5.4.9&#XA0;&#XA0;StaticCXXLibrary, StaticCXXLibraryCopy, StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy, DynamicCXXLibraryInstall</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc392">13.6&#XA0;&#XA0;Building OCaml code</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc393">13.6.1&#XA0;&#XA0;Autoconfiguration variables for OCaml compilation</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc394">13.6.2&#XA0;&#XA0;Configuration variables for OCaml compilation</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc395">13.6.3&#XA0;&#XA0;OCaml command flags</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc396">13.6.4&#XA0;&#XA0;Library variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc397">13.6.5&#XA0;&#XA0;Generated OCaml Files</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc398">13.6.5.1&#XA0;&#XA0;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc399">13.6.5.2&#XA0;&#XA0;Automatic discovery of generated files during dependency analysis</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc400">13.6.6&#XA0;&#XA0;Using the Menhir parser generator</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc401">13.6.6.1&#XA0;&#XA0;OCamlLibrary</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc402">13.6.6.2&#XA0;&#XA0;OCamlPackage</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc403">13.6.6.3&#XA0;&#XA0;OCamlLibraryCopy</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc404">13.6.6.4&#XA0;&#XA0;OCamlLibraryInstall</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc405">13.6.6.5&#XA0;&#XA0;OCamlProgram</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc406">13.6.6.6&#XA0;&#XA0;OCamlProgramCopy</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc407">13.6.6.7&#XA0;&#XA0;OCamlProgramInstall</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc408">13.7&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X files</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc409">13.7.1&#XA0;&#XA0;Configuration variables</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc410">13.7.2&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X documents</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-build.html#htoc411">13.7.2.1&#XA0;&#XA0;LaTeXDocument</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc412">13.7.2.2&#XA0;&#XA0;TeXGeneratedFiles, LocalTeXGeneratedFiles</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc413">13.7.2.3&#XA0;&#XA0;LaTeXDocumentCopy</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-build.html#htoc414">13.7.2.4&#XA0;&#XA0;LaTeXDocumentInstall</A>
-</LI></UL>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc415">Chapter&#XA0;14&#XA0;&#XA0;Autoconfiguration functions and variables</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-autoconf.html#htoc416">14.1&#XA0;&#XA0;General-purpose autoconfiguration functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-autoconf.html#htoc417">14.1.1&#XA0;&#XA0;ConfMsgChecking, ConfMsgResult</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc418">14.1.2&#XA0;&#XA0;ConfMsgWarn, ConfMsgError</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc419">14.1.3&#XA0;&#XA0;ConfMsgYesNo, ConfMsgFound</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc420">14.1.4&#XA0;&#XA0;TryCompileC, TryLinkC, TryRunC</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc421">14.1.5&#XA0;&#XA0;RunCProg</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc422">14.1.6&#XA0;&#XA0;CheckCHeader, VerboseCheckCHeader</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc423">14.1.7&#XA0;&#XA0;CheckCLib, VerboseCheckCLib</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc424">14.1.8&#XA0;&#XA0;CheckProg</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc425">14.2&#XA0;&#XA0;Translating <CODE>autoconf</CODE> scripts</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc426">14.3&#XA0;&#XA0;Predefined configuration tests</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-autoconf.html#htoc427">14.3.1&#XA0;&#XA0;NCurses library configuration</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc428">14.3.2&#XA0;&#XA0;ReadLine library configuration</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-autoconf.html#htoc429">14.3.3&#XA0;&#XA0;Snprintf configuration</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="osh.html#htoc430">Chapter&#XA0;15&#XA0;&#XA0;The OSH shell</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="osh.html#htoc431">15.1&#XA0;&#XA0;Startup</A>
-</LI><LI CLASS="li-toc"><A HREF="osh.html#htoc432">15.2&#XA0;&#XA0;Aliases</A>
-</LI><LI CLASS="li-toc"><A HREF="osh.html#htoc433">15.3&#XA0;&#XA0;Interactive syntax</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc434">Appendix&#XA0;A&#XA0;&#XA0;Synopsis</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-options.html#htoc435">A.1&#XA0;&#XA0;General usage</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc436">A.2&#XA0;&#XA0;Output control</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-options.html#htoc437">A.2.1&#XA0;&#XA0;<TT>-s</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc438">A.2.2&#XA0;&#XA0;<TT>-S</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc439">A.2.3&#XA0;&#XA0;<TT>-w</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc440">A.2.4&#XA0;&#XA0;<TT>--progress</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc441">A.2.5&#XA0;&#XA0;<TT>--print-status</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc442">A.2.6&#XA0;&#XA0;<TT>--print-exit</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc443">A.2.7&#XA0;&#XA0;<TT>--verbose</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc444">A.2.8&#XA0;&#XA0;<TT>--output-normal</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc445">A.2.9&#XA0;&#XA0;<TT>--output-postpone</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc446">A.2.10&#XA0;&#XA0;<TT>--output-only-errors</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc447">A.2.11&#XA0;&#XA0;<TT>--output-at-end</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc448">A.2.12&#XA0;&#XA0;<TT>-o</TT></A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc449">A.3&#XA0;&#XA0;Build options</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-options.html#htoc450">A.3.1&#XA0;&#XA0;<TT>-k</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc451">A.3.2&#XA0;&#XA0;<TT>-n</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc452">A.3.3&#XA0;&#XA0;<TT>-p</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc453">A.3.4&#XA0;&#XA0;<TT>-P</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc454">A.3.5&#XA0;&#XA0;<TT>-R</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc455">A.3.6&#XA0;&#XA0;<TT>-t</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc456">A.3.7&#XA0;&#XA0;<TT>-U</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc457">A.3.8&#XA0;&#XA0;<TT>--depend</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc458">A.3.9&#XA0;&#XA0;<TT>--configure</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc459">A.3.10&#XA0;&#XA0;<TT>--force-dotomake</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc460">A.3.11&#XA0;&#XA0;<TT>--dotomake</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc461">A.3.12&#XA0;&#XA0;<TT>-j</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc462">A.3.13&#XA0;&#XA0;<TT>--print-dependencies</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc463">A.3.14&#XA0;&#XA0;<TT>--show-dependencies</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc464">A.3.15&#XA0;&#XA0;<TT>--all-dependencies</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc465">A.3.16&#XA0;&#XA0;<TT>--verbose-dependencies</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc466">A.3.17&#XA0;&#XA0;<TT>--install</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc467">A.3.18&#XA0;&#XA0;<TT>--install-all</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc468">A.3.19&#XA0;&#XA0;<TT>--install-force</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc469">A.3.20&#XA0;&#XA0;<TT>--absname</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc470">A.3.21&#XA0;&#XA0;<TT>variable definition</TT></A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc471">A.4&#XA0;&#XA0;Additional options</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc472">A.5&#XA0;&#XA0;Environment variables</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-options.html#htoc473">A.5.1&#XA0;&#XA0;<TT>OMAKEFLAGS</TT></A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc474">A.5.2&#XA0;&#XA0;<TT>OMAKELIB</TT></A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc475">A.6&#XA0;&#XA0;Functions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-options.html#htoc476">A.6.1&#XA0;&#XA0;<TT>OMakeFlags</TT></A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc477">A.7&#XA0;&#XA0;Option processing</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-options.html#htoc478">A.8&#XA0;&#XA0;.omakerc</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc479">Appendix&#XA0;B&#XA0;&#XA0;OMake grammar</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc480">B.1&#XA0;&#XA0;OMake lexical conventions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc481">B.1.1&#XA0;&#XA0;Comments</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc482">B.1.2&#XA0;&#XA0;Special characters</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc483">B.1.3&#XA0;&#XA0;Identifiers</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc484">B.1.4&#XA0;&#XA0;Command identifiers</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc485">B.1.5&#XA0;&#XA0;Variable references</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc486">B.1.6&#XA0;&#XA0;String constants</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc487">B.2&#XA0;&#XA0;The OMake grammar</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc488">B.2.1&#XA0;&#XA0;Expressions</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc489">B.2.1.1&#XA0;&#XA0;Inline applications</A>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc490">B.2.2&#XA0;&#XA0;Statements and programs</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc491">B.2.2.1&#XA0;&#XA0;Special forms</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc492">B.2.2.2&#XA0;&#XA0;Variable definitions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc493">B.2.2.3&#XA0;&#XA0;Applications and function definitions</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc494">B.2.2.4&#XA0;&#XA0;Objects</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc495">B.2.2.5&#XA0;&#XA0;Rules</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc496">B.2.2.6&#XA0;&#XA0;Shell commands</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc497">B.3&#XA0;&#XA0;Dollar modifiers</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-grammar.html#htoc498">B.4&#XA0;&#XA0;Programming syntax</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-grammar.html#htoc499">B.4.1&#XA0;&#XA0;Examples</A>
-</LI></UL>
-</LI></UL>
-</LI><LI CLASS="li-toc"><A HREF="omake-references.html#htoc500">Appendix&#XA0;C&#XA0;&#XA0;References</A>
-<UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="omake-references.html#htoc501">C.1&#XA0;&#XA0;See Also</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-references.html#htoc502">C.2&#XA0;&#XA0;Version</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-references.html#htoc503">C.3&#XA0;&#XA0;License and Copyright</A>
-</LI><LI CLASS="li-toc"><A HREF="omake-references.html#htoc504">C.4&#XA0;&#XA0;Author</A>
-</LI></UL>
-</LI></UL><P>
-<A NAME="chapter:contents"></A>
-</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="chapter:contents">Contents</h1>
+<ul class="toc"><li class="li-toc">
+<a href="omake.html#sec2">Chapter&#XA0;1&#XA0;&#XA0;Guide</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec3">Chapter&#XA0;2&#XA0;&#XA0;OMake quickstart guide</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-quickstart.html#sec4">2.1&#XA0;&#XA0;Description</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-quickstart.html#sec5">2.1.1&#XA0;&#XA0;Automatic dependency analysis</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec6">2.1.2&#XA0;&#XA0;Content-based dependency analysis</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec7">2.2&#XA0;&#XA0;For users already familiar with make</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec8">2.3&#XA0;&#XA0;Building a small C program</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec9">2.4&#XA0;&#XA0;Larger projects</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec10">2.5&#XA0;&#XA0;Subdirectories</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec11">2.6&#XA0;&#XA0;Other things to consider</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec12">2.7&#XA0;&#XA0;Building OCaml programs</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec13">2.8&#XA0;&#XA0;The OMakefile and OMakeroot files</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec14">2.9&#XA0;&#XA0;Multiple version support</a>
+</li><li class="li-toc"><a href="omake-quickstart.html#sec15">2.10&#XA0;&#XA0;Notes</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec16">Chapter&#XA0;3&#XA0;&#XA0;Additional build examples</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build-examples.html#sec17">3.1&#XA0;&#XA0;OMakeroot vs. OMakefile</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec18">3.2&#XA0;&#XA0;An example C project</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec19">3.3&#XA0;&#XA0;An example OCaml project</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec20">3.4&#XA0;&#XA0;Handling new languages</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build-examples.html#sec21">3.4.1&#XA0;&#XA0;Defining a default compilation rule</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec22">3.4.2&#XA0;&#XA0;Defining a rule for linking</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec23">3.4.3&#XA0;&#XA0;Dependency scanning</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec24">3.4.4&#XA0;&#XA0;Pulling it all together</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec25">3.4.5&#XA0;&#XA0;Finishing up</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec26">3.5&#XA0;&#XA0;Collapsing the hierarchy, .SUBDIRS bodies</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build-examples.html#sec27">3.5.1&#XA0;&#XA0;Using glob patterns</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec28">3.5.2&#XA0;&#XA0;Simplified sub-configurations</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec29">3.5.3&#XA0;&#XA0;Computing the subdirectory list</a>
+</li><li class="li-toc"><a href="omake-build-examples.html#sec30">3.5.4&#XA0;&#XA0;Temporary directories</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language.html#sec31">Chapter&#XA0;4&#XA0;&#XA0;OMake concepts and syntax</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language.html#sec32">4.1&#XA0;&#XA0;Variables</a>
+</li><li class="li-toc"><a href="omake-language.html#sec33">4.2&#XA0;&#XA0;Adding to a variable definition</a>
+</li><li class="li-toc"><a href="omake-language.html#sec34">4.3&#XA0;&#XA0;Arrays</a>
+</li><li class="li-toc"><a href="omake-language.html#sec35">4.4&#XA0;&#XA0;Special characters and quoting</a>
+</li><li class="li-toc"><a href="omake-language.html#sec36">4.5&#XA0;&#XA0;Function definitions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language.html#sec37">4.5.1&#XA0;&#XA0;Keyword arguments</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language.html#sec38">4.6&#XA0;&#XA0;Curried functions</a>
+</li><li class="li-toc"><a href="omake-language.html#sec39">4.7&#XA0;&#XA0;Comments</a>
+</li><li class="li-toc"><a href="omake-language.html#sec40">4.8&#XA0;&#XA0;File inclusion</a>
+</li><li class="li-toc"><a href="omake-language.html#sec41">4.9&#XA0;&#XA0;Scoping, sections</a>
+</li><li class="li-toc"><a href="omake-language.html#sec42">4.10&#XA0;&#XA0;Conditionals</a>
+</li><li class="li-toc"><a href="omake-language.html#sec43">4.11&#XA0;&#XA0;Matching</a>
+</li><li class="li-toc"><a href="omake-language.html#sec44">4.12&#XA0;&#XA0;Objects</a>
+</li><li class="li-toc"><a href="omake-language.html#sec45">4.13&#XA0;&#XA0;Classes</a>
+</li><li class="li-toc"><a href="omake-language.html#sec46">4.14&#XA0;&#XA0;Inheritance</a>
+</li><li class="li-toc"><a href="omake-language.html#sec47">4.15&#XA0;&#XA0;static.</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language.html#sec48">4.15.1&#XA0;&#XA0;.STATIC</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language.html#sec49">4.15.1.1&#XA0;&#XA0;.MEMO</a>
+</li><li class="li-toc"><a href="omake-language.html#sec50">4.15.1.2&#XA0;&#XA0;:key:</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language.html#sec51">4.16&#XA0;&#XA0;Constants</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec52">Chapter&#XA0;5&#XA0;&#XA0;Variables and Naming</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language-naming.html#sec53">5.1&#XA0;&#XA0;private.</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec54">5.2&#XA0;&#XA0;this.</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec55">5.3&#XA0;&#XA0;global.</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec56">5.4&#XA0;&#XA0;protected.</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec57">5.5&#XA0;&#XA0;public.</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec58">5.6&#XA0;&#XA0;Qualified blocks</a>
+</li><li class="li-toc"><a href="omake-language-naming.html#sec59">5.7&#XA0;&#XA0;declare</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-detail.html#sec60">Chapter&#XA0;6&#XA0;&#XA0;Expressions and values</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-detail.html#sec61">6.1&#XA0;&#XA0;Dynamic scoping</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec62">6.2&#XA0;&#XA0;Functional evaluation</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec63">6.3&#XA0;&#XA0;Exporting the environment</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-detail.html#sec64">6.3.1&#XA0;&#XA0;Export regions</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec65">6.3.2&#XA0;&#XA0;Returning values from exported regions</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-detail.html#sec66">6.4&#XA0;&#XA0;Objects</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec67">6.5&#XA0;&#XA0;Field and method calls</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec68">6.6&#XA0;&#XA0;Method override</a>
+</li><li class="li-toc"><a href="omake-detail.html#sec69">6.7&#XA0;&#XA0;Super calls</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec70">Chapter&#XA0;7&#XA0;&#XA0;Additional language examples</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language-examples.html#sec71">7.1&#XA0;&#XA0;Strings and arrays</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec72">7.2&#XA0;&#XA0;Quoted strings</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec73">7.3&#XA0;&#XA0;Files and directories</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec74">7.4&#XA0;&#XA0;Iteration, mapping, and foreach</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec75">7.5&#XA0;&#XA0;Lazy expressions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-language-examples.html#sec76">7.5.1&#XA0;&#XA0;A larger example of lazy expressions</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec77">7.6&#XA0;&#XA0;Scoping and exports</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec78">7.7&#XA0;&#XA0;Shell aliases</a>
+</li><li class="li-toc"><a href="omake-language-examples.html#sec79">7.8&#XA0;&#XA0;Input/output redirection on the cheap</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-rules.html#sec80">Chapter&#XA0;8&#XA0;&#XA0;Rules</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-rules.html#sec81">8.1&#XA0;&#XA0;Implicit rules</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec82">8.2&#XA0;&#XA0;Bounded implicit rules</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec83">8.3&#XA0;&#XA0;section</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec84">8.4&#XA0;&#XA0;section rule</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec85">8.5&#XA0;&#XA0;Special dependencies</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-rules.html#sec86">8.5.1&#XA0;&#XA0;:exists:</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec87">8.5.2&#XA0;&#XA0;:effects:</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec88">8.5.3&#XA0;&#XA0;:value:</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-rules.html#sec89">8.6&#XA0;&#XA0;<CODE>.SCANNER</CODE> rules</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-rules.html#sec90">8.6.1&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec91">8.6.2&#XA0;&#XA0;Notes</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-rules.html#sec92">8.7&#XA0;&#XA0;.DEFAULT</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec93">8.8&#XA0;&#XA0;.SUBDIRS</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec94">8.9&#XA0;&#XA0;.INCLUDE</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec95">8.10&#XA0;&#XA0;.PHONY</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec96">8.11&#XA0;&#XA0;Rule scoping</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-rules.html#sec97">8.11.1&#XA0;&#XA0;Scoping of implicit rules</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec98">8.11.2&#XA0;&#XA0;Scoping of <CODE>.SCANNER</CODE> rules</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec99">8.11.3&#XA0;&#XA0;Scoping for <CODE>.PHONY</CODE> targets</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-rules.html#sec100">8.12&#XA0;&#XA0;Running OMake from a subdirectory</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-rules.html#sec101">8.12.1&#XA0;&#XA0;Phony targets in a subdirectory</a>
+</li><li class="li-toc"><a href="omake-rules.html#sec102">8.12.2&#XA0;&#XA0;Hierarchy of <CODE>.PHONY</CODE> targets</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-rules.html#sec103">8.13&#XA0;&#XA0;Pathnames in rules</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec104">Chapter&#XA0;9&#XA0;&#XA0;Base library</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec105">9.1&#XA0;&#XA0;Builtin variables</a>
+</li><li class="li-toc"><a href="omake-base.html#sec121">9.2&#XA0;&#XA0;Logic, Boolean functions, and control flow</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec122">9.2.1&#XA0;&#XA0;not</a>
+</li><li class="li-toc"><a href="omake-base.html#sec123">9.2.2&#XA0;&#XA0;equal</a>
+</li><li class="li-toc"><a href="omake-base.html#sec124">9.2.3&#XA0;&#XA0;and</a>
+</li><li class="li-toc"><a href="omake-base.html#sec125">9.2.4&#XA0;&#XA0;or</a>
+</li><li class="li-toc"><a href="omake-base.html#sec126">9.2.5&#XA0;&#XA0;if</a>
+</li><li class="li-toc"><a href="omake-base.html#sec127">9.2.6&#XA0;&#XA0;switch, match</a>
+</li><li class="li-toc"><a href="omake-base.html#sec128">9.2.7&#XA0;&#XA0;try</a>
+</li><li class="li-toc"><a href="omake-base.html#sec129">9.2.8&#XA0;&#XA0;raise</a>
+</li><li class="li-toc"><a href="omake-base.html#sec130">9.2.9&#XA0;&#XA0;exit</a>
+</li><li class="li-toc"><a href="omake-base.html#sec131">9.2.10&#XA0;&#XA0;defined</a>
+</li><li class="li-toc"><a href="omake-base.html#sec132">9.2.11&#XA0;&#XA0;defined-env</a>
+</li><li class="li-toc"><a href="omake-base.html#sec133">9.2.12&#XA0;&#XA0;getenv</a>
+</li><li class="li-toc"><a href="omake-base.html#sec134">9.2.13&#XA0;&#XA0;setenv</a>
+</li><li class="li-toc"><a href="omake-base.html#sec135">9.2.14&#XA0;&#XA0;unsetenv</a>
+</li><li class="li-toc"><a href="omake-base.html#sec136">9.2.15&#XA0;&#XA0;get-registry</a>
+</li><li class="li-toc"><a href="omake-base.html#sec137">9.2.16&#XA0;&#XA0;getvar</a>
+</li><li class="li-toc"><a href="omake-base.html#sec138">9.2.17&#XA0;&#XA0;setvar</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec139">9.3&#XA0;&#XA0;Arrays and sequences</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec140">9.3.1&#XA0;&#XA0;array</a>
+</li><li class="li-toc"><a href="omake-base.html#sec141">9.3.2&#XA0;&#XA0;split</a>
+</li><li class="li-toc"><a href="omake-base.html#sec142">9.3.3&#XA0;&#XA0;concat</a>
+</li><li class="li-toc"><a href="omake-base.html#sec143">9.3.4&#XA0;&#XA0;length</a>
+</li><li class="li-toc"><a href="omake-base.html#sec144">9.3.5&#XA0;&#XA0;nth</a>
+</li><li class="li-toc"><a href="omake-base.html#sec145">9.3.6&#XA0;&#XA0;replace-nth</a>
+</li><li class="li-toc"><a href="omake-base.html#sec146">9.3.7&#XA0;&#XA0;nth-hd</a>
+</li><li class="li-toc"><a href="omake-base.html#sec147">9.3.8&#XA0;&#XA0;nth-tl</a>
+</li><li class="li-toc"><a href="omake-base.html#sec148">9.3.9&#XA0;&#XA0;subrange</a>
+</li><li class="li-toc"><a href="omake-base.html#sec149">9.3.10&#XA0;&#XA0;rev</a>
+</li><li class="li-toc"><a href="omake-base.html#sec150">9.3.11&#XA0;&#XA0;join</a>
+</li><li class="li-toc"><a href="omake-base.html#sec151">9.3.12&#XA0;&#XA0;string</a>
+</li><li class="li-toc"><a href="omake-base.html#sec152">9.3.13&#XA0;&#XA0;string-length</a>
+</li><li class="li-toc"><a href="omake-base.html#sec153">9.3.14&#XA0;&#XA0;string-escaped, ocaml-escaped, html-escaped, html-pre-escaped</a>
+</li><li class="li-toc"><a href="omake-base.html#sec154">9.3.15&#XA0;&#XA0;c-escaped, id-escaped, sql-escaped, uri-escaped</a>
+</li><li class="li-toc"><a href="omake-base.html#sec155">9.3.16&#XA0;&#XA0;hexify, unhexify</a>
+</li><li class="li-toc"><a href="omake-base.html#sec156">9.3.17&#XA0;&#XA0;decode-uri, encode-uri</a>
+</li><li class="li-toc"><a href="omake-base.html#sec157">9.3.18&#XA0;&#XA0;quote</a>
+</li><li class="li-toc"><a href="omake-base.html#sec158">9.3.19&#XA0;&#XA0;quote-argv</a>
+</li><li class="li-toc"><a href="omake-base.html#sec159">9.3.20&#XA0;&#XA0;html-string</a>
+</li><li class="li-toc"><a href="omake-base.html#sec160">9.3.21&#XA0;&#XA0;addsuffix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec161">9.3.22&#XA0;&#XA0;mapsuffix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec162">9.3.23&#XA0;&#XA0;addsuffixes, addprefixes</a>
+</li><li class="li-toc"><a href="omake-base.html#sec163">9.3.24&#XA0;&#XA0;removeprefix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec164">9.3.25&#XA0;&#XA0;removesuffix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec165">9.3.26&#XA0;&#XA0;replacesuffixes</a>
+</li><li class="li-toc"><a href="omake-base.html#sec166">9.3.27&#XA0;&#XA0;addprefix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec167">9.3.28&#XA0;&#XA0;mapprefix</a>
+</li><li class="li-toc"><a href="omake-base.html#sec168">9.3.29&#XA0;&#XA0;add-wrapper</a>
+</li><li class="li-toc"><a href="omake-base.html#sec169">9.3.30&#XA0;&#XA0;set</a>
+</li><li class="li-toc"><a href="omake-base.html#sec170">9.3.31&#XA0;&#XA0;mem</a>
+</li><li class="li-toc"><a href="omake-base.html#sec171">9.3.32&#XA0;&#XA0;intersection</a>
+</li><li class="li-toc"><a href="omake-base.html#sec172">9.3.33&#XA0;&#XA0;intersects</a>
+</li><li class="li-toc"><a href="omake-base.html#sec173">9.3.34&#XA0;&#XA0;set-diff</a>
+</li><li class="li-toc"><a href="omake-base.html#sec174">9.3.35&#XA0;&#XA0;filter</a>
+</li><li class="li-toc"><a href="omake-base.html#sec175">9.3.36&#XA0;&#XA0;filter-out</a>
+</li><li class="li-toc"><a href="omake-base.html#sec176">9.3.37&#XA0;&#XA0;capitalize</a>
+</li><li class="li-toc"><a href="omake-base.html#sec177">9.3.38&#XA0;&#XA0;uncapitalize</a>
+</li><li class="li-toc"><a href="omake-base.html#sec178">9.3.39&#XA0;&#XA0;uppercase</a>
+</li><li class="li-toc"><a href="omake-base.html#sec179">9.3.40&#XA0;&#XA0;lowercase</a>
+</li><li class="li-toc"><a href="omake-base.html#sec180">9.3.41&#XA0;&#XA0;system</a>
+</li><li class="li-toc"><a href="omake-base.html#sec181">9.3.42&#XA0;&#XA0;shell</a>
+</li><li class="li-toc"><a href="omake-base.html#sec182">9.3.43&#XA0;&#XA0;export</a>
+</li><li class="li-toc"><a href="omake-base.html#sec183">9.3.44&#XA0;&#XA0;while</a>
+</li><li class="li-toc"><a href="omake-base.html#sec184">9.3.45&#XA0;&#XA0;break</a>
+</li><li class="li-toc"><a href="omake-base.html#sec185">9.3.46&#XA0;&#XA0;random, random-init</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec186">9.4&#XA0;&#XA0;Arithmetic</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec187">9.4.1&#XA0;&#XA0;int</a>
+</li><li class="li-toc"><a href="omake-base.html#sec188">9.4.2&#XA0;&#XA0;float</a>
+</li><li class="li-toc"><a href="omake-base.html#sec189">9.4.3&#XA0;&#XA0;Basic arithmetic</a>
+</li><li class="li-toc"><a href="omake-base.html#sec190">9.4.4&#XA0;&#XA0;Comparisons</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec191">9.5&#XA0;&#XA0;First-class functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec192">9.5.1&#XA0;&#XA0;fun</a>
+</li><li class="li-toc"><a href="omake-base.html#sec193">9.5.2&#XA0;&#XA0;apply</a>
+</li><li class="li-toc"><a href="omake-base.html#sec194">9.5.3&#XA0;&#XA0;applya</a>
+</li><li class="li-toc"><a href="omake-base.html#sec195">9.5.4&#XA0;&#XA0;create-map, create-lazy-map</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec196">9.6&#XA0;&#XA0;Iteration and mapping</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec197">9.6.1&#XA0;&#XA0;foreach</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-base.html#sec198">9.7&#XA0;&#XA0;Boolean tests</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-base.html#sec199">9.7.1&#XA0;&#XA0;sequence-forall</a>
+</li><li class="li-toc"><a href="omake-base.html#sec200">9.7.2&#XA0;&#XA0;sequence-exists</a>
+</li><li class="li-toc"><a href="omake-base.html#sec201">9.7.3&#XA0;&#XA0;sequence-sort</a>
+</li><li class="li-toc"><a href="omake-base.html#sec202">9.7.4&#XA0;&#XA0;compare</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec203">Chapter&#XA0;10&#XA0;&#XA0;File, I/O and system operations</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec204">10.1&#XA0;&#XA0;File names</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec205">10.1.1&#XA0;&#XA0;file, dir</a>
+</li><li class="li-toc"><a href="omake-system.html#sec206">10.1.2&#XA0;&#XA0;tmpfile</a>
+</li><li class="li-toc"><a href="omake-system.html#sec207">10.1.3&#XA0;&#XA0;in</a>
+</li><li class="li-toc"><a href="omake-system.html#sec208">10.1.4&#XA0;&#XA0;basename</a>
+</li><li class="li-toc"><a href="omake-system.html#sec209">10.1.5&#XA0;&#XA0;dirname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec210">10.1.6&#XA0;&#XA0;rootname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec211">10.1.7&#XA0;&#XA0;dirof</a>
+</li><li class="li-toc"><a href="omake-system.html#sec212">10.1.8&#XA0;&#XA0;fullname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec213">10.1.9&#XA0;&#XA0;absname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec214">10.1.10&#XA0;&#XA0;homename</a>
+</li><li class="li-toc"><a href="omake-system.html#sec215">10.1.11&#XA0;&#XA0;suffix</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec216">10.2&#XA0;&#XA0;Path search</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec217">10.2.1&#XA0;&#XA0;which</a>
+</li><li class="li-toc"><a href="omake-system.html#sec218">10.2.2&#XA0;&#XA0;where</a>
+</li><li class="li-toc"><a href="omake-system.html#sec219">10.2.3&#XA0;&#XA0;rehash</a>
+</li><li class="li-toc"><a href="omake-system.html#sec220">10.2.4&#XA0;&#XA0;exists-in-path</a>
+</li><li class="li-toc"><a href="omake-system.html#sec221">10.2.5&#XA0;&#XA0;digest, digest-optional, digest-string</a>
+</li><li class="li-toc"><a href="omake-system.html#sec222">10.2.6&#XA0;&#XA0;find-in-path, find-in-path-optional</a>
+</li><li class="li-toc"><a href="omake-system.html#sec223">10.2.7&#XA0;&#XA0;digest-in-path, digest-in-path-optional</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec224">10.3&#XA0;&#XA0;File stats</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec225">10.3.1&#XA0;&#XA0;file-exists, target-exists, target-is-proper</a>
+</li><li class="li-toc"><a href="omake-system.html#sec226">10.3.2&#XA0;&#XA0;stat-reset</a>
+</li><li class="li-toc"><a href="omake-system.html#sec227">10.3.3&#XA0;&#XA0;filter-exists, filter-targets, filter-proper-targets</a>
+</li><li class="li-toc"><a href="omake-system.html#sec229">10.3.4&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</a>
+</li><li class="li-toc"><a href="omake-system.html#sec230">10.3.5&#XA0;&#XA0;find-ocaml-targets-in-path-optional</a>
+</li><li class="li-toc"><a href="omake-system.html#sec231">10.3.6&#XA0;&#XA0;file-sort</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec232">10.3.6.1&#XA0;&#XA0;sort rule</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec233">10.3.7&#XA0;&#XA0;file-check-sort</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec234">10.4&#XA0;&#XA0;Globbing and file listings</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec235">10.4.1&#XA0;&#XA0;glob</a>
+</li><li class="li-toc"><a href="omake-system.html#sec236">10.4.2&#XA0;&#XA0;ls</a>
+</li><li class="li-toc"><a href="omake-system.html#sec237">10.4.3&#XA0;&#XA0;subdirs</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec238">10.5&#XA0;&#XA0;Filesystem operations</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec239">10.5.1&#XA0;&#XA0;mkdir</a>
+</li><li class="li-toc"><a href="omake-system.html#sec240">10.5.2&#XA0;&#XA0;Stat</a>
+</li><li class="li-toc"><a href="omake-system.html#sec241">10.5.3&#XA0;&#XA0;stat, lstat</a>
+</li><li class="li-toc"><a href="omake-system.html#sec242">10.5.4&#XA0;&#XA0;unlink</a>
+</li><li class="li-toc"><a href="omake-system.html#sec243">10.5.5&#XA0;&#XA0;rename</a>
+</li><li class="li-toc"><a href="omake-system.html#sec244">10.5.6&#XA0;&#XA0;link</a>
+</li><li class="li-toc"><a href="omake-system.html#sec245">10.5.7&#XA0;&#XA0;symlink, symlink-raw</a>
+</li><li class="li-toc"><a href="omake-system.html#sec246">10.5.8&#XA0;&#XA0;readlink, readlink-raw</a>
+</li><li class="li-toc"><a href="omake-system.html#sec247">10.5.9&#XA0;&#XA0;chmod</a>
+</li><li class="li-toc"><a href="omake-system.html#sec248">10.5.10&#XA0;&#XA0;chown</a>
+</li><li class="li-toc"><a href="omake-system.html#sec249">10.5.11&#XA0;&#XA0;utimes</a>
+</li><li class="li-toc"><a href="omake-system.html#sec250">10.5.12&#XA0;&#XA0;truncate</a>
+</li><li class="li-toc"><a href="omake-system.html#sec251">10.5.13&#XA0;&#XA0;umask</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec252">10.6&#XA0;&#XA0;vmount</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec253">10.6.1&#XA0;&#XA0;vmount</a>
+</li><li class="li-toc"><a href="omake-system.html#sec254">10.6.2&#XA0;&#XA0;add-project-directories</a>
+</li><li class="li-toc"><a href="omake-system.html#sec255">10.6.3&#XA0;&#XA0;remove-project-directories</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec256">10.7&#XA0;&#XA0;File predicates</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec257">10.7.1&#XA0;&#XA0;test</a>
+</li><li class="li-toc"><a href="omake-system.html#sec258">10.7.2&#XA0;&#XA0;find</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec259">10.8&#XA0;&#XA0;IO functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec260">10.8.1&#XA0;&#XA0;Standard channels</a>
+</li><li class="li-toc"><a href="omake-system.html#sec264">10.8.2&#XA0;&#XA0;open-in-string</a>
+</li><li class="li-toc"><a href="omake-system.html#sec265">10.8.3&#XA0;&#XA0;open-out-string, out-contents</a>
+</li><li class="li-toc"><a href="omake-system.html#sec266">10.8.4&#XA0;&#XA0;fopen</a>
+</li><li class="li-toc"><a href="omake-system.html#sec267">10.8.5&#XA0;&#XA0;close</a>
+</li><li class="li-toc"><a href="omake-system.html#sec268">10.8.6&#XA0;&#XA0;read, input-line</a>
+</li><li class="li-toc"><a href="omake-system.html#sec269">10.8.7&#XA0;&#XA0;write</a>
+</li><li class="li-toc"><a href="omake-system.html#sec270">10.8.8&#XA0;&#XA0;lseek</a>
+</li><li class="li-toc"><a href="omake-system.html#sec271">10.8.9&#XA0;&#XA0;rewind</a>
+</li><li class="li-toc"><a href="omake-system.html#sec272">10.8.10&#XA0;&#XA0;tell</a>
+</li><li class="li-toc"><a href="omake-system.html#sec273">10.8.11&#XA0;&#XA0;flush</a>
+</li><li class="li-toc"><a href="omake-system.html#sec274">10.8.12&#XA0;&#XA0;channel-name</a>
+</li><li class="li-toc"><a href="omake-system.html#sec275">10.8.13&#XA0;&#XA0;dup</a>
+</li><li class="li-toc"><a href="omake-system.html#sec276">10.8.14&#XA0;&#XA0;dup2</a>
+</li><li class="li-toc"><a href="omake-system.html#sec277">10.8.15&#XA0;&#XA0;set-nonblock</a>
+</li><li class="li-toc"><a href="omake-system.html#sec278">10.8.16&#XA0;&#XA0;set-close-on-exec-mode</a>
+</li><li class="li-toc"><a href="omake-system.html#sec279">10.8.17&#XA0;&#XA0;pipe</a>
+</li><li class="li-toc"><a href="omake-system.html#sec280">10.8.18&#XA0;&#XA0;mkfifo</a>
+</li><li class="li-toc"><a href="omake-system.html#sec281">10.8.19&#XA0;&#XA0;select</a>
+</li><li class="li-toc"><a href="omake-system.html#sec282">10.8.20&#XA0;&#XA0;lockf</a>
+</li><li class="li-toc"><a href="omake-system.html#sec283">10.8.21&#XA0;&#XA0;InetAddr</a>
+</li><li class="li-toc"><a href="omake-system.html#sec284">10.8.22&#XA0;&#XA0;Host</a>
+</li><li class="li-toc"><a href="omake-system.html#sec285">10.8.23&#XA0;&#XA0;gethostbyname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec286">10.8.24&#XA0;&#XA0;Protocol</a>
+</li><li class="li-toc"><a href="omake-system.html#sec287">10.8.25&#XA0;&#XA0;getprotobyname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec288">10.8.26&#XA0;&#XA0;Service</a>
+</li><li class="li-toc"><a href="omake-system.html#sec289">10.8.27&#XA0;&#XA0;getservbyname</a>
+</li><li class="li-toc"><a href="omake-system.html#sec290">10.8.28&#XA0;&#XA0;socket</a>
+</li><li class="li-toc"><a href="omake-system.html#sec291">10.8.29&#XA0;&#XA0;bind</a>
+</li><li class="li-toc"><a href="omake-system.html#sec292">10.8.30&#XA0;&#XA0;listen</a>
+</li><li class="li-toc"><a href="omake-system.html#sec293">10.8.31&#XA0;&#XA0;accept</a>
+</li><li class="li-toc"><a href="omake-system.html#sec294">10.8.32&#XA0;&#XA0;connect</a>
+</li><li class="li-toc"><a href="omake-system.html#sec295">10.8.33&#XA0;&#XA0;getchar</a>
+</li><li class="li-toc"><a href="omake-system.html#sec296">10.8.34&#XA0;&#XA0;gets</a>
+</li><li class="li-toc"><a href="omake-system.html#sec297">10.8.35&#XA0;&#XA0;fgets</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec298">10.9&#XA0;&#XA0;Printing functions</a>
+</li><li class="li-toc"><a href="omake-system.html#sec299">10.10&#XA0;&#XA0;Value printing functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec300">10.10.1&#XA0;&#XA0;Miscellaneous functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec301">10.10.1.1&#XA0;&#XA0;set-channel-line</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-system.html#sec302">10.11&#XA0;&#XA0;Higher-level IO functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-system.html#sec303">10.11.1&#XA0;&#XA0;Regular expressions</a>
+</li><li class="li-toc"><a href="omake-system.html#sec304">10.11.2&#XA0;&#XA0;cat</a>
+</li><li class="li-toc"><a href="omake-system.html#sec305">10.11.3&#XA0;&#XA0;grep</a>
+</li><li class="li-toc"><a href="omake-system.html#sec306">10.11.4&#XA0;&#XA0;scan</a>
+</li><li class="li-toc"><a href="omake-system.html#sec307">10.11.5&#XA0;&#XA0;awk</a>
+</li><li class="li-toc"><a href="omake-system.html#sec308">10.11.6&#XA0;&#XA0;fsubst</a>
+</li><li class="li-toc"><a href="omake-system.html#sec309">10.11.7&#XA0;&#XA0;lex</a>
+</li><li class="li-toc"><a href="omake-system.html#sec310">10.11.8&#XA0;&#XA0;lex-search</a>
+</li><li class="li-toc"><a href="omake-system.html#sec311">10.11.9&#XA0;&#XA0;Lexer</a>
+</li><li class="li-toc"><a href="omake-system.html#sec312">10.11.10&#XA0;&#XA0;Lexer matching</a>
+</li><li class="li-toc"><a href="omake-system.html#sec313">10.11.11&#XA0;&#XA0;Extending lexer definitions</a>
+</li><li class="li-toc"><a href="omake-system.html#sec314">10.11.12&#XA0;&#XA0;Threading the lexer object</a>
+</li><li class="li-toc"><a href="omake-system.html#sec315">10.11.13&#XA0;&#XA0;Parser</a>
+</li><li class="li-toc"><a href="omake-system.html#sec316">10.11.14&#XA0;&#XA0;Calling the parser</a>
+</li><li class="li-toc"><a href="omake-system.html#sec317">10.11.15&#XA0;&#XA0;Parsing control</a>
+</li><li class="li-toc"><a href="omake-system.html#sec318">10.11.16&#XA0;&#XA0;Extending parsers</a>
+</li><li class="li-toc"><a href="omake-system.html#sec319">10.11.17&#XA0;&#XA0;Passwd</a>
+</li><li class="li-toc"><a href="omake-system.html#sec320">10.11.18&#XA0;&#XA0;getpwnam, getpwuid</a>
+</li><li class="li-toc"><a href="omake-system.html#sec321">10.11.19&#XA0;&#XA0;getpwents</a>
+</li><li class="li-toc"><a href="omake-system.html#sec322">10.11.20&#XA0;&#XA0;Group</a>
+</li><li class="li-toc"><a href="omake-system.html#sec323">10.11.21&#XA0;&#XA0;getgrnam, getgrgid</a>
+</li><li class="li-toc"><a href="omake-system.html#sec324">10.11.22&#XA0;&#XA0;tgetstr</a>
+</li><li class="li-toc"><a href="omake-system.html#sec325">10.11.23&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</a>
+</li><li class="li-toc"><a href="omake-system.html#sec326">10.11.24&#XA0;&#XA0;xterm-escape</a>
+</li><li class="li-toc"><a href="omake-system.html#sec327">10.11.25&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</a>
+</li><li class="li-toc"><a href="omake-system.html#sec328">10.11.26&#XA0;&#XA0;prompt-invisible</a>
+</li><li class="li-toc"><a href="omake-system.html#sec329">10.11.27&#XA0;&#XA0;gettimeofday</a>
+</li><li class="li-toc"><a href="omake-system.html#sec330">10.11.28&#XA0;&#XA0;Tm</a>
+</li><li class="li-toc"><a href="omake-system.html#sec331">10.11.29&#XA0;&#XA0;gmtime, localtime</a>
+</li><li class="li-toc"><a href="omake-system.html#sec332">10.11.30&#XA0;&#XA0;mktime, normalize-time</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-shell.html#sec333">Chapter&#XA0;11&#XA0;&#XA0;Shell commands</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-shell.html#sec334">11.1&#XA0;&#XA0;Simple commands</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec335">11.2&#XA0;&#XA0;Globbing</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec336">11.3&#XA0;&#XA0;Background jobs</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec337">11.4&#XA0;&#XA0;File redirection</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec338">11.5&#XA0;&#XA0;Pipelines</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec339">11.6&#XA0;&#XA0;Conditional execution</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec340">11.7&#XA0;&#XA0;Grouping</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec341">11.8&#XA0;&#XA0;What is a shell command?</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec342">11.9&#XA0;&#XA0;Basic builtin functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-shell.html#sec343">11.9.1&#XA0;&#XA0;echo</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec344">11.9.2&#XA0;&#XA0;cd</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-shell.html#sec345">11.10&#XA0;&#XA0;Job control builtin functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-shell.html#sec346">11.10.1&#XA0;&#XA0;jobs</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec347">11.10.2&#XA0;&#XA0;bg</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec348">11.10.3&#XA0;&#XA0;fg</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec349">11.10.4&#XA0;&#XA0;stop</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec350">11.10.5&#XA0;&#XA0;wait</a>
+</li><li class="li-toc"><a href="omake-shell.html#sec351">11.10.6&#XA0;&#XA0;kill</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-shell.html#sec352">11.11&#XA0;&#XA0;Command history</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-shell.html#sec353">11.11.1&#XA0;&#XA0;history</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec354">Chapter&#XA0;12&#XA0;&#XA0;The standard objects</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-pervasives.html#sec355">12.1&#XA0;&#XA0;Pervasives objects</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-pervasives.html#sec356">12.1.1&#XA0;&#XA0;Object</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec357">12.1.2&#XA0;&#XA0;Map</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec358">12.1.3&#XA0;&#XA0;Number</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec359">12.1.4&#XA0;&#XA0;Int</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec360">12.1.5&#XA0;&#XA0;Float</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec361">12.1.6&#XA0;&#XA0;Sequence</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec362">12.1.7&#XA0;&#XA0;Array</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec363">12.1.8&#XA0;&#XA0;String</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec364">12.1.9&#XA0;&#XA0;Fun</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec365">12.1.10&#XA0;&#XA0;Rule</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec366">12.1.11&#XA0;&#XA0;Target</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec367">12.1.12&#XA0;&#XA0;Node</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec368">12.1.13&#XA0;&#XA0;File</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec369">12.1.14&#XA0;&#XA0;Dir</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec370">12.1.15&#XA0;&#XA0;Channel</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec371">12.1.16&#XA0;&#XA0;InChannel</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec372">12.1.17&#XA0;&#XA0;OutChannel</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec373">12.1.18&#XA0;&#XA0;Location</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec374">12.1.19&#XA0;&#XA0;Exception</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec375">12.1.20&#XA0;&#XA0;RuntimeException</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec376">12.1.21&#XA0;&#XA0;UnbuildableException</a>
+</li><li class="li-toc"><a href="omake-pervasives.html#sec377">12.1.22&#XA0;&#XA0;Shell</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec378">Chapter&#XA0;13&#XA0;&#XA0;Build functions and utilities</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec379">13.1&#XA0;&#XA0;Builtin .PHONY targets</a>
+</li><li class="li-toc"><a href="omake-build.html#sec380">13.2&#XA0;&#XA0;Options and versioning</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec381">13.2.1&#XA0;&#XA0;OMakeFlags</a>
+</li><li class="li-toc"><a href="omake-build.html#sec382">13.2.2&#XA0;&#XA0;OMakeVersion</a>
+</li><li class="li-toc"><a href="omake-build.html#sec383">13.2.3&#XA0;&#XA0;cmp-versions</a>
+</li><li class="li-toc"><a href="omake-build.html#sec384">13.2.4&#XA0;&#XA0;DefineCommandVars</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec385">13.3&#XA0;&#XA0;Examining the dependency graph</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec386">13.3.1&#XA0;&#XA0;dependencies, dependencies-all, dependencies-proper</a>
+</li><li class="li-toc"><a href="omake-build.html#sec387">13.3.2&#XA0;&#XA0;target</a>
+</li><li class="li-toc"><a href="omake-build.html#sec388">13.3.3&#XA0;&#XA0;find-build-targets</a>
+</li><li class="li-toc"><a href="omake-build.html#sec389">13.3.4&#XA0;&#XA0;project-directories</a>
+</li><li class="li-toc"><a href="omake-build.html#sec390">13.3.5&#XA0;&#XA0;rule</a>
+</li><li class="li-toc"><a href="omake-build.html#sec391">13.3.6&#XA0;&#XA0;build</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec392">13.4&#XA0;&#XA0;The OMakeroot file</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec393">13.4.1&#XA0;&#XA0;Variables</a>
+</li><li class="li-toc"><a href="omake-build.html#sec400">13.4.2&#XA0;&#XA0;System variables</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec409">13.5&#XA0;&#XA0;Building C and C++ code</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec410">13.5.1&#XA0;&#XA0;Autoconfiguration variables</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec411">13.5.1.1&#XA0;&#XA0;Unix-like systems</a>
+</li><li class="li-toc"><a href="omake-build.html#sec414">13.5.1.2&#XA0;&#XA0;Win32</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec417">13.5.2&#XA0;&#XA0;C and C++ configuration variables</a>
+</li><li class="li-toc"><a href="omake-build.html#sec436">13.5.3&#XA0;&#XA0;Generated C files</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec437">13.5.3.1&#XA0;&#XA0;CGeneratedFiles, LocalCGeneratedFiles</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec438">13.5.4&#XA0;&#XA0;Building C programs and Libraries</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec439">13.5.4.1&#XA0;&#XA0;StaticCLibrary, DynamicCLibrary</a>
+</li><li class="li-toc"><a href="omake-build.html#sec441">13.5.4.2&#XA0;&#XA0;StaticCLibraryCopy, DynamicCLibraryCopy</a>
+</li><li class="li-toc"><a href="omake-build.html#sec442">13.5.4.3&#XA0;&#XA0;StaticCLibraryInstall, DynamicCLibraryInstall</a>
+</li><li class="li-toc"><a href="omake-build.html#sec443">13.5.4.4&#XA0;&#XA0;StaticCObject, StaticCObjectCopy, StaticCObjectInstall</a>
+</li><li class="li-toc"><a href="omake-build.html#sec444">13.5.4.5&#XA0;&#XA0;CProgram</a>
+</li><li class="li-toc"><a href="omake-build.html#sec445">13.5.4.6&#XA0;&#XA0;CProgramCopy</a>
+</li><li class="li-toc"><a href="omake-build.html#sec446">13.5.4.7&#XA0;&#XA0;CProgramInstall</a>
+</li><li class="li-toc"><a href="omake-build.html#sec447">13.5.4.8&#XA0;&#XA0;CXXProgram, CXXProgramInstall</a>
+</li><li class="li-toc"><a href="omake-build.html#sec448">13.5.4.9&#XA0;&#XA0;StaticCXXLibrary, StaticCXXLibraryCopy, StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy, DynamicCXXLibraryInstall</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec449">13.6&#XA0;&#XA0;Building OCaml code</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec450">13.6.1&#XA0;&#XA0;Autoconfiguration variables for OCaml compilation</a>
+</li><li class="li-toc"><a href="omake-build.html#sec456">13.6.2&#XA0;&#XA0;Configuration variables for OCaml compilation</a>
+</li><li class="li-toc"><a href="omake-build.html#sec477">13.6.3&#XA0;&#XA0;OCaml command flags</a>
+</li><li class="li-toc"><a href="omake-build.html#sec487">13.6.4&#XA0;&#XA0;Library variables</a>
+</li><li class="li-toc"><a href="omake-build.html#sec493">13.6.5&#XA0;&#XA0;Generated OCaml Files</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec494">13.6.5.1&#XA0;&#XA0;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</a>
+</li><li class="li-toc"><a href="omake-build.html#sec495">13.6.5.2&#XA0;&#XA0;Automatic discovery of generated files during dependency analysis</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec496">13.6.6&#XA0;&#XA0;Using the Menhir parser generator</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec497">13.6.6.1&#XA0;&#XA0;OCamlLibrary</a>
+</li><li class="li-toc"><a href="omake-build.html#sec498">13.6.6.2&#XA0;&#XA0;OCamlPackage</a>
+</li><li class="li-toc"><a href="omake-build.html#sec499">13.6.6.3&#XA0;&#XA0;OCamlLibraryCopy</a>
+</li><li class="li-toc"><a href="omake-build.html#sec500">13.6.6.4&#XA0;&#XA0;OCamlLibraryInstall</a>
+</li><li class="li-toc"><a href="omake-build.html#sec501">13.6.6.5&#XA0;&#XA0;OCamlProgram</a>
+</li><li class="li-toc"><a href="omake-build.html#sec502">13.6.6.6&#XA0;&#XA0;OCamlProgramCopy</a>
+</li><li class="li-toc"><a href="omake-build.html#sec503">13.6.6.7&#XA0;&#XA0;OCamlProgramInstall</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-build.html#sec504">13.7&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X files</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec505">13.7.1&#XA0;&#XA0;Configuration variables</a>
+</li><li class="li-toc"><a href="omake-build.html#sec518">13.7.2&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X documents</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-build.html#sec519">13.7.2.1&#XA0;&#XA0;LaTeXDocument</a>
+</li><li class="li-toc"><a href="omake-build.html#sec523">13.7.2.2&#XA0;&#XA0;TeXGeneratedFiles, LocalTeXGeneratedFiles</a>
+</li><li class="li-toc"><a href="omake-build.html#sec524">13.7.2.3&#XA0;&#XA0;LaTeXDocumentCopy</a>
+</li><li class="li-toc"><a href="omake-build.html#sec525">13.7.2.4&#XA0;&#XA0;LaTeXDocumentInstall</a>
+</li></ul>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec526">Chapter&#XA0;14&#XA0;&#XA0;Autoconfiguration functions and variables</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-autoconf.html#sec527">14.1&#XA0;&#XA0;General-purpose autoconfiguration functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-autoconf.html#sec528">14.1.1&#XA0;&#XA0;ConfMsgChecking, ConfMsgResult</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec529">14.1.2&#XA0;&#XA0;ConfMsgWarn, ConfMsgError</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec530">14.1.3&#XA0;&#XA0;ConfMsgYesNo, ConfMsgFound</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec531">14.1.4&#XA0;&#XA0;TryCompileC, TryLinkC, TryRunC</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec532">14.1.5&#XA0;&#XA0;RunCProg</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec533">14.1.6&#XA0;&#XA0;CheckCHeader, VerboseCheckCHeader</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec534">14.1.7&#XA0;&#XA0;CheckCLib, VerboseCheckCLib</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec535">14.1.8&#XA0;&#XA0;CheckProg</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec536">14.2&#XA0;&#XA0;Translating <CODE>autoconf</CODE> scripts</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec537">14.3&#XA0;&#XA0;Predefined configuration tests</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-autoconf.html#sec538">14.3.1&#XA0;&#XA0;NCurses library configuration</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec543">14.3.2&#XA0;&#XA0;ReadLine library configuration</a>
+</li><li class="li-toc"><a href="omake-autoconf.html#sec548">14.3.3&#XA0;&#XA0;Snprintf configuration</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="osh.html#sec550">Chapter&#XA0;15&#XA0;&#XA0;The OSH shell</a>
+<ul class="toc"><li class="li-toc">
+<a href="osh.html#sec551">15.1&#XA0;&#XA0;Startup</a>
+</li><li class="li-toc"><a href="osh.html#sec554">15.2&#XA0;&#XA0;Aliases</a>
+</li><li class="li-toc"><a href="osh.html#sec555">15.3&#XA0;&#XA0;Interactive syntax</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-options.html#sec556">Appendix&#XA0;A&#XA0;&#XA0;Synopsis</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-options.html#sec557">A.1&#XA0;&#XA0;General usage</a>
+</li><li class="li-toc"><a href="omake-options.html#sec558">A.2&#XA0;&#XA0;Output control</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-options.html#sec559">A.2.1&#XA0;&#XA0;<span class="c001">-s</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec560">A.2.2&#XA0;&#XA0;<span class="c001">-S</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec561">A.2.3&#XA0;&#XA0;<span class="c001">-w</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec562">A.2.4&#XA0;&#XA0;<span class="c001">--progress</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec563">A.2.5&#XA0;&#XA0;<span class="c001">--print-status</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec564">A.2.6&#XA0;&#XA0;<span class="c001">--print-exit</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec565">A.2.7&#XA0;&#XA0;<span class="c001">--verbose</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec566">A.2.8&#XA0;&#XA0;<span class="c001">--output-normal</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec567">A.2.9&#XA0;&#XA0;<span class="c001">--output-postpone</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec568">A.2.10&#XA0;&#XA0;<span class="c001">--output-only-errors</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec569">A.2.11&#XA0;&#XA0;<span class="c001">--output-at-end</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec570">A.2.12&#XA0;&#XA0;<span class="c001">-o</span></a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-options.html#sec571">A.3&#XA0;&#XA0;Build options</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-options.html#sec572">A.3.1&#XA0;&#XA0;<span class="c001">-k</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec573">A.3.2&#XA0;&#XA0;<span class="c001">-n</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec574">A.3.3&#XA0;&#XA0;<span class="c001">-p</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec575">A.3.4&#XA0;&#XA0;<span class="c001">-P</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec576">A.3.5&#XA0;&#XA0;<span class="c001">-R</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec577">A.3.6&#XA0;&#XA0;<span class="c001">-t</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec578">A.3.7&#XA0;&#XA0;<span class="c001">-U</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec579">A.3.8&#XA0;&#XA0;<span class="c001">--depend</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec580">A.3.9&#XA0;&#XA0;<span class="c001">--configure</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec581">A.3.10&#XA0;&#XA0;<span class="c001">--force-dotomake</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec582">A.3.11&#XA0;&#XA0;<span class="c001">--dotomake</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec583">A.3.12&#XA0;&#XA0;<span class="c001">-j</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec584">A.3.13&#XA0;&#XA0;<span class="c001">--print-dependencies</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec585">A.3.14&#XA0;&#XA0;<span class="c001">--show-dependencies</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec586">A.3.15&#XA0;&#XA0;<span class="c001">--all-dependencies</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec587">A.3.16&#XA0;&#XA0;<span class="c001">--verbose-dependencies</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec588">A.3.17&#XA0;&#XA0;<span class="c001">--install</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec589">A.3.18&#XA0;&#XA0;<span class="c001">--install-all</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec590">A.3.19&#XA0;&#XA0;<span class="c001">--install-force</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec591">A.3.20&#XA0;&#XA0;<span class="c001">--absname</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec592">A.3.21&#XA0;&#XA0;<span class="c001">variable definition</span></a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-options.html#sec593">A.4&#XA0;&#XA0;Additional options</a>
+</li><li class="li-toc"><a href="omake-options.html#sec594">A.5&#XA0;&#XA0;Environment variables</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-options.html#sec595">A.5.1&#XA0;&#XA0;<span class="c001">OMAKEFLAGS</span></a>
+</li><li class="li-toc"><a href="omake-options.html#sec596">A.5.2&#XA0;&#XA0;<span class="c001">OMAKELIB</span></a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-options.html#sec597">A.6&#XA0;&#XA0;Functions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-options.html#sec598">A.6.1&#XA0;&#XA0;<span class="c001">OMakeFlags</span></a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-options.html#sec599">A.7&#XA0;&#XA0;Option processing</a>
+</li><li class="li-toc"><a href="omake-options.html#sec600">A.8&#XA0;&#XA0;.omakerc</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-grammar.html#sec601">Appendix&#XA0;B&#XA0;&#XA0;OMake grammar</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec602">B.1&#XA0;&#XA0;OMake lexical conventions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec603">B.1.1&#XA0;&#XA0;Comments</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec604">B.1.2&#XA0;&#XA0;Special characters</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec605">B.1.3&#XA0;&#XA0;Identifiers</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec606">B.1.4&#XA0;&#XA0;Command identifiers</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec607">B.1.5&#XA0;&#XA0;Variable references</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec608">B.1.6&#XA0;&#XA0;String constants</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-grammar.html#sec609">B.2&#XA0;&#XA0;The OMake grammar</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec610">B.2.1&#XA0;&#XA0;Expressions</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec611">B.2.1.1&#XA0;&#XA0;Inline applications</a>
+</li></ul>
+</li><li class="li-toc"><a href="omake-grammar.html#sec612">B.2.2&#XA0;&#XA0;Statements and programs</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec613">B.2.2.1&#XA0;&#XA0;Special forms</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec614">B.2.2.2&#XA0;&#XA0;Variable definitions</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec615">B.2.2.3&#XA0;&#XA0;Applications and function definitions</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec616">B.2.2.4&#XA0;&#XA0;Objects</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec617">B.2.2.5&#XA0;&#XA0;Rules</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec618">B.2.2.6&#XA0;&#XA0;Shell commands</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-grammar.html#sec619">B.3&#XA0;&#XA0;Dollar modifiers</a>
+</li><li class="li-toc"><a href="omake-grammar.html#sec620">B.4&#XA0;&#XA0;Programming syntax</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-grammar.html#sec621">B.4.1&#XA0;&#XA0;Examples</a>
+</li></ul>
+</li></ul>
+</li><li class="li-toc"><a href="omake-references.html#sec628">Appendix&#XA0;C&#XA0;&#XA0;References</a>
+<ul class="toc"><li class="li-toc">
+<a href="omake-references.html#sec629">C.1&#XA0;&#XA0;See Also</a>
+</li><li class="li-toc"><a href="omake-references.html#sec630">C.2&#XA0;&#XA0;Version</a>
+</li><li class="li-toc"><a href="omake-references.html#sec631">C.3&#XA0;&#XA0;License and Copyright</a>
+</li><li class="li-toc"><a href="omake-references.html#sec632">C.4&#XA0;&#XA0;Author</a>
+</li></ul>
+</li></ul>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

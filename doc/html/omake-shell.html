@@ -1,62 +1,66 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Shell commands</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Shell commands</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc313">Chapter&#XA0;11</A>&#XA0;&#XA0;Shell commands</H1><UL>
-<LI><A HREF="omake-shell.html#toc85">Simple commands</A>
-</LI><LI><A HREF="omake-shell.html#toc86">Globbing</A>
-</LI><LI><A HREF="omake-shell.html#toc87">Background jobs</A>
-</LI><LI><A HREF="omake-shell.html#toc88">File redirection</A>
-</LI><LI><A HREF="omake-shell.html#toc89">Pipelines</A>
-</LI><LI><A HREF="omake-shell.html#toc90">Conditional execution</A>
-</LI><LI><A HREF="omake-shell.html#toc91">Grouping</A>
-</LI><LI><A HREF="omake-shell.html#toc92">What is a shell command?</A>
-</LI><LI><A HREF="omake-shell.html#toc93">Basic builtin functions</A>
-</LI><LI><A HREF="omake-shell.html#toc94">Job control builtin functions</A>
-</LI><LI><A HREF="omake-shell.html#toc95">Command history</A>
-</LI></UL>
-<P>
-<A NAME="chapter:shell"></A>
-</P><P>Shell commands (commands to be executed by the operating system) can be freely mixed with other
-code.</P><P><B>NOTE</B>: the syntax and shell usage is identical on all platforms, including Win32. To avoid
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec333">Chapter&#XA0;11&#XA0;&#XA0;Shell commands</h1>
+<ul>
+<li><a href="omake-shell.html#sec334">Simple commands</a>
+</li><li><a href="omake-shell.html#sec335">Globbing</a>
+</li><li><a href="omake-shell.html#sec336">Background jobs</a>
+</li><li><a href="omake-shell.html#sec337">File redirection</a>
+</li><li><a href="omake-shell.html#sec338">Pipelines</a>
+</li><li><a href="omake-shell.html#sec339">Conditional execution</a>
+</li><li><a href="omake-shell.html#sec340">Grouping</a>
+</li><li><a href="omake-shell.html#sec341">What is a shell command?</a>
+</li><li><a href="omake-shell.html#sec342">Basic builtin functions</a>
+</li><li><a href="omake-shell.html#sec345">Job control builtin functions</a>
+</li><li><a href="omake-shell.html#sec352">Command history</a>
+</li></ul>
+<p>
+<a id="chapter:shell"></a>
+</p><p>Shell commands (commands to be executed by the operating system) can be freely mixed with other
+code.</p><p><span class="c004">NOTE</span>: the syntax and shell usage is identical on all platforms, including Win32. To avoid
 portability problems on Win32, it is recommended that you avoid the use of the native shell
-interpreter <CODE>cmd</CODE>.</P><PRE CLASS="verbatim">    LIB = $(dir lib)
+interpreter <code>cmd</code>.</p><pre class="verbatim">    LIB = $(dir lib)
     println(The contents of the $(LIB) directory is:)
     ls $(LIB)
-</PRE><H2 CLASS="section"><A NAME="toc85"></A><A NAME="htoc314">11.1</A>&#XA0;&#XA0;Simple commands</H2><P>The syntax of shell commands is similar to the syntax used by the Unix shell <CODE>bash</CODE>. In
-general, a command is a <EM>pipeline</EM>. A basic command is part of a pipeline. It is specified
-with the name of an executable and some arguments. Here are some examples.</P><PRE CLASS="verbatim">    ls
+</pre>
+<h2 class="section" id="sec334">11.1&#XA0;&#XA0;Simple commands</h2>
+<p>The syntax of shell commands is similar to the syntax used by the Unix shell <code>bash</code>. In
+general, a command is a <em>pipeline</em>. A basic command is part of a pipeline. It is specified
+with the name of an executable and some arguments. Here are some examples.</p><pre class="verbatim">    ls
     ls -AF .
     echo Hello world
-</PRE><P>The command is found using the current search path in the variable <CODE>PATH[]</CODE>, which should
-define an array of directories containing executables.</P><P>A command may also be prefixed by environment variable definitions.</P><PRE CLASS="verbatim">    # Prints "Hello world"
+</pre><p>The command is found using the current search path in the variable <code>PATH[]</code>, which should
+define an array of directories containing executables.</p><p>A command may also be prefixed by environment variable definitions.</p><pre class="verbatim">    # Prints "Hello world"
     env X="Hello world" Y=2 printenv X
     # Pass the include path to the Visual C++
     env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
-</PRE><H2 CLASS="section"><A NAME="toc86"></A><A NAME="htoc315">11.2</A>&#XA0;&#XA0;Globbing</H2><P>Commands may contain wildcard patterns. A pattern specifies a set of files through a limited kind
-of regular expression. Patterns are expanded before the function is executed.</P><PRE CLASS="verbatim">   # List all files with a .c suffix
+</pre>
+<h2 class="section" id="sec335">11.2&#XA0;&#XA0;Globbing</h2>
+<p>Commands may contain wildcard patterns. A pattern specifies a set of files through a limited kind
+of regular expression. Patterns are expanded before the function is executed.</p><pre class="verbatim">   # List all files with a .c suffix
    ls *.c
 
    # List all files with a single character prefix, and .c suffix
@@ -64,11 +68,15 @@ of regular expression. Patterns are expanded before the function is executed.</P
 
    # Rename the file hello.ml to foo.ml
    mv {hello,foo}.ml
-</PRE><P>A comprehensive description of OMake glob patterns is given in Section&#XA0;<A HREF="omake-system.html#section:globbing">10.4</A>.</P><H2 CLASS="section"><A NAME="toc87"></A><A NAME="htoc316">11.3</A>&#XA0;&#XA0;Background jobs</H2><P>The command may also be placed in the background by placing an ampersand after the command. Control
+</pre><p>A comprehensive description of OMake glob patterns is given in Section&#XA0;<a href="omake-system.html#section%3Aglobbing">10.4</a>.</p>
+<h2 class="section" id="sec336">11.3&#XA0;&#XA0;Background jobs</h2>
+<p>The command may also be placed in the background by placing an ampersand after the command. Control
 returns to the shell without waiting for the job to complete. The job continues to run in the
-background.</P><PRE CLASS="verbatim">    gcc -o hugeprogram *.c &amp;
-</PRE><H2 CLASS="section"><A NAME="toc88"></A><A NAME="htoc317">11.4</A>&#XA0;&#XA0;File redirection</H2><P>Input and output can be redirected to files by using the <CODE>&lt;</CODE>, <CODE>&gt;</CODE>, and <CODE>&gt;&amp;</CODE>
-directives after the command.</P><PRE CLASS="verbatim">    # Write to the "foo" file
+background.</p><pre class="verbatim">    gcc -o hugeprogram *.c &amp;
+</pre>
+<h2 class="section" id="sec337">11.4&#XA0;&#XA0;File redirection</h2>
+<p>Input and output can be redirected to files by using the <code>&lt;</code>, <code>&gt;</code>, and <code>&gt;&amp;</code>
+directives after the command.</p><pre class="verbatim">    # Write to the "foo" file
     echo Hello world &gt; foo
 
     # Redirect input from the foo file
@@ -76,90 +84,121 @@ directives after the command.</P><PRE CLASS="verbatim">    # Write to the "foo" 
 
     # Redirect standard output and errors to the foo file
     gcc -o boo *.c &gt;&amp; foo
-</PRE><H2 CLASS="section"><A NAME="toc89"></A><A NAME="htoc318">11.5</A>&#XA0;&#XA0;Pipelines</H2><P>Pipelines are sequences of commands, where the output from each command is sent to the next.
-Pipelines are defined with the <CODE>|</CODE> and <CODE>|&amp;</CODE> syntax. With <CODE>|</CODE> the output is
-redirected, but errors are not. With <CODE>|&amp;</CODE> both output and errors are redirected.</P><PRE CLASS="verbatim">   # Send the output of the ls command to the printer
+</pre>
+<h2 class="section" id="sec338">11.5&#XA0;&#XA0;Pipelines</h2>
+<p>Pipelines are sequences of commands, where the output from each command is sent to the next.
+Pipelines are defined with the <code>|</code> and <code>|&amp;</code> syntax. With <code>|</code> the output is
+redirected, but errors are not. With <code>|&amp;</code> both output and errors are redirected.</p><pre class="verbatim">   # Send the output of the ls command to the printer
    ls *.c | lpr
 
    # Send output and errors to jyh as email
    gcc -o hugefile *.c |&amp; mail jyh
-</PRE><H2 CLASS="section"><A NAME="toc90"></A><A NAME="htoc319">11.6</A>&#XA0;&#XA0;Conditional execution</H2><P>Commands may also be composed though conditional evaluation using the <CODE>||</CODE> and <CODE>&amp;&amp;</CODE>
+</pre>
+<h2 class="section" id="sec339">11.6&#XA0;&#XA0;Conditional execution</h2>
+<p>Commands may also be composed though conditional evaluation using the <code>||</code> and <code>&amp;&amp;</code>
 syntax. Every command has an integer exit code, which may be zero or some other integer. A command
-is said to <EM>succeed</EM> if its exit code is zero. The expression <CODE>command1 &amp;&amp; command2</CODE>
-executes <CODE>command2</CODE> only if <CODE>command1</CODE> succeeds. The expression
-<CODE>command1 || command2</CODE> executes <CODE>command2</CODE> only if <CODE>command1</CODE> fails.</P><PRE CLASS="verbatim">   # Display the x/y file if possible
+is said to <em>succeed</em> if its exit code is zero. The expression <code>command1 &amp;&amp; command2</code>
+executes <code>command2</code> only if <code>command1</code> succeeds. The expression
+<code>command1 || command2</code> executes <code>command2</code> only if <code>command1</code> fails.</p><pre class="verbatim">   # Display the x/y file if possible
    cd x &amp;&amp; cat y
 
    # Run foo.exe, or print an error message
    (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
-</PRE><H2 CLASS="section"><A NAME="toc91"></A><A NAME="htoc320">11.7</A>&#XA0;&#XA0;Grouping</H2><P>Parenthesis are used for grouping in a pipeline or conditional command. In the following
-expression, the <CODE>test</CODE> function is used to test whether the <CODE>foo.exe</CODE> file is executable.
-If it is, the <CODE>foo.exe</CODE> file is executed. If the file is not executable (or if the
-<CODE>foo.exe</CODE> command fails), the message <CODE>"foo.exe is not executable"</CODE> is printed.</P><PRE CLASS="verbatim">   # Run foo.exe, or print an error message
+</pre>
+<h2 class="section" id="sec340">11.7&#XA0;&#XA0;Grouping</h2>
+<p>Parenthesis are used for grouping in a pipeline or conditional command. In the following
+expression, the <code>test</code> function is used to test whether the <code>foo.exe</code> file is executable.
+If it is, the <code>foo.exe</code> file is executed. If the file is not executable (or if the
+<code>foo.exe</code> command fails), the message <code>"foo.exe is not executable"</code> is printed.</p><pre class="verbatim">   # Run foo.exe, or print an error message
    (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
-</PRE><H2 CLASS="section"><A NAME="toc92"></A><A NAME="htoc321">11.8</A>&#XA0;&#XA0;What is a shell command?</H2><P>Syntactially, shell commands are any line that is not one of the following:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-A variable definition of the form <CODE>VAR=string</CODE>
-</LI><LI CLASS="li-itemize">A function call <CODE>f(...)</CODE> or method call <CODE>o.f(...)</CODE>
-</LI><LI CLASS="li-itemize">A rule definition containing a colon <CODE>string: ...</CODE>
-</LI><LI CLASS="li-itemize">A special command, including the following:
-<UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>if ...</CODE>
-</LI><LI CLASS="li-itemize"><CODE>switch ...</CODE>
-</LI><LI CLASS="li-itemize"><CODE>match ...</CODE>
-</LI><LI CLASS="li-itemize"><CODE>section ...</CODE>
-</LI><LI CLASS="li-itemize"><CODE>return ...</CODE>
-</LI></UL>
-</LI></UL><P>Commands may also be builtin (aliases). See the documentation for the
-<A HREF="omake-pervasives.html#obj:Shell"><CODE>Shell</CODE> object</A> for more information.</P><H2 CLASS="section"><A NAME="toc93"></A><A NAME="htoc322">11.9</A>&#XA0;&#XA0;Basic builtin functions</H2><H3 CLASS="subsection"><A NAME="htoc323">11.9.1</A>&#XA0;&#XA0;echo</H3><P><A NAME="fun:echo"></A><A NAME="function:echo"></A><A NAME="@default359"></A><A NAME="@fun240"></A></P><P>The <CODE>echo</CODE> function prints a string.</P><PRE CLASS="verbatim">$(echo &lt;args&gt;)
+</pre>
+<h2 class="section" id="sec341">11.8&#XA0;&#XA0;What is a shell command?</h2>
+<p>Syntactially, shell commands are any line that is not one of the following:</p><ul class="itemize"><li class="li-itemize">
+A variable definition of the form <code>VAR=string</code>
+</li><li class="li-itemize">A function call <code>f(...)</code> or method call <code>o.f(...)</code>
+</li><li class="li-itemize">A rule definition containing a colon <code>string: ...</code>
+</li><li class="li-itemize">A special command, including the following:
+<ul class="itemize"><li class="li-itemize">
+<code>if ...</code>
+</li><li class="li-itemize"><code>switch ...</code>
+</li><li class="li-itemize"><code>match ...</code>
+</li><li class="li-itemize"><code>section ...</code>
+</li><li class="li-itemize"><code>return ...</code>
+</li></ul>
+</li></ul><p>Commands may also be builtin (aliases). See the documentation for the
+<a href="omake-pervasives.html#obj%3AShell"><CODE>Shell</CODE> object</a> for more information.</p>
+<h2 class="section" id="sec342">11.9&#XA0;&#XA0;Basic builtin functions</h2>
+<h3 class="subsection" id="sec343">11.9.1&#XA0;&#XA0;echo</h3>
+<p><a id="fun:echo"></a><a id="function:echo"></a><a id="hevea_default359"></a><a id="hevea_fun240"></a></p><p>The <code>echo</code> function prints a string.</p><pre class="verbatim">$(echo &lt;args&gt;)
 echo &lt;args&gt;
-</PRE><H3 CLASS="subsection"><A NAME="htoc324">11.9.2</A>&#XA0;&#XA0;cd</H3><P><A NAME="fun:cd"></A><A NAME="function:cd"></A><A NAME="@default360"></A><A NAME="@fun241"></A></P><P>The <CODE>cd</CODE> function changes the current directory.</P><PRE CLASS="verbatim">    cd(dir)
+</pre>
+<h3 class="subsection" id="sec344">11.9.2&#XA0;&#XA0;cd</h3>
+<p><a id="fun:cd"></a><a id="function:cd"></a><a id="hevea_default360"></a><a id="hevea_fun241"></a></p><p>The <code>cd</code> function changes the current directory.</p><pre class="verbatim">    cd(dir)
        dir : Dir
-</PRE><P>The <CODE>cd</CODE> function also supports a 2-argument form:</P><PRE CLASS="verbatim">    $(cd dir, e)
+</pre><p>The <code>cd</code> function also supports a 2-argument form:</p><pre class="verbatim">    $(cd dir, e)
        dir : Dir
        e : expression
-</PRE><P>In the two-argument form, expression <CODE>e</CODE> is evaluated
-in the directory <CODE>dir</CODE>. The current directory is not
-changed otherwise.</P><P>The behavior of the <CODE>cd</CODE> function can be changed with the
-<CODE>CDPATH</CODE> variable, which specifies a search path for
-directories. This is normally useful only in the <TT>osh</TT>
-command interpreter.</P><PRE CLASS="verbatim">    CDPATH : Dir Sequence
-</PRE><P>For example, the following will change directory to the first
-directory <CODE>./foo</CODE>, <CODE>~/dir1/foo</CODE>, <CODE>~/dir2/foo</CODE>.</P><PRE CLASS="verbatim">    CDPATH[] =
+</pre><p>In the two-argument form, expression <code>e</code> is evaluated
+in the directory <code>dir</code>. The current directory is not
+changed otherwise.</p><p>The behavior of the <code>cd</code> function can be changed with the
+<code>CDPATH</code> variable, which specifies a search path for
+directories. This is normally useful only in the <span class="c001">osh</span>
+command interpreter.</p><pre class="verbatim">    CDPATH : Dir Sequence
+</pre><p>For example, the following will change directory to the first
+directory <code>./foo</code>, <code>~/dir1/foo</code>, <code>~/dir2/foo</code>.</p><pre class="verbatim">    CDPATH[] =
        .
        $(HOME)/dir1
        $(HOME)/dir2
     cd foo
-</PRE><H2 CLASS="section"><A NAME="toc94"></A><A NAME="htoc325">11.10</A>&#XA0;&#XA0;Job control builtin functions</H2><H3 CLASS="subsection"><A NAME="htoc326">11.10.1</A>&#XA0;&#XA0;jobs</H3><P><A NAME="fun:jobs"></A><A NAME="function:jobs"></A><A NAME="@default361"></A><A NAME="@fun242"></A></P><P>The <CODE>jobs</CODE> function prints a list of jobs.</P><P><CODE>jobs</CODE>
-</P><H3 CLASS="subsection"><A NAME="htoc327">11.10.2</A>&#XA0;&#XA0;bg</H3><P><A NAME="fun:bg"></A><A NAME="function:bg"></A><A NAME="@default362"></A><A NAME="@fun243"></A></P><P>The <CODE>bg</CODE> function places a job in the background.</P><P><CODE>bg &lt;pid...&gt;</CODE>
-</P><H3 CLASS="subsection"><A NAME="htoc328">11.10.3</A>&#XA0;&#XA0;fg</H3><P><A NAME="fun:fg"></A><A NAME="function:fg"></A><A NAME="@default363"></A><A NAME="@fun244"></A></P><P>The <CODE>fg</CODE> function brings a job to the foreground.</P><P><CODE>fg &lt;pid...&gt;</CODE>
-</P><H3 CLASS="subsection"><A NAME="htoc329">11.10.4</A>&#XA0;&#XA0;stop</H3><P><A NAME="fun:stop"></A><A NAME="function:stop"></A><A NAME="@default364"></A><A NAME="@fun245"></A></P><P>The <CODE>stop</CODE> function suspends a job.</P><P><CODE>stop &lt;pid...&gt;</CODE>
-</P><H3 CLASS="subsection"><A NAME="htoc330">11.10.5</A>&#XA0;&#XA0;wait</H3><P><A NAME="fun:wait"></A><A NAME="function:wait"></A><A NAME="@default365"></A><A NAME="@fun246"></A></P><P>The <CODE>wait</CODE> function waits for a job to finish.
+</pre>
+<h2 class="section" id="sec345">11.10&#XA0;&#XA0;Job control builtin functions</h2>
+<h3 class="subsection" id="sec346">11.10.1&#XA0;&#XA0;jobs</h3>
+<p><a id="fun:jobs"></a><a id="function:jobs"></a><a id="hevea_default361"></a><a id="hevea_fun242"></a></p><p>The <code>jobs</code> function prints a list of jobs.</p><p><code>jobs</code>
+</p>
+<h3 class="subsection" id="sec347">11.10.2&#XA0;&#XA0;bg</h3>
+<p><a id="fun:bg"></a><a id="function:bg"></a><a id="hevea_default362"></a><a id="hevea_fun243"></a></p><p>The <code>bg</code> function places a job in the background.</p><p><code>bg &lt;pid...&gt;</code>
+</p>
+<h3 class="subsection" id="sec348">11.10.3&#XA0;&#XA0;fg</h3>
+<p><a id="fun:fg"></a><a id="function:fg"></a><a id="hevea_default363"></a><a id="hevea_fun244"></a></p><p>The <code>fg</code> function brings a job to the foreground.</p><p><code>fg &lt;pid...&gt;</code>
+</p>
+<h3 class="subsection" id="sec349">11.10.4&#XA0;&#XA0;stop</h3>
+<p><a id="fun:stop"></a><a id="function:stop"></a><a id="hevea_default364"></a><a id="hevea_fun245"></a></p><p>The <code>stop</code> function suspends a job.</p><p><code>stop &lt;pid...&gt;</code>
+</p>
+<h3 class="subsection" id="sec350">11.10.5&#XA0;&#XA0;wait</h3>
+<p><a id="fun:wait"></a><a id="function:wait"></a><a id="hevea_default365"></a><a id="hevea_fun246"></a></p><p>The <code>wait</code> function waits for a job to finish.
 If no process identifiers are given, the shell waits for
-all jobs to complete.</P><P><CODE>wait &lt;pid...&gt;</CODE>
-</P><H3 CLASS="subsection"><A NAME="htoc331">11.10.6</A>&#XA0;&#XA0;kill</H3><P><A NAME="fun:kill"></A><A NAME="function:kill"></A><A NAME="@default366"></A><A NAME="@fun247"></A></P><P>The <CODE>kill</CODE> function signals a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>
-</P><H2 CLASS="section"><A NAME="toc95"></A><A NAME="htoc332">11.11</A>&#XA0;&#XA0;Command history</H2><H3 CLASS="subsection"><A NAME="htoc333">11.11.1</A>&#XA0;&#XA0;history</H3><P><A NAME="fun:history"></A><A NAME="function:history"></A><A NAME="@default367"></A><A NAME="@fun248"></A></P><PRE CLASS="verbatim">    $(history-index) : Int
+all jobs to complete.</p><p><code>wait &lt;pid...&gt;</code>
+</p>
+<h3 class="subsection" id="sec351">11.10.6&#XA0;&#XA0;kill</h3>
+<p><a id="fun:kill"></a><a id="function:kill"></a><a id="hevea_default366"></a><a id="hevea_fun247"></a></p><p>The <code>kill</code> function signals a job.</p><p><code>kill [signal] &lt;pid...&gt;</code>
+</p>
+<h2 class="section" id="sec352">11.11&#XA0;&#XA0;Command history</h2>
+<h3 class="subsection" id="sec353">11.11.1&#XA0;&#XA0;history</h3>
+<p><a id="fun:history"></a><a id="function:history"></a><a id="hevea_default367"></a><a id="hevea_fun248"></a></p><pre class="verbatim">    $(history-index) : Int
     $(history) : String Sequence
     history-file : File
     history-length : Int
-</PRE><P>The history variables manage the command-line history in <TT>osh</TT>. They have no effect
-in <TT>omake</TT>.</P><P>The <CODE>history-index</CODE> variable is the current index into the command-line history.
-The <CODE>history</CODE> variable is the current command-line history.</P><P>The <CODE>history-file</CODE> variable can be redefined if you want the command-line history
-to be saved. The default value is <CODE>~/.omake/osh_history</CODE>.</P><P>The <CODE>history-length</CODE> variable can be redefined to specify the maximum number of
-lines in the history that you want saved. The default value is <CODE>100</CODE>.
+</pre><p>The history variables manage the command-line history in <span class="c001">osh</span>. They have no effect
+in <span class="c001">omake</span>.</p><p>The <code>history-index</code> variable is the current index into the command-line history.
+The <code>history</code> variable is the current command-line history.</p><p>The <code>history-file</code> variable can be redefined if you want the command-line history
+to be saved. The default value is <code>~/.omake/osh_history</code>.</p><p>The <code>history-length</code> variable can be redefined to specify the maximum number of
+lines in the history that you want saved. The default value is <code>100</code>.
 
 
-</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</p>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

@@ -1,111 +1,119 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Rules</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Rules</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc79">Chapter&#XA0;8</A>&#XA0;&#XA0;Rules</H1><UL>
-<LI><A HREF="omake-rules.html#toc54">Implicit rules</A>
-</LI><LI><A HREF="omake-rules.html#toc55">Bounded implicit rules</A>
-</LI><LI><A HREF="omake-rules.html#toc56">section</A>
-</LI><LI><A HREF="omake-rules.html#toc57">section rule</A>
-</LI><LI><A HREF="omake-rules.html#toc58">Special dependencies</A>
-</LI><LI><A HREF="omake-rules.html#toc59"><CODE>.SCANNER</CODE> rules</A>
-</LI><LI><A HREF="omake-rules.html#toc60">.DEFAULT</A>
-</LI><LI><A HREF="omake-rules.html#toc61">.SUBDIRS</A>
-</LI><LI><A HREF="omake-rules.html#toc62">.INCLUDE</A>
-</LI><LI><A HREF="omake-rules.html#toc63">.PHONY</A>
-</LI><LI><A HREF="omake-rules.html#toc64">Rule scoping</A>
-</LI><LI><A HREF="omake-rules.html#toc65">Running OMake from a subdirectory</A>
-</LI><LI><A HREF="omake-rules.html#toc66">Pathnames in rules</A>
-</LI></UL>
-<P>
-<A NAME="chapter:rules"></A>
-</P><P>Rules are used by OMake to specify how to build files. At its simplest, a rule has the following
-form.</P><PRE CLASS="verbatim">    &lt;target&gt;: &lt;dependencies&gt;
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec80">Chapter&#XA0;8&#XA0;&#XA0;Rules</h1>
+<ul>
+<li><a href="omake-rules.html#sec81">Implicit rules</a>
+</li><li><a href="omake-rules.html#sec82">Bounded implicit rules</a>
+</li><li><a href="omake-rules.html#sec83">section</a>
+</li><li><a href="omake-rules.html#sec84">section rule</a>
+</li><li><a href="omake-rules.html#sec85">Special dependencies</a>
+</li><li><a href="omake-rules.html#sec89"><CODE>.SCANNER</CODE> rules</a>
+</li><li><a href="omake-rules.html#sec92">.DEFAULT</a>
+</li><li><a href="omake-rules.html#sec93">.SUBDIRS</a>
+</li><li><a href="omake-rules.html#sec94">.INCLUDE</a>
+</li><li><a href="omake-rules.html#sec95">.PHONY</a>
+</li><li><a href="omake-rules.html#sec96">Rule scoping</a>
+</li><li><a href="omake-rules.html#sec100">Running OMake from a subdirectory</a>
+</li><li><a href="omake-rules.html#sec103">Pathnames in rules</a>
+</li></ul>
+<p>
+<a id="chapter:rules"></a>
+</p><p>Rules are used by OMake to specify how to build files. At its simplest, a rule has the following
+form.</p><pre class="verbatim">    &lt;target&gt;: &lt;dependencies&gt;
         &lt;commands&gt;
-</PRE><P>The <CODE>&lt;target&gt;</CODE> is the name of a file to be built. The <CODE>&lt;dependencies&gt;</CODE> are a list of
-files that are needed before the <CODE>&lt;target&gt;</CODE> can be built. The <CODE>&lt;commands&gt;</CODE> are a list of
+</pre><p>The <code>&lt;target&gt;</code> is the name of a file to be built. The <code>&lt;dependencies&gt;</code> are a list of
+files that are needed before the <code>&lt;target&gt;</code> can be built. The <code>&lt;commands&gt;</code> are a list of
 indented lines specifying commands to build the target. For example, the following rule specifies
-how to compile a file <CODE>hello.c</CODE>.</P><PRE CLASS="verbatim">    hello.o: hello.c
+how to compile a file <code>hello.c</code>.</p><pre class="verbatim">    hello.o: hello.c
         $(CC) $(CFLAGS) -c -o hello.o hello.c
-</PRE><P>This rule states that the <TT>hello.o</TT> file depends on the <TT>hello.c</TT> file. If the
-<TT>hello.c</TT> file has changed, the command <CODE>$(CC) $(CFLAGS) -c -o hello.o hello.c</CODE> is to
-be executed to update the target file <CODE>hello.o</CODE>.</P><P>A rule can have an arbitrary number of commands. The individual command lines are executed
+</pre><p>This rule states that the <span class="c001">hello.o</span> file depends on the <span class="c001">hello.c</span> file. If the
+<span class="c001">hello.c</span> file has changed, the command <code>$(CC) $(CFLAGS) -c -o hello.o hello.c</code> is to
+be executed to update the target file <code>hello.o</code>.</p><p>A rule can have an arbitrary number of commands. The individual command lines are executed
 independently by the command shell. The commands do not have to begin with a tab, but they must be
-indented from the dependency line.</P><P>In addition to normal variables, the following special variables may be used in the body of a rule.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$*</CODE><A NAME="@default42"></A><A NAME="@var0"></A>: the target name, without a suffix.
-</LI><LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default43"></A><A NAME="@var1"></A>: the target name.
-</LI><LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default44"></A><A NAME="@var2"></A>: a list of the sources, in alphabetical order, with
+indented from the dependency line.</p><p>In addition to normal variables, the following special variables may be used in the body of a rule.</p><ul class="itemize"><li class="li-itemize">
+<code>$*</code><a id="hevea_default42"></a><a id="hevea_var0"></a>: the target name, without a suffix.
+</li><li class="li-itemize"><code>$@</code><a id="hevea_default43"></a><a id="hevea_var1"></a>: the target name.
+</li><li class="li-itemize"><code>$^</code><a id="hevea_default44"></a><a id="hevea_var2"></a>: a list of the sources, in alphabetical order, with
 duplicates removed.
-</LI><LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default45"></A><A NAME="@var3"></A>: all the sources, in the original order.
-</LI><LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default46"></A><A NAME="@var4"></A>: the first source.
-</LI></UL><P>For example, the above <CODE>hello.c</CODE> rule may be simplified as follows.</P><PRE CLASS="verbatim">    hello.o: hello.c
+</li><li class="li-itemize"><code>$+</code><a id="hevea_default45"></a><a id="hevea_var3"></a>: all the sources, in the original order.
+</li><li class="li-itemize"><code>$&lt;</code><a id="hevea_default46"></a><a id="hevea_var4"></a>: the first source.
+</li></ul><p>For example, the above <code>hello.c</code> rule may be simplified as follows.</p><pre class="verbatim">    hello.o: hello.c
         $(CC) $(CFLAGS) -c -o $@ $&lt;
-</PRE><P>Unlike normal values, the variables in a rule body are expanded lazily, and binding is dynamic. The
-following function definition illustrates some of the issues.</P><PRE CLASS="verbatim">    CLibrary(name, files) =
+</pre><p>Unlike normal values, the variables in a rule body are expanded lazily, and binding is dynamic. The
+following function definition illustrates some of the issues.</p><pre class="verbatim">    CLibrary(name, files) =
         OFILES = $(addsuffix .o, $(files))
 
         $(name).a: $(OFILES)
             $(AR) cq $@ $(OFILES)
-</PRE><P>This function defines a rule to build a program called <CODE>$(name)</CODE> from a list of <CODE>.o</CODE>
+</pre><p>This function defines a rule to build a program called <code>$(name)</code> from a list of <code>.o</code>
 files. The files in the argument are specified without a suffix, so the first line of the function
-definition defines a variable <CODE>OFILES</CODE> that adds the <CODE>.o</CODE> suffix to each of the file
-names. The next step defines a rule to build a target library <CODE>$(name).a</CODE> from the
-<CODE>$(OFILES)</CODE> files. The expression <CODE>$(AR)</CODE> is evaluated when the function is called, and
-the value of the variable <CODE>AR</CODE> is taken from the caller&#X2019;s scope (see also the section on
-Scoping).</P><H2 CLASS="section"><A NAME="toc54"></A><A NAME="htoc80">8.1</A>&#XA0;&#XA0;Implicit rules</H2><P>
-<A NAME="@default47"></A></P><P>Rules may also be implicit. That is, the files may be specified by wildcard patterns.
-The wildcard character is <CODE>%</CODE>. For example, the following rule specifies a default
-rule for building <CODE>.o</CODE> files.</P><PRE CLASS="verbatim">    %.o: %.c
+definition defines a variable <code>OFILES</code> that adds the <code>.o</code> suffix to each of the file
+names. The next step defines a rule to build a target library <code>$(name).a</code> from the
+<code>$(OFILES)</code> files. The expression <code>$(AR)</code> is evaluated when the function is called, and
+the value of the variable <code>AR</code> is taken from the caller&#X2019;s scope (see also the section on
+Scoping).</p>
+<h2 class="section" id="sec81">8.1&#XA0;&#XA0;Implicit rules</h2>
+<p>
+<a id="hevea_default47"></a></p><p>Rules may also be implicit. That is, the files may be specified by wildcard patterns.
+The wildcard character is <code>%</code>. For example, the following rule specifies a default
+rule for building <code>.o</code> files.</p><pre class="verbatim">    %.o: %.c
         $(CC) $(CFLAGS) -c -o $@ $*.c
-</PRE><P>This rule is a template for building an arbitrary <CODE>.o</CODE> file from
-a <CODE>.c</CODE> file.</P><P>By default, implicit rules are only used for the targets in the current
-directory. However subdirectories included via the <CODE>.SUBDIRS</CODE> rules
+</pre><p>This rule is a template for building an arbitrary <code>.o</code> file from
+a <code>.c</code> file.</p><p>By default, implicit rules are only used for the targets in the current
+directory. However subdirectories included via the <code>.SUBDIRS</code> rules
 inherit all the implicit rules that are in scope (see also the section on
-Scoping).</P><H2 CLASS="section"><A NAME="toc55"></A><A NAME="htoc81">8.2</A>&#XA0;&#XA0;Bounded implicit rules</H2><P>
-<A NAME="@default48"></A></P><P>Implicit rules may specify the set of files they apply to. The following syntax is used.</P><PRE CLASS="verbatim">    &lt;targets&gt;: &lt;pattern&gt;: &lt;dependencies&gt;
+Scoping).</p>
+<h2 class="section" id="sec82">8.2&#XA0;&#XA0;Bounded implicit rules</h2>
+<p>
+<a id="hevea_default48"></a></p><p>Implicit rules may specify the set of files they apply to. The following syntax is used.</p><pre class="verbatim">    &lt;targets&gt;: &lt;pattern&gt;: &lt;dependencies&gt;
         &lt;commands&gt;
-</PRE><P>For example, the following rule applies only to the files <CODE>a.o</CODE> and <CODE>b.o</CODE>.</P><PRE CLASS="verbatim">   a.o b.o: %.o: %.c
+</pre><p>For example, the following rule applies only to the files <code>a.o</code> and <code>b.o</code>.</p><pre class="verbatim">   a.o b.o: %.o: %.c
         $(CC) $(CFLAGS) -DSPECIAL -c $*.c
-</PRE><H2 CLASS="section"><A NAME="toc56"></A><A NAME="htoc82">8.3</A>&#XA0;&#XA0;section</H2><P>
-<A NAME="fun:section"></A><A NAME="function:section"></A><A NAME="@default49"></A><A NAME="@fun3"></A></P><P>Frequently, the commands in a rule body are expressions to be evaluated by the shell. <TT>omake</TT>
-also allows expressions to be evaluated by <TT>omake</TT> itself.</P><P>The syntax of these &#X201C;computed rules&#X201D; uses the <CODE>section</CODE> expression. The following rule uses
-the <TT>omake</TT> IO functions to produce the target <CODE>hello.c</CODE>.</P><PRE CLASS="verbatim">    hello.c:
+</pre>
+<h2 class="section" id="sec83">8.3&#XA0;&#XA0;section</h2>
+<p>
+<a id="fun:section"></a><a id="function:section"></a><a id="hevea_default49"></a><a id="hevea_fun3"></a></p><p>Frequently, the commands in a rule body are expressions to be evaluated by the shell. <span class="c001">omake</span>
+also allows expressions to be evaluated by <span class="c001">omake</span> itself.</p><p>The syntax of these &#X201C;computed rules&#X201D; uses the <code>section</code> expression. The following rule uses
+the <span class="c001">omake</span> IO functions to produce the target <code>hello.c</code>.</p><pre class="verbatim">    hello.c:
         section
             FP = fopen(hello.c, w)
             fprintln($(FP), $""#include &lt;stdio.h&gt; int main() { printf("Hello world\n"); }"")
             close($(FP))
-</PRE><P>This example uses the quotation <CODE>$""...""</CODE> (see also Section&#XA0;<A HREF="omake-grammar.html#section:quotes">B.1.6</A>) to quote the text being
-printed. These quotes are not included in the output file. The <CODE>fopen</CODE>, <CODE>fprintln</CODE>, and
-<CODE>close</CODE> functions perform file IO as discussed in the IO section.</P><P>In addition, commands that are function calls, or special expressions, are interpreted correctly.
-Since the <CODE>fprintln</CODE> function can take a file directly, the above rule can be abbreviated as
-follows.</P><PRE CLASS="verbatim">    hello.c:
+</pre><p>This example uses the quotation <code>$""...""</code> (see also Section&#XA0;<a href="omake-grammar.html#section%3Aquotes">B.1.6</a>) to quote the text being
+printed. These quotes are not included in the output file. The <code>fopen</code>, <code>fprintln</code>, and
+<code>close</code> functions perform file IO as discussed in the IO section.</p><p>In addition, commands that are function calls, or special expressions, are interpreted correctly.
+Since the <code>fprintln</code> function can take a file directly, the above rule can be abbreviated as
+follows.</p><pre class="verbatim">    hello.c:
        fprintln($@, $""#include &lt;stdio.h&gt; int main() { printf("Hello world\n"); }"")
-</PRE><H2 CLASS="section"><A NAME="toc57"></A><A NAME="htoc83">8.4</A>&#XA0;&#XA0;section rule</H2><P>
-<A NAME="fun:section rule"></A><A NAME="function:section rule"></A><A NAME="@default50"></A><A NAME="@fun4"></A></P><P>Rules can also be computed using the <CODE>section rule</CODE> form, where a rule body is expected instead
-of an expression. In the following rule, the file <CODE>a.c</CODE> is copied onto the <CODE>hello.c</CODE> file
-if it exists, otherwise <CODE>hello.c</CODE> is created from the file <CODE>default.c</CODE>.</P><PRE CLASS="verbatim">    hello.c:
+</pre>
+<h2 class="section" id="sec84">8.4&#XA0;&#XA0;section rule</h2>
+<p>
+<a id="fun:section rule"></a><a id="function:section rule"></a><a id="hevea_default50"></a><a id="hevea_fun4"></a></p><p>Rules can also be computed using the <code>section rule</code> form, where a rule body is expected instead
+of an expression. In the following rule, the file <code>a.c</code> is copied onto the <code>hello.c</code> file
+if it exists, otherwise <code>hello.c</code> is created from the file <code>default.c</code>.</p><pre class="verbatim">    hello.c:
         section rule
            if $(target-exists a.c)
               hello.c: a.c
@@ -113,175 +121,199 @@ if it exists, otherwise <CODE>hello.c</CODE> is created from the file <CODE>defa
            else
               hello.c: default.c
                  cp default.c hello.c
-</PRE><H2 CLASS="section"><A NAME="toc58"></A><A NAME="htoc84">8.5</A>&#XA0;&#XA0;Special dependencies</H2><P>
-<A NAME="@default51"></A></P><H3 CLASS="subsection"><A NAME="htoc85">8.5.1</A>&#XA0;&#XA0;:exists:</H3><P>
-<A NAME="@default52"></A></P><P>In some cases, the contents of a dependency do not matter, only whether the file exists or not. In
-this case, the <CODE>:exists:</CODE> qualifier can be used for the dependency.</P><PRE CLASS="verbatim">    foo.c: a.c :exists: .flag
+</pre>
+<h2 class="section" id="sec85">8.5&#XA0;&#XA0;Special dependencies</h2>
+<p>
+<a id="hevea_default51"></a></p>
+<h3 class="subsection" id="sec86">8.5.1&#XA0;&#XA0;:exists:</h3>
+<p>
+<a id="hevea_default52"></a></p><p>In some cases, the contents of a dependency do not matter, only whether the file exists or not. In
+this case, the <code>:exists:</code> qualifier can be used for the dependency.</p><pre class="verbatim">    foo.c: a.c :exists: .flag
        if $(test -e .flag)
            $(CP) a.c $@
-</PRE><H3 CLASS="subsection"><A NAME="htoc86">8.5.2</A>&#XA0;&#XA0;:effects:</H3><P>
-<A NAME="@default53"></A></P><P>Some commands produce files by side-effect. For example, the
-<TT>latex</TT>(1) command produces a <CODE>.aux</CODE> file as a side-effect of
-producing a <CODE>.dvi</CODE> file. In this case, the <CODE>:effects:</CODE>
+</pre>
+<h3 class="subsection" id="sec87">8.5.2&#XA0;&#XA0;:effects:</h3>
+<p>
+<a id="hevea_default53"></a></p><p>Some commands produce files by side-effect. For example, the
+<span class="c001">latex</span>(1) command produces a <code>.aux</code> file as a side-effect of
+producing a <code>.dvi</code> file. In this case, the <code>:effects:</code>
 qualifier can be used to list the side-effect explicitly.
-<TT>omake</TT> is careful to avoid simultaneously running programs that
-have overlapping side-effects.</P><PRE CLASS="verbatim">    paper.dvi: paper.tex :effects: paper.aux
+<span class="c001">omake</span> is careful to avoid simultaneously running programs that
+have overlapping side-effects.</p><pre class="verbatim">    paper.dvi: paper.tex :effects: paper.aux
         latex paper
-</PRE><H3 CLASS="subsection"><A NAME="htoc87">8.5.3</A>&#XA0;&#XA0;:value:</H3><P>
-<A NAME="@default54"></A></P><P>The <CODE>:value:</CODE> dependency is used to specify that the rule execution depends on the value of an
-expression. For example, the following rule</P><PRE CLASS="verbatim">    a: b c :value: $(X)
+</pre>
+<h3 class="subsection" id="sec88">8.5.3&#XA0;&#XA0;:value:</h3>
+<p>
+<a id="hevea_default54"></a></p><p>The <code>:value:</code> dependency is used to specify that the rule execution depends on the value of an
+expression. For example, the following rule</p><pre class="verbatim">    a: b c :value: $(X)
         ...
-</PRE><P>specifies that &#X201C;a&#X201D; should be recompiled if the value of <CODE>$(X)</CODE> changes
+</pre><p>specifies that &#X201C;a&#X201D; should be recompiled if the value of <code>$(X)</code> changes
 (X does not have to be a filename). This is intended to allow greater
-control over dependencies.</P><P>In addition, it can be used instead of other kinds of dependencies. For example,
-the following rule:</P><PRE CLASS="verbatim">    a: b :exists: c
+control over dependencies.</p><p>In addition, it can be used instead of other kinds of dependencies. For example,
+the following rule:</p><pre class="verbatim">    a: b :exists: c
         commands
-</PRE><P>is the same as</P><PRE CLASS="verbatim">    a: b :value: $(target-exists c)
+</pre><p>is the same as</p><pre class="verbatim">    a: b :value: $(target-exists c)
         commands
-</PRE><P>Notes:
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</pre><p>Notes:
+</p><ul class="itemize"><li class="li-itemize">
 The values are arbitrary (they are not limited to variables)
-</LI><LI CLASS="li-itemize">The values are evaluated at rule expansion time, so expressions
-containing variables like <CODE>$@</CODE>, <CODE>$^</CODE>, etc are legal.
-</LI></UL><H2 CLASS="section"><A NAME="toc59"></A><A NAME="htoc88">8.6</A>&#XA0;&#XA0;<CODE>.SCANNER</CODE> rules</H2><P>
-<A NAME="@default55"></A><A NAME="@target2"></A><A NAME="target:.SCANNER"></A></P><P>Scanner rules define a way to specify automatic dependency scanning. A <CODE>.SCANNER</CODE> rule has the
-following form.</P><PRE CLASS="verbatim">    .SCANNER: target: dependencies
+</li><li class="li-itemize">The values are evaluated at rule expansion time, so expressions
+containing variables like <code>$@</code>, <code>$^</code>, etc are legal.
+</li></ul>
+<h2 class="section" id="sec89">8.6&#XA0;&#XA0;<CODE>.SCANNER</CODE> rules</h2>
+<p>
+<a id="hevea_default55"></a><a id="hevea_target2"></a><a id="target:.SCANNER"></a></p><p>Scanner rules define a way to specify automatic dependency scanning. A <code>.SCANNER</code> rule has the
+following form.</p><pre class="verbatim">    .SCANNER: target: dependencies
         commands
-</PRE><P>The rule is used to compute additional dependencies that might be defined in the source files for
-the specified target. The result of executing the scanner commands <EM>must</EM> be a sequence of
+</pre><p>The rule is used to compute additional dependencies that might be defined in the source files for
+the specified target. The result of executing the scanner commands <em>must</em> be a sequence of
 dependencies in OMake format, printed to the standard output. For example, on GNU systems the
-<CODE>gcc -MM foo.c</CODE> produces dependencies for the file <CODE>foo.c</CODE> (based on <CODE>#include</CODE>
-information).</P><P>We can use this to specify a scanner for C files that adds the scanned dependencies for the
-<CODE>.o</CODE> file. The following scanner specifies that dependencies for a file, say <CODE>foo.o</CODE> can
-be computed by running <CODE>gcc -MM foo.c</CODE>. Furthermore, <CODE>foo.c</CODE> is a dependency, so the
-scanner should be recomputed whenever the <CODE>foo.c</CODE> file changes.</P><PRE CLASS="verbatim">    .SCANNER: %.o: %.c
+<code>gcc -MM foo.c</code> produces dependencies for the file <code>foo.c</code> (based on <code>#include</code>
+information).</p><p>We can use this to specify a scanner for C files that adds the scanned dependencies for the
+<code>.o</code> file. The following scanner specifies that dependencies for a file, say <code>foo.o</code> can
+be computed by running <code>gcc -MM foo.c</code>. Furthermore, <code>foo.c</code> is a dependency, so the
+scanner should be recomputed whenever the <code>foo.c</code> file changes.</p><pre class="verbatim">    .SCANNER: %.o: %.c
         gcc -MM $&lt;
-</PRE><P>Let&#X2019;s suppose that the command <CODE>gcc -MM foo.c</CODE> prints the following line.</P><PRE CLASS="verbatim">    foo.o: foo.h /usr/include/stdio.h
-</PRE><P>The result is that the files <CODE>foo.h</CODE> and <CODE>/usr/include/stdio.h</CODE> are considered to be
-dependencies of <CODE>foo.o</CODE>&#X2014;that is, <CODE>foo.o</CODE> should be rebuilt if either of these files
-changes.</P><P>This works, to an extent. One nice feature is that the scanner will be re-run whenever the
-<CODE>foo.c</CODE> file changes. However, one problem is that dependencies in C are <EM>recursive</EM>.
-That is, if the file <CODE>foo.h</CODE> is modified, it might include other files, establishing further
-dependencies. What we need is to re-run the scanner if <CODE>foo.h</CODE> changes too.</P><P>We can do this with a <EM>value</EM> dependency. The variable <CODE>$&amp;</CODE> is defined as the dependency
-results from any previous scan. We can add these as dependencies using the <CODE>digest</CODE> function,
-which computes an MD5 digest of the files.</P><PRE CLASS="verbatim">    .SCANNER: %.o: %.c :value: $(digest $&amp;)
+</pre><p>Let&#X2019;s suppose that the command <code>gcc -MM foo.c</code> prints the following line.</p><pre class="verbatim">    foo.o: foo.h /usr/include/stdio.h
+</pre><p>The result is that the files <code>foo.h</code> and <code>/usr/include/stdio.h</code> are considered to be
+dependencies of <code>foo.o</code>&#X2014;that is, <code>foo.o</code> should be rebuilt if either of these files
+changes.</p><p>This works, to an extent. One nice feature is that the scanner will be re-run whenever the
+<code>foo.c</code> file changes. However, one problem is that dependencies in C are <em>recursive</em>.
+That is, if the file <code>foo.h</code> is modified, it might include other files, establishing further
+dependencies. What we need is to re-run the scanner if <code>foo.h</code> changes too.</p><p>We can do this with a <em>value</em> dependency. The variable <code>$&amp;</code> is defined as the dependency
+results from any previous scan. We can add these as dependencies using the <code>digest</code> function,
+which computes an MD5 digest of the files.</p><pre class="verbatim">    .SCANNER: %.o: %.c :value: $(digest $&amp;)
         gcc -MM $&lt;
-</PRE><P>Now, when the file <CODE>foo.h</CODE> changes, its digest will also change, and the scanner will be re-run
-because of the value dependency (since <CODE>$&amp;</CODE> will include <CODE>foo.h</CODE>).</P><P>This still is not quite right. The problem is that the C compiler uses a <EM>search-path</EM> for
-include files. There may be several versions of the file <CODE>foo.h</CODE>, and the one that is chosen
-depends on the include path. What we need is to base the dependencies on the search path.</P><P>The <CODE>$(digest-in-path-optional ...)</CODE> function computes the digest based on a search path,
-giving us a solution that works.</P><PRE CLASS="verbatim">    .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
+</pre><p>Now, when the file <code>foo.h</code> changes, its digest will also change, and the scanner will be re-run
+because of the value dependency (since <code>$&amp;</code> will include <code>foo.h</code>).</p><p>This still is not quite right. The problem is that the C compiler uses a <em>search-path</em> for
+include files. There may be several versions of the file <code>foo.h</code>, and the one that is chosen
+depends on the include path. What we need is to base the dependencies on the search path.</p><p>The <code>$(digest-in-path-optional ...)</code> function computes the digest based on a search path,
+giving us a solution that works.</p><pre class="verbatim">    .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
        gcc -MM $(addprefix -I, $(INCLUDES)) $&lt;
-</PRE><P>The standard output of the scanner rules will be captured by OMake and is not allowed to contain any
+</pre><p>The standard output of the scanner rules will be captured by OMake and is not allowed to contain any
 content that OMake will not be able to parse as a dependency. The output is allowed to contain
 dependency specifications for unrelated targets, however such dependencies will be ignored. The
 scanner rules are allowed to produce arbitrary output on the standard error channel &#X2014; such output
 will be handled in the same way as the output of the ordinary rules (in other words, it will be
-presented to the user, when dictated by the <CODE>--output-</CODE>&#X2026; options enabled).</P><P>Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&#XA0;<A HREF="omake-build-examples.html#section:scanner-exm">3.4.3</A>.</P><H3 CLASS="subsection"><A NAME="htoc89">8.6.1</A>&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</H3><P>
-<A NAME="@default56"></A></P><P>Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
-example, we might compile <CODE>.c</CODE> files with different options, or (heaven help us) we may be
-using both <CODE>gcc</CODE> and the Microsoft Visual C++ compiler <CODE>cl</CODE>. In general, the target of a
-<CODE>.SCANNER</CODE> is not tied to a particular target, and we may name it as we like.</P><PRE CLASS="verbatim">    .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
+presented to the user, when dictated by the <code>--output-</code>&#X2026; options enabled).</p><p>Additional examples of the <code>.SCANNER</code> rules can be found in Section&#XA0;<a href="omake-build-examples.html#section%3Ascanner-exm">3.4.3</a>.</p>
+<h3 class="subsection" id="sec90">8.6.1&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</h3>
+<p>
+<a id="hevea_default56"></a></p><p>Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
+example, we might compile <code>.c</code> files with different options, or (heaven help us) we may be
+using both <code>gcc</code> and the Microsoft Visual C++ compiler <code>cl</code>. In general, the target of a
+<code>.SCANNER</code> is not tied to a particular target, and we may name it as we like.</p><pre class="verbatim">    .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
         gcc -MM $(addprefix -I, $(INCLUDES)) $&lt;
 
     .SCANNER: scan-cl-%.c: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
         cl --scan-dependencies-or-something $(addprefix /I, $(INCLUDES)) $&lt;
-</PRE><P>The next step is to define explicit scanner dependencies. The <CODE>:scanner:</CODE> dependency is used
-for this. In this case, the scanner dependencies are specified explicitly.</P><PRE CLASS="verbatim">    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
+</pre><p>The next step is to define explicit scanner dependencies. The <code>:scanner:</code> dependency is used
+for this. In this case, the scanner dependencies are specified explicitly.</p><pre class="verbatim">    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
         gcc ...
 
     $(CL_FILES): %.obj: %.c :scanner: scan-cl-%.c
         cl ...
-</PRE><P>Explicit <CODE>:scanner:</CODE> scanner specification may also be used to state that a single
-<CODE>.SCANNER</CODE> rule should be used to generate dependencies for more than one target. For example,</P><PRE CLASS="verbatim">    .SCANNER: scan-all-c: $(GCC_FILES) :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
+</pre><p>Explicit <code>:scanner:</code> scanner specification may also be used to state that a single
+<code>.SCANNER</code> rule should be used to generate dependencies for more than one target. For example,</p><pre class="verbatim">    .SCANNER: scan-all-c: $(GCC_FILES) :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
         gcc -MM $(addprefix -I, $(INCLUDES)) $(GCC_FILES)
 
     $(GCC_FILES): %.o: %.c :scanner: scan-all-c
         ...
-</PRE><P>The above has the advantage of only running <TT>gcc</TT> once and a disadvantage that when a single
-source file changes, all the files will end up being re-scanned.</P><H3 CLASS="subsection"><A NAME="htoc90">8.6.2</A>&#XA0;&#XA0;Notes</H3><P>In most cases, you won&#X2019;t need to define scanners of your own. The standard installation includes
-default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.</P><P>The <A HREF="omake-build.html#var:SCANNER_MODE"><CODE>SCANNER_MODE</CODE> variable</A> controls the usage of implicit scanner dependencies.</P><P>The explicit <CODE>:scanner:</CODE> dependencies reduce the chances of scanner mis-specifications. In
-large complicated projects it might be a good idea to set <CODE>SCANNER_MODE</CODE> to <CODE>error</CODE> and
-use only the named <CODE>.SCANNER</CODE> rules and explicit <CODE>:scanner:</CODE> specifications.</P><H2 CLASS="section"><A NAME="toc60"></A><A NAME="htoc91">8.7</A>&#XA0;&#XA0;.DEFAULT</H2><P>
-<A NAME="@default57"></A><A NAME="@target3"></A><A NAME="target:.DEFAULT"></A></P><P>The <CODE>.DEFAULT</CODE> target specifies a target to be built by default
-if <TT>omake</TT> is run without explicit targets. The following rule
-instructs <TT>omake</TT> to build the program <CODE>hello</CODE> by default</P><PRE CLASS="verbatim">   .DEFAULT: hello
-</PRE><H2 CLASS="section"><A NAME="toc61"></A><A NAME="htoc92">8.8</A>&#XA0;&#XA0;.SUBDIRS</H2><P>
-<A NAME="@default58"></A><A NAME="@target4"></A><A NAME="target:.SUBDIRS"></A></P><P>The <CODE>.SUBDIRS</CODE> target is used to specify a set of subdirectories
+</pre><p>The above has the advantage of only running <span class="c001">gcc</span> once and a disadvantage that when a single
+source file changes, all the files will end up being re-scanned.</p>
+<h3 class="subsection" id="sec91">8.6.2&#XA0;&#XA0;Notes</h3>
+<p>In most cases, you won&#X2019;t need to define scanners of your own. The standard installation includes
+default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.</p><p>The <a href="omake-build.html#var%3ASCANNER_MODE"><CODE>SCANNER_MODE</CODE> variable</a> controls the usage of implicit scanner dependencies.</p><p>The explicit <code>:scanner:</code> dependencies reduce the chances of scanner mis-specifications. In
+large complicated projects it might be a good idea to set <code>SCANNER_MODE</code> to <code>error</code> and
+use only the named <code>.SCANNER</code> rules and explicit <code>:scanner:</code> specifications.</p>
+<h2 class="section" id="sec92">8.7&#XA0;&#XA0;.DEFAULT</h2>
+<p>
+<a id="hevea_default57"></a><a id="hevea_target3"></a><a id="target:.DEFAULT"></a></p><p>The <code>.DEFAULT</code> target specifies a target to be built by default
+if <span class="c001">omake</span> is run without explicit targets. The following rule
+instructs <span class="c001">omake</span> to build the program <code>hello</code> by default</p><pre class="verbatim">   .DEFAULT: hello
+</pre>
+<h2 class="section" id="sec93">8.8&#XA0;&#XA0;.SUBDIRS</h2>
+<p>
+<a id="hevea_default58"></a><a id="hevea_target4"></a><a id="target:.SUBDIRS"></a></p><p>The <code>.SUBDIRS</code> target is used to specify a set of subdirectories
 that are part of the project. Each subdirectory should have its own
-<TT>OMakefile</TT>, which is evaluated in the context of the current
-environment.</P><PRE CLASS="verbatim">   .SUBDIRS: src doc tests
-</PRE><P>This rule specifies that the <CODE>OMakefile</CODE>s in each of the <CODE>src</CODE>, <CODE>doc</CODE>, and
-<CODE>tests</CODE> directories should be read.</P><P>In some cases, especially when the <CODE>OMakefile</CODE>s are very similar in a large number of
-subdirectories, it is inconvenient to have a separate <CODE>OMakefile</CODE> for each directory. If the
-<CODE>.SUBDIRS</CODE> rule has a body, the body is used instead of the <CODE>OMakefile</CODE>.</P><PRE CLASS="verbatim">   .SUBDIRS: src1 src2 src3
+<span class="c001">OMakefile</span>, which is evaluated in the context of the current
+environment.</p><pre class="verbatim">   .SUBDIRS: src doc tests
+</pre><p>This rule specifies that the <code>OMakefile</code>s in each of the <code>src</code>, <code>doc</code>, and
+<code>tests</code> directories should be read.</p><p>In some cases, especially when the <code>OMakefile</code>s are very similar in a large number of
+subdirectories, it is inconvenient to have a separate <code>OMakefile</code> for each directory. If the
+<code>.SUBDIRS</code> rule has a body, the body is used instead of the <code>OMakefile</code>.</p><pre class="verbatim">   .SUBDIRS: src1 src2 src3
       println(Subdirectory $(CWD))
       .DEFAULT: lib.a
-</PRE><P>In this case, the <CODE>src1</CODE>, <CODE>src2</CODE>, and <CODE>src3</CODE> files do not need <CODE>OMakefile</CODE>s.
-Furthermore, if one exists, it is ignored. The following includes the file if it exists.</P><PRE CLASS="verbatim">   .SUBDIRS: src1 src2 src3
+</pre><p>In this case, the <code>src1</code>, <code>src2</code>, and <code>src3</code> files do not need <code>OMakefile</code>s.
+Furthermore, if one exists, it is ignored. The following includes the file if it exists.</p><pre class="verbatim">   .SUBDIRS: src1 src2 src3
        if $(file-exists OMakefile)
           include OMakefile
        .DEFAULT: lib.a
-</PRE><H2 CLASS="section"><A NAME="toc62"></A><A NAME="htoc93">8.9</A>&#XA0;&#XA0;.INCLUDE</H2><P>
-<A NAME="@default59"></A><A NAME="@target5"></A><A NAME="target:.INCLUDE"></A></P><P>The <CODE>.INCLUDE</CODE> target is like the <CODE>include</CODE> directive, but it specifies a rule to build
-the file if it does not exist.</P><PRE CLASS="verbatim">   .INCLUDE: config
+</pre>
+<h2 class="section" id="sec94">8.9&#XA0;&#XA0;.INCLUDE</h2>
+<p>
+<a id="hevea_default59"></a><a id="hevea_target5"></a><a id="target:.INCLUDE"></a></p><p>The <code>.INCLUDE</code> target is like the <code>include</code> directive, but it specifies a rule to build
+the file if it does not exist.</p><pre class="verbatim">   .INCLUDE: config
        echo "CONFIG_READ = true" &gt; config
 
     echo CONFIG_READ is $(CONFIG_READ)
-</PRE><P>You may also specify dependencies to an <CODE>.INCLUDE</CODE> rule.</P><PRE CLASS="verbatim">   .INCLUDE: config: config.defaults
+</pre><p>You may also specify dependencies to an <code>.INCLUDE</code> rule.</p><pre class="verbatim">   .INCLUDE: config: config.defaults
       cp config.defaults config
-</PRE><P>A word of caution is in order here. The usual policy is used for determining when the rule is
-out-of-date. The rule is executed if any of the following hold.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</pre><p>A word of caution is in order here. The usual policy is used for determining when the rule is
+out-of-date. The rule is executed if any of the following hold.</p><ul class="itemize"><li class="li-itemize">
 the target does not exist,
-</LI><LI CLASS="li-itemize">the rule has never been executed before,
-</LI><LI CLASS="li-itemize">any of the following have changed since the last time the rule was executed,
-<UL CLASS="itemize"><LI CLASS="li-itemize">
+</li><li class="li-itemize">the rule has never been executed before,
+</li><li class="li-itemize">any of the following have changed since the last time the rule was executed,
+<ul class="itemize"><li class="li-itemize">
 the target,
-</LI><LI CLASS="li-itemize">the dependencies,
-</LI><LI CLASS="li-itemize">the commands-text.
-</LI></UL>
-</LI></UL><P>In some of the cases, this will mean that the rule is executed even if the target file already
+</li><li class="li-itemize">the dependencies,
+</li><li class="li-itemize">the commands-text.
+</li></ul>
+</li></ul><p>In some of the cases, this will mean that the rule is executed even if the target file already
 exists. If the target is a file that you expect to edit by hand (and therefore you don&#X2019;t want to
-overwrite it), you should make the rule evaluation conditional on whether the target already exists.</P><PRE CLASS="verbatim">   .INCLUDE: config: config.defaults
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.</p><pre class="verbatim">   .INCLUDE: config: config.defaults
        # Don't overwrite my carefully hand-edited file
        if $(not $(file-exists config))
           cp config.defaults config
-</PRE><H2 CLASS="section"><A NAME="toc63"></A><A NAME="htoc94">8.10</A>&#XA0;&#XA0;.PHONY</H2><P>
-<A NAME="@default60"></A><A NAME="@target6"></A><A NAME="target:.PHONY"></A></P><P>A &#X201C;phony&#X201D; target is a target that is not a real file, but exists to collect a set of dependencies.
-Phony targets are specified with the <CODE>.PHONY</CODE> rule. In the following example, the
-<CODE>install</CODE> target does not correspond to a file, but it corresponds to some commands that should
-be run whenever the <CODE>install</CODE> target is built (for example, by running <CODE>omake install</CODE>).</P><PRE CLASS="verbatim">   .PHONY: install
+</pre>
+<h2 class="section" id="sec95">8.10&#XA0;&#XA0;.PHONY</h2>
+<p>
+<a id="hevea_default60"></a><a id="hevea_target6"></a><a id="target:.PHONY"></a></p><p>A &#X201C;phony&#X201D; target is a target that is not a real file, but exists to collect a set of dependencies.
+Phony targets are specified with the <code>.PHONY</code> rule. In the following example, the
+<code>install</code> target does not correspond to a file, but it corresponds to some commands that should
+be run whenever the <code>install</code> target is built (for example, by running <code>omake install</code>).</p><pre class="verbatim">   .PHONY: install
 
    install: myprogram.exe
       cp myprogram.exe /usr/bin
-</PRE><H2 CLASS="section"><A NAME="toc64"></A><A NAME="htoc95">8.11</A>&#XA0;&#XA0;Rule scoping</H2><P>
-<A NAME="@default61"></A></P><P>As we have mentioned before, <TT>omake</TT> is a <EM>scoped</EM> language. This provides great
+</pre>
+<h2 class="section" id="sec96">8.11&#XA0;&#XA0;Rule scoping</h2>
+<p>
+<a id="hevea_default61"></a></p><p>As we have mentioned before, <span class="c001">omake</span> is a <em>scoped</em> language. This provides great
 flexibility&#X2014;different parts of the project can define different configurations without interfering
-with one another (for example, one part of the project might be compiled with <CODE>CFLAGS=-O3</CODE> and
-another with <CODE>CFLAGS=-g</CODE>).</P><P>But how is the scope for a target file selected? Suppose we are building a file <CODE>dir/foo.o</CODE>.
-<TT>omake</TT> uses the following rules to determine the scope.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-First, if there is an <EM>explicit</EM> rule for building <CODE>dir/foo.o</CODE> (a rule with no
+with one another (for example, one part of the project might be compiled with <code>CFLAGS=-O3</code> and
+another with <code>CFLAGS=-g</code>).</p><p>But how is the scope for a target file selected? Suppose we are building a file <code>dir/foo.o</code>.
+<span class="c001">omake</span> uses the following rules to determine the scope.</p><ul class="itemize"><li class="li-itemize">
+First, if there is an <em>explicit</em> rule for building <code>dir/foo.o</code> (a rule with no
 wildcards), the context for that rule determines the scope for building the target.
-</LI><LI CLASS="li-itemize">Otherwise, the directory <CODE>dir/</CODE> must be part of the project. This normally means that a
-configuration file <CODE>dir/OMakefile</CODE> exists (although, see the <CODE>.SUBDIRS</CODE> section for
-another way to specify the <CODE>OMakefile</CODE>). In this case, the scope of the target is the scope at
-the end of the <CODE>dir/OMakefile</CODE>.
-</LI></UL><P>To illustrate rule scoping, let&#X2019;s go back to the example of a &#X201C;Hello world&#X201D; program with two
-files. Here is an example <CODE>OMakefile</CODE> (the two definitions of <CODE>CFLAGS</CODE> are for
-illustration).</P><PRE CLASS="verbatim">    # The executable is compiled with debugging
+</li><li class="li-itemize">Otherwise, the directory <code>dir/</code> must be part of the project. This normally means that a
+configuration file <code>dir/OMakefile</code> exists (although, see the <code>.SUBDIRS</code> section for
+another way to specify the <code>OMakefile</code>). In this case, the scope of the target is the scope at
+the end of the <code>dir/OMakefile</code>.
+</li></ul><p>To illustrate rule scoping, let&#X2019;s go back to the example of a &#X201C;Hello world&#X201D; program with two
+files. Here is an example <code>OMakefile</code> (the two definitions of <code>CFLAGS</code> are for
+illustration).</p><pre class="verbatim">    # The executable is compiled with debugging
     CFLAGS = -g
     hello: hello_code.o hello_lib.o
        $(CC) $(CFLAGS) -o $@ $+
 
     # Redefine CFLAGS
     CFLAGS += -O3
-</PRE><P>In this project, the target <CODE>hello</CODE> is <EM>explicit</EM>. The scope of the <CODE>hello</CODE> target
-is the line beginning with <CODE>hello:</CODE>, where the value of <CODE>CFLAGS</CODE> is <CODE>-g</CODE>. The other
-two targets, <CODE>hello_code.o</CODE> and <CODE>hello_lib.o</CODE> do not appear as explicit targets, so their
-scope is at the end of the <CODE>OMakefile</CODE>, where the <CODE>CFLAGS</CODE> variable is defined to be
-<CODE>-g -O3</CODE>. That is, <CODE>hello</CODE> will be linked with <CODE>CFLAGS=-g</CODE> and the <CODE>.o</CODE> files
-will be compiled with <CODE>CFLAGS=-g -O3</CODE>.</P><P>We can change this behavior for any of the targets by specifying them as explicit targets. For
-example, suppose we wish to compile <CODE>hello_lib.o</CODE> with a preprocessor variable <CODE>LIBRARY</CODE>.</P><PRE CLASS="verbatim">    # The executable is compiled with debugging
+</pre><p>In this project, the target <code>hello</code> is <em>explicit</em>. The scope of the <code>hello</code> target
+is the line beginning with <code>hello:</code>, where the value of <code>CFLAGS</code> is <code>-g</code>. The other
+two targets, <code>hello_code.o</code> and <code>hello_lib.o</code> do not appear as explicit targets, so their
+scope is at the end of the <code>OMakefile</code>, where the <code>CFLAGS</code> variable is defined to be
+<code>-g -O3</code>. That is, <code>hello</code> will be linked with <code>CFLAGS=-g</code> and the <code>.o</code> files
+will be compiled with <code>CFLAGS=-g -O3</code>.</p><p>We can change this behavior for any of the targets by specifying them as explicit targets. For
+example, suppose we wish to compile <code>hello_lib.o</code> with a preprocessor variable <code>LIBRARY</code>.</p><pre class="verbatim">    # The executable is compiled with debugging
     CFLAGS = -g
     hello: hello_code.o hello_lib.o
        $(CC) $(CFLAGS) -o $@ $+
@@ -293,13 +325,15 @@ example, suppose we wish to compile <CODE>hello_lib.o</CODE> with a preprocessor
 
     # Redefine CFLAGS
     CFLAGS += -O3
-</PRE><P>In this case, <CODE>hello_lib.o</CODE> is also mentioned as an explicit target, in a scope where
-<CODE>CFLAGS=-g -DLIBRARY</CODE>. Since no rule body is specified, it is compiled using the usual
-implicit rule for building <CODE>.o</CODE> files (in a context where <CODE>CFLAGS=-g -DLIBRARY</CODE>).</P><H3 CLASS="subsection"><A NAME="htoc96">8.11.1</A>&#XA0;&#XA0;Scoping of implicit rules</H3><P>
-<A NAME="section:implicit-scoping"></A></P><P>Implicit rules (rules containing wildcard patterns) are <EM>not</EM> global, they follow the normal
+</pre><p>In this case, <code>hello_lib.o</code> is also mentioned as an explicit target, in a scope where
+<code>CFLAGS=-g -DLIBRARY</code>. Since no rule body is specified, it is compiled using the usual
+implicit rule for building <code>.o</code> files (in a context where <code>CFLAGS=-g -DLIBRARY</code>).</p>
+<h3 class="subsection" id="sec97">8.11.1&#XA0;&#XA0;Scoping of implicit rules</h3>
+<p>
+<a id="section:implicit-scoping"></a></p><p>Implicit rules (rules containing wildcard patterns) are <em>not</em> global, they follow the normal
 scoping convention. This allows different parts of a project to have different sets of implicit
 rules. If we like, we can modify the example above to provide a new implicit rule for building
-<CODE>hello_lib.o</CODE>.</P><PRE CLASS="verbatim">    # The executable is compiled with debugging
+<code>hello_lib.o</code>.</p><pre class="verbatim">    # The executable is compiled with debugging
     CFLAGS = -g
     hello: hello_code.o hello_lib.o
        $(CC) $(CFLAGS) -o $@ $+
@@ -312,14 +346,16 @@ rules. If we like, we can modify the example above to provide a new implicit rul
 
     # Redefine CFLAGS
     CFLAGS += -O3
-</PRE><P>In this case, the target <CODE>hello_lib.o</CODE> is built in a scope with a new implicit rule for
-building <CODE>%.o</CODE> files. The implicit rule adds the <CODE>-DLIBRARY</CODE> option. This implicit rule
-is defined only for the target <CODE>hello_lib.o</CODE>; the target <CODE>hello_code.o</CODE> is built as
-normal.</P><H3 CLASS="subsection"><A NAME="htoc97">8.11.2</A>&#XA0;&#XA0;Scoping of <CODE>.SCANNER</CODE> rules</H3><P>
-<A NAME="@default62"></A><A NAME="@target7"></A></P><P>Scanner rules are scoped the same way as normal rules. If the <CODE>.SCANNER</CODE> rule is explicit
+</pre><p>In this case, the target <code>hello_lib.o</code> is built in a scope with a new implicit rule for
+building <code>%.o</code> files. The implicit rule adds the <code>-DLIBRARY</code> option. This implicit rule
+is defined only for the target <code>hello_lib.o</code>; the target <code>hello_code.o</code> is built as
+normal.</p>
+<h3 class="subsection" id="sec98">8.11.2&#XA0;&#XA0;Scoping of <CODE>.SCANNER</CODE> rules</h3>
+<p>
+<a id="hevea_default62"></a><a id="hevea_target7"></a></p><p>Scanner rules are scoped the same way as normal rules. If the <code>.SCANNER</code> rule is explicit
 (containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
-If the <CODE>.SCANNER</CODE> rule is implicit, then the environment is taken from the <CODE>:scanner:</CODE>
-dependency.</P><PRE CLASS="verbatim">    # The executable is compiled with debugging
+If the <code>.SCANNER</code> rule is implicit, then the environment is taken from the <code>:scanner:</code>
+dependency.</p><pre class="verbatim">    # The executable is compiled with debugging
     CFLAGS = -g
     hello: hello_code.o hello_lib.o
        $(CC) $(CFLAGS) -o $@ $+
@@ -339,132 +375,144 @@ dependency.</P><PRE CLASS="verbatim">    # The executable is compiled with debug
         CFLAGS += -O3
         hello_code.o: hello_code.c :scanner: scan-c-hello_code.c
            $(CC) $(CFLAGS) -c $&lt;
-</PRE><P>Again, this is for illustration&#X2014;it is unlikely you would need to write a complicated configuration
-like this! In this case, the <CODE>.SCANNER</CODE> rule specifies that the C-compiler should be called
-with the <CODE>-MM</CODE> flag to compute dependencies. For the target <CODE>hello_lib.o</CODE>, the scanner
-is called with <CODE>CFLAGS=-g -DLIBRARY</CODE>, and for <CODE>hello_code.o</CODE> it is called with
-<CODE>CFLAGS=-g -O3</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc98">8.11.3</A>&#XA0;&#XA0;Scoping for <CODE>.PHONY</CODE> targets</H3><P>
-<A NAME="section:PHONY-scoping"></A><A NAME="@default63"></A><A NAME="@target8"></A></P><P>Phony targets (targets that do not correspond to files) are defined with a <CODE>.PHONY:</CODE> rule.
+</pre><p>Again, this is for illustration&#X2014;it is unlikely you would need to write a complicated configuration
+like this! In this case, the <code>.SCANNER</code> rule specifies that the C-compiler should be called
+with the <code>-MM</code> flag to compute dependencies. For the target <code>hello_lib.o</code>, the scanner
+is called with <code>CFLAGS=-g -DLIBRARY</code>, and for <code>hello_code.o</code> it is called with
+<code>CFLAGS=-g -O3</code>.</p>
+<h3 class="subsection" id="sec99">8.11.3&#XA0;&#XA0;Scoping for <CODE>.PHONY</CODE> targets</h3>
+<p>
+<a id="section:PHONY-scoping"></a><a id="hevea_default63"></a><a id="hevea_target8"></a></p><p>Phony targets (targets that do not correspond to files) are defined with a <code>.PHONY:</code> rule.
 Phony targets are scoped as usual. The following illustrates a common mistake, where the
-<CODE>.PHONY</CODE> target is declared <EM>after</EM> it is used.</P><PRE CLASS="verbatim">    # !!This example is broken!!
+<code>.PHONY</code> target is declared <em>after</em> it is used.</p><pre class="verbatim">    # !!This example is broken!!
     all: hello
 
     hello: hello_code.o hello_lib.o
         $(CC) $(CFLAGS) -o $@ $+
 
     .PHONY: all
-</PRE><P>This doesn&#X2019;t work as expected because the <CODE>.PHONY</CODE> declaration occurs too late. The proper way
-to write this example is to place the <CODE>.PHONY</CODE> declaration first.</P><PRE CLASS="verbatim">    # Phony targets must be declared before being used
+</pre><p>This doesn&#X2019;t work as expected because the <code>.PHONY</code> declaration occurs too late. The proper way
+to write this example is to place the <code>.PHONY</code> declaration first.</p><pre class="verbatim">    # Phony targets must be declared before being used
     .PHONY: all
 
     all: hello
 
     hello: hello_code.o hello_lib.o
         $(CC) $(CFLAGS) -o $@ $+
-</PRE><P>Phony targets are passed to subdirectories. As a practical matter, it is wise to declare all
-<CODE>.PHONY</CODE> targets in your root <CODE>OMakefile</CODE>, before any <CODE>.SUBDIRS</CODE>. This will ensure
+</pre><p>Phony targets are passed to subdirectories. As a practical matter, it is wise to declare all
+<code>.PHONY</code> targets in your root <code>OMakefile</code>, before any <code>.SUBDIRS</code>. This will ensure
 that 1) they are considered as phony targets in each of the subdirectories, and 2) you can build them
-from the project root.</P><PRE CLASS="verbatim">    .PHONY: all install clean
+from the project root.</p><pre class="verbatim">    .PHONY: all install clean
 
     .SUBDIRS: src lib clib
-</PRE><P>Note that when a <CODE>.PHONY</CODE> target is inherited by a subdirectory via a <CODE>.SUBDIRS</CODE>, a whole
-hierarchy of <CODE>.PHONY</CODE> targets (that are a part of the global one) is created, as described in
-Section&#XA0;<A HREF="#section:PHONY-hierarchy">8.12.2</A> below.</P><H2 CLASS="section"><A NAME="toc65"></A><A NAME="htoc99">8.12</A>&#XA0;&#XA0;Running OMake from a subdirectory</H2><P>
-<A NAME="section:running-from-subdir"></A>
-Running <CODE>omake foo</CODE> asks OMake to build the file <CODE>foo</CODE> in context of the <EM>whole</EM>
-project, even when running from a subdirectory of the project. Therefore, if <CODE>bar/baz</CODE> is a
-regular target (not a <CODE>.PHONY</CODE> one), then running <CODE>omake bar/baz</CODE> and running
-<CODE>(cd bar; omake baz)</CODE> are usually equivalent.</P><P>There are two noteworthy exceptions to the above rule:
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-If the subdirectory is not a part of the project (there is no <CODE>.SUBDIRS</CODE>) for it, then
+</pre><p>Note that when a <code>.PHONY</code> target is inherited by a subdirectory via a <code>.SUBDIRS</code>, a whole
+hierarchy of <code>.PHONY</code> targets (that are a part of the global one) is created, as described in
+Section&#XA0;<a href="#section%3APHONY-hierarchy">8.12.2</a> below.</p>
+<h2 class="section" id="sec100">8.12&#XA0;&#XA0;Running OMake from a subdirectory</h2>
+<p>
+<a id="section:running-from-subdir"></a>
+Running <code>omake foo</code> asks OMake to build the file <code>foo</code> in context of the <em>whole</em>
+project, even when running from a subdirectory of the project. Therefore, if <code>bar/baz</code> is a
+regular target (not a <code>.PHONY</code> one), then running <code>omake bar/baz</code> and running
+<code>(cd bar; omake baz)</code> are usually equivalent.</p><p>There are two noteworthy exceptions to the above rule:
+</p><ul class="itemize"><li class="li-itemize">
+If the subdirectory is not a part of the project (there is no <code>.SUBDIRS</code>) for it, then
 OMake will complain if you try to run it in that directory.
-</LI><LI CLASS="li-itemize">If a subdirectory contains an <CODE>OMakeroot</CODE> of its own, this would designate
+</li><li class="li-itemize">If a subdirectory contains an <code>OMakeroot</code> of its own, this would designate
 the subdirectory as a separate project (which is usually a bad idea and is not recommended).
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc100">8.12.1</A>&#XA0;&#XA0;Phony targets in a subdirectory</H3><P>
-<A NAME="section:PHONY-in-subdirs"></A><A NAME="@default64"></A><A NAME="@target9"></A><A NAME="@default65"></A><A NAME="@target10"></A></P><P>Suppose you have a <CODE>.PHONY: clean</CODE> declared in your root <CODE>OMakefile</CODE> and
-both the root <CODE>OMakefile</CODE> and the <CODE>OMakefile</CODE> in some of the subdirectories contain
-<CODE>clean:</CODE> rules. In this case
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-Running <CODE>omake clean</CODE> in the root directory will execute all the rules (each in the
+</li></ul>
+<h3 class="subsection" id="sec101">8.12.1&#XA0;&#XA0;Phony targets in a subdirectory</h3>
+<p>
+<a id="section:PHONY-in-subdirs"></a><a id="hevea_default64"></a><a id="hevea_target9"></a><a id="hevea_default65"></a><a id="hevea_target10"></a></p><p>Suppose you have a <code>.PHONY: clean</code> declared in your root <code>OMakefile</code> and
+both the root <code>OMakefile</code> and the <code>OMakefile</code> in some of the subdirectories contain
+<code>clean:</code> rules. In this case
+</p><ul class="itemize"><li class="li-itemize">
+Running <code>omake clean</code> in the root directory will execute all the rules (each in the
 appropriate directory);
-</LI><LI CLASS="li-itemize">Running <CODE>omake clean</CODE> in the subdirectory will execute just its local one, as well as the
+</li><li class="li-itemize">Running <code>omake clean</code> in the subdirectory will execute just its local one, as well as the
 ones from the subdirectories of the current directory.
-</LI></UL><P>The above equally applies to the built-in <CODE>.PHONY</CODE> targets, including <CODE><A HREF="#target:.DEFAULT">.DEFAULT</A></CODE>.
+</li></ul><p>The above equally applies to the built-in <code>.PHONY</code> targets, including <a href="#target%3A.DEFAULT"><CODE>.DEFAULT</CODE></a>.
 Namely, if OMake is executed (without argument) in the root directory of a project, all the
-<CODE>.DEFAULT</CODE> targets in the project will be built. On the other hand, when OMake is executed
-(without argument) in a subdirectory, only the <CODE>.DEFAULT</CODE> targets defined in and under that
-subdirectory will be built.</P><P>The following Section explains the underlying semantics that gives rise to the above behavior.</P><H3 CLASS="subsection"><A NAME="htoc101">8.12.2</A>&#XA0;&#XA0;Hierarchy of <CODE>.PHONY</CODE> targets</H3><P>
-<A NAME="section:PHONY-hierarchy"></A><A NAME="@default66"></A><A NAME="@target11"></A></P><P>When the the root <CODE>OMakefile</CODE> contains a <CODE>.PHONY: clean</CODE> directive, it creates:
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-A &#X201C;global&#X201D; phony target <CODE>/.PHONY/clean</CODE> (note the leading &#X201C;<CODE>/</CODE>&#X201D;);
-</LI><LI CLASS="li-itemize">A &#X201C;relative&#X201D; phony target attached to the current directory &#X2014; <CODE>.PHONY/clean</CODE> (note
-the lack of the leading &#X201C;<CODE>/</CODE>&#X201D;);
-</LI><LI CLASS="li-itemize">A dependency <CODE>/.PHONY/clean: .PHONY/clean</CODE>.
-</LI></UL><P>All the <CODE>clean: ...</CODE> rules in the root <CODE>OMakefile</CODE> following this <CODE>.PHONY: clean</CODE>
-declaration would be interpreted as rules for the <CODE>.PHONY/clean</CODE> target.</P><P>Now when OMake then comes across a <CODE>.SUBDIRS: foo</CODE> directive (when it is in scope of the above
-<CODE>.PHONY: clean</CODE> declaration), it does the following:
-</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-Creates a new <CODE>.PHONY/foo/clean</CODE> &#X201C;relative&#X201D; phony target;
-</LI><LI CLASS="li-itemize">Creates the dependency <CODE>.PHONY/clean: .PHONY/foo/clean</CODE>;
-</LI><LI CLASS="li-itemize">Processes the body of the <CODE>.SUBDIRS: foo</CODE> directive, or reads the <CODE>foo/OMakefile</CODE>
+<code>.DEFAULT</code> targets in the project will be built. On the other hand, when OMake is executed
+(without argument) in a subdirectory, only the <code>.DEFAULT</code> targets defined in and under that
+subdirectory will be built.</p><p>The following Section explains the underlying semantics that gives rise to the above behavior.</p>
+<h3 class="subsection" id="sec102">8.12.2&#XA0;&#XA0;Hierarchy of <CODE>.PHONY</CODE> targets</h3>
+<p>
+<a id="section:PHONY-hierarchy"></a><a id="hevea_default66"></a><a id="hevea_target11"></a></p><p>When the the root <code>OMakefile</code> contains a <code>.PHONY: clean</code> directive, it creates:
+</p><ul class="itemize"><li class="li-itemize">
+A &#X201C;global&#X201D; phony target <code>/.PHONY/clean</code> (note the leading &#X201C;<code>/</code>&#X201D;);
+</li><li class="li-itemize">A &#X201C;relative&#X201D; phony target attached to the current directory &#X2014; <code>.PHONY/clean</code> (note
+the lack of the leading &#X201C;<code>/</code>&#X201D;);
+</li><li class="li-itemize">A dependency <code>/.PHONY/clean: .PHONY/clean</code>.
+</li></ul><p>All the <code>clean: ...</code> rules in the root <code>OMakefile</code> following this <code>.PHONY: clean</code>
+declaration would be interpreted as rules for the <code>.PHONY/clean</code> target.</p><p>Now when OMake then comes across a <code>.SUBDIRS: foo</code> directive (when it is in scope of the above
+<code>.PHONY: clean</code> declaration), it does the following:
+</p><ul class="itemize"><li class="li-itemize">
+Creates a new <code>.PHONY/foo/clean</code> &#X201C;relative&#X201D; phony target;
+</li><li class="li-itemize">Creates the dependency <code>.PHONY/clean: .PHONY/foo/clean</code>;
+</li><li class="li-itemize">Processes the body of the <code>.SUBDIRS: foo</code> directive, or reads the <code>foo/OMakefile</code>
 file, if the body is empty. While doing that, it interprets its instructions relative to the
-<CODE>foo</CODE> directory. In particular, all the <CODE>clean: ...</CODE> rules will be taken to apply to
-<CODE>.PHONY/foo/clean</CODE>.
-</LI></UL><P>Now when you run <CODE>omake clean</CODE> in the root directory of the project, it is interpreted as
-<CODE>omake .PHONY/clean</CODE> (similar to how it happens with the normal targets), so both the rules for
-<CODE>.PHONY/clean</CODE> are executed and the rules for its dependency 
-<CODE>.PHONY/foo/clean</CODE>. Running <CODE>(cd foo; omake clean)</CODE> is, as for normal targets, equivalent to running
-<CODE>omake .PHONY/foo/clean</CODE> and only those rules that apply to <CODE>.PHONY/foo/clean</CODE> will be executed.</P><H2 CLASS="section"><A NAME="toc66"></A><A NAME="htoc102">8.13</A>&#XA0;&#XA0;Pathnames in rules</H2><P>In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
-<A HREF="omake-system.html#fun:file"><CODE>file</CODE> function</A>). They are then translated to strings for the command line.
-This can cause some unexpected behavior. In the following example, the <A HREF="omake-system.html#fun:absname"><CODE>absname</CODE> function</A>
-is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
-the relative pathname.</P><PRE CLASS="verbatim">    .PHONY: demo
+<code>foo</code> directory. In particular, all the <code>clean: ...</code> rules will be taken to apply to
+<code>.PHONY/foo/clean</code>.
+</li></ul><p>Now when you run <code>omake clean</code> in the root directory of the project, it is interpreted as
+<code>omake .PHONY/clean</code> (similar to how it happens with the normal targets), so both the rules for
+<code>.PHONY/clean</code> are executed and the rules for its dependency 
+<code>.PHONY/foo/clean</code>. Running <code>(cd foo; omake clean)</code> is, as for normal targets, equivalent to running
+<code>omake .PHONY/foo/clean</code> and only those rules that apply to <code>.PHONY/foo/clean</code> will be executed.</p>
+<h2 class="section" id="sec103">8.13&#XA0;&#XA0;Pathnames in rules</h2>
+<p>In rules, the targets and dependencies are first translated to <em>file</em> values (as in the
+<a href="omake-system.html#fun%3Afile"><CODE>file</CODE> function</a>). They are then translated to strings for the command line.
+This can cause some unexpected behavior. In the following example, the <a href="omake-system.html#fun%3Aabsname"><CODE>absname</CODE> function</a>
+is the absolute pathname for the file <code>a</code>, but the rule still prints
+the relative pathname.</p><pre class="verbatim">    .PHONY: demo
     demo: $(absname a)
         echo $&lt;
 
     # omake demo
     a
-</PRE><P>There is arguably a good reason for this. On Win32 systems, the <CODE>/</CODE> character is viewed as an
-&#X201C;option specifier.&#X201D; The pathname separator is the <CODE>\</CODE> character. OMake translates the
-filenames automatically so that things work as expected on both systems.</P><PRE CLASS="verbatim">   demo: a/b
+</pre><p>There is arguably a good reason for this. On Win32 systems, the <code>/</code> character is viewed as an
+&#X201C;option specifier.&#X201D; The pathname separator is the <code>\</code> character. OMake translates the
+filenames automatically so that things work as expected on both systems.</p><pre class="verbatim">   demo: a/b
        echo $&lt;
 
    # omake demo (on a Unix system)
    a/b
    # omake demo (on a Win32 system)
    a\b
-</PRE><P>Sometimes you may wish that target strings to be passed literally to the commands in the rule.
-One way to do this is to specify them literally.</P><PRE CLASS="verbatim">    SRC = a/b $(absname c/d)
+</pre><p>Sometimes you may wish that target strings to be passed literally to the commands in the rule.
+One way to do this is to specify them literally.</p><pre class="verbatim">    SRC = a/b $(absname c/d)
     demo: $(SRC)
         echo $(SRC)
 
     # omake demo (on a Win32 system)
     a/b c:\...\c\d
-</PRE><P>Alternately, you might wish that filenames be automatically expanded to absolute pathnames. For
+</pre><p>Alternately, you might wish that filenames be automatically expanded to absolute pathnames. For
 example, this might be useful when parsing the OMake output to look for errors. For this, you can
-use the <CODE>--absname</CODE> option (Section&#XA0;<A HREF="omake-options.html#option:--absname">A.3.20</A>). If you call <CODE>omake</CODE> with the
-<CODE>--absname</CODE> option, all filenames will be expanded to absolute names.</P><PRE CLASS="verbatim">    # omake --absname demo (on a Unix system)
+use the <code>--absname</code> option (Section&#XA0;<a href="omake-options.html#option%3A--absname">A.3.20</a>). If you call <code>omake</code> with the
+<code>--absname</code> option, all filenames will be expanded to absolute names.</p><pre class="verbatim">    # omake --absname demo (on a Unix system)
     /home/.../a/b /home/.../c/d
-</PRE><P>Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
-can use the <A HREF="omake-build.html#fun:OMakeFlags"><CODE>OMakeFlags</CODE> function</A> to control how it is applied.</P><PRE CLASS="verbatim">   section
+</pre><p>Alternately, the <code>--absname</code> option is scoped. If you want to use it for only a few rules, you
+can use the <a href="omake-build.html#fun%3AOMakeFlags"><CODE>OMakeFlags</CODE> function</a> to control how it is applied.</p><pre class="verbatim">   section
       OMakeFlags(--absname)
       demo: a
           echo $&lt;
 
    # omake demo
    /home/.../a
-</PRE><P><B>N.B.</B> The <CODE>--absname</CODE> option is currently an experimental feature.</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</pre><p><span class="c004">N.B.</span> The <code>--absname</code> option is currently an experimental feature.</p>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

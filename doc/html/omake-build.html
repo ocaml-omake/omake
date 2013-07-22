@@ -1,57 +1,59 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Build functions and utilities</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Build functions and utilities</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc358">Chapter&#XA0;13</A>&#XA0;&#XA0;Build functions and utilities</H1><UL>
-<LI><A HREF="omake-build.html#toc97">Builtin .PHONY targets</A>
-</LI><LI><A HREF="omake-build.html#toc98">Options and versioning</A>
-</LI><LI><A HREF="omake-build.html#toc99">Examining the dependency graph</A>
-</LI><LI><A HREF="omake-build.html#toc100">The OMakeroot file</A>
-</LI><LI><A HREF="omake-build.html#toc101">Building C and C++ code</A>
-</LI><LI><A HREF="omake-build.html#toc102">Building OCaml code</A>
-</LI><LI><A HREF="omake-build.html#toc103">Building L<sup>A</sup>T<sub>E</sub>X files</A>
-</LI></UL>
-<P>
-<A NAME="chapter:build"></A>
-</P><H2 CLASS="section"><A NAME="toc97"></A><A NAME="htoc359">13.1</A>&#XA0;&#XA0;Builtin .PHONY targets</H2><P>The complete set of builtin <CODE>.PHONY</CODE> targets include the following.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>.PHONY</B></DT><DD CLASS="dd-description"> Declares new phony targets (Section&#XA0;<A HREF="omake-rules.html#target:.PHONY">8.10</A>).
-</DD><DT CLASS="dt-description"><B>.DEFAULT</B></DT><DD CLASS="dd-description"> Declare the default build targets (Section&#XA0;<A HREF="omake-rules.html#target:.DEFAULT">8.7</A>).
-</DD><DT CLASS="dt-description"><B>.SUBDIRS</B></DT><DD CLASS="dd-description"> Include a directory as part of the project (Section&#XA0;<A HREF="omake-rules.html#target:.SUBDIRS">8.8</A>).
-</DD><DT CLASS="dt-description"><B>.SCANNER</B></DT><DD CLASS="dd-description"> Define a dependency scanner (Section&#XA0;<A HREF="omake-rules.html#target:.SUBDIRS">8.8</A>).
-</DD><DT CLASS="dt-description"><B>.INCLUDE</B></DT><DD CLASS="dd-description"> Include a file (Section&#XA0;<A HREF="omake-rules.html#target:.INCLUDE">8.9</A>).
-</DD><DT CLASS="dt-description"><B>.ORDER</B></DT><DD CLASS="dd-description"> Define a file-dependency ordering rule (Section&#XA0;<A HREF="omake-system.html#target:.ORDER">10.3.6</A>).
-</DD><DT CLASS="dt-description"><B>.BUILD_BEGIN</B></DT><DD CLASS="dd-description"> Commands to be executed at the beginning of a build.
-</DD><DT CLASS="dt-description"><B>.BUILD_SUCCESS</B></DT><DD CLASS="dd-description"> Commands to be executed if the build is successful.
-</DD><DT CLASS="dt-description"><B>.BUILD_FAILURE</B></DT><DD CLASS="dd-description"> Commands to be executed if the build fails.
-</DD></DL><P><A NAME="@default415"></A><A NAME="@target14"></A><A NAME="target:.BUILD_BEGIN"></A>
-<A NAME="@default416"></A><A NAME="@target15"></A><A NAME="target:.BUILD_SUCCESS"></A>
-<A NAME="@default417"></A><A NAME="@target16"></A><A NAME="target:.BUILD_FAILURE"></A></P><P>The <CODE>.BUILD</CODE> targets can be used to specify commands to be executed at
-the beginning and end of the build. The <CODE>.BUILD_BEGIN</CODE> target is built
-at the beginning of a project build, and one of <CODE>.BUILD_FAILURE</CODE> or
-<CODE>.BUILD_SUCCESS</CODE> is executed when the build terminates.</P><P>For example, the following set of rules simply print additional messages
-about the status of the build.</P><PRE CLASS="verbatim">   .BUILD_BEGIN:
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec378">Chapter&#XA0;13&#XA0;&#XA0;Build functions and utilities</h1>
+<ul>
+<li><a href="omake-build.html#sec379">Builtin .PHONY targets</a>
+</li><li><a href="omake-build.html#sec380">Options and versioning</a>
+</li><li><a href="omake-build.html#sec385">Examining the dependency graph</a>
+</li><li><a href="omake-build.html#sec392">The OMakeroot file</a>
+</li><li><a href="omake-build.html#sec409">Building C and C++ code</a>
+</li><li><a href="omake-build.html#sec449">Building OCaml code</a>
+</li><li><a href="omake-build.html#sec504">Building L<sup>A</sup>T<sub>E</sub>X files</a>
+</li></ul>
+<p>
+<a id="chapter:build"></a>
+</p>
+<h2 class="section" id="sec379">13.1&#XA0;&#XA0;Builtin .PHONY targets</h2>
+<p>The complete set of builtin <code>.PHONY</code> targets include the following.</p><dl class="description"><dt class="dt-description">
+<span class="c004">.PHONY</span></dt><dd class="dd-description"> Declares new phony targets (Section&#XA0;<a href="omake-rules.html#target%3A.PHONY">8.10</a>).
+</dd><dt class="dt-description"><span class="c004">.DEFAULT</span></dt><dd class="dd-description"> Declare the default build targets (Section&#XA0;<a href="omake-rules.html#target%3A.DEFAULT">8.7</a>).
+</dd><dt class="dt-description"><span class="c004">.SUBDIRS</span></dt><dd class="dd-description"> Include a directory as part of the project (Section&#XA0;<a href="omake-rules.html#target%3A.SUBDIRS">8.8</a>).
+</dd><dt class="dt-description"><span class="c004">.SCANNER</span></dt><dd class="dd-description"> Define a dependency scanner (Section&#XA0;<a href="omake-rules.html#target%3A.SUBDIRS">8.8</a>).
+</dd><dt class="dt-description"><span class="c004">.INCLUDE</span></dt><dd class="dd-description"> Include a file (Section&#XA0;<a href="omake-rules.html#target%3A.INCLUDE">8.9</a>).
+</dd><dt class="dt-description"><span class="c004">.ORDER</span></dt><dd class="dd-description"> Define a file-dependency ordering rule (Section&#XA0;<a href="omake-system.html#target%3A.ORDER">10.3.6</a>).
+</dd><dt class="dt-description"><span class="c004">.BUILD_BEGIN</span></dt><dd class="dd-description"> Commands to be executed at the beginning of a build.
+</dd><dt class="dt-description"><span class="c004">.BUILD_SUCCESS</span></dt><dd class="dd-description"> Commands to be executed if the build is successful.
+</dd><dt class="dt-description"><span class="c004">.BUILD_FAILURE</span></dt><dd class="dd-description"> Commands to be executed if the build fails.
+</dd></dl><p><a id="hevea_default415"></a><a id="hevea_target14"></a><a id="target:.BUILD_BEGIN"></a>
+<a id="hevea_default416"></a><a id="hevea_target15"></a><a id="target:.BUILD_SUCCESS"></a>
+<a id="hevea_default417"></a><a id="hevea_target16"></a><a id="target:.BUILD_FAILURE"></a></p><p>The <code>.BUILD</code> targets can be used to specify commands to be executed at
+the beginning and end of the build. The <code>.BUILD_BEGIN</code> target is built
+at the beginning of a project build, and one of <code>.BUILD_FAILURE</code> or
+<code>.BUILD_SUCCESS</code> is executed when the build terminates.</p><p>For example, the following set of rules simply print additional messages
+about the status of the build.</p><pre class="verbatim">   .BUILD_BEGIN:
        echo Build starting
 
    .BUILD_SUCCESS:
@@ -59,482 +61,768 @@ about the status of the build.</P><PRE CLASS="verbatim">   .BUILD_BEGIN:
 
    .BUILD_FAILURE:
        println($"The build failed: $(length $(find-build-targets Failed)) targets could not be built")
-</PRE><P>Another common use is to define notifications to be performed when
+</pre><p>Another common use is to define notifications to be performed when
 the build completes. For example, the following rule will create
 a new X terminal displaying the summary of the build
-(using the <A HREF="omake-base.html#var:BUILD_SUMMARY"><CODE>BUILD_SUMMARY</CODE> variable</A>).</P><PRE CLASS="verbatim">    .BUILD_FAILURE:
+(using the <a href="omake-base.html#var%3ABUILD_SUMMARY"><CODE>BUILD_SUMMARY</CODE> variable</a>).</p><pre class="verbatim">    .BUILD_FAILURE:
         xterm -e vi $(BUILD_SUMMARY)
-</PRE><P>If you do not wish to add these rules directly to your project (which
+</pre><p>If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can
-define them in your <CODE>.omakerc</CODE> (see Section&#XA0;<A HREF="omake-options.html#section:.omakerc">A.8</A>).</P><P>The <A HREF="#fun:find-build-targets"><CODE>find-build-targets</CODE> function</A>
+define them in your <code>.omakerc</code> (see Section&#XA0;<a href="omake-options.html#section%3A.omakerc">A.8</a>).</p><p>The <a href="#fun%3Afind-build-targets"><CODE>find-build-targets</CODE> function</a>
 is useful for obtaining a firther summary of the build. Note that
-when output diversions are in effect (with the <CODE>--output-*</CODE> options &#X2014; see Chapter&#XA0;<A HREF="omake-options.html#chapter:options">A</A>),
+when output diversions are in effect (with the <code>--output-*</code> options &#X2014; see Chapter&#XA0;<a href="omake-options.html#chapter%3Aoptions">A</a>),
 any output produced by the commands is copied to a file. The name of the
-file is specified by the <CODE>output-file</CODE> field of the <A HREF="omake-pervasives.html#obj:Target"><CODE>Target</CODE> object</A>.
+file is specified by the <code>output-file</code> field of the <a href="omake-pervasives.html#obj%3ATarget"><CODE>Target</CODE> object</a>.
 You may find this useful in defining custom build summaries.
-</P><H2 CLASS="section"><A NAME="toc98"></A><A NAME="htoc360">13.2</A>&#XA0;&#XA0;Options and versioning</H2><H3 CLASS="subsection"><A NAME="htoc361">13.2.1</A>&#XA0;&#XA0;OMakeFlags</H3><P><A NAME="fun:OMakeFlags"></A><A NAME="function:OMakeFlags"></A><A NAME="@default418"></A><A NAME="@fun249"></A></P><PRE CLASS="verbatim">   OMakeFlags(options)
+</p>
+<h2 class="section" id="sec380">13.2&#XA0;&#XA0;Options and versioning</h2>
+<h3 class="subsection" id="sec381">13.2.1&#XA0;&#XA0;OMakeFlags</h3>
+<p><a id="fun:OMakeFlags"></a><a id="function:OMakeFlags"></a><a id="hevea_default418"></a><a id="hevea_fun249"></a></p><pre class="verbatim">   OMakeFlags(options)
       options : String
-</PRE><P>The <CODE>OMakeFlags</CODE> function is used to set <CODE>omake</CODE> options from
-within <TT>OMakefile</TT>s. The options have exactly the same format as
-options on the command line.</P><P>For example, the following code displays the progress bar unless
-the <CODE>VERBOSE</CODE> environment variable is defined.</P><PRE CLASS="verbatim">    if $(not $(defined-env VERBOSE))
+</pre><p>The <code>OMakeFlags</code> function is used to set <code>omake</code> options from
+within <span class="c001">OMakefile</span>s. The options have exactly the same format as
+options on the command line.</p><p>For example, the following code displays the progress bar unless
+the <code>VERBOSE</code> environment variable is defined.</p><pre class="verbatim">    if $(not $(defined-env VERBOSE))
         OMakeFlags(-S --progress)
         export
-</PRE><H3 CLASS="subsection"><A NAME="htoc362">13.2.2</A>&#XA0;&#XA0;OMakeVersion</H3><P><A NAME="fun:OMakeVersion"></A><A NAME="function:OMakeVersion"></A><A NAME="@default419"></A><A NAME="@fun250"></A></P><PRE CLASS="verbatim">   OMakeVersion(version1)
+</pre>
+<h3 class="subsection" id="sec382">13.2.2&#XA0;&#XA0;OMakeVersion</h3>
+<p><a id="fun:OMakeVersion"></a><a id="function:OMakeVersion"></a><a id="hevea_default419"></a><a id="hevea_fun250"></a></p><pre class="verbatim">   OMakeVersion(version1)
    OMakeVersion(version1, version2)
       version1, version2 : String
-</PRE><P>The <CODE>OMakeVersion</CODE> function is used for version checking
-in <TT>OMakefile</TT>s. It takes one or two arguments.</P><P>In the one argument form, if the <TT>omake</TT> version number
-is less than <CODE>&lt;version1&gt;</CODE>,
+</pre><p>The <code>OMakeVersion</code> function is used for version checking
+in <span class="c001">OMakefile</span>s. It takes one or two arguments.</p><p>In the one argument form, if the <span class="c001">omake</span> version number
+is less than <code>&lt;version1&gt;</code>,
 then an exception is raised. In the two argument form,
-the version must lie between <CODE>version1</CODE> and <CODE>version2</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc363">13.2.3</A>&#XA0;&#XA0;cmp-versions</H3><P><A NAME="fun:cmp-versions"></A><A NAME="function:cmp-versions"></A><A NAME="@default420"></A><A NAME="@fun251"></A>
-</P><PRE CLASS="verbatim">   $(cmp-versions version1, version2)
+the version must lie between <code>version1</code> and <code>version2</code>.</p>
+<h3 class="subsection" id="sec383">13.2.3&#XA0;&#XA0;cmp-versions</h3>
+<p><a id="fun:cmp-versions"></a><a id="function:cmp-versions"></a><a id="hevea_default420"></a><a id="hevea_fun251"></a>
+</p><pre class="verbatim">   $(cmp-versions version1, version2)
       version1, version2 : String
-</PRE><P>The <CODE>cmp-versions\</CODE> functions can be used to compare arbitrary version strings.
+</pre><p>The <code>cmp-versions\</code> functions can be used to compare arbitrary version strings.
 It returns 0 when the two version strings are equal, a negative number when the first
 string represents an earlier version, and a positive number otherwise.
-</P><H3 CLASS="subsection"><A NAME="htoc364">13.2.4</A>&#XA0;&#XA0;DefineCommandVars</H3><P><A NAME="fun:DefineCommandVars"></A><A NAME="function:DefineCommandVars"></A><A NAME="@default421"></A><A NAME="@fun252"></A></P><PRE CLASS="verbatim">   DefineCommandVars()
-</PRE><P>The <CODE>DefineCommandVars</CODE> function redefines the variables passed on
+</p>
+<h3 class="subsection" id="sec384">13.2.4&#XA0;&#XA0;DefineCommandVars</h3>
+<p><a id="fun:DefineCommandVars"></a><a id="function:DefineCommandVars"></a><a id="hevea_default421"></a><a id="hevea_fun252"></a></p><pre class="verbatim">   DefineCommandVars()
+</pre><p>The <code>DefineCommandVars</code> function redefines the variables passed on
 the commandline. Variables definitions are passed on the command line
-in the form <CODE>name=value</CODE>. This function is primarily for internal
-use by <TT>omake</TT> to define these variables for the first time.
-</P><H2 CLASS="section"><A NAME="toc99"></A><A NAME="htoc365">13.3</A>&#XA0;&#XA0;Examining the dependency graph</H2><H3 CLASS="subsection"><A NAME="htoc366">13.3.1</A>&#XA0;&#XA0;dependencies, dependencies-all, dependencies-proper</H3><P><A NAME="fun:dependencies"></A><A NAME="function:dependencies"></A><A NAME="@default422"></A><A NAME="@fun253"></A><A NAME="fun:dependencies-all"></A><A NAME="function:dependencies-all"></A><A NAME="@default423"></A><A NAME="@fun254"></A><A NAME="fun:dependencies-proper"></A><A NAME="function:dependencies-proper"></A><A NAME="@default424"></A><A NAME="@fun255"></A></P><PRE CLASS="verbatim">   $(dependencies targets) : File Array
+in the form <code>name=value</code>. This function is primarily for internal
+use by <span class="c001">omake</span> to define these variables for the first time.
+</p>
+<h2 class="section" id="sec385">13.3&#XA0;&#XA0;Examining the dependency graph</h2>
+<h3 class="subsection" id="sec386">13.3.1&#XA0;&#XA0;dependencies, dependencies-all, dependencies-proper</h3>
+<p><a id="fun:dependencies"></a><a id="function:dependencies"></a><a id="hevea_default422"></a><a id="hevea_fun253"></a><a id="fun:dependencies-all"></a><a id="function:dependencies-all"></a><a id="hevea_default423"></a><a id="hevea_fun254"></a><a id="fun:dependencies-proper"></a><a id="function:dependencies-proper"></a><a id="hevea_default424"></a><a id="hevea_fun255"></a></p><pre class="verbatim">   $(dependencies targets) : File Array
    $(dependencies-all targets) : File Array
    $(dependencies-proper targets) : File Array
       targets : File Array
    raises RuntimeException
-</PRE><P>The <CODE>dependencies</CODE> function returns the set of immediate dependencies of
+</pre><p>The <code>dependencies</code> function returns the set of immediate dependencies of
 the given targets. This function can only be used within a rule body and
-all the arguments to the <CODE>dependency</CODE> function must also be dependencies of
+all the arguments to the <code>dependency</code> function must also be dependencies of
 this rule. This restriction ensures that all the dependencies are known when
-this function is executed.</P><P>The <CODE>dependencies-all</CODE> function is similar, but it expands the dependencies
+this function is executed.</p><p>The <code>dependencies-all</code> function is similar, but it expands the dependencies
 recursively, returning all of the dependencies of a target, not just the immediate
-ones.</P><P>The <CODE>dependencies-proper</CODE> function returns all recursive dependencies, except
+ones.</p><p>The <code>dependencies-proper</code> function returns all recursive dependencies, except
 the dependencies that are leaf targets. A leaf target is a target that has no
 dependencies and no build commands; a leaf target corresponds to a source file
-in the current project.</P><P>In all three functions, files that are not part of the current project are silently
+in the current project.</p><p>In all three functions, files that are not part of the current project are silently
 discarded. All three functions will return phony and scanner targets along with the
-&#X201C;real&#X201D; ones.</P><P>One purpose of the <CODE>dependencies-proper</CODE> function is for &#X201C;clean&#X201D; targets.
+&#X201C;real&#X201D; ones.</p><p>One purpose of the <code>dependencies-proper</code> function is for &#X201C;clean&#X201D; targets.
 For example, one way to delete all intermediate files in a build is with a rule
-that uses the <CODE>dependencies-proper</CODE>. Note however, that the rule requires
-building the project before it can be deleted.</P><PRE CLASS="verbatim">    .PHONY: clean
+that uses the <code>dependencies-proper</code>. Note however, that the rule requires
+building the project before it can be deleted.</p><pre class="verbatim">    .PHONY: clean
 
     APP = ...     # the name of the target application
     clean: $(APP)
        rm -f $(dependencies-proper $(APP))
-</PRE><P>Also note that the <CODE>dependencies-proper</CODE> function will return the phony and scanner
-targets in addition to real one.</P><P>For other (possibly better) alternatives, see Section&#XA0;<A HREF="omake-system.html#section:distclean">10.3.3</A> and
-<A HREF="omake-system.html#fun:filter-proper-targets"><CODE>filter-proper-targets</CODE> function</A>.
-</P><H3 CLASS="subsection"><A NAME="htoc367">13.3.2</A>&#XA0;&#XA0;target</H3><P><A NAME="fun:target"></A><A NAME="function:target"></A><A NAME="@default425"></A><A NAME="@fun256"></A>
-</P><PRE CLASS="verbatim">   $(target targets) : Target Array
+</pre><p>Also note that the <code>dependencies-proper</code> function will return the phony and scanner
+targets in addition to real one.</p><p>For other (possibly better) alternatives, see Section&#XA0;<a href="omake-system.html#section%3Adistclean">10.3.3</a> and
+<a href="omake-system.html#fun%3Afilter-proper-targets"><CODE>filter-proper-targets</CODE> function</a>.
+</p>
+<h3 class="subsection" id="sec387">13.3.2&#XA0;&#XA0;target</h3>
+<p><a id="fun:target"></a><a id="function:target"></a><a id="hevea_default425"></a><a id="hevea_fun256"></a>
+</p><pre class="verbatim">   $(target targets) : Target Array
       targets : File Sequence
    raises RuntimeException
-</PRE><P>The <CODE>target</CODE> function returns the Target object associated with each
-of the targets. See the <CODE>Target</CODE> object for more information.
-</P><H3 CLASS="subsection"><A NAME="htoc368">13.3.3</A>&#XA0;&#XA0;find-build-targets</H3><P><A NAME="fun:find-build-targets"></A><A NAME="function:find-build-targets"></A><A NAME="@default426"></A><A NAME="@fun257"></A></P><PRE CLASS="verbatim">    $(find-build-targets tag) : Target Array
+</pre><p>The <code>target</code> function returns the Target object associated with each
+of the targets. See the <code>Target</code> object for more information.
+</p>
+<h3 class="subsection" id="sec388">13.3.3&#XA0;&#XA0;find-build-targets</h3>
+<p><a id="fun:find-build-targets"></a><a id="function:find-build-targets"></a><a id="hevea_default426"></a><a id="hevea_fun257"></a></p><pre class="verbatim">    $(find-build-targets tag) : Target Array
        tag : Succeeded | Failed
-</PRE><P>The <CODE>find-build-targets</CODE> allow the results
-of the build to be examined. The <CODE>tag</CODE> must
+</pre><p>The <code>find-build-targets</code> allow the results
+of the build to be examined. The <code>tag</code> must
 specifies which targets are to be returned; the comparison
-is case-insensitive.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>Succeeded</B></DT><DD CLASS="dd-description"> The list of targets that were built successfully.
-</DD><DT CLASS="dt-description"><B>Failed</B></DT><DD CLASS="dd-description"> The list of targets that could not be built.
-</DD></DL><P>These are used mainly in conjuction with the
-<CODE>.BUILD_SUCCESS</CODE> (Section&#XA0;<A HREF="#target:.BUILD_SUCCESS">13.1</A>) and
-<CODE>.BUILD_FAILURE</CODE> (Section&#XA0;<A HREF="#target:.BUILD_FAILURE">13.1</A>) phony targets.
-For example, adding the following to your project <CODE>OMakefile</CODE>
-will print the number of targets that failed (if the build failed).</P><PRE CLASS="verbatim">    .BUILD_FAILURE:
+is case-insensitive.</p><dl class="description"><dt class="dt-description">
+<span class="c004">Succeeded</span></dt><dd class="dd-description"> The list of targets that were built successfully.
+</dd><dt class="dt-description"><span class="c004">Failed</span></dt><dd class="dd-description"> The list of targets that could not be built.
+</dd></dl><p>These are used mainly in conjuction with the
+<code>.BUILD_SUCCESS</code> (Section&#XA0;<a href="#target%3A.BUILD_SUCCESS">13.1</a>) and
+<code>.BUILD_FAILURE</code> (Section&#XA0;<a href="#target%3A.BUILD_FAILURE">13.1</a>) phony targets.
+For example, adding the following to your project <code>OMakefile</code>
+will print the number of targets that failed (if the build failed).</p><pre class="verbatim">    .BUILD_FAILURE:
         echo "Failed target count: $(length $(find-build-targets Failed))"
-</PRE><H3 CLASS="subsection"><A NAME="htoc369">13.3.4</A>&#XA0;&#XA0;project-directories</H3><P><A NAME="fun:project-directories"></A><A NAME="function:project-directories"></A><A NAME="@default427"></A><A NAME="@fun258"></A></P><PRE CLASS="verbatim">   $(project-directories) : Dir Array
-</PRE><P>The <CODE>project-directories</CODE> function returns the list of all directories
-that are considered to be part of the project.</P><P>To get the complete directory list, this function should be called
+</pre>
+<h3 class="subsection" id="sec389">13.3.4&#XA0;&#XA0;project-directories</h3>
+<p><a id="fun:project-directories"></a><a id="function:project-directories"></a><a id="hevea_default427"></a><a id="hevea_fun258"></a></p><pre class="verbatim">   $(project-directories) : Dir Array
+</pre><p>The <code>project-directories</code> function returns the list of all directories
+that are considered to be part of the project.</p><p>To get the complete directory list, this function should be called
 from within a rule body.
-</P><H3 CLASS="subsection"><A NAME="htoc370">13.3.5</A>&#XA0;&#XA0;rule</H3><P><A NAME="fun:rule"></A><A NAME="function:rule"></A><A NAME="@default428"></A><A NAME="@fun259"></A></P><P>The <CODE>rule</CODE> function is called whenever a build rule is defined.
+</p>
+<h3 class="subsection" id="sec390">13.3.5&#XA0;&#XA0;rule</h3>
+<p><a id="fun:rule"></a><a id="function:rule"></a><a id="hevea_default428"></a><a id="hevea_fun259"></a></p><p>The <code>rule</code> function is called whenever a build rule is defined.
 It is unlikely that you will need to redefine this function, except in
-very exceptional cases.</P><PRE CLASS="verbatim">   rule(multiple, target, pattern, sources, options, body) : Rule
+very exceptional cases.</p><pre class="verbatim">   rule(multiple, target, pattern, sources, options, body) : Rule
       multiple : String
       target   : Sequence
       pattern  : Sequence
       sources  : Sequence
       options  : Array
       body     : Body
-</PRE><P>The <CODE>rule</CODE> function is called when a rule is evaluated.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>multiple</B></DT><DD CLASS="dd-description"> A Boolean value indicating whether the rule was defined
-with a double colon <CODE>::</CODE>.
-</DD><DT CLASS="dt-description"><B>target</B></DT><DD CLASS="dd-description"> The sequence of target names.
-</DD><DT CLASS="dt-description"><B>pattern</B></DT><DD CLASS="dd-description"> The sequence of patterns. This sequence will be empty
+</pre><p>The <code>rule</code> function is called when a rule is evaluated.</p><dl class="description"><dt class="dt-description">
+<span class="c004">multiple</span></dt><dd class="dd-description"> A Boolean value indicating whether the rule was defined
+with a double colon <code>::</code>.
+</dd><dt class="dt-description"><span class="c004">target</span></dt><dd class="dd-description"> The sequence of target names.
+</dd><dt class="dt-description"><span class="c004">pattern</span></dt><dd class="dd-description"> The sequence of patterns. This sequence will be empty
 for two-part rules.
-</DD><DT CLASS="dt-description"><B>sources</B></DT><DD CLASS="dd-description"> The sequence of dependencies.
-</DD><DT CLASS="dt-description"><B>options</B></DT><DD CLASS="dd-description"> An array of options. Each option is represented
-as a <A HREF="omake-pervasives.html#obj:Map"><CODE>Map</CODE> object</A> associating each specified option with
+</dd><dt class="dt-description"><span class="c004">sources</span></dt><dd class="dd-description"> The sequence of dependencies.
+</dd><dt class="dt-description"><span class="c004">options</span></dt><dd class="dd-description"> An array of options. Each option is represented
+as a <a href="omake-pervasives.html#obj%3AMap"><CODE>Map</CODE> object</a> associating each specified option with
 a value.
-</DD><DT CLASS="dt-description"><B>body</B></DT><DD CLASS="dd-description"> The body expression of the rule.
-</DD></DL><P>Consider the following rule.</P><PRE CLASS="verbatim">   target: pattern: sources :name1: option1 :name2: option2
+</dd><dt class="dt-description"><span class="c004">body</span></dt><dd class="dd-description"> The body expression of the rule.
+</dd></dl><p>Consider the following rule.</p><pre class="verbatim">   target: pattern: sources :name1: option1 :name2: option2
       expr1
       expr2
-</PRE><P>This expression represents the following function call, where
+</pre><p>This expression represents the following function call, where
 square brackets are used to indicate arrays, and the curly
-brackets represent a <A HREF="omake-pervasives.html#obj:Map"><CODE>Map</CODE> object</A>.</P><PRE CLASS="verbatim">   rule(false, target, pattern, sources,
+brackets represent a <a href="omake-pervasives.html#obj%3AMap"><CODE>Map</CODE> object</a>.</p><pre class="verbatim">   rule(false, target, pattern, sources,
         { $|:name1:| = option1; $|:name2:| = option2 }
         [expr1; expr2])
-</PRE><H3 CLASS="subsection"><A NAME="htoc371">13.3.6</A>&#XA0;&#XA0;build</H3><P><A NAME="fun:build"></A><A NAME="function:build"></A><A NAME="@default429"></A><A NAME="@fun260"></A></P><PRE CLASS="verbatim">    build(targets : File Array) : bool
-</PRE><P>Build the given targets. The value is true iff the build was successful.
-This function can be used only in <CODE>osh</CODE>.
+</pre>
+<h3 class="subsection" id="sec391">13.3.6&#XA0;&#XA0;build</h3>
+<p><a id="fun:build"></a><a id="function:build"></a><a id="hevea_default429"></a><a id="hevea_fun260"></a></p><pre class="verbatim">    build(targets : File Array) : bool
+</pre><p>Build the given targets. The value is true iff the build was successful.
+This function can be used only in <code>osh</code>.
 
-</P><H2 CLASS="section"><A NAME="toc100"></A><A NAME="htoc372">13.4</A>&#XA0;&#XA0;The OMakeroot file</H2><P>
-<A NAME="@default430"></A></P><P>The standard <TT>OMakeroot</TT> file defines the functions are rules
-for building standard projects.</P><H3 CLASS="subsection"><A NAME="htoc373">13.4.1</A>&#XA0;&#XA0;Variables</H3><H5 CLASS="paragraph">ROOT</H5><P><A NAME="var:ROOT"></A><A NAME="@default431"></A><A NAME="@var23"></A> The root directory of the current project.
-</P><H5 CLASS="paragraph">CWD</H5><P><A NAME="var:CWD"></A><A NAME="@default432"></A><A NAME="@var24"></A> The current working directory (the directory is set for each <TT>OMakefile</TT> in the project).
-</P><H5 CLASS="paragraph">EMPTY</H5><P><A NAME="var:EMPTY"></A><A NAME="@default433"></A><A NAME="@var25"></A> The empty string.
-</P><H5 CLASS="paragraph">STDROOT</H5><P><A NAME="var:STDROOT"></A><A NAME="@default434"></A><A NAME="@var26"></A> The name of the standard installed <TT>OMakeroot</TT> file.
-</P><H5 CLASS="paragraph">ABORT_ON_COMMAND_ERROR</H5><P><A NAME="var:ABORT_ON_COMMAND_ERROR"></A><A NAME="@default435"></A><A NAME="@var27"></A> If set to true, the construction of a target should
+</p>
+<h2 class="section" id="sec392">13.4&#XA0;&#XA0;The OMakeroot file</h2>
+<p>
+<a id="hevea_default430"></a></p><p>The standard <span class="c001">OMakeroot</span> file defines the functions are rules
+for building standard projects.</p>
+<h3 class="subsection" id="sec393">13.4.1&#XA0;&#XA0;Variables</h3>
+<h5 class="paragraph" id="sec394">ROOT</h5>
+<p><a id="var:ROOT"></a><a id="hevea_default431"></a><a id="hevea_var23"></a> The root directory of the current project.
+</p>
+<h5 class="paragraph" id="sec395">CWD</h5>
+<p><a id="var:CWD"></a><a id="hevea_default432"></a><a id="hevea_var24"></a> The current working directory (the directory is set for each <span class="c001">OMakefile</span> in the project).
+</p>
+<h5 class="paragraph" id="sec396">EMPTY</h5>
+<p><a id="var:EMPTY"></a><a id="hevea_default433"></a><a id="hevea_var25"></a> The empty string.
+</p>
+<h5 class="paragraph" id="sec397">STDROOT</h5>
+<p><a id="var:STDROOT"></a><a id="hevea_default434"></a><a id="hevea_var26"></a> The name of the standard installed <span class="c001">OMakeroot</span> file.
+</p>
+<h5 class="paragraph" id="sec398">ABORT_ON_COMMAND_ERROR</h5>
+<p><a id="var:ABORT_ON_COMMAND_ERROR"></a><a id="hevea_default435"></a><a id="hevea_var27"></a> If set to true, the construction of a target should
 be aborted whenever one of the commands to build it fail. This defaults to true,
-and should normally be left that way.</P><H5 CLASS="paragraph">SCANNER_MODE</H5><P><A NAME="var:SCANNER_MODE"></A><A NAME="@default436"></A><A NAME="@var28"></A> This variable should be defined as one of four values
-(defaults to <CODE>enabled</CODE>).
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>enabled</B></DT><DD CLASS="dd-description"> Allow the use of default <CODE>.SCANNER</CODE> rules. Whenever a rule does
-not specify a <CODE>:scanner:</CODE> dependency explicitly, try to find a
-<CODE>.SCANNER</CODE> with the same target name.
-</DD><DT CLASS="dt-description"><B>disabled</B></DT><DD CLASS="dd-description"> Never use default <CODE>.SCANNER</CODE> rules.
-</DD><DT CLASS="dt-description"><B>warning</B></DT><DD CLASS="dd-description"> Allow the use of default <CODE>.SCANNER</CODE> rules, but print a warning
+and should normally be left that way.</p>
+<h5 class="paragraph" id="sec399">SCANNER_MODE</h5>
+<p><a id="var:SCANNER_MODE"></a><a id="hevea_default436"></a><a id="hevea_var28"></a> This variable should be defined as one of four values
+(defaults to <code>enabled</code>).
+</p><dl class="description"><dt class="dt-description">
+<span class="c004">enabled</span></dt><dd class="dd-description"> Allow the use of default <code>.SCANNER</code> rules. Whenever a rule does
+not specify a <code>:scanner:</code> dependency explicitly, try to find a
+<code>.SCANNER</code> with the same target name.
+</dd><dt class="dt-description"><span class="c004">disabled</span></dt><dd class="dd-description"> Never use default <code>.SCANNER</code> rules.
+</dd><dt class="dt-description"><span class="c004">warning</span></dt><dd class="dd-description"> Allow the use of default <code>.SCANNER</code> rules, but print a warning
 whenever one is selected.
-</DD><DT CLASS="dt-description"><B>error</B></DT><DD CLASS="dd-description"> Do not allow the use of default <CODE>.SCANNER</CODE> rules. If a rule
-does not specify a <CODE>:scanner:</CODE> dependency, and there is a default
-<CODE>.SCANNER</CODE> rule, the build will terminate abnormally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc374">13.4.2</A>&#XA0;&#XA0;System variables</H3><H5 CLASS="paragraph">INSTALL</H5><P><A NAME="var:INSTALL"></A><A NAME="@default437"></A><A NAME="@var29"></A> The command to install a program (<CODE>install</CODE> on <CODE>Unix</CODE>, <CODE>cp</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">PATHSEP</H5><P><A NAME="var:PATHSEP"></A><A NAME="@default438"></A><A NAME="@var30"></A> The normal path separator (<CODE>:</CODE> on <CODE>Unix</CODE>, <CODE>;</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">DIRSEP</H5><P><A NAME="var:DIRSEP"></A><A NAME="@default439"></A><A NAME="@var31"></A> The normal directory separator (<CODE>/</CODE> on <CODE>Unix</CODE>, <CODE>\</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">EXT_OBJ</H5><P><A NAME="var:EXT_OBJ"></A><A NAME="@default440"></A><A NAME="@var32"></A> File suffix for an object file (default is <CODE>.o</CODE> on <CODE>Unix</CODE>, and <CODE>.obj</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">EXT_LIB</H5><P><A NAME="var:EXT_LIB"></A><A NAME="@default441"></A><A NAME="@var33"></A> File suffix for a static library (default is <CODE>.a</CODE> on <CODE>Unix</CODE>, and <CODE>.lib</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">EXT_DLL</H5><P><A NAME="var:EXT_DLL"></A><A NAME="@default442"></A><A NAME="@var34"></A> File suffix for a shared library (default is <CODE>.so</CODE> on <CODE>Unix</CODE>, and <CODE>.dll</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">EXT_ASM</H5><P><A NAME="var:EXT_ASM"></A><A NAME="@default443"></A><A NAME="@var35"></A> File suffix for an assembly file (default is <CODE>.s</CODE> on <CODE>Unix</CODE>, and <CODE>.asm</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">EXE</H5><P><A NAME="var:EXE"></A><A NAME="@default444"></A><A NAME="@var36"></A> File suffix for executables (default is empty for <CODE>Unix</CODE>, and <CODE>.exe</CODE> on <CODE>Win32</CODE> and <CODE>Cygwin</CODE>).
-</P><H2 CLASS="section"><A NAME="toc101"></A><A NAME="htoc375">13.5</A>&#XA0;&#XA0;Building C and C++ code</H2><P>OMake provides extensive support for building C and C++ programs. In order to use the functions
+</dd><dt class="dt-description"><span class="c004">error</span></dt><dd class="dd-description"> Do not allow the use of default <code>.SCANNER</code> rules. If a rule
+does not specify a <code>:scanner:</code> dependency, and there is a default
+<code>.SCANNER</code> rule, the build will terminate abnormally.
+</dd></dl>
+<h3 class="subsection" id="sec400">13.4.2&#XA0;&#XA0;System variables</h3>
+<h5 class="paragraph" id="sec401">INSTALL</h5>
+<p><a id="var:INSTALL"></a><a id="hevea_default437"></a><a id="hevea_var29"></a> The command to install a program (<code>install</code> on <code>Unix</code>, <code>cp</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec402">PATHSEP</h5>
+<p><a id="var:PATHSEP"></a><a id="hevea_default438"></a><a id="hevea_var30"></a> The normal path separator (<code>:</code> on <code>Unix</code>, <code>;</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec403">DIRSEP</h5>
+<p><a id="var:DIRSEP"></a><a id="hevea_default439"></a><a id="hevea_var31"></a> The normal directory separator (<code>/</code> on <code>Unix</code>, <code>\</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec404">EXT_OBJ</h5>
+<p><a id="var:EXT_OBJ"></a><a id="hevea_default440"></a><a id="hevea_var32"></a> File suffix for an object file (default is <code>.o</code> on <code>Unix</code>, and <code>.obj</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec405">EXT_LIB</h5>
+<p><a id="var:EXT_LIB"></a><a id="hevea_default441"></a><a id="hevea_var33"></a> File suffix for a static library (default is <code>.a</code> on <code>Unix</code>, and <code>.lib</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec406">EXT_DLL</h5>
+<p><a id="var:EXT_DLL"></a><a id="hevea_default442"></a><a id="hevea_var34"></a> File suffix for a shared library (default is <code>.so</code> on <code>Unix</code>, and <code>.dll</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec407">EXT_ASM</h5>
+<p><a id="var:EXT_ASM"></a><a id="hevea_default443"></a><a id="hevea_var35"></a> File suffix for an assembly file (default is <code>.s</code> on <code>Unix</code>, and <code>.asm</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec408">EXE</h5>
+<p><a id="var:EXE"></a><a id="hevea_default444"></a><a id="hevea_var36"></a> File suffix for executables (default is empty for <code>Unix</code>, and <code>.exe</code> on <code>Win32</code> and <code>Cygwin</code>).
+</p>
+<h2 class="section" id="sec409">13.5&#XA0;&#XA0;Building C and C++ code</h2>
+<p>OMake provides extensive support for building C and C++ programs. In order to use the functions
 defined in this section, you need to make sure the line
-</P><PRE CLASS="verbatim">open build/C
-</PRE><P>is present in your <CODE>OMakeroot</CODE> file.</P><H3 CLASS="subsection"><A NAME="htoc376">13.5.1</A>&#XA0;&#XA0;Autoconfiguration variables</H3><P>
-These variables will get defined based on the &#X201C;autoconf-style&#X201D; <CODE>static.</CODE> tests executed
+</p><pre class="verbatim">open build/C
+</pre><p>is present in your <code>OMakeroot</code> file.</p>
+<h3 class="subsection" id="sec410">13.5.1&#XA0;&#XA0;Autoconfiguration variables</h3>
+<p>
+These variables will get defined based on the &#X201C;autoconf-style&#X201D; <code>static.</code> tests executed
 when you run OMake for the first time. You can use them to configure your project accordingly,
-and you should not redefine them.</P><P>You can use the <CODE>--configure</CODE> command line option (Section&#XA0;<A HREF="omake-options.html#option:--configure">A.3.9</A>) to force
-re-execution of all the tests.</P><P>A different set of autoconfiguration tests is performed depending on the build environment
-involved &#X2014; one set of tests would be performed in a <CODE>Win32</CODE> environment, and another &#X2014;
-in a Unix-like environment (including Linux, OS X and Cygwin).</P><H4 CLASS="subsubsection"><A NAME="htoc377">13.5.1.1</A>&#XA0;&#XA0;Unix-like systems</H4><H5 CLASS="paragraph">GCC_FOUND</H5><P><A NAME="var:GCC_FOUND"></A><A NAME="@default445"></A><A NAME="@var37"></A> A boolean flag specifying whether the <CODE>gcc</CODE> binary was found in your path.
-</P><H5 CLASS="paragraph">GXX_FOUND</H5><P><A NAME="var:GXX_FOUND"></A><A NAME="@default446"></A><A NAME="@var38"></A> A boolean flag specifying whether the <CODE>g++</CODE> binary was found in your path.</P><H4 CLASS="subsubsection"><A NAME="htoc378">13.5.1.2</A>&#XA0;&#XA0;Win32</H4><H5 CLASS="paragraph">CL_FOUND</H5><P><A NAME="var:CL_FOUND"></A><A NAME="@default447"></A><A NAME="@var39"></A> A boolean flag specifying whether the <CODE>cl</CODE> binary was found in your path.
-</P><H5 CLASS="paragraph">LIB_FOUND</H5><P><A NAME="var:LIB_FOUND"></A><A NAME="@default448"></A><A NAME="@var40"></A> A boolean flag specifying whether the <CODE>lib</CODE> binary was found in your path.</P><H3 CLASS="subsection"><A NAME="htoc379">13.5.2</A>&#XA0;&#XA0;C and C++ configuration variables</H3><P>The following variables can be redefined in your project.</P><H5 CLASS="paragraph">CC</H5><P><A NAME="var:CC"></A><A NAME="@default449"></A><A NAME="@var41"></A> The name of the C compiler (on <CODE>Unix</CODE> it defaults to <CODE>gcc</CODE> when <CODE>gcc</CODE> is present and
-to <CODE>cc</CODE> otherwise; on <CODE>Win32</CODE> defaults to <CODE>cl /nologo</CODE>).
-</P><H5 CLASS="paragraph">CXX</H5><P><A NAME="var:CXX"></A><A NAME="@default450"></A><A NAME="@var42"></A> The name of the C++ compiler (on <CODE>Unix</CODE> it defaults to <CODE>gcc</CODE> when <CODE>gcc</CODE> is present
-and to <CODE>c</CODE>++ otherwise; on <CODE>Win32</CODE> defaults to <CODE>cl /nologo</CODE>).
-</P><H5 CLASS="paragraph">CPP</H5><P><A NAME="var:CPP"></A><A NAME="@default451"></A><A NAME="@var43"></A> The name of the C preprocessor (defaults to <CODE>cpp</CODE> on <CODE>Unix</CODE>, and <CODE>cl /E</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">CFLAGS</H5><P><A NAME="var:CFLAGS"></A><A NAME="@default452"></A><A NAME="@var44"></A> Compilation flags to pass to the C compiler (default empty on <CODE>Unix</CODE>, and <CODE>/DWIN32</CODE>
-on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">CXXFLAGS</H5><P><A NAME="var:CXXFLAGS"></A><A NAME="@default453"></A><A NAME="@var45"></A> Compilation flags to pass to the C++ compiler (default empty on <CODE>Unix</CODE>, and <CODE>/DWIN32</CODE>
-on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">INCLUDES</H5><P><A NAME="var:INCLUDES"></A><A NAME="@default454"></A><A NAME="@var46"></A> Additional directories that specify the search path to the C and C++ compilers (default is <CODE>.</CODE>).
-The directories are passed to the C and C++ compilers with the <CODE>-I</CODE> option.
-The include path with <CODE>-I</CODE> prefixes is defined in the <CODE>PREFIXED_INCLUDES</CODE> variable.
-</P><H5 CLASS="paragraph">LIBS</H5><P><A NAME="var:LIBS"></A><A NAME="@default455"></A><A NAME="@var47"></A> Additional libraries needed when building a program (default is empty).
-</P><H5 CLASS="paragraph">CCOUT</H5><P><A NAME="var:CCOUT"></A><A NAME="@default456"></A><A NAME="@var48"></A> The option to use for specifying the output file in C and C++ compilers
-(defaults to <CODE>-o</CODE> on <CODE>Unix</CODE> and <CODE>/Fo</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">AS</H5><P><A NAME="var:AS"></A><A NAME="@default457"></A><A NAME="@var49"></A> The name of the assembler (defaults to <CODE>as</CODE> on <CODE>Unix</CODE>, and <CODE>ml</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">ASFLAGS</H5><P><A NAME="var:ASFLAGS"></A><A NAME="@default458"></A><A NAME="@var50"></A> Flags to pass to the assembler (default is empty on <CODE>Unix</CODE>, and <CODE>/c /coff</CODE>
-on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">ASOUT</H5><P><A NAME="var:ASOUT"></A><A NAME="@default459"></A><A NAME="@var51"></A> The option string that specifies the output file for <CODE>AS</CODE> (defaults to <CODE>-o</CODE>
-on <CODE>Unix</CODE> and <CODE>/Fo</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">AR</H5><P><A NAME="var:AR"></A><A NAME="@default460"></A><A NAME="@var52"></A> The name of the program to create static libraries (defaults to <CODE>ar cq</CODE> on <CODE>Unix</CODE>,
-and <CODE>lib</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">LD</H5><P><A NAME="var:LD"></A><A NAME="@default461"></A><A NAME="@var53"></A> The name of the linker (defaults to <CODE>ld</CODE> on <CODE>Unix</CODE>, and <CODE>cl</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">LDFLAGS</H5><P><A NAME="var:LDFLAGS"></A><A NAME="@default462"></A><A NAME="@var54"></A> Options to pass to the linker (default is empty).
-</P><H5 CLASS="paragraph">LDFLAGS_DLL</H5><P><A NAME="var:LDFLAGS_DLL"></A><A NAME="@default463"></A><A NAME="@var55"></A> Options to pass to the linker when compiling a shared library (defaults to <CODE>-shared</CODE> on <CODE>Unix</CODE> and <CODE>/DLL</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">LDOUT</H5><P><A NAME="var:LDOUT"></A><A NAME="@default464"></A><A NAME="@var56"></A> The option to use for specifying the output file in C and C++ linkers
-(defaults to <CODE>-o</CODE> on <CODE>Unix</CODE> and <CODE>/Fe</CODE> on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">YACC</H5><P><A NAME="var:YACC"></A><A NAME="@default465"></A><A NAME="@var57"></A> The name of the <CODE>yacc</CODE> parser generator (default is <CODE>yacc</CODE> on <CODE>Unix</CODE>, empty on <CODE>Win32</CODE>).
-</P><H5 CLASS="paragraph">LEX</H5><P><A NAME="var:LEX"></A><A NAME="@default466"></A><A NAME="@var58"></A> The name of the <CODE>lex</CODE> lexer generator (default is <CODE>lex</CODE> on <CODE>Unix</CODE>, empty on <CODE>Win32</CODE>).
-</P><H3 CLASS="subsection"><A NAME="htoc380">13.5.3</A>&#XA0;&#XA0;Generated C files</H3><P>
+and you should not redefine them.</p><p>You can use the <code>--configure</code> command line option (Section&#XA0;<a href="omake-options.html#option%3A--configure">A.3.9</a>) to force
+re-execution of all the tests.</p><p>A different set of autoconfiguration tests is performed depending on the build environment
+involved &#X2014; one set of tests would be performed in a <code>Win32</code> environment, and another &#X2014;
+in a Unix-like environment (including Linux, OS X and Cygwin).</p>
+<h4 class="subsubsection" id="sec411">13.5.1.1&#XA0;&#XA0;Unix-like systems</h4>
+<h5 class="paragraph" id="sec412">GCC_FOUND</h5>
+<p><a id="var:GCC_FOUND"></a><a id="hevea_default445"></a><a id="hevea_var37"></a> A boolean flag specifying whether the <code>gcc</code> binary was found in your path.
+</p>
+<h5 class="paragraph" id="sec413">GXX_FOUND</h5>
+<p><a id="var:GXX_FOUND"></a><a id="hevea_default446"></a><a id="hevea_var38"></a> A boolean flag specifying whether the <code>g++</code> binary was found in your path.</p>
+<h4 class="subsubsection" id="sec414">13.5.1.2&#XA0;&#XA0;Win32</h4>
+<h5 class="paragraph" id="sec415">CL_FOUND</h5>
+<p><a id="var:CL_FOUND"></a><a id="hevea_default447"></a><a id="hevea_var39"></a> A boolean flag specifying whether the <code>cl</code> binary was found in your path.
+</p>
+<h5 class="paragraph" id="sec416">LIB_FOUND</h5>
+<p><a id="var:LIB_FOUND"></a><a id="hevea_default448"></a><a id="hevea_var40"></a> A boolean flag specifying whether the <code>lib</code> binary was found in your path.</p>
+<h3 class="subsection" id="sec417">13.5.2&#XA0;&#XA0;C and C++ configuration variables</h3>
+<p>The following variables can be redefined in your project.</p>
+<h5 class="paragraph" id="sec418">CC</h5>
+<p><a id="var:CC"></a><a id="hevea_default449"></a><a id="hevea_var41"></a> The name of the C compiler (on <code>Unix</code> it defaults to <code>gcc</code> when <code>gcc</code> is present and
+to <code>cc</code> otherwise; on <code>Win32</code> defaults to <code>cl /nologo</code>).
+</p>
+<h5 class="paragraph" id="sec419">CXX</h5>
+<p><a id="var:CXX"></a><a id="hevea_default450"></a><a id="hevea_var42"></a> The name of the C++ compiler (on <code>Unix</code> it defaults to <code>gcc</code> when <code>gcc</code> is present
+and to <code>c</code>++ otherwise; on <code>Win32</code> defaults to <code>cl /nologo</code>).
+</p>
+<h5 class="paragraph" id="sec420">CPP</h5>
+<p><a id="var:CPP"></a><a id="hevea_default451"></a><a id="hevea_var43"></a> The name of the C preprocessor (defaults to <code>cpp</code> on <code>Unix</code>, and <code>cl /E</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec421">CFLAGS</h5>
+<p><a id="var:CFLAGS"></a><a id="hevea_default452"></a><a id="hevea_var44"></a> Compilation flags to pass to the C compiler (default empty on <code>Unix</code>, and <code>/DWIN32</code>
+on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec422">CXXFLAGS</h5>
+<p><a id="var:CXXFLAGS"></a><a id="hevea_default453"></a><a id="hevea_var45"></a> Compilation flags to pass to the C++ compiler (default empty on <code>Unix</code>, and <code>/DWIN32</code>
+on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec423">INCLUDES</h5>
+<p><a id="var:INCLUDES"></a><a id="hevea_default454"></a><a id="hevea_var46"></a> Additional directories that specify the search path to the C and C++ compilers (default is <code>.</code>).
+The directories are passed to the C and C++ compilers with the <code>-I</code> option.
+The include path with <code>-I</code> prefixes is defined in the <code>PREFIXED_INCLUDES</code> variable.
+</p>
+<h5 class="paragraph" id="sec424">LIBS</h5>
+<p><a id="var:LIBS"></a><a id="hevea_default455"></a><a id="hevea_var47"></a> Additional libraries needed when building a program (default is empty).
+</p>
+<h5 class="paragraph" id="sec425">CCOUT</h5>
+<p><a id="var:CCOUT"></a><a id="hevea_default456"></a><a id="hevea_var48"></a> The option to use for specifying the output file in C and C++ compilers
+(defaults to <code>-o</code> on <code>Unix</code> and <code>/Fo</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec426">AS</h5>
+<p><a id="var:AS"></a><a id="hevea_default457"></a><a id="hevea_var49"></a> The name of the assembler (defaults to <code>as</code> on <code>Unix</code>, and <code>ml</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec427">ASFLAGS</h5>
+<p><a id="var:ASFLAGS"></a><a id="hevea_default458"></a><a id="hevea_var50"></a> Flags to pass to the assembler (default is empty on <code>Unix</code>, and <code>/c /coff</code>
+on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec428">ASOUT</h5>
+<p><a id="var:ASOUT"></a><a id="hevea_default459"></a><a id="hevea_var51"></a> The option string that specifies the output file for <code>AS</code> (defaults to <code>-o</code>
+on <code>Unix</code> and <code>/Fo</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec429">AR</h5>
+<p><a id="var:AR"></a><a id="hevea_default460"></a><a id="hevea_var52"></a> The name of the program to create static libraries (defaults to <code>ar cq</code> on <code>Unix</code>,
+and <code>lib</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec430">LD</h5>
+<p><a id="var:LD"></a><a id="hevea_default461"></a><a id="hevea_var53"></a> The name of the linker (defaults to <code>ld</code> on <code>Unix</code>, and <code>cl</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec431">LDFLAGS</h5>
+<p><a id="var:LDFLAGS"></a><a id="hevea_default462"></a><a id="hevea_var54"></a> Options to pass to the linker (default is empty).
+</p>
+<h5 class="paragraph" id="sec432">LDFLAGS_DLL</h5>
+<p><a id="var:LDFLAGS_DLL"></a><a id="hevea_default463"></a><a id="hevea_var55"></a> Options to pass to the linker when compiling a shared library (defaults to <code>-shared</code> on <code>Unix</code> and <code>/DLL</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec433">LDOUT</h5>
+<p><a id="var:LDOUT"></a><a id="hevea_default464"></a><a id="hevea_var56"></a> The option to use for specifying the output file in C and C++ linkers
+(defaults to <code>-o</code> on <code>Unix</code> and <code>/Fe</code> on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec434">YACC</h5>
+<p><a id="var:YACC"></a><a id="hevea_default465"></a><a id="hevea_var57"></a> The name of the <code>yacc</code> parser generator (default is <code>yacc</code> on <code>Unix</code>, empty on <code>Win32</code>).
+</p>
+<h5 class="paragraph" id="sec435">LEX</h5>
+<p><a id="var:LEX"></a><a id="hevea_default466"></a><a id="hevea_var58"></a> The name of the <code>lex</code> lexer generator (default is <code>lex</code> on <code>Unix</code>, empty on <code>Win32</code>).
+</p>
+<h3 class="subsection" id="sec436">13.5.3&#XA0;&#XA0;Generated C files</h3>
+<p>
 Because the C scanners do not normally know anything about generated source files (such as
 generated header files), these files may need to be created before running the scanner.
-</P><H4 CLASS="subsubsection"><A NAME="htoc381">13.5.3.1</A>&#XA0;&#XA0;CGeneratedFiles, LocalCGeneratedFiles</H4><P><A NAME="fun:CGeneratedFiles"></A><A NAME="function:CGeneratedFiles"></A><A NAME="@default467"></A><A NAME="@fun261"></A><A NAME="fun:LocalCGeneratedFiles"></A><A NAME="function:LocalCGeneratedFiles"></A><A NAME="@default468"></A><A NAME="@fun262"></A>
-</P><PRE CLASS="verbatim">CGeneratedFiles(files)
+</p>
+<h4 class="subsubsection" id="sec437">13.5.3.1&#XA0;&#XA0;CGeneratedFiles, LocalCGeneratedFiles</h4>
+<p><a id="fun:CGeneratedFiles"></a><a id="function:CGeneratedFiles"></a><a id="hevea_default467"></a><a id="hevea_fun261"></a><a id="fun:LocalCGeneratedFiles"></a><a id="function:LocalCGeneratedFiles"></a><a id="hevea_default468"></a><a id="hevea_fun262"></a>
+</p><pre class="verbatim">CGeneratedFiles(files)
 LocalCGeneratedFiles(files)
-</PRE><P>The <CODE>CGeneratedFiles</CODE> and <CODE>LocalCGeneratedFiles</CODE> functions specify files
+</pre><p>The <code>CGeneratedFiles</code> and <code>LocalCGeneratedFiles</code> functions specify files
 that need to be generated before any C files are scanned for dependencies. For example,
-if <CODE>config.h</CODE> and <CODE>inputs.h</CODE> are both generated files, specify:
-</P><PRE CLASS="verbatim">CGeneratedFiles(config.h inputs.h)
-</PRE><P>The <CODE>CGeneratedFiles</CODE> function is <EM>global</EM> &#X2014; its arguments will be generated
+if <code>config.h</code> and <code>inputs.h</code> are both generated files, specify:
+</p><pre class="verbatim">CGeneratedFiles(config.h inputs.h)
+</pre><p>The <code>CGeneratedFiles</code> function is <em>global</em> &#X2014; its arguments will be generated
 before any C files anywhere in the project are scanned for dependencies. The
-<CODE>LocalCGeneratedFiles</CODE> function follows the normal scoping rules of OMake.</P><H3 CLASS="subsection"><A NAME="htoc382">13.5.4</A>&#XA0;&#XA0;Building C programs and Libraries</H3><H4 CLASS="subsubsection"><A NAME="htoc383">13.5.4.1</A>&#XA0;&#XA0;StaticCLibrary, DynamicCLibrary</H4><P><A NAME="fun:StaticCLibrary"></A><A NAME="function:StaticCLibrary"></A><A NAME="@default469"></A><A NAME="@fun263"></A><A NAME="fun:DynamicCLibrary"></A><A NAME="function:DynamicCLibrary"></A><A NAME="@default470"></A><A NAME="@fun264"></A></P><P>The <CODE>StaticCLibrary</CODE> builds a static library and the <CODE>DynamicCLibrary</CODE>
-function builds a shared library (DLL).</P><PRE CLASS="verbatim">StaticCLibrary(&lt;target&gt;, &lt;files&gt;)
+<code>LocalCGeneratedFiles</code> function follows the normal scoping rules of OMake.</p>
+<h3 class="subsection" id="sec438">13.5.4&#XA0;&#XA0;Building C programs and Libraries</h3>
+<h4 class="subsubsection" id="sec439">13.5.4.1&#XA0;&#XA0;StaticCLibrary, DynamicCLibrary</h4>
+<p><a id="fun:StaticCLibrary"></a><a id="function:StaticCLibrary"></a><a id="hevea_default469"></a><a id="hevea_fun263"></a><a id="fun:DynamicCLibrary"></a><a id="function:DynamicCLibrary"></a><a id="hevea_default470"></a><a id="hevea_fun264"></a></p><p>The <code>StaticCLibrary</code> builds a static library and the <code>DynamicCLibrary</code>
+function builds a shared library (DLL).</p><pre class="verbatim">StaticCLibrary(&lt;target&gt;, &lt;files&gt;)
 DynamicCLibrary(&lt;target&gt;, &lt;files&gt;)
-</PRE><P>The <CODE>&lt;target&gt;</CODE> does <EM>not</EM> include the library suffix, and
-The <CODE>&lt;files&gt;</CODE> list does not include the object suffix. These
-are obtained from the <CODE><A HREF="#var:EXT_LIB">EXT_LIB</A></CODE> (<CODE><A HREF="#var:EXT_DLL">EXT_DLL</A></CODE>)
-and <CODE><A HREF="#var:EXT_OBJ">EXT_OBJ</A></CODE> variables.</P><P>This function returns the library filename.</P><P>The following command builds the library <CODE>libfoo.a</CODE> from the
-files <CODE>a.o b.o c.o</CODE> on <CODE>Unix</CODE>, or the library
-<CODE>libfoo.lib</CODE> from the files <CODE>a.obj b.obj c.obj</CODE>
-on <CODE>Win32</CODE>.</P><PRE CLASS="verbatim">StaticCLibrary(libfoo, a b c)
+</pre><p>The <code>&lt;target&gt;</code> does <em>not</em> include the library suffix, and
+The <code>&lt;files&gt;</code> list does not include the object suffix. These
+are obtained from the <a href="#var%3AEXT_LIB"><CODE>EXT_LIB</CODE></a> (<a href="#var%3AEXT_DLL"><CODE>EXT_DLL</CODE></a>)
+and <a href="#var%3AEXT_OBJ"><CODE>EXT_OBJ</CODE></a> variables.</p><p>This function returns the library filename.</p><p>The following command builds the library <code>libfoo.a</code> from the
+files <code>a.o b.o c.o</code> on <code>Unix</code>, or the library
+<code>libfoo.lib</code> from the files <code>a.obj b.obj c.obj</code>
+on <code>Win32</code>.</p><pre class="verbatim">StaticCLibrary(libfoo, a b c)
 .DEFAULT: $(StaticCLibrary libbar, a b c d)
-</PRE><H5 CLASS="paragraph">CDLL_IMPLIES_STATIC</H5><P><A NAME="var:CDLL_IMPLIES_STATIC"></A><A NAME="@default471"></A><A NAME="@var59"></A> If the <CODE>CDLL_IMPLIES_STATIC</CODE>
-variable is enabled (this is default on <CODE>Win32</CODE>), all the <CODE>DynamicC</CODE> functions
+</pre>
+<h5 class="paragraph" id="sec440">CDLL_IMPLIES_STATIC</h5>
+<p><a id="var:CDLL_IMPLIES_STATIC"></a><a id="hevea_default471"></a><a id="hevea_var59"></a> If the <code>CDLL_IMPLIES_STATIC</code>
+variable is enabled (this is default on <code>Win32</code>), all the <code>DynamicC</code> functions
 would assume that creating a shared library automatically created a static one.
-</P><H4 CLASS="subsubsection"><A NAME="htoc384">13.5.4.2</A>&#XA0;&#XA0;StaticCLibraryCopy, DynamicCLibraryCopy</H4><P><A NAME="fun:StaticCLibraryCopy"></A><A NAME="function:StaticCLibraryCopy"></A><A NAME="@default472"></A><A NAME="@fun265"></A><A NAME="fun:DynamicCLibraryCopy"></A><A NAME="function:DynamicCLibraryCopy"></A><A NAME="@default473"></A><A NAME="@fun266"></A></P><P>The <CODE>StaticCLibraryCopy</CODE> and <CODE>DynamicCLibraryCopy</CODE> functions copy a library
-to an install location.</P><PRE CLASS="verbatim">StaticCLibraryCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;lib&gt;)
+</p>
+<h4 class="subsubsection" id="sec441">13.5.4.2&#XA0;&#XA0;StaticCLibraryCopy, DynamicCLibraryCopy</h4>
+<p><a id="fun:StaticCLibraryCopy"></a><a id="function:StaticCLibraryCopy"></a><a id="hevea_default472"></a><a id="hevea_fun265"></a><a id="fun:DynamicCLibraryCopy"></a><a id="function:DynamicCLibraryCopy"></a><a id="hevea_default473"></a><a id="hevea_fun266"></a></p><p>The <code>StaticCLibraryCopy</code> and <code>DynamicCLibraryCopy</code> functions copy a library
+to an install location.</p><pre class="verbatim">StaticCLibraryCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;lib&gt;)
 DynamicCLibraryCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;lib&gt;)
-</PRE><P>The <CODE>&lt;tag&gt;</CODE> is the name of a target (typically a <CODE>.PHONY</CODE> target);
-the <CODE>&lt;dir&gt;</CODE> is the installation directory, and <CODE>&lt;lib&gt;</CODE> is
-the library to be copied (without the library suffix).</P><P>This function returns the filename of the library in the target directory.</P><P>For example, the following code copies the library
-<CODE>libfoo.a</CODE> to the <CODE>/usr/lib</CODE> directory.</P><PRE CLASS="verbatim">.PHONY: install
+</pre><p>The <code>&lt;tag&gt;</code> is the name of a target (typically a <code>.PHONY</code> target);
+the <code>&lt;dir&gt;</code> is the installation directory, and <code>&lt;lib&gt;</code> is
+the library to be copied (without the library suffix).</p><p>This function returns the filename of the library in the target directory.</p><p>For example, the following code copies the library
+<code>libfoo.a</code> to the <code>/usr/lib</code> directory.</p><pre class="verbatim">.PHONY: install
 
 StaticCLibraryCopy(install, /usr/lib, libfoo)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc385">13.5.4.3</A>&#XA0;&#XA0;StaticCLibraryInstall, DynamicCLibraryInstall</H4><P><A NAME="fun:StaticCLibraryInstall"></A><A NAME="function:StaticCLibraryInstall"></A><A NAME="@default474"></A><A NAME="@fun267"></A><A NAME="fun:DynamicCLibraryInstall"></A><A NAME="function:DynamicCLibraryInstall"></A><A NAME="@default475"></A><A NAME="@fun268"></A></P><P>The <CODE>StaticCLibraryInstall</CODE> and <CODE>DynamicCLibraryInstall</CODE> functions build a library, and
+</pre>
+<h4 class="subsubsection" id="sec442">13.5.4.3&#XA0;&#XA0;StaticCLibraryInstall, DynamicCLibraryInstall</h4>
+<p><a id="fun:StaticCLibraryInstall"></a><a id="function:StaticCLibraryInstall"></a><a id="hevea_default474"></a><a id="hevea_fun267"></a><a id="fun:DynamicCLibraryInstall"></a><a id="function:DynamicCLibraryInstall"></a><a id="hevea_default475"></a><a id="hevea_fun268"></a></p><p>The <code>StaticCLibraryInstall</code> and <code>DynamicCLibraryInstall</code> functions build a library, and
 set the install location in one step. Return the filename of the library
-in the target directory.</P><PRE CLASS="verbatim">StaticCLibraryInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;libname&gt;, &lt;files&gt;)
+in the target directory.</p><pre class="verbatim">StaticCLibraryInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;libname&gt;, &lt;files&gt;)
 DynamicCLibraryInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;libname&gt;, &lt;files&gt;)
-</PRE><PRE CLASS="verbatim">StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc386">13.5.4.4</A>&#XA0;&#XA0;StaticCObject, StaticCObjectCopy, StaticCObjectInstall</H4><P><A NAME="fun:StaticCObject"></A><A NAME="function:StaticCObject"></A><A NAME="@default476"></A><A NAME="@fun269"></A><A NAME="fun:StaticCObjectCopy"></A><A NAME="function:StaticCObjectCopy"></A><A NAME="@default477"></A><A NAME="@fun270"></A><A NAME="fun:StaticCObjectInstall"></A><A NAME="function:StaticCObjectInstall"></A><A NAME="@default478"></A><A NAME="@fun271"></A></P><P>These functions mirror the <CODE>StaticCLibrary</CODE>, <CODE>StaticCLibraryCopy</CODE>,
-and <CODE>StaticCLibraryInstall</CODE> functions, but they build an <EM>object</EM>
-file (a <CODE>.o</CODE> file on <CODE>Unix</CODE>, and a <CODE>.obj</CODE> file on <CODE>Win32</CODE>).
-</P><H4 CLASS="subsubsection"><A NAME="htoc387">13.5.4.5</A>&#XA0;&#XA0;CProgram</H4><P><A NAME="fun:CProgram"></A><A NAME="function:CProgram"></A><A NAME="@default479"></A><A NAME="@fun272"></A></P><P>The <CODE>CProgram</CODE> function builds a C program from a set
-of object files and libraries.</P><P><CODE>CProgram(&lt;name&gt;, &lt;files&gt;)</CODE></P><P>The <CODE>&lt;name&gt;</CODE> argument specifies the name of the program to be built;
-the <CODE>&lt;files&gt;</CODE> argument specifies the files to be linked. The function
-returns the filename of the executable.</P><P>Additional options can be passed through the following variables.
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>CFLAGS</B></DT><DD CLASS="dd-description"> Flags used by the C compiler during the link step.
-</DD><DT CLASS="dt-description"><B>LDFLAGS</B></DT><DD CLASS="dd-description"> Flags to pass to the loader.
-</DD><DT CLASS="dt-description"><B>LIBS</B></DT><DD CLASS="dd-description"> Additional libraries to be linked.
-</DD></DL><P>For example, the following code specifies that the program
-<CODE>foo</CODE> is to be produced by linking the files <CODE>bar.o</CODE>
-and <CODE>baz.o</CODE> and libraries <CODE>libfoo.a</CODE>.</P><PRE CLASS="verbatim">section
+</pre><pre class="verbatim">StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+</pre>
+<h4 class="subsubsection" id="sec443">13.5.4.4&#XA0;&#XA0;StaticCObject, StaticCObjectCopy, StaticCObjectInstall</h4>
+<p><a id="fun:StaticCObject"></a><a id="function:StaticCObject"></a><a id="hevea_default476"></a><a id="hevea_fun269"></a><a id="fun:StaticCObjectCopy"></a><a id="function:StaticCObjectCopy"></a><a id="hevea_default477"></a><a id="hevea_fun270"></a><a id="fun:StaticCObjectInstall"></a><a id="function:StaticCObjectInstall"></a><a id="hevea_default478"></a><a id="hevea_fun271"></a></p><p>These functions mirror the <code>StaticCLibrary</code>, <code>StaticCLibraryCopy</code>,
+and <code>StaticCLibraryInstall</code> functions, but they build an <em>object</em>
+file (a <code>.o</code> file on <code>Unix</code>, and a <code>.obj</code> file on <code>Win32</code>).
+</p>
+<h4 class="subsubsection" id="sec444">13.5.4.5&#XA0;&#XA0;CProgram</h4>
+<p><a id="fun:CProgram"></a><a id="function:CProgram"></a><a id="hevea_default479"></a><a id="hevea_fun272"></a></p><p>The <code>CProgram</code> function builds a C program from a set
+of object files and libraries.</p><p><code>CProgram(&lt;name&gt;, &lt;files&gt;)</code></p><p>The <code>&lt;name&gt;</code> argument specifies the name of the program to be built;
+the <code>&lt;files&gt;</code> argument specifies the files to be linked. The function
+returns the filename of the executable.</p><p>Additional options can be passed through the following variables.
+</p><dl class="description"><dt class="dt-description">
+<span class="c004">CFLAGS</span></dt><dd class="dd-description"> Flags used by the C compiler during the link step.
+</dd><dt class="dt-description"><span class="c004">LDFLAGS</span></dt><dd class="dd-description"> Flags to pass to the loader.
+</dd><dt class="dt-description"><span class="c004">LIBS</span></dt><dd class="dd-description"> Additional libraries to be linked.
+</dd></dl><p>For example, the following code specifies that the program
+<code>foo</code> is to be produced by linking the files <code>bar.o</code>
+and <code>baz.o</code> and libraries <code>libfoo.a</code>.</p><pre class="verbatim">section
    LIBS = libfoo
    LDFLAGS += -lbar
    CProgram(foo, bar baz)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc388">13.5.4.6</A>&#XA0;&#XA0;CProgramCopy</H4><P><A NAME="fun:CProgramCopy"></A><A NAME="function:CProgramCopy"></A><A NAME="@default480"></A><A NAME="@fun273"></A></P><P>The <CODE>CProgramCopy</CODE> function copies a file to an install location.</P><P><CODE>CProgramCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;program&gt;)</CODE></P><PRE CLASS="verbatim">CProgramCopy(install, /usr/bin, foo)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc389">13.5.4.7</A>&#XA0;&#XA0;CProgramInstall</H4><P><A NAME="fun:CProgramInstall"></A><A NAME="function:CProgramInstall"></A><A NAME="@default481"></A><A NAME="@fun274"></A></P><P>The <CODE>CProgramInstall</CODE> function specifies a program to build,
-and a location to install, simultaneously.</P><P><CODE>CProgramInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;name&gt;, &lt;files&gt;)</CODE></P><PRE CLASS="verbatim">section
+</pre>
+<h4 class="subsubsection" id="sec445">13.5.4.6&#XA0;&#XA0;CProgramCopy</h4>
+<p><a id="fun:CProgramCopy"></a><a id="function:CProgramCopy"></a><a id="hevea_default480"></a><a id="hevea_fun273"></a></p><p>The <code>CProgramCopy</code> function copies a file to an install location.</p><p><code>CProgramCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;program&gt;)</code></p><pre class="verbatim">CProgramCopy(install, /usr/bin, foo)
+</pre>
+<h4 class="subsubsection" id="sec446">13.5.4.7&#XA0;&#XA0;CProgramInstall</h4>
+<p><a id="fun:CProgramInstall"></a><a id="function:CProgramInstall"></a><a id="hevea_default481"></a><a id="hevea_fun274"></a></p><p>The <code>CProgramInstall</code> function specifies a program to build,
+and a location to install, simultaneously.</p><p><code>CProgramInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;name&gt;, &lt;files&gt;)</code></p><pre class="verbatim">section
    LIBS = libfoo
    LDFLAGS += -lbar
    CProgramInstall(install, /usr/bin, foo, bar baz)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc390">13.5.4.8</A>&#XA0;&#XA0;CXXProgram, CXXProgramInstall</H4><P><A NAME="fun:CXXProgram"></A><A NAME="function:CXXProgram"></A><A NAME="@default482"></A><A NAME="@fun275"></A><A NAME="fun:CXXProgramInstall"></A><A NAME="function:CXXProgramInstall"></A><A NAME="@default483"></A><A NAME="@fun276"></A></P><P>The <CODE>CXXProgram</CODE> and <CODE>CXXProgramInstall</CODE> functions are
-equivalent to their C counterparts, except that would use <CODE>$(CXX)</CODE> and <CODE>$(CXXFLAGS)</CODE>
-for linking instead of <CODE>$(CC)</CODE> and <CODE>$(CFLAGS)</CODE>.
-</P><H4 CLASS="subsubsection"><A NAME="htoc391">13.5.4.9</A>&#XA0;&#XA0;StaticCXXLibrary, StaticCXXLibraryCopy, StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy, DynamicCXXLibraryInstall</H4><P><A NAME="fun:StaticCXXLibrary"></A><A NAME="function:StaticCXXLibrary"></A><A NAME="@default484"></A><A NAME="@fun277"></A><A NAME="fun:StaticCXXLibraryCopy"></A><A NAME="function:StaticCXXLibraryCopy"></A><A NAME="@default485"></A><A NAME="@fun278"></A><A NAME="fun:StaticCXXLibraryInstall"></A><A NAME="function:StaticCXXLibraryInstall"></A><A NAME="@default486"></A><A NAME="@fun279"></A><A NAME="fun:DynamicCXXLibrary"></A><A NAME="function:DynamicCXXLibrary"></A><A NAME="@default487"></A><A NAME="@fun280"></A><A NAME="fun:DynamicCXXLibraryCopy"></A><A NAME="function:DynamicCXXLibraryCopy"></A><A NAME="@default488"></A><A NAME="@fun281"></A><A NAME="fun:DynamicCXXLibraryInstall"></A><A NAME="function:DynamicCXXLibraryInstall"></A><A NAME="@default489"></A><A NAME="@fun282"></A></P><P>Similarly, the six <CODE>CXXLibrary</CODE> functions the C++ equivalents of the corresponding
-<CODE>CLibrary</CODE> functions.
-</P><H2 CLASS="section"><A NAME="toc102"></A><A NAME="htoc392">13.6</A>&#XA0;&#XA0;Building OCaml code</H2><P>OMake provides extensive support for building OCaml code, including support for tools like
-<CODE>ocamlfind</CODE>, <CODE>ocamlyacc</CODE> and <CODE>menhir</CODE>. In order to use the functions
+</pre>
+<h4 class="subsubsection" id="sec447">13.5.4.8&#XA0;&#XA0;CXXProgram, CXXProgramInstall</h4>
+<p><a id="fun:CXXProgram"></a><a id="function:CXXProgram"></a><a id="hevea_default482"></a><a id="hevea_fun275"></a><a id="fun:CXXProgramInstall"></a><a id="function:CXXProgramInstall"></a><a id="hevea_default483"></a><a id="hevea_fun276"></a></p><p>The <code>CXXProgram</code> and <code>CXXProgramInstall</code> functions are
+equivalent to their C counterparts, except that would use <code>$(CXX)</code> and <code>$(CXXFLAGS)</code>
+for linking instead of <code>$(CC)</code> and <code>$(CFLAGS)</code>.
+</p>
+<h4 class="subsubsection" id="sec448">13.5.4.9&#XA0;&#XA0;StaticCXXLibrary, StaticCXXLibraryCopy, StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy, DynamicCXXLibraryInstall</h4>
+<p><a id="fun:StaticCXXLibrary"></a><a id="function:StaticCXXLibrary"></a><a id="hevea_default484"></a><a id="hevea_fun277"></a><a id="fun:StaticCXXLibraryCopy"></a><a id="function:StaticCXXLibraryCopy"></a><a id="hevea_default485"></a><a id="hevea_fun278"></a><a id="fun:StaticCXXLibraryInstall"></a><a id="function:StaticCXXLibraryInstall"></a><a id="hevea_default486"></a><a id="hevea_fun279"></a><a id="fun:DynamicCXXLibrary"></a><a id="function:DynamicCXXLibrary"></a><a id="hevea_default487"></a><a id="hevea_fun280"></a><a id="fun:DynamicCXXLibraryCopy"></a><a id="function:DynamicCXXLibraryCopy"></a><a id="hevea_default488"></a><a id="hevea_fun281"></a><a id="fun:DynamicCXXLibraryInstall"></a><a id="function:DynamicCXXLibraryInstall"></a><a id="hevea_default489"></a><a id="hevea_fun282"></a></p><p>Similarly, the six <code>CXXLibrary</code> functions the C++ equivalents of the corresponding
+<code>CLibrary</code> functions.
+</p>
+<h2 class="section" id="sec449">13.6&#XA0;&#XA0;Building OCaml code</h2>
+<p>OMake provides extensive support for building OCaml code, including support for tools like
+<code>ocamlfind</code>, <code>ocamlyacc</code> and <code>menhir</code>. In order to use the functions
 defined in this section, you need to make sure the line
-</P><PRE CLASS="verbatim">open build/OCaml
-</PRE><P>is present in your <CODE>OMakeroot</CODE> file.</P><H3 CLASS="subsection"><A NAME="htoc393">13.6.1</A>&#XA0;&#XA0;Autoconfiguration variables for OCaml compilation</H3><P>
+</p><pre class="verbatim">open build/OCaml
+</pre><p>is present in your <code>OMakeroot</code> file.</p>
+<h3 class="subsection" id="sec450">13.6.1&#XA0;&#XA0;Autoconfiguration variables for OCaml compilation</h3>
+<p>
 These variables will get defined based on the &#X201C;autoconf-style&#X201D; tests executed when you
 run OMake for the first time. You can use them to configure your project accordingly,
-and you should not redefine them.</P><P>You can use the <CODE>--configure</CODE> command line option (Section&#XA0;<A HREF="omake-options.html#option:--configure">A.3.9</A>) to force
-re-execution of all the tests.</P><H5 CLASS="paragraph">OCAMLOPT_EXISTS</H5><P><A NAME="var:OCAMLOPT_EXISTS"></A><A NAME="@default490"></A><A NAME="@var60"></A> True when <CODE>ocamlopt</CODE> (or <CODE>ocamlopt.opt</CODE>) is
+and you should not redefine them.</p><p>You can use the <code>--configure</code> command line option (Section&#XA0;<a href="omake-options.html#option%3A--configure">A.3.9</a>) to force
+re-execution of all the tests.</p>
+<h5 class="paragraph" id="sec451">OCAMLOPT_EXISTS</h5>
+<p><a id="var:OCAMLOPT_EXISTS"></a><a id="hevea_default490"></a><a id="hevea_var60"></a> True when <code>ocamlopt</code> (or <code>ocamlopt.opt</code>) is
 available on your machine.
-</P><H5 CLASS="paragraph">OCAMLFIND_EXISTS</H5><P><A NAME="var:OCAMLFIND_EXISTS"></A><A NAME="@default491"></A><A NAME="@var61"></A> True when the ocamlfind is available on your
+</p>
+<h5 class="paragraph" id="sec452">OCAMLFIND_EXISTS</h5>
+<p><a id="var:OCAMLFIND_EXISTS"></a><a id="hevea_default491"></a><a id="hevea_var61"></a> True when the ocamlfind is available on your
 machines.
-</P><H5 CLASS="paragraph">OCAMLDEP_MODULES_AVAILABLE</H5><P><A NAME="var:OCAMLDEP_MODULES_AVAILABLE"></A><A NAME="@default492"></A><A NAME="@var62"></A> True when a version of
-<CODE>ocamldep</CODE> that understands the <CODE>-modules</CODE> option is available on your machine.
-</P><H5 CLASS="paragraph">MENHIR_AVAILABLE</H5><P><A NAME="var:MENHIR_AVAILABLE"></A><A NAME="@default493"></A><A NAME="@var63"></A> True when the Menhir parser-generator is available
+</p>
+<h5 class="paragraph" id="sec453">OCAMLDEP_MODULES_AVAILABLE</h5>
+<p><a id="var:OCAMLDEP_MODULES_AVAILABLE"></a><a id="hevea_default492"></a><a id="hevea_var62"></a> True when a version of
+<code>ocamldep</code> that understands the <code>-modules</code> option is available on your machine.
+</p>
+<h5 class="paragraph" id="sec454">MENHIR_AVAILABLE</h5>
+<p><a id="var:MENHIR_AVAILABLE"></a><a id="hevea_default493"></a><a id="hevea_var63"></a> True when the Menhir parser-generator is available
 on your machine.
-</P><H5 CLASS="paragraph">OCAMLLIB</H5><P><A NAME="var:OCAMLLIB"></A><A NAME="@default494"></A><A NAME="@var64"></A> The location of OCaml library directory (output of <CODE>ocamlc -where</CODE>). Empty when no
-ocamlc is found.</P><H3 CLASS="subsection"><A NAME="htoc394">13.6.2</A>&#XA0;&#XA0;Configuration variables for OCaml compilation</H3><P>The following variables can be redefined in your project.
-</P><H5 CLASS="paragraph">USE_OCAMLFIND</H5><P><A NAME="var:USE_OCAMLFIND"></A><A NAME="@default495"></A><A NAME="@var65"></A> Whether to use the <CODE>ocamlfind</CODE> utility (default <CODE>false</CODE>)
-</P><H5 CLASS="paragraph">OCAMLC</H5><P><A NAME="var:OCAMLC"></A><A NAME="@default496"></A><A NAME="@var66"></A> The OCaml bytecode compiler (default <CODE>ocamlc.opt</CODE> if it exists
-and <CODE>USE_OCAMLFIND</CODE> is not set, otherwise <CODE>ocamlc</CODE>).
-</P><H5 CLASS="paragraph">OCAMLOPT</H5><P><A NAME="var:OCAMLOPT"></A><A NAME="@default497"></A><A NAME="@var67"></A> The OCaml native-code compiler (default <CODE>ocamlopt.opt</CODE> if it
-exists and <CODE>USE_OCAMLFIND</CODE> is not set, otherwise <CODE>ocamlopt</CODE>).
-</P><H5 CLASS="paragraph">CAMLP4</H5><P><A NAME="var:CAMLP4"></A><A NAME="@default498"></A><A NAME="@var68"></A> The <CODE>camlp4</CODE> preprocessor (default <CODE>camlp4</CODE>).
-</P><H5 CLASS="paragraph">OCAMLLEX</H5><P><A NAME="var:OCAMLLEX"></A><A NAME="@default499"></A><A NAME="@var69"></A> The OCaml lexer generator (default <CODE>ocamllex</CODE>).
-</P><H5 CLASS="paragraph">OCAMLLEXFLAGS</H5><P><A NAME="var:OCAMLLEXFLAGS"></A><A NAME="@default500"></A><A NAME="@var70"></A> The flags to pass to <CODE>ocamllex</CODE> (default <CODE>-q</CODE>).
-</P><H5 CLASS="paragraph">OCAMLYACC</H5><P><A NAME="var:OCAMLYACC"></A><A NAME="@default501"></A><A NAME="@var71"></A> The OCaml parser generator (default <CODE>ocamlyacc</CODE>).
-</P><H5 CLASS="paragraph">OCAMLYACCFLAGS</H5><P><A NAME="var:OCAMLYACCFLAGS"></A><A NAME="@default502"></A><A NAME="@var72"></A> Additional options to pass to <CODE>$(OCAMLYACC)</CODE>.
-</P><H5 CLASS="paragraph">OCAMLDEP</H5><P><A NAME="var:OCAMLDEP"></A><A NAME="@default503"></A><A NAME="@var73"></A> The OCaml dependency analyzer (default <CODE>ocamldep</CODE>).
-</P><H5 CLASS="paragraph">OCAMLDEP_MODULES_ENABLED</H5><P><A NAME="var:OCAMLDEP_MODULES_ENABLED"></A><A NAME="@default504"></A><A NAME="@var74"></A> Instead of using <CODE>OCAMLDEP</CODE>
-in a traditional <CODE>make</CODE>-style fashion, run <CODE>$(OCAMLDEP) -modules</CODE> and then
-postprocess the output internally to discover all the relevant generated <CODE>.ml</CODE> and
-<CODE>.mli</CODE> files. See Section&#XA0;<A HREF="#section:ocaml-generated-files">13.6.5</A> for more information on
-interactions between OMake, <CODE>OCAMLDEP</CODE> and generated files. Set to
-<CODE>$(OCAMLDEP_MODULES_AVAILABLE)</CODE> by default.
-</P><H5 CLASS="paragraph">OCAMLMKTOP</H5><P><A NAME="var:OCAMLMKTOP"></A><A NAME="@default505"></A><A NAME="@var75"></A> The OCaml toploop compiler (default <CODE>ocamlmktop</CODE>).
-</P><H5 CLASS="paragraph">OCAMLLINK</H5><P><A NAME="var:OCAMLLINK"></A><A NAME="@default506"></A><A NAME="@var76"></A> The OCaml bytecode linker (default <CODE>$(OCAMLC)</CODE>).
-</P><H5 CLASS="paragraph">OCAMLOPTLINK</H5><P><A NAME="var:OCAMLOPTLINK"></A><A NAME="@default507"></A><A NAME="@var77"></A> The OCaml native-code linker (default <CODE>$(OCAMLOPT)</CODE>).
-</P><H5 CLASS="paragraph">OCAMLINCLUDES</H5><P><A NAME="var:OCAMLINCLUDES"></A><A NAME="@default508"></A><A NAME="@var78"></A> Search path to pass to the OCaml compilers (default <CODE>.</CODE>).
-The search path with the <CODE>-I</CODE> prefix is defined by the <CODE>PREFIXED_OCAMLINCLUDES</CODE>
+</p>
+<h5 class="paragraph" id="sec455">OCAMLLIB</h5>
+<p><a id="var:OCAMLLIB"></a><a id="hevea_default494"></a><a id="hevea_var64"></a> The location of OCaml library directory (output of <code>ocamlc -where</code>). Empty when no
+ocamlc is found.</p>
+<h3 class="subsection" id="sec456">13.6.2&#XA0;&#XA0;Configuration variables for OCaml compilation</h3>
+<p>The following variables can be redefined in your project.
+</p>
+<h5 class="paragraph" id="sec457">USE_OCAMLFIND</h5>
+<p><a id="var:USE_OCAMLFIND"></a><a id="hevea_default495"></a><a id="hevea_var65"></a> Whether to use the <code>ocamlfind</code> utility (default <code>false</code>)
+</p>
+<h5 class="paragraph" id="sec458">OCAMLC</h5>
+<p><a id="var:OCAMLC"></a><a id="hevea_default496"></a><a id="hevea_var66"></a> The OCaml bytecode compiler (default <code>ocamlc.opt</code> if it exists
+and <code>USE_OCAMLFIND</code> is not set, otherwise <code>ocamlc</code>).
+</p>
+<h5 class="paragraph" id="sec459">OCAMLOPT</h5>
+<p><a id="var:OCAMLOPT"></a><a id="hevea_default497"></a><a id="hevea_var67"></a> The OCaml native-code compiler (default <code>ocamlopt.opt</code> if it
+exists and <code>USE_OCAMLFIND</code> is not set, otherwise <code>ocamlopt</code>).
+</p>
+<h5 class="paragraph" id="sec460">CAMLP4</h5>
+<p><a id="var:CAMLP4"></a><a id="hevea_default498"></a><a id="hevea_var68"></a> The <code>camlp4</code> preprocessor (default <code>camlp4</code>).
+</p>
+<h5 class="paragraph" id="sec461">OCAMLLEX</h5>
+<p><a id="var:OCAMLLEX"></a><a id="hevea_default499"></a><a id="hevea_var69"></a> The OCaml lexer generator (default <code>ocamllex</code>).
+</p>
+<h5 class="paragraph" id="sec462">OCAMLLEXFLAGS</h5>
+<p><a id="var:OCAMLLEXFLAGS"></a><a id="hevea_default500"></a><a id="hevea_var70"></a> The flags to pass to <code>ocamllex</code> (default <code>-q</code>).
+</p>
+<h5 class="paragraph" id="sec463">OCAMLYACC</h5>
+<p><a id="var:OCAMLYACC"></a><a id="hevea_default501"></a><a id="hevea_var71"></a> The OCaml parser generator (default <code>ocamlyacc</code>).
+</p>
+<h5 class="paragraph" id="sec464">OCAMLYACCFLAGS</h5>
+<p><a id="var:OCAMLYACCFLAGS"></a><a id="hevea_default502"></a><a id="hevea_var72"></a> Additional options to pass to <code>$(OCAMLYACC)</code>.
+</p>
+<h5 class="paragraph" id="sec465">OCAMLDEP</h5>
+<p><a id="var:OCAMLDEP"></a><a id="hevea_default503"></a><a id="hevea_var73"></a> The OCaml dependency analyzer (default <code>ocamldep</code>).
+</p>
+<h5 class="paragraph" id="sec466">OCAMLDEP_MODULES_ENABLED</h5>
+<p><a id="var:OCAMLDEP_MODULES_ENABLED"></a><a id="hevea_default504"></a><a id="hevea_var74"></a> Instead of using <code>OCAMLDEP</code>
+in a traditional <code>make</code>-style fashion, run <code>$(OCAMLDEP) -modules</code> and then
+postprocess the output internally to discover all the relevant generated <code>.ml</code> and
+<code>.mli</code> files. See Section&#XA0;<a href="#section%3Aocaml-generated-files">13.6.5</a> for more information on
+interactions between OMake, <code>OCAMLDEP</code> and generated files. Set to
+<code>$(OCAMLDEP_MODULES_AVAILABLE)</code> by default.
+</p>
+<h5 class="paragraph" id="sec467">OCAMLMKTOP</h5>
+<p><a id="var:OCAMLMKTOP"></a><a id="hevea_default505"></a><a id="hevea_var75"></a> The OCaml toploop compiler (default <code>ocamlmktop</code>).
+</p>
+<h5 class="paragraph" id="sec468">OCAMLLINK</h5>
+<p><a id="var:OCAMLLINK"></a><a id="hevea_default506"></a><a id="hevea_var76"></a> The OCaml bytecode linker (default <code>$(OCAMLC)</code>).
+</p>
+<h5 class="paragraph" id="sec469">OCAMLOPTLINK</h5>
+<p><a id="var:OCAMLOPTLINK"></a><a id="hevea_default507"></a><a id="hevea_var77"></a> The OCaml native-code linker (default <code>$(OCAMLOPT)</code>).
+</p>
+<h5 class="paragraph" id="sec470">OCAMLINCLUDES</h5>
+<p><a id="var:OCAMLINCLUDES"></a><a id="hevea_default508"></a><a id="hevea_var78"></a> Search path to pass to the OCaml compilers (default <code>.</code>).
+The search path with the <code>-I</code> prefix is defined by the <code>PREFIXED_OCAMLINCLUDES</code>
 variable.
-</P><H5 CLASS="paragraph">OCAMLFIND</H5><P><A NAME="var:OCAMLFIND"></A><A NAME="@default509"></A><A NAME="@var79"></A> The <CODE>ocamlfind</CODE> utility (default <CODE>ocamlfind</CODE> if
-<CODE>USE_OCAMLFIND</CODE> is set, otherwise empty).
-</P><H5 CLASS="paragraph">OCAMLFINDFLAGS</H5><P><A NAME="var:OCAMLFINDFLAGS"></A><A NAME="@default510"></A><A NAME="@var80"></A> The flags to pass to <CODE>ocamlfind</CODE> (default empty, <CODE>USE_OCAMLFIND</CODE> must be set).
-</P><H5 CLASS="paragraph">OCAMLPACKS</H5><P><A NAME="var:OCAMLPACKS"></A><A NAME="@default511"></A><A NAME="@var81"></A> Package names to pass to <CODE>ocamlfind</CODE> (<CODE>USE_OCAMLFIND</CODE> must be set).
-</P><H5 CLASS="paragraph">BYTE_ENABLED</H5><P><A NAME="var:BYTE_ENABLED"></A><A NAME="@default512"></A><A NAME="@var82"></A> Flag indicating whether to use the bytecode compiler (default <CODE>true</CODE>, when no <CODE>ocamlopt</CODE> found, <CODE>false</CODE> otherwise).
-</P><H5 CLASS="paragraph">NATIVE_ENABLED</H5><P><A NAME="var:NATIVE_ENABLED"></A><A NAME="@default513"></A><A NAME="@var83"></A> Flag indicating whether to use the native-code compiler (default <CODE>true</CODE>, when ocamlopt is found, <CODE>false</CODE> otherwise).
-Both <CODE>BYTE_ENABLED</CODE> and <CODE>NATIVE_ENABLED</CODE> can be set to true;
+</p>
+<h5 class="paragraph" id="sec471">OCAMLFIND</h5>
+<p><a id="var:OCAMLFIND"></a><a id="hevea_default509"></a><a id="hevea_var79"></a> The <code>ocamlfind</code> utility (default <code>ocamlfind</code> if
+<code>USE_OCAMLFIND</code> is set, otherwise empty).
+</p>
+<h5 class="paragraph" id="sec472">OCAMLFINDFLAGS</h5>
+<p><a id="var:OCAMLFINDFLAGS"></a><a id="hevea_default510"></a><a id="hevea_var80"></a> The flags to pass to <code>ocamlfind</code> (default empty, <code>USE_OCAMLFIND</code> must be set).
+</p>
+<h5 class="paragraph" id="sec473">OCAMLPACKS</h5>
+<p><a id="var:OCAMLPACKS"></a><a id="hevea_default511"></a><a id="hevea_var81"></a> Package names to pass to <code>ocamlfind</code> (<code>USE_OCAMLFIND</code> must be set).
+</p>
+<h5 class="paragraph" id="sec474">BYTE_ENABLED</h5>
+<p><a id="var:BYTE_ENABLED"></a><a id="hevea_default512"></a><a id="hevea_var82"></a> Flag indicating whether to use the bytecode compiler (default <code>true</code>, when no <code>ocamlopt</code> found, <code>false</code> otherwise).
+</p>
+<h5 class="paragraph" id="sec475">NATIVE_ENABLED</h5>
+<p><a id="var:NATIVE_ENABLED"></a><a id="hevea_default513"></a><a id="hevea_var83"></a> Flag indicating whether to use the native-code compiler (default <code>true</code>, when ocamlopt is found, <code>false</code> otherwise).
+Both <code>BYTE_ENABLED</code> and <code>NATIVE_ENABLED</code> can be set to true;
 at least one should be set to true.
-</P><H5 CLASS="paragraph">MENHIR_ENABLED</H5><P><A NAME="var:MENHIR_ENABLED"></A><A NAME="@default514"></A><A NAME="@var84"></A> Define this as <CODE>true</CODE> if you wish to use
-<CODE>menhir</CODE> instead of <CODE>ocamlyacc</CODE> (default <CODE>false</CODE>).
-</P><H3 CLASS="subsection"><A NAME="htoc395">13.6.3</A>&#XA0;&#XA0;OCaml command flags</H3><P>The following variables specify <EM>additional</EM> options to be passed to
+</p>
+<h5 class="paragraph" id="sec476">MENHIR_ENABLED</h5>
+<p><a id="var:MENHIR_ENABLED"></a><a id="hevea_default514"></a><a id="hevea_var84"></a> Define this as <code>true</code> if you wish to use
+<code>menhir</code> instead of <code>ocamlyacc</code> (default <code>false</code>).
+</p>
+<h3 class="subsection" id="sec477">13.6.3&#XA0;&#XA0;OCaml command flags</h3>
+<p>The following variables specify <em>additional</em> options to be passed to
 the OCaml tools.
-</P><H5 CLASS="paragraph">OCAMLDEPFLAGS</H5><P><A NAME="var:OCAMLDEPFLAGS"></A><A NAME="@default515"></A><A NAME="@var85"></A> Flags to pass to <CODE>OCAMLDEP</CODE>.
-</P><H5 CLASS="paragraph">OCAMLPPFLAGS</H5><P><A NAME="var:OCAMLPPFLAGS"></A><A NAME="@default516"></A><A NAME="@var86"></A> Flags to pass to <CODE>CAMLP4</CODE>.
-</P><H5 CLASS="paragraph">OCAMLCFLAGS</H5><P><A NAME="var:OCAMLCFLAGS"></A><A NAME="@default517"></A><A NAME="@var87"></A> Flags to pass to the byte-code compiler (default <CODE>-g</CODE>).
-</P><H5 CLASS="paragraph">OCAMLOPTFLAGS</H5><P><A NAME="var:OCAMLOPTFLAGS"></A><A NAME="@default518"></A><A NAME="@var88"></A> Flags to pass to the native-code compiler (default empty).
-</P><H5 CLASS="paragraph">OCAMLFLAGS</H5><P><A NAME="var:OCAMLFLAGS"></A><A NAME="@default519"></A><A NAME="@var89"></A> Flags to pass to either compiler (default <CODE>-warn-error A</CODE>).
-</P><H5 CLASS="paragraph">OCAML_BYTE_LINK_FLAGS</H5><P><A NAME="var:OCAML_BYTE_LINK_FLAGS"></A><A NAME="@default520"></A><A NAME="@var90"></A> Flags to pass to the byte-code linker (default empty).
-</P><H5 CLASS="paragraph">OCAML_NATIVE_LINK_FLAGS</H5><P><A NAME="var:OCAML_NATIVE_LINK_FLAGS"></A><A NAME="@default521"></A><A NAME="@var91"></A> Flags to pass to the native-code linker (default empty).
-</P><H5 CLASS="paragraph">OCAML_LINK_FLAGS</H5><P><A NAME="var:OCAML_LINK_FLAGS"></A><A NAME="@default522"></A><A NAME="@var92"></A> Flags to pass to either linker.
-</P><H5 CLASS="paragraph">MENHIR_FLAGS</H5><P><A NAME="var:MENHIR_FLAGS"></A><A NAME="@default523"></A><A NAME="@var93"></A> Additional flags to pass to <CODE>menhir</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc396">13.6.4</A>&#XA0;&#XA0;Library variables</H3><P>The following variables are used during linking.</P><H5 CLASS="paragraph">OCAML_LIBS</H5><P><A NAME="var:OCAML_LIBS"></A><A NAME="@default524"></A><A NAME="@var94"></A> Libraries to pass to the linker. These libraries become dependencies
+</p>
+<h5 class="paragraph" id="sec478">OCAMLDEPFLAGS</h5>
+<p><a id="var:OCAMLDEPFLAGS"></a><a id="hevea_default515"></a><a id="hevea_var85"></a> Flags to pass to <code>OCAMLDEP</code>.
+</p>
+<h5 class="paragraph" id="sec479">OCAMLPPFLAGS</h5>
+<p><a id="var:OCAMLPPFLAGS"></a><a id="hevea_default516"></a><a id="hevea_var86"></a> Flags to pass to <code>CAMLP4</code>.
+</p>
+<h5 class="paragraph" id="sec480">OCAMLCFLAGS</h5>
+<p><a id="var:OCAMLCFLAGS"></a><a id="hevea_default517"></a><a id="hevea_var87"></a> Flags to pass to the byte-code compiler (default <code>-g</code>).
+</p>
+<h5 class="paragraph" id="sec481">OCAMLOPTFLAGS</h5>
+<p><a id="var:OCAMLOPTFLAGS"></a><a id="hevea_default518"></a><a id="hevea_var88"></a> Flags to pass to the native-code compiler (default empty).
+</p>
+<h5 class="paragraph" id="sec482">OCAMLFLAGS</h5>
+<p><a id="var:OCAMLFLAGS"></a><a id="hevea_default519"></a><a id="hevea_var89"></a> Flags to pass to either compiler (default <code>-warn-error A</code>).
+</p>
+<h5 class="paragraph" id="sec483">OCAML_BYTE_LINK_FLAGS</h5>
+<p><a id="var:OCAML_BYTE_LINK_FLAGS"></a><a id="hevea_default520"></a><a id="hevea_var90"></a> Flags to pass to the byte-code linker (default empty).
+</p>
+<h5 class="paragraph" id="sec484">OCAML_NATIVE_LINK_FLAGS</h5>
+<p><a id="var:OCAML_NATIVE_LINK_FLAGS"></a><a id="hevea_default521"></a><a id="hevea_var91"></a> Flags to pass to the native-code linker (default empty).
+</p>
+<h5 class="paragraph" id="sec485">OCAML_LINK_FLAGS</h5>
+<p><a id="var:OCAML_LINK_FLAGS"></a><a id="hevea_default522"></a><a id="hevea_var92"></a> Flags to pass to either linker.
+</p>
+<h5 class="paragraph" id="sec486">MENHIR_FLAGS</h5>
+<p><a id="var:MENHIR_FLAGS"></a><a id="hevea_default523"></a><a id="hevea_var93"></a> Additional flags to pass to <code>menhir</code>.
+</p>
+<h3 class="subsection" id="sec487">13.6.4&#XA0;&#XA0;Library variables</h3>
+<p>The following variables are used during linking.</p>
+<h5 class="paragraph" id="sec488">OCAML_LIBS</h5>
+<p><a id="var:OCAML_LIBS"></a><a id="hevea_default524"></a><a id="hevea_var94"></a> Libraries to pass to the linker. These libraries become dependencies
 of the link step.
-</P><H5 CLASS="paragraph">OCAML_OTHER_LIBS</H5><P><A NAME="var:OCAML_OTHER_LIBS"></A><A NAME="@default525"></A><A NAME="@var95"></A> Additional libraries to pass to the linker. These libraries are
-<EM>not</EM> included as dependencies to the link step. Typical use is for the OCaml
-standard libraries like <CODE>unix</CODE> or <CODE>str</CODE>.
-</P><H5 CLASS="paragraph">OCAML_CLIBS</H5><P><A NAME="var:OCAML_CLIBS"></A><A NAME="@default526"></A><A NAME="@var96"></A> C libraries to pass to the linker.
-</P><H5 CLASS="paragraph">OCAML_LIB_FLAGS</H5><P><A NAME="var:OCAML_LIB_FLAGS"></A><A NAME="@default527"></A><A NAME="@var97"></A> Extra flags for the library linker.
-</P><H5 CLASS="paragraph">ABORT_ON_DEPENDENCY_ERRORS</H5><P><A NAME="var:ABORT_ON_DEPENDENCY_ERRORS"></A><A NAME="@default528"></A><A NAME="@var98"></A>
+</p>
+<h5 class="paragraph" id="sec489">OCAML_OTHER_LIBS</h5>
+<p><a id="var:OCAML_OTHER_LIBS"></a><a id="hevea_default525"></a><a id="hevea_var95"></a> Additional libraries to pass to the linker. These libraries are
+<em>not</em> included as dependencies to the link step. Typical use is for the OCaml
+standard libraries like <code>unix</code> or <code>str</code>.
+</p>
+<h5 class="paragraph" id="sec490">OCAML_CLIBS</h5>
+<p><a id="var:OCAML_CLIBS"></a><a id="hevea_default526"></a><a id="hevea_var96"></a> C libraries to pass to the linker.
+</p>
+<h5 class="paragraph" id="sec491">OCAML_LIB_FLAGS</h5>
+<p><a id="var:OCAML_LIB_FLAGS"></a><a id="hevea_default527"></a><a id="hevea_var97"></a> Extra flags for the library linker.
+</p>
+<h5 class="paragraph" id="sec492">ABORT_ON_DEPENDENCY_ERRORS</h5>
+<p><a id="var:ABORT_ON_DEPENDENCY_ERRORS"></a><a id="hevea_default528"></a><a id="hevea_var98"></a>
 OCaml linker requires the OCaml files to be
 listed in dependency order. Normally, all the functions presented in this section will automatically sort
-the list of OCaml modules passed in as the <CODE>&lt;files&gt;</CODE> argument. However, this variable is
-set to <CODE>true</CODE>, the order of the files passed into these function will be left as is, but OMake will
-abort with an error message if the order is illegal.</P><H3 CLASS="subsection"><A NAME="htoc397">13.6.5</A>&#XA0;&#XA0;Generated OCaml Files</H3><P>
-<A NAME="section:ocaml-generated-files"></A>
-As of OCaml version 3.09.2, the standard <CODE>ocamldep</CODE> scanner is &#X201C;broken&#X201D;. The main issue is
-that it finds only those dependencies that already exist. If <CODE>foo.ml</CODE> contains a dependency
-on <CODE>Bar</CODE>,
-</P><PRE CLASS="verbatim">foo.ml:
+the list of OCaml modules passed in as the <code>&lt;files&gt;</code> argument. However, this variable is
+set to <code>true</code>, the order of the files passed into these function will be left as is, but OMake will
+abort with an error message if the order is illegal.</p>
+<h3 class="subsection" id="sec493">13.6.5&#XA0;&#XA0;Generated OCaml Files</h3>
+<p>
+<a id="section:ocaml-generated-files"></a>
+As of OCaml version 3.09.2, the standard <code>ocamldep</code> scanner is &#X201C;broken&#X201D;. The main issue is
+that it finds only those dependencies that already exist. If <code>foo.ml</code> contains a dependency
+on <code>Bar</code>,
+</p><pre class="verbatim">foo.ml:
    open Bar
-</PRE><P>then the default <CODE>ocamldep</CODE> will only find the dependency if a file <CODE>bar.ml</CODE> or
-<CODE>bar.ml</CODE> exists in the include path. It will not find (or print) the dependency if, for
-example, only <CODE>bar.mly</CODE> exists at the time <CODE>ocamldep</CODE> is run, even though <CODE>bar.ml</CODE>
-and <CODE>bar.mli</CODE> can be generated from <CODE>bar.mly</CODE>.</P><P>OMake currently provides two methods for addressing this problem &#X2014; one that requires manually
+</pre><p>then the default <code>ocamldep</code> will only find the dependency if a file <code>bar.ml</code> or
+<code>bar.ml</code> exists in the include path. It will not find (or print) the dependency if, for
+example, only <code>bar.mly</code> exists at the time <code>ocamldep</code> is run, even though <code>bar.ml</code>
+and <code>bar.mli</code> can be generated from <code>bar.mly</code>.</p><p>OMake currently provides two methods for addressing this problem &#X2014; one that requires manually
 specifying the generated files, and an experimental method for discovering such &#X201C;hidden&#X201D;
 dependencies automatically. The
-<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> controls which method is
+<a href="#var%3AOCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</a> controls which method is
 going to be used. When this variable is false, the manual specifications are expected and when it
-is true, the automated discovery will be attempted.</P><H4 CLASS="subsubsection"><A NAME="htoc398">13.6.5.1</A>&#XA0;&#XA0;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</H4><P><A NAME="fun:OCamlGeneratedFiles"></A><A NAME="function:OCamlGeneratedFiles"></A><A NAME="@default529"></A><A NAME="@fun283"></A><A NAME="fun:LocalOCamlGeneratedFiles"></A><A NAME="function:LocalOCamlGeneratedFiles"></A><A NAME="@default530"></A><A NAME="@fun284"></A>
-</P><PRE CLASS="verbatim">OCamlGeneratedFiles(files)
+is true, the automated discovery will be attempted.</p>
+<h4 class="subsubsection" id="sec494">13.6.5.1&#XA0;&#XA0;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</h4>
+<p><a id="fun:OCamlGeneratedFiles"></a><a id="function:OCamlGeneratedFiles"></a><a id="hevea_default529"></a><a id="hevea_fun283"></a><a id="fun:LocalOCamlGeneratedFiles"></a><a id="function:LocalOCamlGeneratedFiles"></a><a id="hevea_default530"></a><a id="hevea_fun284"></a>
+</p><pre class="verbatim">OCamlGeneratedFiles(files)
 LocalOCamlGeneratedFiles(files)
-</PRE><P>When the <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> variable is set
-to <CODE>false</CODE>, the <CODE>OCamlGeneratedFiles</CODE> and <CODE>LocalOCamlGeneratedFiles</CODE> functions specify files
+</pre><p>When the <a href="#var%3AOCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</a> variable is set
+to <code>false</code>, the <code>OCamlGeneratedFiles</code> and <code>LocalOCamlGeneratedFiles</code> functions specify files
 that need to be generated before any OCaml files are scanned for dependencies. For example,
-if <CODE>parser.ml</CODE> and <CODE>lexer.ml</CODE> are both generated files, specify:
-</P><PRE CLASS="verbatim">OCamlGeneratedFiles(parser.ml lexer.ml)
-</PRE><P>The <CODE>OCamlGeneratedFiles</CODE> function is <EM>global</EM> &#X2014; its arguments will be generated
+if <code>parser.ml</code> and <code>lexer.ml</code> are both generated files, specify:
+</p><pre class="verbatim">OCamlGeneratedFiles(parser.ml lexer.ml)
+</pre><p>The <code>OCamlGeneratedFiles</code> function is <em>global</em> &#X2014; its arguments will be generated
 before any OCaml files anywhere in the project are scanned for dependencies. The
-<CODE>LocalOCamlGeneratedFiles</CODE> function follows the normal scoping rules of OMake.</P><P>These functions have no effect when the
-<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> is true.</P><H4 CLASS="subsubsection"><A NAME="htoc399">13.6.5.2</A>&#XA0;&#XA0;Automatic discovery of generated files during dependency analysis</H4><P>
+<code>LocalOCamlGeneratedFiles</code> function follows the normal scoping rules of OMake.</p><p>These functions have no effect when the
+<a href="#var%3AOCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</a> is true.</p>
+<h4 class="subsubsection" id="sec495">13.6.5.2&#XA0;&#XA0;Automatic discovery of generated files during dependency analysis</h4>
+<p>
 Having to specify the generated files manualy when OMake could discover them automatically is
-obviously suboptimal. To address this, we tell <CODE>ocamldep</CODE> to <EM>only</EM>
-find the free module names in a file and then post-process the results internally.</P><P>This automated functionality is enabled when the
-<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> is set to <CODE>true</CODE>.
-By default, <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> will be set to
-<CODE>$(OCAMLDEP_MODULES_AVAILABLE)</CODE>.</P><P>Note that the <CODE>ocamldep</CODE> functionality this relies upon is only included in
+obviously suboptimal. To address this, we tell <code>ocamldep</code> to <em>only</em>
+find the free module names in a file and then post-process the results internally.</p><p>This automated functionality is enabled when the
+<a href="#var%3AOCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</a> is set to <code>true</code>.
+By default, <a href="#var%3AOCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</a> will be set to
+<code>$(OCAMLDEP_MODULES_AVAILABLE)</code>.</p><p>Note that the <code>ocamldep</code> functionality this relies upon is only included in
 the OCaml version 3.10 and higher. It&#X2019;s availability will be discovered automatically
-and the <A HREF="#var:OCAMLDEP_MODULES_AVAILABLE"><CODE>OCAMLDEP_MODULES_AVAILABLE</CODE> variable</A>
-will be set accordingly.</P><H3 CLASS="subsection"><A NAME="htoc400">13.6.6</A>&#XA0;&#XA0;Using the Menhir parser generator</H3><P>Menhir is a parser generator that is mostly compatible with
-<CODE>ocamlyacc</CODE>, but with many improvements. A few of these
+and the <a href="#var%3AOCAMLDEP_MODULES_AVAILABLE"><CODE>OCAMLDEP_MODULES_AVAILABLE</CODE> variable</a>
+will be set accordingly.</p>
+<h3 class="subsection" id="sec496">13.6.6&#XA0;&#XA0;Using the Menhir parser generator</h3>
+<p>Menhir is a parser generator that is mostly compatible with
+<code>ocamlyacc</code>, but with many improvements. A few of these
 are listed here (excerpted from the Menhir home page
-<TT><A HREF="http://cristal.inria.fr/~fpottier/menhir/">http://cristal.inria.fr/~fpottier/menhir/</A></TT>).</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+<a href="http://cristal.inria.fr/~fpottier/menhir/"><span class="c001">http://cristal.inria.fr/~fpottier/menhir/</span></a>).</p><ul class="itemize"><li class="li-itemize">
 Menhir&#X2019;s explanations are believed to be understandable by mere humans.
-</LI><LI CLASS="li-itemize">Menhir allows grammar specifications to be split over multiple files.
+</li><li class="li-itemize">Menhir allows grammar specifications to be split over multiple files.
 It also allows several grammars to share a single set of tokens.
-</LI><LI CLASS="li-itemize">Menhir is able to produce parsers that are parameterized by Objective Caml modules.
-</LI><LI CLASS="li-itemize">Added by jyh With the <CODE>--infer</CODE> option, Menhir can typecheck the semantic actions
-in your grammar at <EM>generation</EM> time.
-</LI></UL><P>What do you need to do to use Menhir instead of <CODE>ocamlyacc</CODE>?
-</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+</li><li class="li-itemize">Menhir is able to produce parsers that are parameterized by Objective Caml modules.
+</li><li class="li-itemize">Added by jyh With the <code>--infer</code> option, Menhir can typecheck the semantic actions
+in your grammar at <em>generation</em> time.
+</li></ul><p>What do you need to do to use Menhir instead of <code>ocamlyacc</code>?
+</p><ol class="enumerate" type=1><li class="li-enumerate">
 Place the following definition before the relevant section of your project
-(or at the top of your project <CODE>OMakefile</CODE> if you want to use Menhir everywhere).<PRE CLASS="verbatim">   MENHIR_ENABLED = true
-</PRE></LI><LI CLASS="li-enumerate">Optionally, add any desired Menhir options to the <CODE>MENHIR_FLAGS</CODE> variable.<PRE CLASS="verbatim">   MENHIR_FLAGS += --infer
-</PRE></LI></OL><P>With this setup, any file with a <CODE>.mly</CODE> suffix will be compiled with Menhir.</P><P>If your grammar is split across several files, you need to specify it explicitly,
-using the <CODE>MenhirMulti</CODE> function.</P><PRE CLASS="verbatim">    MenhirMulti(target, sources)
+(or at the top of your project <code>OMakefile</code> if you want to use Menhir everywhere).<pre class="verbatim">   MENHIR_ENABLED = true
+</pre></li><li class="li-enumerate">Optionally, add any desired Menhir options to the <code>MENHIR_FLAGS</code> variable.<pre class="verbatim">   MENHIR_FLAGS += --infer
+</pre></li></ol><p>With this setup, any file with a <code>.mly</code> suffix will be compiled with Menhir.</p><p>If your grammar is split across several files, you need to specify it explicitly,
+using the <code>MenhirMulti</code> function.</p><pre class="verbatim">    MenhirMulti(target, sources)
         target : filename, without suffix
         sources : the files that define the grammar, without suffixes
-</PRE><P>For example, if you want to generate the parser files <CODE>parse.ml</CODE> and <CODE>parse.mli</CODE>,
-from the grammar specified in files <CODE>a.mly</CODE> and <CODE>b.mly</CODE>, you would use
-the following.</P><PRE CLASS="verbatim">    MenhirMulti(parse, a b)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc401">13.6.6.1</A>&#XA0;&#XA0;OCamlLibrary</H4><P><A NAME="fun:OCamlLibrary"></A><A NAME="function:OCamlLibrary"></A><A NAME="@default531"></A><A NAME="@fun285"></A></P><P>The <CODE>OCamlLibrary</CODE> function builds an OCaml library.</P><P><CODE>OCamlLibrary(&lt;libname&gt;, &lt;files&gt;)</CODE></P><P>The <CODE>&lt;libname&gt;</CODE> and <CODE>&lt;files&gt;</CODE> are listed <EM>without</EM> suffixes.</P><P>This function returns the list of all the targets that it defines the rules
-for (including the <CODE>$(name)$(EXT_LIB)</CODE> file when <CODE>NATIVE_ENABLED</CODE> is set).</P><P>The following code builds the <CODE>libfoo.cmxa</CODE> library from the files <CODE>foo.cmx</CODE>
-and <CODE>bar.cmx</CODE> (if <CODE>NATIVE_ENABLED</CODE> is set), and <CODE>libfoo.cma</CODE> from
-<CODE>foo.cmo</CODE> and <CODE>bar.cmo</CODE> (if <CODE>BYTE_ENABLED</CODE> is set).</P><PRE CLASS="verbatim">OCamlLibrary(libfoo, foo bar)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc402">13.6.6.2</A>&#XA0;&#XA0;OCamlPackage</H4><P><A NAME="fun:OCamlPackage"></A><A NAME="function:OCamlPackage"></A><A NAME="@default532"></A><A NAME="@fun286"></A></P><P>The <CODE>OCamlPackage</CODE> function builds an OCaml package.</P><P><CODE>OCamlPackage(&lt;name&gt;, &lt;files&gt;)</CODE></P><P>The <CODE>&lt;name&gt;</CODE> and <CODE>&lt;files&gt;</CODE> are listed <EM>without</EM> suffixes.
-The <CODE>&lt;files&gt;</CODE> must have been compiled with the <CODE>-for-pack &lt;ident&gt;</CODE>
-flag to the OCaml compiler.</P><P>This function returns the list of all the targets that it defines the rules
-for (including the <CODE>$(name)$(EXT_LIB)</CODE> file when <CODE>NATIVE_ENABLED</CODE> is set).</P><P>The following code builds the <CODE>libfoo.cmx</CODE> package from the files <CODE>package.cmx</CODE>
-and <CODE>bar.cmx</CODE> (if <CODE>NATIVE_ENABLED</CODE> is set), and <CODE>package.cmo</CODE> from
-<CODE>foo.cmo</CODE> and <CODE>bar.cmo</CODE> (if <CODE>BYTE_ENABLED</CODE> is set).</P><PRE CLASS="verbatim">OCamlPackage(package, foo bar)
-</PRE><H4 CLASS="subsubsection"><A NAME="htoc403">13.6.6.3</A>&#XA0;&#XA0;OCamlLibraryCopy</H4><P><A NAME="fun:OCamlLibraryCopy"></A><A NAME="function:OCamlLibraryCopy"></A><A NAME="@default533"></A><A NAME="@fun287"></A></P><P>The <CODE>OCamlLibraryCopy</CODE> function copies a library to an install location.</P><P><CODE>OCamlLibraryCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;interface-files&gt;)</CODE></P><P>The <CODE>&lt;interface-files&gt;</CODE> specify additional interface files
-to be copied if the <CODE>INSTALL_INTERFACES</CODE> variable is true.
-</P><H4 CLASS="subsubsection"><A NAME="htoc404">13.6.6.4</A>&#XA0;&#XA0;OCamlLibraryInstall</H4><P><A NAME="fun:OCamlLibraryInstall"></A><A NAME="function:OCamlLibraryInstall"></A><A NAME="@default534"></A><A NAME="@fun288"></A></P><P>The <CODE>OCamlLibraryInstall</CODE> function builds a library
-and copies it to an install location in one step.</P><P><CODE>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</CODE>
-</P><H4 CLASS="subsubsection"><A NAME="htoc405">13.6.6.5</A>&#XA0;&#XA0;OCamlProgram</H4><P><A NAME="fun:OCamlProgram"></A><A NAME="function:OCamlProgram"></A><A NAME="@default535"></A><A NAME="@fun289"></A></P><P>The <CODE>OCamlProgram</CODE> function builds an OCaml program. It returns the array with all
-the targets for which it has defined the rules (<CODE>$(name)$(EXE)</CODE> and <CODE>$(name).run</CODE>
-and/or <CODE>$(name).opt</CODE>, depending on the <CODE>NATIVE_ENABLED</CODE> and <CODE>BYTE_ENABLED</CODE>
-variables).</P><P><CODE>OCamlProgram(&lt;name&gt;, &lt;files&gt;)</CODE></P><P>Additional variables used:
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<CODE><B><A HREF="#var:OCAML_LIBS">OCAML_LIBS</A></B></CODE></DT><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These files
+</pre><p>For example, if you want to generate the parser files <code>parse.ml</code> and <code>parse.mli</code>,
+from the grammar specified in files <code>a.mly</code> and <code>b.mly</code>, you would use
+the following.</p><pre class="verbatim">    MenhirMulti(parse, a b)
+</pre>
+<h4 class="subsubsection" id="sec497">13.6.6.1&#XA0;&#XA0;OCamlLibrary</h4>
+<p><a id="fun:OCamlLibrary"></a><a id="function:OCamlLibrary"></a><a id="hevea_default531"></a><a id="hevea_fun285"></a></p><p>The <code>OCamlLibrary</code> function builds an OCaml library.</p><p><code>OCamlLibrary(&lt;libname&gt;, &lt;files&gt;)</code></p><p>The <code>&lt;libname&gt;</code> and <code>&lt;files&gt;</code> are listed <em>without</em> suffixes.</p><p>This function returns the list of all the targets that it defines the rules
+for (including the <code>$(name)$(EXT_LIB)</code> file when <code>NATIVE_ENABLED</code> is set).</p><p>The following code builds the <code>libfoo.cmxa</code> library from the files <code>foo.cmx</code>
+and <code>bar.cmx</code> (if <code>NATIVE_ENABLED</code> is set), and <code>libfoo.cma</code> from
+<code>foo.cmo</code> and <code>bar.cmo</code> (if <code>BYTE_ENABLED</code> is set).</p><pre class="verbatim">OCamlLibrary(libfoo, foo bar)
+</pre>
+<h4 class="subsubsection" id="sec498">13.6.6.2&#XA0;&#XA0;OCamlPackage</h4>
+<p><a id="fun:OCamlPackage"></a><a id="function:OCamlPackage"></a><a id="hevea_default532"></a><a id="hevea_fun286"></a></p><p>The <code>OCamlPackage</code> function builds an OCaml package.</p><p><code>OCamlPackage(&lt;name&gt;, &lt;files&gt;)</code></p><p>The <code>&lt;name&gt;</code> and <code>&lt;files&gt;</code> are listed <em>without</em> suffixes.
+The <code>&lt;files&gt;</code> must have been compiled with the <code>-for-pack &lt;ident&gt;</code>
+flag to the OCaml compiler.</p><p>This function returns the list of all the targets that it defines the rules
+for (including the <code>$(name)$(EXT_LIB)</code> file when <code>NATIVE_ENABLED</code> is set).</p><p>The following code builds the <code>libfoo.cmx</code> package from the files <code>package.cmx</code>
+and <code>bar.cmx</code> (if <code>NATIVE_ENABLED</code> is set), and <code>package.cmo</code> from
+<code>foo.cmo</code> and <code>bar.cmo</code> (if <code>BYTE_ENABLED</code> is set).</p><pre class="verbatim">OCamlPackage(package, foo bar)
+</pre>
+<h4 class="subsubsection" id="sec499">13.6.6.3&#XA0;&#XA0;OCamlLibraryCopy</h4>
+<p><a id="fun:OCamlLibraryCopy"></a><a id="function:OCamlLibraryCopy"></a><a id="hevea_default533"></a><a id="hevea_fun287"></a></p><p>The <code>OCamlLibraryCopy</code> function copies a library to an install location.</p><p><code>OCamlLibraryCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;interface-files&gt;)</code></p><p>The <code>&lt;interface-files&gt;</code> specify additional interface files
+to be copied if the <code>INSTALL_INTERFACES</code> variable is true.
+</p>
+<h4 class="subsubsection" id="sec500">13.6.6.4&#XA0;&#XA0;OCamlLibraryInstall</h4>
+<p><a id="fun:OCamlLibraryInstall"></a><a id="function:OCamlLibraryInstall"></a><a id="hevea_default534"></a><a id="hevea_fun288"></a></p><p>The <code>OCamlLibraryInstall</code> function builds a library
+and copies it to an install location in one step.</p><p><code>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</code>
+</p>
+<h4 class="subsubsection" id="sec501">13.6.6.5&#XA0;&#XA0;OCamlProgram</h4>
+<p><a id="fun:OCamlProgram"></a><a id="function:OCamlProgram"></a><a id="hevea_default535"></a><a id="hevea_fun289"></a></p><p>The <code>OCamlProgram</code> function builds an OCaml program. It returns the array with all
+the targets for which it has defined the rules (<code>$(name)$(EXE)</code> and <code>$(name).run</code>
+and/or <code>$(name).opt</code>, depending on the <code>NATIVE_ENABLED</code> and <code>BYTE_ENABLED</code>
+variables).</p><p><code>OCamlProgram(&lt;name&gt;, &lt;files&gt;)</code></p><p>Additional variables used:
+</p><dl class="description"><dt class="dt-description">
+<a href="#var%3AOCAML_LIBS"><span class="c004"><CODE>OCAML_LIBS</CODE></span></a></dt><dd class="dd-description"> Additional libraries passed to the linker, without suffix. These files
 become dependencies of the target program.
-</DD><DT CLASS="dt-description"><CODE><B><A HREF="#var:OCAML_OTHER_LIBS">OCAML_OTHER_LIBS</A></B></CODE></DT><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These
-files do <EM>not</EM> become dependencies of the target program.
-</DD><DT CLASS="dt-description"><CODE><B><A HREF="#var:OCAML_CLIBS">OCAML_CLIBS</A></B></CODE></DT><DD CLASS="dd-description"> C libraries to pass to the linker.
-</DD><DT CLASS="dt-description"><CODE><B><A HREF="#var:OCAML_BYTE_LINK_FLAGS">OCAML_BYTE_LINK_FLAGS</A></B></CODE></DT><DD CLASS="dd-description"> Flags to pass to the bytecode linker.
-</DD><DT CLASS="dt-description"><CODE><B><A HREF="#var:OCAML_NATIVE_LINK_FLAGS">OCAML_NATIVE_LINK_FLAGS</A></B></CODE></DT><DD CLASS="dd-description"> Flags to pass to the native code linker.
-</DD><DT CLASS="dt-description"><CODE><B><A HREF="#var:OCAML_LINK_FLAGS">OCAML_LINK_FLAGS</A></B></CODE></DT><DD CLASS="dd-description"> Flags to pass to both linkers.
-</DD></DL><H4 CLASS="subsubsection"><A NAME="htoc406">13.6.6.6</A>&#XA0;&#XA0;OCamlProgramCopy</H4><P><A NAME="fun:OCamlProgramCopy"></A><A NAME="function:OCamlProgramCopy"></A><A NAME="@default536"></A><A NAME="@fun290"></A></P><P>The <CODE>OCamlProgramCopy</CODE> function copies an OCaml program to an install location.</P><P><CODE>OCamlProgramCopy(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;)</CODE></P><P>Additional variables used:
-</P><DL CLASS="description"><DT CLASS="dt-description">
-<B>NATIVE_ENABLED</B></DT><DD CLASS="dd-description"> If the <A HREF="#var:NATIVE_ENABLED"><CODE>NATIVE_ENABLED</CODE> variable</A> is set, the native-code executable
+</dd><dt class="dt-description"><a href="#var%3AOCAML_OTHER_LIBS"><span class="c004"><CODE>OCAML_OTHER_LIBS</CODE></span></a></dt><dd class="dd-description"> Additional libraries passed to the linker, without suffix. These
+files do <em>not</em> become dependencies of the target program.
+</dd><dt class="dt-description"><a href="#var%3AOCAML_CLIBS"><span class="c004"><CODE>OCAML_CLIBS</CODE></span></a></dt><dd class="dd-description"> C libraries to pass to the linker.
+</dd><dt class="dt-description"><a href="#var%3AOCAML_BYTE_LINK_FLAGS"><span class="c004"><CODE>OCAML_BYTE_LINK_FLAGS</CODE></span></a></dt><dd class="dd-description"> Flags to pass to the bytecode linker.
+</dd><dt class="dt-description"><a href="#var%3AOCAML_NATIVE_LINK_FLAGS"><span class="c004"><CODE>OCAML_NATIVE_LINK_FLAGS</CODE></span></a></dt><dd class="dd-description"> Flags to pass to the native code linker.
+</dd><dt class="dt-description"><a href="#var%3AOCAML_LINK_FLAGS"><span class="c004"><CODE>OCAML_LINK_FLAGS</CODE></span></a></dt><dd class="dd-description"> Flags to pass to both linkers.
+</dd></dl>
+<h4 class="subsubsection" id="sec502">13.6.6.6&#XA0;&#XA0;OCamlProgramCopy</h4>
+<p><a id="fun:OCamlProgramCopy"></a><a id="function:OCamlProgramCopy"></a><a id="hevea_default536"></a><a id="hevea_fun290"></a></p><p>The <code>OCamlProgramCopy</code> function copies an OCaml program to an install location.</p><p><code>OCamlProgramCopy(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;)</code></p><p>Additional variables used:
+</p><dl class="description"><dt class="dt-description">
+<span class="c004">NATIVE_ENABLED</span></dt><dd class="dd-description"> If the <a href="#var%3ANATIVE_ENABLED"><CODE>NATIVE_ENABLED</CODE> variable</a> is set, the native-code executable
 is copied; otherwise the byte-code executable is copied.
-</DD></DL><H4 CLASS="subsubsection"><A NAME="htoc407">13.6.6.7</A>&#XA0;&#XA0;OCamlProgramInstall</H4><P><A NAME="fun:OCamlProgramInstall"></A><A NAME="function:OCamlProgramInstall"></A><A NAME="@default537"></A><A NAME="@fun291"></A></P><P>The <CODE>OCamlProgramInstall</CODE> function builds a programs and copies it to
-an install location in one step.</P><P><CODE>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</CODE>
-</P><H2 CLASS="section"><A NAME="toc103"></A><A NAME="htoc408">13.7</A>&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X files</H2><P>OMake provides support for building L<sup>A</sup>T<sub>E</sub>X documents, including support for automatically
+</dd></dl>
+<h4 class="subsubsection" id="sec503">13.6.6.7&#XA0;&#XA0;OCamlProgramInstall</h4>
+<p><a id="fun:OCamlProgramInstall"></a><a id="function:OCamlProgramInstall"></a><a id="hevea_default537"></a><a id="hevea_fun291"></a></p><p>The <code>OCamlProgramInstall</code> function builds a programs and copies it to
+an install location in one step.</p><p><code>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</code>
+</p>
+<h2 class="section" id="sec504">13.7&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X files</h2>
+<p>OMake provides support for building L<sup>A</sup>T<sub>E</sub>X documents, including support for automatically
 running BiBTex and for producing PostScript and PDF files. In order to use the functions
 defined in this section, you need to make sure the line
-</P><PRE CLASS="verbatim">open build/LaTeX
-</PRE><P>is present in your <CODE>OMakeroot</CODE> file.</P><H3 CLASS="subsection"><A NAME="htoc409">13.7.1</A>&#XA0;&#XA0;Configuration variables</H3><P>The following variables can be modified in your project.
-</P><H5 CLASS="paragraph">LATEX</H5><P><A NAME="var:LATEX"></A><A NAME="@default538"></A><A NAME="@var99"></A> The L<sup>A</sup>T<sub>E</sub>X command (default <CODE>latex</CODE>).
-</P><H5 CLASS="paragraph">TETEX2_ENABLED</H5><P><A NAME="var:TETEX2_ENABLED"></A><A NAME="@default539"></A><A NAME="@var100"></A> Flag indicating whether to use advanced L<sup>A</sup>T<sub>E</sub>X options
-present in TeTeX v.2 (default value is determined the first time omake reads <CODE>LaTeX.src</CODE>
+</p><pre class="verbatim">open build/LaTeX
+</pre><p>is present in your <code>OMakeroot</code> file.</p>
+<h3 class="subsection" id="sec505">13.7.1&#XA0;&#XA0;Configuration variables</h3>
+<p>The following variables can be modified in your project.
+</p>
+<h5 class="paragraph" id="sec506">LATEX</h5>
+<p><a id="var:LATEX"></a><a id="hevea_default538"></a><a id="hevea_var99"></a> The L<sup>A</sup>T<sub>E</sub>X command (default <code>latex</code>).
+</p>
+<h5 class="paragraph" id="sec507">TETEX2_ENABLED</h5>
+<p><a id="var:TETEX2_ENABLED"></a><a id="hevea_default539"></a><a id="hevea_var100"></a> Flag indicating whether to use advanced L<sup>A</sup>T<sub>E</sub>X options
+present in TeTeX v.2 (default value is determined the first time omake reads <code>LaTeX.src</code>
 and depends on the version of L<sup>A</sup>T<sub>E</sub>X you have installed).
-</P><H5 CLASS="paragraph">LATEXFLAGS</H5><P><A NAME="var:LATEXFLAGS"></A><A NAME="@default540"></A><A NAME="@var101"></A> The L<sup>A</sup>T<sub>E</sub>X flags (defaults depend on the <CODE>TETEX2_ENABLED</CODE> variable)
-</P><H5 CLASS="paragraph">BIBTEX</H5><P><A NAME="var:BIBTEX"></A><A NAME="@default541"></A><A NAME="@var102"></A> The BibTeX command (default <CODE>bibtex</CODE>).
-</P><H5 CLASS="paragraph">MAKEINDEX</H5><P><A NAME="var:MAKEINDEX"></A><A NAME="@default542"></A><A NAME="@var103"></A> The command to build an index (default <CODE>makeindex</CODE>).
-</P><H5 CLASS="paragraph">DVIPS</H5><P><A NAME="var:DVIPS"></A><A NAME="@default543"></A><A NAME="@var104"></A> The <CODE>.dvi</CODE> to PostScript converter (default <CODE>dvips</CODE>).
-</P><H5 CLASS="paragraph">DVIPSFLAGS</H5><P><A NAME="var:DVIPSFLAGS"></A><A NAME="@default544"></A><A NAME="@var105"></A> Flags to pass to <CODE>dvips</CODE> (default <CODE>-t letter</CODE>).
-</P><H5 CLASS="paragraph">DVIPDFM</H5><P><A NAME="var:DVIPDFM"></A><A NAME="@default545"></A><A NAME="@var106"></A> The <CODE>.dvi</CODE> to <CODE>.pdf</CODE> converter (default <CODE>dvipdfm</CODE>).
-</P><H5 CLASS="paragraph">DVIPDFMFLAGS</H5><P><A NAME="var:DVIPDFMFLAGS"></A><A NAME="@default546"></A><A NAME="@var107"></A> Flags to pass to <CODE>dvipdfm</CODE> (default <CODE>-p letter</CODE>).
-</P><H5 CLASS="paragraph">PDFLATEX</H5><P><A NAME="var:PDFLATEX"></A><A NAME="@default547"></A><A NAME="@var108"></A> The <CODE>.latex</CODE> to <CODE>.pdf</CODE> converter (default <CODE>pdflatex</CODE>).
-</P><H5 CLASS="paragraph">PDFLATEXFLAGS</H5><P><A NAME="var:PDFLATEXFLAGS"></A><A NAME="@default548"></A><A NAME="@var109"></A> Flags to pass to pdflatex (default is <CODE>$`(LATEXFLAGS)</CODE>).
-</P><H5 CLASS="paragraph">USEPDFLATEX</H5><P><A NAME="var:USEPDFLATEX"></A><A NAME="@default549"></A><A NAME="@var110"></A> Flag indicating whether to use pdflatex instead of dvipdfm
-to generate the <CODE>.pdf</CODE> document (default <CODE>false</CODE>).
-</P><H3 CLASS="subsection"><A NAME="htoc410">13.7.2</A>&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X documents</H3><H4 CLASS="subsubsection"><A NAME="htoc411">13.7.2.1</A>&#XA0;&#XA0;LaTeXDocument</H4><P><A NAME="fun:LaTeXDocument"></A><A NAME="function:LaTeXDocument"></A><A NAME="@default550"></A><A NAME="@fun292"></A></P><P>The <CODE>LaTeXDocument</CODE> produces a L<sup>A</sup>T<sub>E</sub>X document.</P><P><CODE>LaTeXDocument(&lt;name&gt;, &lt;texfiles&gt;)</CODE></P><P>The document <CODE>&lt;name&gt;</CODE> and <CODE>&lt;texfiles&gt;</CODE> are listed without suffixes. This function
-returns the filenames for the generated <CODE>.ps</CODE> (unless <A HREF="#var:USEPDFLATEX"><CODE>USEPDFLATEX</CODE> variable</A> is set) and <CODE>.pdf</CODE> files.</P><P>Additional variables used:
-</P><H5 CLASS="paragraph">TEXINPUTS</H5><P><A NAME="var:TEXINPUTS"></A><A NAME="@default551"></A><A NAME="@var111"></A>
+</p>
+<h5 class="paragraph" id="sec508">LATEXFLAGS</h5>
+<p><a id="var:LATEXFLAGS"></a><a id="hevea_default540"></a><a id="hevea_var101"></a> The L<sup>A</sup>T<sub>E</sub>X flags (defaults depend on the <code>TETEX2_ENABLED</code> variable)
+</p>
+<h5 class="paragraph" id="sec509">BIBTEX</h5>
+<p><a id="var:BIBTEX"></a><a id="hevea_default541"></a><a id="hevea_var102"></a> The BibTeX command (default <code>bibtex</code>).
+</p>
+<h5 class="paragraph" id="sec510">MAKEINDEX</h5>
+<p><a id="var:MAKEINDEX"></a><a id="hevea_default542"></a><a id="hevea_var103"></a> The command to build an index (default <code>makeindex</code>).
+</p>
+<h5 class="paragraph" id="sec511">DVIPS</h5>
+<p><a id="var:DVIPS"></a><a id="hevea_default543"></a><a id="hevea_var104"></a> The <code>.dvi</code> to PostScript converter (default <code>dvips</code>).
+</p>
+<h5 class="paragraph" id="sec512">DVIPSFLAGS</h5>
+<p><a id="var:DVIPSFLAGS"></a><a id="hevea_default544"></a><a id="hevea_var105"></a> Flags to pass to <code>dvips</code> (default <code>-t letter</code>).
+</p>
+<h5 class="paragraph" id="sec513">DVIPDFM</h5>
+<p><a id="var:DVIPDFM"></a><a id="hevea_default545"></a><a id="hevea_var106"></a> The <code>.dvi</code> to <code>.pdf</code> converter (default <code>dvipdfm</code>).
+</p>
+<h5 class="paragraph" id="sec514">DVIPDFMFLAGS</h5>
+<p><a id="var:DVIPDFMFLAGS"></a><a id="hevea_default546"></a><a id="hevea_var107"></a> Flags to pass to <code>dvipdfm</code> (default <code>-p letter</code>).
+</p>
+<h5 class="paragraph" id="sec515">PDFLATEX</h5>
+<p><a id="var:PDFLATEX"></a><a id="hevea_default547"></a><a id="hevea_var108"></a> The <code>.latex</code> to <code>.pdf</code> converter (default <code>pdflatex</code>).
+</p>
+<h5 class="paragraph" id="sec516">PDFLATEXFLAGS</h5>
+<p><a id="var:PDFLATEXFLAGS"></a><a id="hevea_default548"></a><a id="hevea_var109"></a> Flags to pass to pdflatex (default is <code>$`(LATEXFLAGS)</code>).
+</p>
+<h5 class="paragraph" id="sec517">USEPDFLATEX</h5>
+<p><a id="var:USEPDFLATEX"></a><a id="hevea_default549"></a><a id="hevea_var110"></a> Flag indicating whether to use pdflatex instead of dvipdfm
+to generate the <code>.pdf</code> document (default <code>false</code>).
+</p>
+<h3 class="subsection" id="sec518">13.7.2&#XA0;&#XA0;Building L<sup>A</sup>T<sub>E</sub>X documents</h3>
+<h4 class="subsubsection" id="sec519">13.7.2.1&#XA0;&#XA0;LaTeXDocument</h4>
+<p><a id="fun:LaTeXDocument"></a><a id="function:LaTeXDocument"></a><a id="hevea_default550"></a><a id="hevea_fun292"></a></p><p>The <code>LaTeXDocument</code> produces a L<sup>A</sup>T<sub>E</sub>X document.</p><p><code>LaTeXDocument(&lt;name&gt;, &lt;texfiles&gt;)</code></p><p>The document <code>&lt;name&gt;</code> and <code>&lt;texfiles&gt;</code> are listed without suffixes. This function
+returns the filenames for the generated <code>.ps</code> (unless <a href="#var%3AUSEPDFLATEX"><CODE>USEPDFLATEX</CODE> variable</a> is set) and <code>.pdf</code> files.</p><p>Additional variables used:
+</p>
+<h5 class="paragraph" id="sec520">TEXINPUTS</h5>
+<p><a id="var:TEXINPUTS"></a><a id="hevea_default551"></a><a id="hevea_var111"></a>
 The L<sup>A</sup>T<sub>E</sub>X search path (an array of directories, default is
-taken from the <CODE>TEXINPUTS</CODE> environment variable).
-</P><H5 CLASS="paragraph">TEXDEPS</H5><P><A NAME="var:TEXDEPS"></A><A NAME="@default552"></A><A NAME="@var112"></A> Additional files this document depends on.
-</P><H5 CLASS="paragraph">TEXVARS</H5><P><A NAME="var:TEXVARS"></A><A NAME="@default553"></A><A NAME="@var113"></A> An array of names of the environment variables
-that are to be updated based on the value of OMake&#X2019;s <CODE>TEXINPUTS</CODE> variable.
-Defaults to <CODE>TEXINPUTS</CODE> <CODE>BIBINPUTS</CODE> <CODE>BSTINPUTS</CODE>.
-</P><H4 CLASS="subsubsection"><A NAME="htoc412">13.7.2.2</A>&#XA0;&#XA0;TeXGeneratedFiles, LocalTeXGeneratedFiles</H4><P><A NAME="fun:TeXGeneratedFiles"></A><A NAME="function:TeXGeneratedFiles"></A><A NAME="@default554"></A><A NAME="@fun293"></A><A NAME="fun:LocalTeXGeneratedFiles"></A><A NAME="function:LocalTeXGeneratedFiles"></A><A NAME="@default555"></A><A NAME="@fun294"></A>
-</P><PRE CLASS="verbatim">TeXGeneratedFiles(files)
+taken from the <code>TEXINPUTS</code> environment variable).
+</p>
+<h5 class="paragraph" id="sec521">TEXDEPS</h5>
+<p><a id="var:TEXDEPS"></a><a id="hevea_default552"></a><a id="hevea_var112"></a> Additional files this document depends on.
+</p>
+<h5 class="paragraph" id="sec522">TEXVARS</h5>
+<p><a id="var:TEXVARS"></a><a id="hevea_default553"></a><a id="hevea_var113"></a> An array of names of the environment variables
+that are to be updated based on the value of OMake&#X2019;s <code>TEXINPUTS</code> variable.
+Defaults to <code>TEXINPUTS</code> <code>BIBINPUTS</code> <code>BSTINPUTS</code>.
+</p>
+<h4 class="subsubsection" id="sec523">13.7.2.2&#XA0;&#XA0;TeXGeneratedFiles, LocalTeXGeneratedFiles</h4>
+<p><a id="fun:TeXGeneratedFiles"></a><a id="function:TeXGeneratedFiles"></a><a id="hevea_default554"></a><a id="hevea_fun293"></a><a id="fun:LocalTeXGeneratedFiles"></a><a id="function:LocalTeXGeneratedFiles"></a><a id="hevea_default555"></a><a id="hevea_fun294"></a>
+</p><pre class="verbatim">TeXGeneratedFiles(files)
 LocalTeXGeneratedFiles(files)
-</PRE><P>The <CODE>TeXGeneratedFiles</CODE> and <CODE>LocalTeXGeneratedFiles</CODE> functions specify files
+</pre><p>The <code>TeXGeneratedFiles</code> and <code>LocalTeXGeneratedFiles</code> functions specify files
 that need to be generated before any L<sup>A</sup>T<sub>E</sub>Xfiles are scanned for dependencies. For example,
-if <CODE>config.tex</CODE> and <CODE>inputs.tex</CODE> are both generated files, specify:
-</P><PRE CLASS="verbatim">    TeXGeneratedFiles(config.tex inputs.tex)
-</PRE><P>The <CODE>TeXGeneratedFiles</CODE> function is <EM>global</EM> &#X2014; its arguments will be generated
+if <code>config.tex</code> and <code>inputs.tex</code> are both generated files, specify:
+</p><pre class="verbatim">    TeXGeneratedFiles(config.tex inputs.tex)
+</pre><p>The <code>TeXGeneratedFiles</code> function is <em>global</em> &#X2014; its arguments will be generated
 before any TeX files anywhere in the project are scanned for dependencies. The
-<CODE>LocalTeXGeneratedFiles</CODE> function follows the normal scoping rules of OMake.</P><H4 CLASS="subsubsection"><A NAME="htoc413">13.7.2.3</A>&#XA0;&#XA0;LaTeXDocumentCopy</H4><P><A NAME="fun:LaTeXDocumentCopy"></A><A NAME="function:LaTeXDocumentCopy"></A><A NAME="@default556"></A><A NAME="@fun295"></A></P><P>The <CODE>LaTeXDocumentCopy</CODE> copies the document to an install location.</P><P><CODE>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</CODE></P><P>This function copies just the <CODE>.pdf</CODE> and <CODE>.ps</CODE> files.
-</P><H4 CLASS="subsubsection"><A NAME="htoc414">13.7.2.4</A>&#XA0;&#XA0;LaTeXDocumentInstall</H4><P><A NAME="fun:LaTeXDocumentInstall"></A><A NAME="function:LaTeXDocumentInstall"></A><A NAME="@default557"></A><A NAME="@fun296"></A></P><P>The <CODE>LaTeXDocumentInstall</CODE> builds a document and copies it to an
-install location in one step.</P><P><CODE>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</CODE>
+<code>LocalTeXGeneratedFiles</code> function follows the normal scoping rules of OMake.</p>
+<h4 class="subsubsection" id="sec524">13.7.2.3&#XA0;&#XA0;LaTeXDocumentCopy</h4>
+<p><a id="fun:LaTeXDocumentCopy"></a><a id="function:LaTeXDocumentCopy"></a><a id="hevea_default556"></a><a id="hevea_fun295"></a></p><p>The <code>LaTeXDocumentCopy</code> copies the document to an install location.</p><p><code>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</code></p><p>This function copies just the <code>.pdf</code> and <code>.ps</code> files.
+</p>
+<h4 class="subsubsection" id="sec525">13.7.2.4&#XA0;&#XA0;LaTeXDocumentInstall</h4>
+<p><a id="fun:LaTeXDocumentInstall"></a><a id="function:LaTeXDocumentInstall"></a><a id="hevea_default557"></a><a id="hevea_fun296"></a></p><p>The <code>LaTeXDocumentInstall</code> builds a document and copies it to an
+install location in one step.</p><p><code>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</code>
 
-</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</p>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

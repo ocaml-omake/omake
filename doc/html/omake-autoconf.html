@@ -1,161 +1,209 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
-            "http://www.w3.org/TR/REC-html40/loose.dtd">
-<HTML>
-<HEAD>
-
-<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.10">
-<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>Autoconfiguration functions and variables</TITLE>
-</HEAD>
-<BODY >
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="generator" content="hevea 2.06">
+<link rel="stylesheet" type="text/css" href="omake-doc.css">
+<title>Autoconfiguration functions and variables</title>
+</head>
+<body>
 
 <img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-<H1 CLASS="chapter"><A NAME="htoc415">Chapter&#XA0;14</A>&#XA0;&#XA0;Autoconfiguration functions and variables</H1><UL>
-<LI><A HREF="omake-autoconf.html#toc104">General-purpose autoconfiguration functions</A>
-</LI><LI><A HREF="omake-autoconf.html#toc105">Translating <CODE>autoconf</CODE> scripts</A>
-</LI><LI><A HREF="omake-autoconf.html#toc106">Predefined configuration tests</A>
-</LI></UL>
-<P>
-<A NAME="chapter:autoconf"></A>
-</P><P>
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+<h1 class="chapter" id="sec526">Chapter&#XA0;14&#XA0;&#XA0;Autoconfiguration functions and variables</h1>
+<ul>
+<li><a href="omake-autoconf.html#sec527">General-purpose autoconfiguration functions</a>
+</li><li><a href="omake-autoconf.html#sec536">Translating <CODE>autoconf</CODE> scripts</a>
+</li><li><a href="omake-autoconf.html#sec537">Predefined configuration tests</a>
+</li></ul>
+<p>
+<a id="chapter:autoconf"></a>
+</p><p>
 OMake standard library provides a number of functions and variables intended to help one write
 build specifications that need to be capable of autoconfiguring itself to adjust to different
-build environments.</P><H2 CLASS="section"><A NAME="toc104"></A><A NAME="htoc416">14.1</A>&#XA0;&#XA0;General-purpose autoconfiguration functions</H2><P>
+build environments.</p>
+<h2 class="section" id="sec527">14.1&#XA0;&#XA0;General-purpose autoconfiguration functions</h2>
+<p>
 The following general-purpose functions can be used to discover the properties of your build
 environment in a fashion similar to the one used by GNU autoconf tool you may be familiar with.
-It is recommended that these function be used from an appropriate <CODE>static.</CODE> block (see
-Section&#XA0;<A HREF="omake-language.html#section:static.">4.15</A> for more information).</P><P>In order to use the following general-purpose functions, you need to have the line
-</P><PRE CLASS="verbatim">open configure/Configure
-</PRE><P>included in your <CODE>OMakefile</CODE> or <CODE>OMakeroot</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc417">14.1.1</A>&#XA0;&#XA0;ConfMsgChecking, ConfMsgResult</H3><P><A NAME="fun:ConfMsgChecking"></A><A NAME="function:ConfMsgChecking"></A><A NAME="@default558"></A><A NAME="@fun297"></A><A NAME="fun:ConfMsgResult"></A><A NAME="function:ConfMsgResult"></A><A NAME="@default559"></A><A NAME="@fun298"></A>
-</P><PRE CLASS="verbatim">ConfMsgChecking(&lt;msg&gt;)
+It is recommended that these function be used from an appropriate <code>static.</code> block (see
+Section&#XA0;<a href="omake-language.html#section%3Astatic.">4.15</a> for more information).</p><p>In order to use the following general-purpose functions, you need to have the line
+</p><pre class="verbatim">open configure/Configure
+</pre><p>included in your <code>OMakefile</code> or <code>OMakeroot</code>.
+</p>
+<h3 class="subsection" id="sec528">14.1.1&#XA0;&#XA0;ConfMsgChecking, ConfMsgResult</h3>
+<p><a id="fun:ConfMsgChecking"></a><a id="function:ConfMsgChecking"></a><a id="hevea_default558"></a><a id="hevea_fun297"></a><a id="fun:ConfMsgResult"></a><a id="function:ConfMsgResult"></a><a id="hevea_default559"></a><a id="hevea_fun298"></a>
+</p><pre class="verbatim">ConfMsgChecking(&lt;msg&gt;)
 ...
 ConfMsgResult(&lt;msg&gt;)
-</PRE><P>The <CODE>ConfMsgChecking</CODE> function output message of the form <CODE>--- Checking &lt;msg&gt;... </CODE>
-<EM>without</EM> any trailing newline. After the test advertized by <CODE>ConfMsgChecking</CODE> is
-performed, the <CODE>ConfMsgResult</CODE> function should be used to output the result.</P><P>In certain cases users may want to redefine these function &#X2014; for example, to use a different
-output formatting and/or to copy the messages to a log file.</P><P>Example:
-</P><PRE CLASS="verbatim">static. =
+</pre><p>The <code>ConfMsgChecking</code> function output message of the form <code>--- Checking &lt;msg&gt;... </code>
+<em>without</em> any trailing newline. After the test advertized by <code>ConfMsgChecking</code> is
+performed, the <code>ConfMsgResult</code> function should be used to output the result.</p><p>In certain cases users may want to redefine these function &#X2014; for example, to use a different
+output formatting and/or to copy the messages to a log file.</p><p>Example:
+</p><pre class="verbatim">static. =
    ConfMsgChecking(which foo to use)
    foo = ...
    ConfMsgResult($(foo))
-</PRE><H3 CLASS="subsection"><A NAME="htoc418">14.1.2</A>&#XA0;&#XA0;ConfMsgWarn, ConfMsgError</H3><P><A NAME="fun:ConfMsgWarn"></A><A NAME="function:ConfMsgWarn"></A><A NAME="@default560"></A><A NAME="@fun299"></A><A NAME="fun:ConfMsgError"></A><A NAME="function:ConfMsgError"></A><A NAME="@default561"></A><A NAME="@fun300"></A>
-</P><PRE CLASS="verbatim">ConfMsgWarn(&lt;msg&gt;)
+</pre>
+<h3 class="subsection" id="sec529">14.1.2&#XA0;&#XA0;ConfMsgWarn, ConfMsgError</h3>
+<p><a id="fun:ConfMsgWarn"></a><a id="function:ConfMsgWarn"></a><a id="hevea_default560"></a><a id="hevea_fun299"></a><a id="fun:ConfMsgError"></a><a id="function:ConfMsgError"></a><a id="hevea_default561"></a><a id="hevea_fun300"></a>
+</p><pre class="verbatim">ConfMsgWarn(&lt;msg&gt;)
 ConfMsgError(&lt;msg&gt;)
-</PRE><P>Print a warning or an error message respectively. <CODE>ConfMsgError</CODE> would then abort OMake.
-</P><H3 CLASS="subsection"><A NAME="htoc419">14.1.3</A>&#XA0;&#XA0;ConfMsgYesNo, ConfMsgFound</H3><P><A NAME="fun:ConfMsgYesNo"></A><A NAME="function:ConfMsgYesNo"></A><A NAME="@default562"></A><A NAME="@fun301"></A><A NAME="fun:ConfMsgFound"></A><A NAME="function:ConfMsgFound"></A><A NAME="@default563"></A><A NAME="@fun302"></A>
-</P><PRE CLASS="verbatim">flag = $(ConfMsgYesNo &lt;bool expr&gt;
+</pre><p>Print a warning or an error message respectively. <code>ConfMsgError</code> would then abort OMake.
+</p>
+<h3 class="subsection" id="sec530">14.1.3&#XA0;&#XA0;ConfMsgYesNo, ConfMsgFound</h3>
+<p><a id="fun:ConfMsgYesNo"></a><a id="function:ConfMsgYesNo"></a><a id="hevea_default562"></a><a id="hevea_fun301"></a><a id="fun:ConfMsgFound"></a><a id="function:ConfMsgFound"></a><a id="hevea_default563"></a><a id="hevea_fun302"></a>
+</p><pre class="verbatim">flag = $(ConfMsgYesNo &lt;bool expr&gt;
 flag = $(ConfMsgFound &lt;bool expr&gt;
-</PRE><P>The <CODE>ConfMsgFound</CODE> function expects to receive a boolean flag describing whether a test
-previously announced using the <A HREF="#fun:ConfMsgChecking"><CODE>ConfMsgChecking</CODE> function</A> found what it
-was looking for. <CODE>ConfMsgFound</CODE> will output the appropriate result (&#X201C;found&#X201D; or &#X201C;NOT found&#X201D;)
-using the <A HREF="#fun:ConfMsgResult"><CODE>ConfMsgResult</CODE> function</A> and return its argument back.</P><P>The <CODE>ConfMsgYesNo</CODE> function is similar, outputting a simple (&#X201C;yes&#X201D; or &#X201C;NO&#X201D;).
-</P><H3 CLASS="subsection"><A NAME="htoc420">14.1.4</A>&#XA0;&#XA0;TryCompileC, TryLinkC, TryRunC</H3><P><A NAME="fun:TryCompileC"></A><A NAME="function:TryCompileC"></A><A NAME="@default564"></A><A NAME="@fun303"></A><A NAME="fun:TryLinkC"></A><A NAME="function:TryLinkC"></A><A NAME="@default565"></A><A NAME="@fun304"></A><A NAME="fun:TryRunC"></A><A NAME="function:TryRunC"></A><A NAME="@default566"></A><A NAME="@fun305"></A>
-</P><PRE CLASS="verbatim">success = $(TryCompileC &lt;prog_text&gt;)
+</pre><p>The <code>ConfMsgFound</code> function expects to receive a boolean flag describing whether a test
+previously announced using the <a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE> function</a> found what it
+was looking for. <code>ConfMsgFound</code> will output the appropriate result (&#X201C;found&#X201D; or &#X201C;NOT found&#X201D;)
+using the <a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE> function</a> and return its argument back.</p><p>The <code>ConfMsgYesNo</code> function is similar, outputting a simple (&#X201C;yes&#X201D; or &#X201C;NO&#X201D;).
+</p>
+<h3 class="subsection" id="sec531">14.1.4&#XA0;&#XA0;TryCompileC, TryLinkC, TryRunC</h3>
+<p><a id="fun:TryCompileC"></a><a id="function:TryCompileC"></a><a id="hevea_default564"></a><a id="hevea_fun303"></a><a id="fun:TryLinkC"></a><a id="function:TryLinkC"></a><a id="hevea_default565"></a><a id="hevea_fun304"></a><a id="fun:TryRunC"></a><a id="function:TryRunC"></a><a id="hevea_default566"></a><a id="hevea_fun305"></a>
+</p><pre class="verbatim">success = $(TryCompileC &lt;prog_text&gt;)
 success = $(TryLinkC &lt;prog_text&gt;)
 success = $(TryRunC &lt;prog_text&gt;)
-</PRE><P>Given the <EM>text</EM> of a C program, the <CODE>TryCompileC</CODE>, <CODE>TryLinkC</CODE>, and <CODE>TryRunC</CODE>
+</pre><p>Given the <em>text</em> of a C program, the <code>TryCompileC</code>, <code>TryLinkC</code>, and <code>TryRunC</code>
 functions would try to compile / compile and link / compile, link, and run, the given program and return a boolean flag
-indicating whether the attempt was successful.</P><P><CODE>TryCompileC</CODE> will use the <CODE><A HREF="omake-build.html#var:CC">CC</A></CODE>, <CODE><A HREF="omake-build.html#var:CFLAGS">CFLAGS</A></CODE> and <CODE><A HREF="omake-build.html#var:INCLUDES">INCLUDES</A></CODE> variables 
-to run the C compiler. <CODE>TryLinkC</CODE> and <CODE>TryRunC</CODE> will also use the <A HREF="omake-build.html#var:LDFLAGS"><CODE>LDFLAGS</CODE> variable</A>
-to run the C compiler and linker. However, the flags like <CODE>/WX</CODE>, <CODE>-Werror</CODE> and <CODE>-warn-error</CODE>
-will be not be passed to the compiler, even if they occur in <CODE>CFLAGS</CODE>.</P><P>These functions are silent and should normally be used with an appropriate
-<CODE><A HREF="#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> &#X2026; <CODE><A HREF="#fun:ConfMsgResult">ConfMsgResult</A></CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc421">14.1.5</A>&#XA0;&#XA0;RunCProg</H3><P><A NAME="fun:RunCProg"></A><A NAME="function:RunCProg"></A><A NAME="@default567"></A><A NAME="@fun306"></A>
-</P><PRE CLASS="verbatim">output = $(RunCProg &lt;prog&gt;)
-</PRE><P><CODE>RunCProg</CODE> is similar to the <A HREF="#fun:RunCProg"><CODE>RunCProg</CODE> function</A>, except that it
-returns the output of the function (will return <CODE>false</CODE> if the program fails to compile
+indicating whether the attempt was successful.</p><p><code>TryCompileC</code> will use the <a href="omake-build.html#var%3ACC"><CODE>CC</CODE></a>, <a href="omake-build.html#var%3ACFLAGS"><CODE>CFLAGS</CODE></a> and <a href="omake-build.html#var%3AINCLUDES"><CODE>INCLUDES</CODE></a> variables 
+to run the C compiler. <code>TryLinkC</code> and <code>TryRunC</code> will also use the <a href="omake-build.html#var%3ALDFLAGS"><CODE>LDFLAGS</CODE> variable</a>
+to run the C compiler and linker. However, the flags like <code>/WX</code>, <code>-Werror</code> and <code>-warn-error</code>
+will be not be passed to the compiler, even if they occur in <code>CFLAGS</code>.</p><p>These functions are silent and should normally be used with an appropriate
+<a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE></a> &#X2026; <a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE></a>.
+</p>
+<h3 class="subsection" id="sec532">14.1.5&#XA0;&#XA0;RunCProg</h3>
+<p><a id="fun:RunCProg"></a><a id="function:RunCProg"></a><a id="hevea_default567"></a><a id="hevea_fun306"></a>
+</p><pre class="verbatim">output = $(RunCProg &lt;prog&gt;)
+</pre><p><code>RunCProg</code> is similar to the <a href="#fun%3ARunCProg"><CODE>RunCProg</CODE> function</a>, except that it
+returns the output of the function (will return <code>false</code> if the program fails to compile
 or run).
-</P><H3 CLASS="subsection"><A NAME="htoc422">14.1.6</A>&#XA0;&#XA0;CheckCHeader, VerboseCheckCHeader</H3><P><A NAME="fun:CheckCHeader"></A><A NAME="function:CheckCHeader"></A><A NAME="@default568"></A><A NAME="@fun307"></A><A NAME="fun:VerboseCheckCHeader"></A><A NAME="function:VerboseCheckCHeader"></A><A NAME="@default569"></A><A NAME="@fun308"></A>
-</P><PRE CLASS="verbatim">success = $(CheckCHeader &lt;files&gt;)
+</p>
+<h3 class="subsection" id="sec533">14.1.6&#XA0;&#XA0;CheckCHeader, VerboseCheckCHeader</h3>
+<p><a id="fun:CheckCHeader"></a><a id="function:CheckCHeader"></a><a id="hevea_default568"></a><a id="hevea_fun307"></a><a id="fun:VerboseCheckCHeader"></a><a id="function:VerboseCheckCHeader"></a><a id="hevea_default569"></a><a id="hevea_fun308"></a>
+</p><pre class="verbatim">success = $(CheckCHeader &lt;files&gt;)
 success = $(VerboseCheckCHeader &lt;files&gt;)
-</PRE><P>Use the <A HREF="#fun:TryCompileC"><CODE>TryCompileC</CODE> function</A> to check whether your C compiler can locate
+</pre><p>Use the <a href="#fun%3ATryCompileC"><CODE>TryCompileC</CODE> function</a> to check whether your C compiler can locate
 and process the specified headers files.
-Will incude <CODE>&lt;stdio.h&gt;</CODE> before including the header files.</P><P>Both functions return a boolean value. The <CODE>CheckCHeader</CODE> function is silent; the
-<CODE>VerboseCheckCHeader</CODE> function will use the <CODE><A HREF="#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
-<CODE><A HREF="#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions to describe the test and the outcome.</P><P>Example:
-</P><PRE CLASS="verbatim">static. =
+Will incude <code>&lt;stdio.h&gt;</code> before including the header files.</p><p>Both functions return a boolean value. The <code>CheckCHeader</code> function is silent; the
+<code>VerboseCheckCHeader</code> function will use the <a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE></a> and
+<a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE></a> functions to describe the test and the outcome.</p><p>Example:
+</p><pre class="verbatim">static. =
    NCURSES_H_AVAILABLE = $(VerboseCheckCHeader ncurses.h)
-</PRE><H3 CLASS="subsection"><A NAME="htoc423">14.1.7</A>&#XA0;&#XA0;CheckCLib, VerboseCheckCLib</H3><P><A NAME="fun:CheckCLib"></A><A NAME="function:CheckCLib"></A><A NAME="@default570"></A><A NAME="@fun309"></A><A NAME="fun:VerboseCheckCLib"></A><A NAME="function:VerboseCheckCLib"></A><A NAME="@default571"></A><A NAME="@fun310"></A>
-</P><PRE CLASS="verbatim">success = $(CheckCLib &lt;libs&gt;, &lt;functions&gt;)
+</pre>
+<h3 class="subsection" id="sec534">14.1.7&#XA0;&#XA0;CheckCLib, VerboseCheckCLib</h3>
+<p><a id="fun:CheckCLib"></a><a id="function:CheckCLib"></a><a id="hevea_default570"></a><a id="hevea_fun309"></a><a id="fun:VerboseCheckCLib"></a><a id="function:VerboseCheckCLib"></a><a id="hevea_default571"></a><a id="hevea_fun310"></a>
+</p><pre class="verbatim">success = $(CheckCLib &lt;libs&gt;, &lt;functions&gt;)
 success = $(VerboseCheckCLib &lt;libs&gt;, &lt;functions&gt;)
-</PRE><P>Use the <A HREF="#fun:TryLinkC"><CODE>TryLinkC</CODE> function</A> to check whether your C compiler and linker can
-find the named functions when linking with the named libraries. Will pass the <CODE>&lt;libs&gt;</CODE> to
-the compiler using the <CODE>-l</CODE> flag.</P><P>Both functions return a boolean value. The <CODE>CheckCLib</CODE> function is silent; the
-<CODE>VerboseCheckCHeader</CODE> function will use the <CODE><A HREF="#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
-<CODE><A HREF="#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions to describe the test and the outcome.</P><P>Example:
-</P><PRE CLASS="verbatim">static. =
+</pre><p>Use the <a href="#fun%3ATryLinkC"><CODE>TryLinkC</CODE> function</a> to check whether your C compiler and linker can
+find the named functions when linking with the named libraries. Will pass the <code>&lt;libs&gt;</code> to
+the compiler using the <code>-l</code> flag.</p><p>Both functions return a boolean value. The <code>CheckCLib</code> function is silent; the
+<code>VerboseCheckCHeader</code> function will use the <a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE></a> and
+<a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE></a> functions to describe the test and the outcome.</p><p>Example:
+</p><pre class="verbatim">static. =
     NCURSES_LIB_AVAILABLE = $(VerboseCheckCLib ncurses, initscr setupterm tigetstr)
-</PRE><H3 CLASS="subsection"><A NAME="htoc424">14.1.8</A>&#XA0;&#XA0;CheckProg</H3><P><A NAME="fun:CheckProg"></A><A NAME="function:CheckProg"></A><A NAME="@default572"></A><A NAME="@fun311"></A>
-<CODE>success = $(CheckProg &lt;prog&gt;)</CODE></P><P>Checks whether the program <CODE>&lt;prog&gt;</CODE> exists in your path. Will use the
-<CODE><A HREF="#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
-<CODE><A HREF="#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions to describe the test and the outcome.</P><H2 CLASS="section"><A NAME="toc105"></A><A NAME="htoc425">14.2</A>&#XA0;&#XA0;Translating <CODE>autoconf</CODE> scripts</H2><P>
-Some of the functions described above are very similar to the ones present in <CODE>autoconf</CODE>.
+</pre>
+<h3 class="subsection" id="sec535">14.1.8&#XA0;&#XA0;CheckProg</h3>
+<p><a id="fun:CheckProg"></a><a id="function:CheckProg"></a><a id="hevea_default572"></a><a id="hevea_fun311"></a>
+<code>success = $(CheckProg &lt;prog&gt;)</code></p><p>Checks whether the program <code>&lt;prog&gt;</code> exists in your path. Will use the
+<a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE></a> and
+<a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE></a> functions to describe the test and the outcome.</p>
+<h2 class="section" id="sec536">14.2&#XA0;&#XA0;Translating <CODE>autoconf</CODE> scripts</h2>
+<p>
+Some of the functions described above are very similar to the ones present in <code>autoconf</code>.
 Below is a brief translation table for such functions.
-</P><DL CLASS="description"><DT CLASS="dt-description">
-</DT><DD CLASS="dd-description"><CODE>AC_MSG_CHECKING</CODE><A NAME="@default573"></A> is very similar to <A HREF="#fun:ConfMsgChecking"><CODE>ConfMsgChecking</CODE> function</A>.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_MSG_RESULT</CODE><A NAME="@default574"></A> is very similar to <A HREF="#fun:ConfMsgResult"><CODE>ConfMsgResult</CODE> function</A>.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_MSG_WARN</CODE><A NAME="@default575"></A> is very similar to <A HREF="#fun:ConfMsgWarn"><CODE>ConfMsgWarn</CODE> function</A>.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_MSG_ERROR</CODE><A NAME="@default576"></A> is very similar to <A HREF="#fun:ConfMsgError"><CODE>ConfMsgError</CODE> function</A>.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_TRY_COMPILE</CODE><A NAME="@default577"></A> is somewhat similar to <A HREF="#fun:TryCompileC"><CODE>TryCompileC</CODE> function</A>,
-except the <A HREF="#fun:TryCompileC"><CODE>TryCompileC</CODE> function</A> returns a boolean value and only works for <CODE>C</CODE>. Similarly,
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_TRY_LINK</CODE><A NAME="@default578"></A> is approximated by <A HREF="#fun:TryLinkC"><CODE>TryLinkC</CODE> function</A>, and
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>AC_TRY_RUN</CODE><A NAME="@default579"></A> is approximated by <A HREF="#fun:TryRunC"><CODE>TryRunC</CODE> function</A>.
-</DD></DL><H2 CLASS="section"><A NAME="toc106"></A><A NAME="htoc426">14.3</A>&#XA0;&#XA0;Predefined configuration tests</H2><P>
+</p><dl class="description"><dt class="dt-description">
+</dt><dd class="dd-description"><CODE>AC_MSG_CHECKING</CODE><a id="hevea_default573"></a> is very similar to <a href="#fun%3AConfMsgChecking"><CODE>ConfMsgChecking</CODE> function</a>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_MSG_RESULT</CODE><a id="hevea_default574"></a> is very similar to <a href="#fun%3AConfMsgResult"><CODE>ConfMsgResult</CODE> function</a>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_MSG_WARN</CODE><a id="hevea_default575"></a> is very similar to <a href="#fun%3AConfMsgWarn"><CODE>ConfMsgWarn</CODE> function</a>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_MSG_ERROR</CODE><a id="hevea_default576"></a> is very similar to <a href="#fun%3AConfMsgError"><CODE>ConfMsgError</CODE> function</a>.
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_TRY_COMPILE</CODE><a id="hevea_default577"></a> is somewhat similar to <a href="#fun%3ATryCompileC"><CODE>TryCompileC</CODE> function</a>,
+except the <a href="#fun%3ATryCompileC"><CODE>TryCompileC</CODE> function</a> returns a boolean value and only works for <code>C</code>. Similarly,
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_TRY_LINK</CODE><a id="hevea_default578"></a> is approximated by <a href="#fun%3ATryLinkC"><CODE>TryLinkC</CODE> function</a>, and
+</dd><dt class="dt-description"></dt><dd class="dd-description"><CODE>AC_TRY_RUN</CODE><a id="hevea_default579"></a> is approximated by <a href="#fun%3ATryRunC"><CODE>TryRunC</CODE> function</a>.
+</dd></dl>
+<h2 class="section" id="sec537">14.3&#XA0;&#XA0;Predefined configuration tests</h2>
+<p>
 A number of configuration tests are already included in the standard library.
-In order to use them in your project, simply <CODE>open</CODE> (see Section&#XA0;<A HREF="omake-language.html#section:include">4.8</A>) the
-corresponding build file in your <CODE>OMakefile</CODE> and the tests will run the first time OMake
-is executed. Note that it is not a problem to <CODE>open</CODE> these files from more than one place in
+In order to use them in your project, simply <code>open</code> (see Section&#XA0;<a href="omake-language.html#section%3Ainclude">4.8</a>) the
+corresponding build file in your <code>OMakefile</code> and the tests will run the first time OMake
+is executed. Note that it is not a problem to <code>open</code> these files from more than one place in
 your project &#X2014; if you do that, the test will still run only once.
-</P><H3 CLASS="subsection"><A NAME="htoc427">14.3.1</A>&#XA0;&#XA0;NCurses library configuration</H3><P>
-Add <CODE>open configure/ncurses</CODE> line to your <CODE>OMakefile</CODE> to get access to the following
+</p>
+<h3 class="subsection" id="sec538">14.3.1&#XA0;&#XA0;NCurses library configuration</h3>
+<p>
+Add <code>open configure/ncurses</code> line to your <code>OMakefile</code> to get access to the following
 autoconfiguration variables.
-</P><H5 CLASS="paragraph">NCURSES_AVAILABLE</H5><P><A NAME="var:NCURSES_AVAILABLE"></A><A NAME="@default580"></A><A NAME="@var114"></A> A boolean flag that would be set when both
-the <CODE>curses.h</CODE> header, the <CODE>term.h</CODE> header, and the <CODE>ncurses</CODE> library very found.</P><H5 CLASS="paragraph">NCURSES_TERMH_IN_NCURSES</H5><P><A NAME="var:NCURSES_TERMH_IN_NCURSES"></A><A NAME="@default581"></A><A NAME="@var115"></A> A boolean flag that would be set
-when <CODE>term.h</CODE> has to be included as <CODE>&lt;ncurses/term.h&gt;</CODE> instead of <CODE>&lt;term.h&gt;</CODE>.</P><H5 CLASS="paragraph">NCURSES_CFLAGS</H5><P><A NAME="var:NCURSES_CFLAGS"></A><A NAME="@default582"></A><A NAME="@var116"></A> The <CODE>CFLAGS</CODE> to use when compiling ncurses code.
-Will include <CODE>-DNCURSES</CODE> and <CODE>-DTERMH_IN_NCURSES</CODE>, respectively
-when <CODE>NCURSES_AVAILABLE</CODE> and <CODE>NCURSES_TERMH_IN_NCURSES</CODE> are true.</P><H5 CLASS="paragraph">NCURSES_CLIBS</H5><P><A NAME="var:NCURSES_CLIBS"></A><A NAME="@default583"></A><A NAME="@var117"></A> The <CODE>LDFLAGS</CODE> to use when linking ncurses code.
-Will normally contain <CODE>-lncurses</CODE> when ncurses is found and remain empty otherwise.
-</P><H3 CLASS="subsection"><A NAME="htoc428">14.3.2</A>&#XA0;&#XA0;ReadLine library configuration</H3><P>
-Add <CODE>open configure/readline</CODE> line to your <CODE>OMakefile</CODE> to get access to the following
+</p>
+<h5 class="paragraph" id="sec539">NCURSES_AVAILABLE</h5>
+<p><a id="var:NCURSES_AVAILABLE"></a><a id="hevea_default580"></a><a id="hevea_var114"></a> A boolean flag that would be set when both
+the <code>curses.h</code> header, the <code>term.h</code> header, and the <code>ncurses</code> library very found.</p>
+<h5 class="paragraph" id="sec540">NCURSES_TERMH_IN_NCURSES</h5>
+<p><a id="var:NCURSES_TERMH_IN_NCURSES"></a><a id="hevea_default581"></a><a id="hevea_var115"></a> A boolean flag that would be set
+when <code>term.h</code> has to be included as <code>&lt;ncurses/term.h&gt;</code> instead of <code>&lt;term.h&gt;</code>.</p>
+<h5 class="paragraph" id="sec541">NCURSES_CFLAGS</h5>
+<p><a id="var:NCURSES_CFLAGS"></a><a id="hevea_default582"></a><a id="hevea_var116"></a> The <code>CFLAGS</code> to use when compiling ncurses code.
+Will include <code>-DNCURSES</code> and <code>-DTERMH_IN_NCURSES</code>, respectively
+when <code>NCURSES_AVAILABLE</code> and <code>NCURSES_TERMH_IN_NCURSES</code> are true.</p>
+<h5 class="paragraph" id="sec542">NCURSES_CLIBS</h5>
+<p><a id="var:NCURSES_CLIBS"></a><a id="hevea_default583"></a><a id="hevea_var117"></a> The <code>LDFLAGS</code> to use when linking ncurses code.
+Will normally contain <code>-lncurses</code> when ncurses is found and remain empty otherwise.
+</p>
+<h3 class="subsection" id="sec543">14.3.2&#XA0;&#XA0;ReadLine library configuration</h3>
+<p>
+Add <code>open configure/readline</code> line to your <code>OMakefile</code> to get access to the following
 autoconfiguration variables.
-</P><H5 CLASS="paragraph">READLINE_AVAILABLE</H5><P><A NAME="var:READLINE_AVAILABLE"></A><A NAME="@default584"></A><A NAME="@var118"></A> A boolean flag that would be set when both
-the <CODE>readline/readline.h</CODE> header, the <CODE>readline/history.h</CODE> header, and the <CODE>readline</CODE>
-library very found.</P><H5 CLASS="paragraph">READLINE_GNU</H5><P><A NAME="var:READLINE_GNU"></A><A NAME="@default585"></A><A NAME="@var119"></A> A boolean flag that would be set
-when the GNU version of the readline library is found (as opposed to the BSD one).</P><H5 CLASS="paragraph">READLINE_CFLAGS</H5><P><A NAME="var:READLINE_CFLAGS"></A><A NAME="@default586"></A><A NAME="@var120"></A> The <CODE>CFLAGS</CODE> to use when compiling readline code.
-Will include <CODE>-DREADLINE_ENABLED</CODE> and <CODE>-DREADLINE_GNU</CODE>, respectively
-when <CODE>READLINE_AVAILABLE</CODE> and <CODE>READLINE_GNU</CODE> are true.</P><H5 CLASS="paragraph">READLINE_CLIBS</H5><P><A NAME="var:READLINE_CLIBS"></A><A NAME="@default587"></A><A NAME="@var121"></A> The <CODE>LDFLAGS</CODE> to use when linking readline code.
-Will normally contain <CODE>-lncurses -lreadline</CODE> when readline is found and remain empty otherwise.
-</P><H3 CLASS="subsection"><A NAME="htoc429">14.3.3</A>&#XA0;&#XA0;Snprintf configuration</H3><P>
-Add <CODE>open configure/snprintf</CODE> line to your <CODE>OMakefile</CODE> to get access to the following
+</p>
+<h5 class="paragraph" id="sec544">READLINE_AVAILABLE</h5>
+<p><a id="var:READLINE_AVAILABLE"></a><a id="hevea_default584"></a><a id="hevea_var118"></a> A boolean flag that would be set when both
+the <code>readline/readline.h</code> header, the <code>readline/history.h</code> header, and the <code>readline</code>
+library very found.</p>
+<h5 class="paragraph" id="sec545">READLINE_GNU</h5>
+<p><a id="var:READLINE_GNU"></a><a id="hevea_default585"></a><a id="hevea_var119"></a> A boolean flag that would be set
+when the GNU version of the readline library is found (as opposed to the BSD one).</p>
+<h5 class="paragraph" id="sec546">READLINE_CFLAGS</h5>
+<p><a id="var:READLINE_CFLAGS"></a><a id="hevea_default586"></a><a id="hevea_var120"></a> The <code>CFLAGS</code> to use when compiling readline code.
+Will include <code>-DREADLINE_ENABLED</code> and <code>-DREADLINE_GNU</code>, respectively
+when <code>READLINE_AVAILABLE</code> and <code>READLINE_GNU</code> are true.</p>
+<h5 class="paragraph" id="sec547">READLINE_CLIBS</h5>
+<p><a id="var:READLINE_CLIBS"></a><a id="hevea_default587"></a><a id="hevea_var121"></a> The <code>LDFLAGS</code> to use when linking readline code.
+Will normally contain <code>-lncurses -lreadline</code> when readline is found and remain empty otherwise.
+</p>
+<h3 class="subsection" id="sec548">14.3.3&#XA0;&#XA0;Snprintf configuration</h3>
+<p>
+Add <code>open configure/snprintf</code> line to your <code>OMakefile</code> to get access to the following
 autoconfiguration variables.
-</P><H5 CLASS="paragraph">SNPRINTF_AVAILABLE</H5><P><A NAME="var:SNPRINTF_AVAILABLE"></A><A NAME="@default588"></A><A NAME="@var122"></A> A boolean flag telling whether the snprintf
-function is available in the standard C library.</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
-&bull;&nbsp;<A HREF="omake.html">Guide Home</A>
-&bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
-&bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
-&bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
-&bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
-&bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
-</TABLE>
-</BODY>
-</HTML>
+</p>
+<h5 class="paragraph" id="sec549">SNPRINTF_AVAILABLE</h5>
+<p><a id="var:SNPRINTF_AVAILABLE"></a><a id="hevea_default588"></a><a id="hevea_var122"></a> A boolean flag telling whether the snprintf
+function is available in the standard C library.</p>
+
+<table class="c000 cellpading0"><tr><td class="c006">Jump to:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="../index.html">OMake Home</a>
+&bull;&nbsp;<a href="omake.html">Guide Home</a>
+&bull;&nbsp;<a href="omake-doc.html">Guide (single-page)</a>
+&bull;&nbsp;<a href="omake-toc.html">Contents (short)</a>
+&bull;&nbsp;<a href="omake-contents.html">Contents (long)</a></td></tr>
+<tr><td class="c006">Index:</td><td class="c005">&#XA0;&#XA0;</td><td class="c006"><a href="omake-all-index.html">All</a>
+&bull;&nbsp;<a href="omake-var-index.html">Variables</a>
+&bull;&nbsp;<a href="omake-fun-index.html">Functions</a>
+&bull;&nbsp;<a href="omake-obj-index.html">Objects</a>
+&bull;&nbsp;<a href="omake-target-index.html">Targets</a>
+&bull;&nbsp;<a href="omake-option-index.html">Options</a>
+</td></tr>
+</table>
+</body>
+</html>

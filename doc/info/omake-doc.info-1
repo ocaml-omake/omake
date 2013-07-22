@@ -1,16 +1,15 @@
 This file has been translated from LaTeX by HeVeA.
-   
+     
 
-Node: Top,	Next: Chapter 1,	Up: (dir)
+File: omake-doc, Node: Top,	Next: Chapter 1,	Up: (dir)
   
   OMake manual:  
-                                     
-               The OMake user guide and reference manual
-               *****************************************
-                  Jason Hickey, Aleksey Nogin, et. al.
-                  ====================================
-                          10^thFebruary, 2011
-                          ===================
+The OMake user guide and reference manual
+*****************************************
+Jason Hickey, Aleksey Nogin, et. al.
+====================================
+21^stJuly, 2013
+===============
   
    All the documentation on a single page (23*Note Notes 0::)
   OMake table of contents
@@ -51,7 +50,7 @@ Contents
 This file has been translated from LaTeX by HeVeA.
 
 
-Node: Notes 0
+File: omake-doc, Node: Notes 0,	Up: Top
  -----------------------------------
  
 (1) ../index.html
@@ -100,7 +99,7 @@ Node: Notes 0
 
 (23) omake-doc.html
 
-Node: Chapter 1,	Next: Chapter 2,	Prev: Top,	Up: Top
+File: omake-doc, Node: Chapter 1,	Next: Chapter 2,	Prev: Top,	Up: Top
   
 
 Chapter 1     Guide
@@ -157,7 +156,7 @@ presents programming examples.
   
    
 
-Node: Notes 1
+File: omake-doc, Node: Notes 1,	Up: Top
  
 -----------------------------------
 
@@ -171,7 +170,7 @@ Node: Notes 1
 (4) omake-doc.html
 
 
-Node: Chapter 2,	Next: Section 2-1,	Prev: Chapter 1,	Up: Top
+File: omake-doc, Node: Chapter 2,	Next: Chapter 3,	Prev: Chapter 1,	Up: Top
   
 
 Chapter 2     OMake quickstart guide
@@ -191,11 +190,11 @@ Chapter 2     OMake quickstart guide
 * Section 2-10::	Notes
 
 
-Node: Section 2-1,	Next: Subsection 2-1-1,	Prev: Chapter 2,	Up: Chapter 2
+File: omake-doc, Node: Section 2-1,	Next: Section 2-2,	Up: Chapter 2
   
 
 2.1   Description
-*=*=*=*=*=*=*=*=*
+*****************
 
   
   omake is designed for building projects that might have source files
@@ -212,25 +211,25 @@ built from the entire collection of build rules.
 * Subsection 2-1-2::	Content-based dependency analysis
 
 
-Node: Subsection 2-1-1,	Next: Subsection 2-1-2,	Prev: Section 2-1,	Up: Section 2-1
+File: omake-doc, Node: Subsection 2-1-1,	Next: Subsection 2-1-2,	Up: Section 2-1
   
 
 2.1.1   Automatic dependency analysis
 =====================================
   
   Dependency analysis has always been problematic with the make(1)
-program. omake addresses this by adding the '.SCANNER' target, which
+program. omake addresses this by adding the .SCANNER target, which
 specifies a command to produce dependencies. For example, the following
 rule
 <<    .SCANNER: %.o: %.c
           $(CC) $(INCLUDE) -MM $<
 >>
   
-  is the standard way to generate dependencies for '.c' files. omake
-will automatically run the scanner when it needs to determine
-dependencies for a file.
+  is the standard way to generate dependencies for .c files. omake will
+automatically run the scanner when it needs to determine dependencies
+for a file.
 
-Node: Subsection 2-1-2,	Next: Section 2-2,	Prev: Subsection 2-1-1,	Up: Section 2-1
+File: omake-doc, Node: Subsection 2-1-2,	Prev: Subsection 2-1-1,	Up: Section 2-1
   
 
 2.1.2   Content-based dependency analysis
@@ -245,11 +244,11 @@ last run of omake. As an optimization, omake does not recompute the
 digest for a file that has an unchanged modification time, size, and
 inode number.
 
-Node: Section 2-2,	Next: Section 2-3,	Prev: Section 2-1,	Up: Chapter 2
+File: omake-doc, Node: Section 2-2,	Next: Section 2-3,	Prev: Section 2-1,	Up: Chapter 2
   
 
 2.2   For users already familiar with make
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+******************************************
 
   
   For users already familiar with the make(1) command, here is a list of
@@ -261,26 +260,25 @@ differences to keep in mind when using omake.
    'StaticCLibrary' and 'CProgram'), described in
    Chapter 13*Note Chapter 13::, to specify these builds more
    simply. 
-   - Implicit rules using '.SUFFIXES' and the '.suf1.suf2:' are not
-   supported. You should use wildcard patterns instead '%.suf2: %.suf1'.
-   
-   - Scoping is significant: you should define variables and '.PHONY'
+   - Implicit rules using .SUFFIXES and the .suf1.suf2: are not
+   supported. You should use wildcard patterns instead %.suf2: %.suf1. 
+   - Scoping is significant: you should define variables and .PHONY
    targets (see Section 8.10*Note Section 8-10::) before they are
    used. 
-   - Subdirectories are incorporated into a project using the
-   '.SUBDIRS:' target (see Section 8.8*Note Section 8-8::). 
+   - Subdirectories are incorporated into a project using the .SUBDIRS:
+   target (see Section 8.8*Note Section 8-8::). 
   
 
-Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
+File: omake-doc, Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
   
 
 2.3   Building a small C program
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+********************************
 
   
   To start a new project, the easiest method is to change directories to
-the project root and use the command 'omake --install' to install
-default OMakefiles.
+the project root and use the command omake --install to install default
+OMakefiles.
 <<    $ cd ~/newproject
       $ omake --install
       *** omake: creating OMakeroot
@@ -292,8 +290,8 @@ installed
   
   The default OMakefile contains sections for building C and OCaml
 programs. For now, we'll build a simple C project.
-  Suppose we have a C file called 'hello_code.c' containing the
-following code:
+  Suppose we have a C file called hello_code.c containing the following
+code:
 <<    #include <stdio.h>
   
       int main(int argc, char **argv)
@@ -303,17 +301,17 @@ following code:
       }
 >>
   
-  To build the program a program 'hello' from this file, we can use the
+  To build the program a program hello from this file, we can use the
 'CProgram' function. The OMakefile contains just one line that specifies
-that the program 'hello' is to be built from the source code in the
-'hello_code.c' file (note that file suffixes are not passed to these
+that the program hello is to be built from the source code in the
+hello_code.c file (note that file suffixes are not passed to these
 functions).
 <<    CProgram(hello, hello_code)
 >>
   
   Now we can run omake to build the project. Note that the first time we
-run omake, it both scans the 'hello_code.c' file for dependencies, and
-compiles it using the 'cc' compiler. The status line printed at the end
+run omake, it both scans the hello_code.c file for dependencies, and
+compiles it using the cc compiler. The status line printed at the end
 indicates how many files were scanned, how many were built, and how many
 MD5 digests were computed.
 <<    $ omake hello
@@ -332,11 +330,11 @@ MD5 digests were computed.
       *** omake: done (0.1 sec, 0/4 scans, 0/4 rules, 0/9 digests)
 >>
   
-  If we want to change the compile options, we can redefine the 'CC' and
-'CFLAGS' variables before the 'CProgram' line. In this example, we will
-use the 'gcc' compiler with the '-g' option. In addition, we will
-specify a '.DEFAULT' target to be built by default. The 'EXE' variable
-is defined to be '.exe' on 'Win32' systems; it is empty otherwise.
+  If we want to change the compile options, we can redefine the CC and
+CFLAGS variables before the CProgram line. In this example, we will use
+the gcc compiler with the -g option. In addition, we will specify a
+.DEFAULT target to be built by default. The EXE variable is defined to
+be .exe on Win32 systems; it is empty otherwise.
 <<    CC = gcc
       CFLAGS += -g
       CProgram(hello, hello_code)
@@ -357,8 +355,8 @@ is defined to be '.exe' on 'Win32' systems; it is empty otherwise.
 >>
   
   We can, of course, include multiple files in the program. Suppose we
-write a new file 'hello_helper.c'. We would include this in the project
-as follows.
+write a new file hello_helper.c. We would include this in the project as
+follows.
 <<    CC = gcc
       CFLAGS += -g
       CProgram(hello, hello_code hello_helper)
@@ -366,16 +364,16 @@ as follows.
 >>
   
 
-Node: Section 2-4,	Next: Section 2-5,	Prev: Section 2-3,	Up: Chapter 2
+File: omake-doc, Node: Section 2-4,	Next: Section 2-5,	Prev: Section 2-3,	Up: Chapter 2
   
 
 2.4   Larger projects
-*=*=*=*=*=*=*=*=*=*=*
+*********************
 
   
   As the project grows it is likely that we will want to build libraries
-of code. Libraries can be built using the 'StaticCLibrary' function.
-Here is an example of an OMakefile with two libraries.
+of code. Libraries can be built using the StaticCLibrary function. Here
+is an example of an OMakefile with two libraries.
 <<    CC = gcc
       CFLAGS += -g
   
@@ -393,29 +391,29 @@ Here is an example of an OMakefile with two libraries.
 >>
   
 
-Node: Section 2-5,	Next: Section 2-6,	Prev: Section 2-4,	Up: Chapter 2
+File: omake-doc, Node: Section 2-5,	Next: Section 2-6,	Prev: Section 2-4,	Up: Chapter 2
   
 
 2.5   Subdirectories
-*=*=*=*=*=*=*=*=*=*=
+********************
 
   
   As the project grows even further, it is a good idea to split it into
-several directories. Suppose we place the 'libfoo' and 'libbar' into
+several directories. Suppose we place the libfoo and libbar into
 subdirectories.
   In each subdirectory, we define an OMakefile for that directory. For
-example, here is an example OMakefile for the 'foo' subdirectory.
+example, here is an example OMakefile for the foo subdirectory.
 <<    INCLUDES += .. ../bar
   
       FOO_FILES = foo_a foo_b
       StaticCLibrary(libfoo, $(FOO_FILES))
 >>
   
-  Note the the 'INCLUDES' variable is defined to include the other
+  Note the the INCLUDES variable is defined to include the other
 directories in the project.
   Now, the next step is to link the subdirectories into the main
-project. The project OMakefile should be modified to include a
-'.SUBDIRS:' target.
+project. The project OMakefile should be modified to include a .SUBDIRS:
+target.
 <<    # Project configuration
       CC = gcc
       CFLAGS += -g
@@ -431,9 +429,9 @@ project. The project OMakefile should be modified to include a
       .DEFAULT: hello$(EXE)
 >>
   
-  Note that the variables 'CC' and 'CFLAGS' are defined before the
-'.SUBDIRS' target. These variables remain defined in the subdirectories,
-so that 'libfoo' and 'libbar' use 'gcc -g'.
+  Note that the variables CC and CFLAGS are defined before the .SUBDIRS
+target. These variables remain defined in the subdirectories, so that
+libfoo and libbar use gcc -g.
   If the two directories are to be configured differently, we have two
 choices. The OMakefile in each subdirectory can be modified with its
 configuration (this is how it would normally be done). Alternatively, we
@@ -456,11 +454,11 @@ can also place the change in the root OMakefile.
       .DEFAULT: hello$(EXE)
 >>
   
-  Note that the way we have specified it, the 'CFLAGS' variable also
-contains the '-O3' option for the 'CProgram', and 'hello_code.c' and
-'hello_helper.c' file will both be compiled with the '-O3' option. If we
-want to make the change truly local to 'libbar', we can put the 'bar'
-subdirectory in its own scope using the 'section' form.
+  Note that the way we have specified it, the CFLAGS variable also
+contains the -O3 option for the CProgram, and hello_code.c and
+hello_helper.c file will both be compiled with the -O3 option. If we
+want to make the change truly local to libbar, we can put the bar
+subdirectory in its own scope using the section form.
 <<    # Default project configuration
       CC = gcc
       CFLAGS += -g
@@ -480,7 +478,7 @@ subdirectory in its own scope using the 'section' form.
       .DEFAULT: hello$(EXE)
 >>
   
-  Later, suppose we decide to port this project to 'Win32', and we
+  Later, suppose we decide to port this project to Win32, and we
 discover that we need different compiler flags and an additional
 library.
 <<    # Default project configuration
@@ -517,15 +515,15 @@ library.
       .DEFAULT: hello$(EXE)
 >>
   
-  Note the use of the 'export' directives to export the variable
+  Note the use of the export directives to export the variable
 definitions from the if-statements. Variables in omake are
 scoped---variables in nested blocks (blocks with greater indentation),
-are not normally defined in outer blocks. The 'export' directive
-specifies that the variable definitions in the nested blocks should be
-exported to their parent block.
+are not normally defined in outer blocks. The export directive specifies
+that the variable definitions in the nested blocks should be exported to
+their parent block.
   Finally, for this example, we decide to copy all libraries into a
-common 'lib' directory. We first define a directory variable, and
-replace occurrences of the 'lib' string with the variable.
+common lib directory. We first define a directory variable, and replace
+occurrences of the lib string with the variable.
 <<    # The common lib directory
       LIB = $(dir lib)
   
@@ -567,7 +565,7 @@ replace occurrences of the 'lib' string with the variable.
 >>
   
   In each subdirectory, we modify the OMakefiles in the library
-directories to install them into the '$(LIB)' directory. Here is the
+directories to install them into the $(LIB) directory. Here is the
 relevant change to foo/OMakefile.
 <<    INCLUDES += .. ../bar
   
@@ -576,40 +574,40 @@ relevant change to foo/OMakefile.
 >>
   
   Directory (and file names) evaluate to relative pathnames. Within the
-'foo' directory, the '$(LIB)' variable evaluates to '../lib'.
-  As another example, instead of defining the 'INCLUDES' variable
+foo directory, the $(LIB) variable evaluates to ../lib.
+  As another example, instead of defining the INCLUDES variable
 separately in each subdirectory, we can define it in the toplevel as
 follows.
 <<    INCLUDES = $(ROOT) $(dir foo bar win32)
 >>
   
-  In the 'foo' directory, the 'INCLUDES' variable will evaluate to the
-string '.. . ../bar ../win32'. In the 'bar' directory, it would be '..
-../foo . ../win32'. In the root directory it would be '. foo bar win32'.
+  In the foo directory, the INCLUDES variable will evaluate to the
+string .. . ../bar ../win32. In the bar directory, it would be .. ../foo
+. ../win32. In the root directory it would be . foo bar win32.
 
-Node: Section 2-6,	Next: Section 2-7,	Prev: Section 2-5,	Up: Chapter 2
+File: omake-doc, Node: Section 2-6,	Next: Section 2-7,	Prev: Section 2-5,	Up: Chapter 2
   
 
 2.6   Other things to consider
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+******************************
 
   
   omake also handles recursive subdirectories. For example, suppose the
-'foo' directory itself contains several subdirectories. The
-foo/OMakefile would then contain its own '.SUBDIRS' target, and each of
-its subdirectories would contain its own 'OMakefile'.
+foo directory itself contains several subdirectories. The foo/OMakefile
+would then contain its own .SUBDIRS target, and each of its
+subdirectories would contain its own OMakefile.
 
-Node: Section 2-7,	Next: Section 2-8,	Prev: Section 2-6,	Up: Chapter 2
+File: omake-doc, Node: Section 2-7,	Next: Section 2-8,	Prev: Section 2-6,	Up: Chapter 2
   
 
 2.7   Building OCaml programs
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+*****************************
 
   
   By default, omake is also configured with functions for building OCaml
-programs. The functions for OCaml program use the 'OCaml' prefix. For
+programs. The functions for OCaml program use the OCaml prefix. For
 example, suppose we reconstruct the previous example in OCaml, and we
-have a file called 'hello_code.ml' that contains the following code.
+have a file called hello_code.ml that contains the following code.
 <<   open Printf
   
      let () = printf "Hello world\n"
@@ -627,9 +625,9 @@ following.
       .DEFAULT: hello.run
 >>
   
-  Next, suppose the we have two library subdirectories: the 'foo'
-subdirectory is written in C, the 'bar' directory is written in OCaml,
-and we need to use the standard OCaml 'Unix' module.
+  Next, suppose the we have two library subdirectories: the foo
+subdirectory is written in C, the bar directory is written in OCaml, and
+we need to use the standard OCaml Unix module.
 <<    # Default project configuration
       if $(equal $(OSTYPE), Win32)
           CC = cl /nologo
@@ -676,13 +674,14 @@ and we need to use the standard OCaml 'Unix' module.
 >>
   
 
-Node: Section 2-8,	Next: Section 2-9,	Prev: Section 2-7,	Up: Chapter 2
+File: omake-doc, Node: Section 2-8,	Next: Section 2-9,	Prev: Section 2-7,	Up: Chapter 2
   
 
 2.8   The OMakefile and OMakeroot files
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+***************************************
 
-     
+    
+
   OMake uses the OMakefile and OMakeroot files for configuring a
 project. The syntax of these files is the same, but their role is
 slightly different. For one thing, every project must have exactly one
@@ -705,39 +704,38 @@ a typical example.
       .SUBDIRS: .
 >>
   
-  The 'include' lines include the standard configuration files needed
-for the project. The '$(STDLIB)' represents the omake library directory.
-The only required configuration file is 'Common'. The others are
-optional; for example, the '$(STDLIB)/build/OCaml' file is needed only
-when the project contains programs written in OCaml.
-  The 'DefineCommandVars' function defines any variables specified on
-the command line (as arguments of the form 'VAR=<value>'). The
-'.SUBDIRS' line specifies that the current directory is part of the
-project (so the 'OMakefile' should be read).
-  Normally, the 'OMakeroot' file should be small and
-project-independent. Any project-specific configuration should be placed
-in the 'OMakefiles' of the project.
+  The include lines include the standard configuration files needed for
+the project. The $(STDLIB) represents the omake library directory. The
+only required configuration file is Common. The others are optional; for
+example, the $(STDLIB)/build/OCaml file is needed only when the project
+contains programs written in OCaml.
+  The DefineCommandVars function defines any variables specified on the
+command line (as arguments of the form VAR=<value>). The .SUBDIRS line
+specifies that the current directory is part of the project (so the
+OMakefile should be read).
+  Normally, the OMakeroot file should be small and project-independent.
+Any project-specific configuration should be placed in the OMakefiles of
+the project.
 
-Node: Section 2-9,	Next: Section 2-10,	Prev: Section 2-8,	Up: Chapter 2
+File: omake-doc, Node: Section 2-9,	Next: Section 2-10,	Prev: Section 2-8,	Up: Chapter 2
   
 
 2.9   Multiple version support
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+******************************
 
    
-  OMake version '0.9.6' introduced preliminary support for multiple,
-simultaneous versions of a project. Versioning uses the 'vmount(dir1,
-dir2)' function, which defines a "virtual mount" of directory 'dir1'
-over directory 'dir2'. A "virtual mount" is like a transparent mount in
-Unix, where the files from 'dir1' appear in the 'dir2' namespace, but
-new files are created in 'dir2'. More precisely, the filename 'dir2/foo'
-refers to: a) the file 'dir1/foo' if it exists, or b) 'dir2/foo'
-otherwise.
-  The 'vmount' function makes it easy to specify multiple versions of a
+  OMake version 0.9.6 introduced preliminary support for multiple,
+simultaneous versions of a project. Versioning uses the vmount(dir1,
+dir2) function, which defines a "virtual mount" of directory dir1 over
+directory dir2. A "virtual mount" is like a transparent mount in Unix,
+where the files from dir1 appear in the dir2 namespace, but new files
+are created in dir2. More precisely, the filename dir2/foo refers to: a)
+the file dir1/foo if it exists, or b) dir2/foo otherwise.
+  The vmount function makes it easy to specify multiple versions of a
 project. Suppose we have a project where the source files are in the
-directory 'src/', and we want to compile two versions, one with
-debugging support and one optimized. We create two directories, debug
-and opt, and mount the src directory over them.
+directory src/, and we want to compile two versions, one with debugging
+support and one optimized. We create two directories, debug and opt, and
+mount the src directory over them.
 <<    section
           CFLAGS += -g
           vmount(-l, src, debug)
@@ -749,45 +747,45 @@ and opt, and mount the src directory over them.
           .SUBDIRS: opt
 >>
   
-  Here, we are using 'section' blocks to define the scope of the
-'vmount'---you may not need them in your project.
-  The '-l' option is optional. It specifies that files form the 'src'
+  Here, we are using section blocks to define the scope of the
+vmount---you may not need them in your project.
+  The -l option is optional. It specifies that files form the src
 directory should be linked into the target directories (or copied, if
 the system is Win32). The links are added as files are referenced. If no
 options are given, then files are not copied or linked, but filenames
-are translated to refer directly to the 'src/' files.
-  Now, when a file is referenced in the 'debug' directory, it is linked
-from the 'src' directory if it exists. For example, when the file
-'debug/OMakefile' is read, the 'src/OMakefile' is linked into the
-'debug/' directory.
-  The 'vmount' model is fairly transparent. The 'OMakefile's can be
-written as if referring to files in the 'src/' directory---they need not
-be aware of mounting. However, there are a few points to keep in mind.
+are translated to refer directly to the src/ files.
+  Now, when a file is referenced in the debug directory, it is linked
+from the src directory if it exists. For example, when the file
+debug/OMakefile is read, the src/OMakefile is linked into the debug/
+directory.
+  The vmount model is fairly transparent. The OMakefiles can be written
+as if referring to files in the src/ directory---they need not be aware
+of mounting. However, there are a few points to keep in mind.
 
-Node: Section 2-10,	Next: Chapter 3,	Prev: Section 2-9,	Up: Chapter 2
+File: omake-doc, Node: Section 2-10,	Prev: Section 2-9,	Up: Chapter 2
   
 
 2.10   Notes
-*=*=*=*=*=*=
+************
 
   
   
   
-   - When using the 'vmount' function for versioning, it wise to keep
-   the source files distinct from the compiled versions. For example,
-   suppose the source directory contained a file 'src/foo.o'. When
-   mounted, the 'foo.o' file will be the same in all versions, which is
-   probably not what you want. It is better to keep the 'src/' directory
+   - When using the vmount function for versioning, it wise to keep the
+   source files distinct from the compiled versions. For example,
+   suppose the source directory contained a file src/foo.o. When
+   mounted, the foo.o file will be the same in all versions, which is
+   probably not what you want. It is better to keep the src/ directory
    pristine, containing no compiled code.
  
-   - When using the 'vmount -l' option, files are linked into the
-   version directory only if they are referenced in the project.
-   Functions that examine the filesystem (like '$(ls ...)') may produce
-   unexpected results. 
+   - When using the vmount -l option, files are linked into the version
+   directory only if they are referenced in the project. Functions that
+   examine the filesystem (like $(ls ...)) may produce unexpected
+   results. 
   
    
 
-Node: Chapter 3,	Next: Section 3-1,	Prev: Chapter 2,	Up: Top
+File: omake-doc, Node: Chapter 3,	Next: Chapter 4,	Prev: Chapter 2,	Up: Top
   
 
 Chapter 3     Additional build examples
@@ -799,11 +797,11 @@ analysis. That means you define a configuration for the entire project,
 and you run one instance of omake.
   For single-directory projects this doesn't mean much. For
 multi-directory projects it means a lot. With GNU make, you would
-usually invoke the 'make' program recursively for each directory in the
+usually invoke the make program recursively for each directory in the
 project. For example, suppose you had a project with some project root
-directory, containing a directory of sources 'src', which in turn
-contains subdirectories 'lib' and 'main'. So your project looks like
-this nice piece of ASCII art.
+directory, containing a directory of sources src, which in turn contains
+subdirectories lib and main. So your project looks like this nice piece
+of ASCII art.
 <<    my_project/
       |--> Makefile
       `--> src/
@@ -816,20 +814,19 @@ this nice piece of ASCII art.
                  `---> source files...
 >>
   
-  Typically, with GNU make, you would start an instance of 'make' in
-'my_project/'; this would in term start an instance of 'make' in the
-'src/' directory; and this would start new instances in 'lib/' and
-'main/'. Basically, you count up the number of 'Makefile's in the
-project, and that is the number of instances of 'make' processes that
-will be created.
+  Typically, with GNU make, you would start an instance of make in
+my_project/; this would in term start an instance of make in the src/
+directory; and this would start new instances in lib/ and main/.
+Basically, you count up the number of Makefiles in the project, and that
+is the number of instances of make processes that will be created.
   The number of processes is no big deal with today's machines
 (sometimes contrary the the author's opinion, we no longer live in the
-1970s). The problem with the scheme was that each 'make' process had a
+1970s). The problem with the scheme was that each make process had a
 separate configuration, and it took a lot of work to make sure that
-everything was consistent. Furthermore, suppose the programmer runs
-'make' in the 'main/' directory, but the 'lib/' is out-of-date. In this
-case, 'make' would happily crank away, perhaps trying to rebuild files
-in 'lib/', perhaps just giving up.
+everything was consistent. Furthermore, suppose the programmer runs make
+in the main/ directory, but the lib/ is out-of-date. In this case, make
+would happily crank away, perhaps trying to rebuild files in lib/,
+perhaps just giving up.
   With OMake this changes entirely. Well, not entirely. The source
 structure is quite similar, we merely add some Os to the ASCII art.
 <<    my_project/
@@ -845,44 +842,45 @@ structure is quite similar, we merely add some Os to the ASCII art.
                  `---> source files...
 >>
   
-  The role of each '<dir>/OMakefile'
-plays the same role as each '<dir>/Makefile': it describes how to build
-the source files in '<dir>'. The OMakefile retains much of syntax and
-structure of the Makefile, but in most cases it is much simpler.
+  The role of each
+<dir>/OMakefile plays the same role as each <dir>/Makefile: it describes
+how to build the source files in <dir>. The OMakefile retains much of
+syntax and structure of the Makefile, but in most cases it is much
+simpler.
   One minor difference is the presence of the OMakeroot in the project
 root. The main purpose of this file is to indicate where the project
-root is in the first place (in case 'omake' is invoked from a
-subdirectory). The 'OMakeroot' serves as the bootstrap file; omake
-starts by reading this file first. Otherwise, the syntax and evaluation
-of 'OMakeroot' is no different from any other 'OMakefile'.
+root is in the first place (in case omake is invoked from a
+subdirectory). The OMakeroot serves as the bootstrap file; omake starts
+by reading this file first. Otherwise, the syntax and evaluation of
+OMakeroot is no different from any other OMakefile.
   The big difference is that OMake performs a global analysis. Here is
-what happens when 'omake' starts.
+what happens when omake starts.
  
   
    1. omake locates that OMakeroot file, and reads it. 
    2. Each OMakefile points to its subdirectory OMakefiles using the
-   .SUBDIRS target. For example, 'my_project/OMakefile' has a rule,
+   .SUBDIRS target. For example, my_project/OMakefile has a rule,
    <<    .SUBDIRS: src
    >>
  
- and the 'my_project/src/OMakefile' has a rule,
+ and the my_project/src/OMakefile has a rule,
    <<    .SUBDIRS: lib main
    >>
  
- 'omake' uses these rules to read and evaluate every 'OMakefile' in the
+ omake uses these rules to read and evaluate every OMakefile in the
    project. Reading and evaluation is fast. This part of the process is
    cheap.
  
-   3. Now that the entire configuration is read, 'omake' determines
-   which files are out-of-date (using a global analysis), and starts the
-   build process. This may take a while, depending on what exactly needs
-   to be done. 
+   3. Now that the entire configuration is read, omake determines which
+   files are out-of-date (using a global analysis), and starts the build
+   process. This may take a while, depending on what exactly needs to be
+   done. 
   
   There are several advantages to this model. First, since analysis is
 global, it is much easier to ensure that the build configuration is
 consistent--after all, there is only one configuration. Another benefit
 is that the build configuration is inherited, and can be re-used, down
-the hierarchy. Typically, the root 'OMakefile' defines some standard
+the hierarchy. Typically, the root OMakefile defines some standard
 boilerplate and configuration, and this is inherited by subdirectories
 that tweak and modify it (but do not need to restate it entirely). The
 disadvantage of course is space, since this is global analysis after
@@ -900,7 +898,7 @@ space than your web browser even on large projects.
    standard configuration does the right thing, but if you care about
    porting your code to multiple platforms, and you use some tricky
    features, you may need to condition parts of your build config on the
-   '$(OSTYPE)' variable.
+   $(OSTYPE) variable.
  
    - A minor issue is that OMake dependency analysis is based on MD5
    file digests. That is, dependencies are based on file contents, not
@@ -917,11 +915,11 @@ space than your web browser even on large projects.
 * Section 3-5::	Collapsing the hierarchy, .SUBDIRS bodies
 
 
-Node: Section 3-1,	Next: Section 3-2,	Prev: Chapter 3,	Up: Chapter 3
+File: omake-doc, Node: Section 3-1,	Next: Section 3-2,	Up: Chapter 3
   
 
 3.1   OMakeroot vs. OMakefile
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+*****************************
 
   
   Before we begin with examples, let's ask the first question, "What is
@@ -935,16 +933,16 @@ all your project-specific stuff.
 just perform the following step in your project root directory.
   
   
-   - Run 'omake --install' in your project root. 
+   - Run omake --install in your project root. 
   
   This will create the initial OMakeroot and OMakefile files that you
 can edit to get started.
 
-Node: Section 3-2,	Next: Section 3-3,	Prev: Section 3-1,	Up: Chapter 3
+File: omake-doc, Node: Section 3-2,	Next: Section 3-3,	Prev: Section 3-1,	Up: Chapter 3
   
 
 3.2   An example C project
-*=*=*=*=*=*=*=*=*=*=*=*=*=
+**************************
 
   
   To begin, let's start with a simple example. Let's say that we have a
@@ -1018,24 +1016,24 @@ full directory tree, containing the following files.
       .DEFAULT: horsefly$(EXE)
 >>
   
-  Most of the configuration here is defined in the file 'build/C.om'
+  Most of the configuration here is defined in the file build/C.om
 (which is part of the OMake distribution). This file takes care of a lot
 of work, including: 
   
-   - Defining the 'StaticCLibrary' and 'CProgram' functions, which
-   describe the canonical way to build C libraries and programs. 
+   - Defining the StaticCLibrary and CProgram functions, which describe
+   the canonical way to build C libraries and programs. 
    - Defining a mechanism for scanning each of the source programs to
    discover dependencies. That is, it defines .SCANNER rules for C
    source files. 
   
   Variables are inherited down the hierarchy, so for example, the value
-of CFLAGS in src/main/OMakefile is "'-g -O2'".
+of CFLAGS in src/main/OMakefile is "-g -O2".
 
-Node: Section 3-3,	Next: Section 3-4,	Prev: Section 3-2,	Up: Chapter 3
+File: omake-doc, Node: Section 3-3,	Next: Section 3-4,	Prev: Section 3-2,	Up: Chapter 3
   
 
 3.3   An example OCaml project
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+******************************
 
   
   Let's repeat the example, assuming we are using OCaml instead of C.
@@ -1116,51 +1114,48 @@ This time, the directory tree looks like this.
 >>
   
   In this case, most of the configuration here is defined in the file
-'build/OCaml.om'. In this particular configuration, files in
-'my_project/src/lib' are compiled aggressively with the option '-inline
-10', but files in 'my_project/src/lib' are compiled normally.
+build/OCaml.om. In this particular configuration, files in
+my_project/src/lib are compiled aggressively with the option -inline 10,
+but files in my_project/src/lib are compiled normally.
 
-Node: Section 3-4,	Next: Subsection 3-4-1,	Prev: Section 3-3,	Up: Chapter 3
+File: omake-doc, Node: Section 3-4,	Next: Section 3-5,	Prev: Section 3-3,	Up: Chapter 3
   
 
 3.4   Handling new languages
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+****************************
 
    
   The previous two examples seem to be easy enough, but they rely on the
-OMake standard library (the files 'build/C' and 'build/OCaml') to do all
-the work. What happens if we want to write a build configuration for a
+OMake standard library (the files build/C and build/OCaml) to do all the
+work. What happens if we want to write a build configuration for a
 language that is not already supported in the OMake standard library?
   For this example, let's suppose we are adopting a new language. The
 language uses the standard compile/link model, but is not in the OMake
 standard library. Specifically, let's say we have the following setup.
   
   
-   - Source files are defined in files with a '.cat' suffix (for
+   - Source files are defined in files with a .cat suffix (for
    Categorical Abstract Terminology). 
-   - '.cat' files are compiled with the 'catc' compiler to produce
-   '.woof' files (Wicked Object-Oriented Format). 
-   - '.woof' files are linked by the 'catc' compiler with the '-c'
-   option to produce a '.dog' executable (Digital Object Group). The
-   'catc' also defines a '-a' option to combine several '.woof' files
-   into a library. 
-   - Each '.cat' can refer to other source files. If a source file
-   'a.cat' contains a line 'open b', then 'a.cat' depends on the file
-   'b.woof', and 'a.cat' must be recompiled if 'b.woof' changes. The
-   'catc' function takes a '-I' option to define a search path for
-   dependencies. 
+   - .cat files are compiled with the catc compiler to produce .woof
+   files (Wicked Object-Oriented Format). 
+   - .woof files are linked by the catc compiler with the -c option to
+   produce a .dog executable (Digital Object Group). The catc also
+   defines a -a option to combine several .woof files into a library. 
+   - Each .cat can refer to other source files. If a source file a.cat
+   contains a line open b, then a.cat depends on the file b.woof, and
+   a.cat must be recompiled if b.woof changes. The catc function takes a
+   -I option to define a search path for dependencies. 
   
   To define a build configuration, we have to do three things. 
   
-   1. Define a '.SCANNER' rule for discovering dependency information
-   for the source files. 
-   2. Define a generic rule for compiling a '.cat' file to a '.woof'
-   file. 
-   3. Define a rule (as a function) for linking '.woof' files to produce
-   a '.dog' executable. 
+   1. Define a .SCANNER rule for discovering dependency information for
+   the source files. 
+   2. Define a generic rule for compiling a .cat file to a .woof file. 
+   3. Define a rule (as a function) for linking .woof files to produce a
+   .dog executable. 
   
   Initially, these definitions will be placed in the project root
-'OMakefile'.
+OMakefile.
 * Menu:
 
 * Subsection 3-4-1::	Defining a default compilation rule
@@ -1170,7 +1165,7 @@ standard library. Specifically, let's say we have the following setup.
 * Subsection 3-4-5::	Finishing up
 
 
-Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Prev: Section 3-4,	Up: Section 3-4
+File: omake-doc, Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Up: Section 3-4
   
 
 3.4.1   Defining a default compilation rule
@@ -1178,10 +1173,10 @@ Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Prev: Section 3-4,	Up: Section 3
   
   Let's start with part 2, defining a generic compilation rule. We'll
 define the build rule as an implicit rule. To handle the include path,
-we'll define a variable 'CAT_INCLUDES' that specifies the include path.
+we'll define a variable CAT_INCLUDES that specifies the include path.
 This will be an array of directories. To define the options, we'll use a
 lazy variable (Section 7.5*Note Section 7-5::). In case there are
-any other standard flags, we'll define a 'CAT_FLAGS' variable.
+any other standard flags, we'll define a CAT_FLAGS variable.
 <<   # Define the catc command, in case we ever want to override it
      CATC = catc
   
@@ -1199,11 +1194,11 @@ any other standard flags, we'll define a 'CAT_FLAGS' variable.
          $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $<
 >>
   
-  The final part is the build rule itself, where we call the 'catc'
-compiler with the include path, and the 'CAT_FLAGS' that have been
-defined. The '$<' variable represents the source file.
+  The final part is the build rule itself, where we call the catc
+compiler with the include path, and the CAT_FLAGS that have been
+defined. The $< variable represents the source file.
 
-Node: Subsection 3-4-2,	Next: Subsection 3-4-3,	Prev: Subsection 3-4-1,	Up: Section 3-4
+File: omake-doc, Node: Subsection 3-4-2,	Next: Subsection 3-4-3,	Prev: Subsection 3-4-1,	Up: Section 3-4
   
 
 3.4.2   Defining a rule for linking
@@ -1232,11 +1227,11 @@ $(CAT_LINK_FLAGS) -o $@ $+
           value $(prog_name)
 >>
   
-  The 'CAT_LINK_FLAGS' variable is defined just in case we want to pass
+  The CAT_LINK_FLAGS variable is defined just in case we want to pass
 additional flags specific to the link step. Now that this function is
 defined, whenever we want to define a rule for building a program, we
 simply call the rule. The previous implicit rule specifies how to
-compile each source file, and the 'CatProgram' function specifies how to
+compile each source file, and the CatProgram function specifies how to
 build the executable.
 <<    # Build a rover.dog program from the source
       # files neko.cat and chat.cat.
@@ -1245,7 +1240,7 @@ build the executable.
 >>
   
 
-Node: Subsection 3-4-3,	Next: Subsection 3-4-4,	Prev: Subsection 3-4-2,	Up: Section 3-4
+File: omake-doc, Node: Subsection 3-4-3,	Next: Subsection 3-4-4,	Prev: Subsection 3-4-2,	Up: Section 3-4
   
 
 3.4.3   Dependency scanning
@@ -1255,43 +1250,42 @@ Node: Subsection 3-4-3,	Next: Subsection 3-4-4,	Prev: Subsection 3-4-2,	Up: Sect
 scanning. This is one of the nicer features of OMake, and one that makes
 build specifications easier to write and more robust. Strictly speaking,
 it isn't required, but you definitely want to do it.
-  The mechanism is to define a '.SCANNER' rule, which is like a normal
+  The mechanism is to define a .SCANNER rule, which is like a normal
 rule, but it specifies how to compute dependencies, not the target
-itself. In this case, we want to define a '.SCANNER' rule of the
-following form.
+itself. In this case, we want to define a .SCANNER rule of the following
+form.
 <<    .SCANNER: %.woof: %.cat
           <commands>
 >>
   
-  This rule specifies that a '.woof' file may have additional
-dependencies that can be extracted from the corresponding '.cat' file by
-executing the '<commands>'. The result of executing the '<commands>'
-should be a sequence of dependencies in OMake format, printed to the
-standard output.
-  As we mentioned, each '.cat' file specifies dependencies on '.woof'
-files with an 'open' directive. For example, if the 'neko.cat' file
-contains a line 'open chat', then 'neko.woof' depends on 'chat.woof'. In
-this case, the '<commands>' should print the following line.
+  This rule specifies that a .woof file may have additional dependencies
+that can be extracted from the corresponding .cat file by executing the
+<commands>. The result of executing the <commands> should be a sequence
+of dependencies in OMake format, printed to the standard output.
+  As we mentioned, each .cat file specifies dependencies on .woof files
+with an open directive. For example, if the neko.cat file contains a
+line open chat, then neko.woof depends on chat.woof. In this case, the
+<commands> should print the following line.
 <<    neko.woof: chat.woof
 >>
   
   For an analogy that might make this clearer, consider the C
-programming language, where a '.o' file is produced by compiling a '.c'
-file. If a file 'foo.c' contains a line like '#include "fum.h"', then
-'foo.c' should be recompiled whenever 'fum.h' changes. That is, the file
-'foo.o' depends on the file 'fum.h'. In the OMake parlance, this is
-called an implicit dependency, and the '.SCANNER' '<commands>' would
-print a line like the following.
+programming language, where a .o file is produced by compiling a .c
+file. If a file foo.c contains a line like #include "fum.h", then foo.c
+should be recompiled whenever fum.h changes. That is, the file foo.o
+depends on the file fum.h. In the OMake parlance, this is called an
+implicit dependency, and the .SCANNER <commands> would print a line like
+the following.
 <<    foo.o: fum.h
 >>
   
- Now, returning to the animal world, to compute the
-dependencies of 'neko.woof', we should scan 'neko.cat', line-by-line,
-looking for lines of the form 'open <name>'. We could do this by writing
-a program, but it is easy enough to do it in 'omake' itself. We can use
-the builtin 'awk' function to scan the source file. One slight
-complication is that the dependencies depend on the 'INCLUDE' path.
-We'll use the 'find-in-path' function to find them. Here we go.
+ Now, returning to the animal world, to compute
+the dependencies of neko.woof, we should scan neko.cat, line-by-line,
+looking for lines of the form open <name>. We could do this by writing a
+program, but it is easy enough to do it in omake itself. We can use the
+builtin 'awk' function to scan the source file. One slight complication
+is that the dependencies depend on the INCLUDE path. We'll use the
+'find-in-path' function to find them. Here we go.
 <<    .SCANNER: %.woof: %.cat
           section
               # Scan the file
@@ -1310,23 +1304,23 @@ path
 >>
   
   Let's look at the parts. First, the entire body is defined in a
-'section' because we are computing it internally, not as a sequence of
+section because we are computing it internally, not as a sequence of
 shell commands.
-  We use the 'deps' variable to collect all the dependencies. The 'awk'
-function scans the source file ('$<') line-by-line. For lines that match
-the regular expression '^open' (meaning that the line begins with the
-word 'open'), we add the second word on the line to the 'deps' variable.
-For example, if the input line is 'open chat', then we would add the
-'chat' string to the 'deps' array. All other lines in the source file
-are ignored.
-  Next, the '$(set $(deps))' expression removes any duplicate values in
-the 'deps' array (sorting the array alphabetically in the process). The
-'find-in-path' function then finds the actual location of each file in
-the include path.
-  The final step is print the result as the string '$"$@: $(deps)"' The
-quotations are added to flatten the 'deps' array to a simple string.
+  We use the deps variable to collect all the dependencies. The awk
+function scans the source file ($<) line-by-line. For lines that match
+the regular expression ^open (meaning that the line begins with the word
+open), we add the second word on the line to the deps variable. For
+example, if the input line is open chat, then we would add the chat
+string to the deps array. All other lines in the source file are
+ignored.
+  Next, the $(set $(deps)) expression removes any duplicate values in
+the deps array (sorting the array alphabetically in the process). The
+find-in-path function then finds the actual location of each file in the
+include path.
+  The final step is print the result as the string $"$@: $(deps)" The
+quotations are added to flatten the deps array to a simple string.
 
-Node: Subsection 3-4-4,	Next: Subsection 3-4-5,	Prev: Subsection 3-4-3,	Up: Section 3-4
+File: omake-doc, Node: Subsection 3-4-4,	Next: Subsection 3-4-5,	Prev: Subsection 3-4-3,	Up: Section 3-4
   
 
 3.4.4   Pulling it all together
@@ -1349,7 +1343,7 @@ project, much like our previous example.
 >>
   
   The listing for the entire project is as follows. Here, we also
-include a function 'CatLibrary' to link several '.woof' files into a
+include a function CatLibrary to link several .woof files into a
 library.
 <<my_project/OMakeroot:
       # Process the command-line vars
@@ -1450,15 +1444,15 @@ path
      .DEFAULT: $(CatProgram main, main ../cats)
 >>
   
-  Some notes. The configuration in the project 'OMakeroot' defines the
+  Some notes. The configuration in the project OMakeroot defines the
 standard configuration, including the dependency scanner, the default
 rule for compiling source files, and functions for building libraries
 and programs.
   These rules and functions are inherited by subdirectories, so the
-'.SCANNER' and build rules are used automatically in each subdirectory,
-so you don't need to repeat them.
+.SCANNER and build rules are used automatically in each subdirectory, so
+you don't need to repeat them.
 
-Node: Subsection 3-4-5,	Next: Section 3-5,	Prev: Subsection 3-4-4,	Up: Section 3-4
+File: omake-doc, Node: Subsection 3-4-5,	Prev: Subsection 3-4-4,	Up: Section 3-4
   
 
 3.4.5   Finishing up
@@ -1466,13 +1460,59 @@ Node: Subsection 3-4-5,	Next: Section 3-5,	Prev: Subsection 3-4-4,	Up: Section 3
   
   At this point we are done, but there are a few things we can consider.
   First, the rules for building cat programs is defined in the project
-'OMakefile'. If you had another cat project somewhere, you would need to
-copy the 'OMakeroot' (and modify it as needed). Instead of that, you
+OMakefile. If you had another cat project somewhere, you would need to
+copy the OMakeroot (and modify it as needed). Instead of that, you
 should consider moving the configuration to a shared library directory,
-in a file like 'Cat.om'. That way, instead of copying the code, you
-could include the shared copy with an OMake command 'open Cat'. The
-share directory should be added to your 'OMAKEPATH' environment variable
-to ensure that 'omake' knows how to find it.
+in a file like Cat.om. That way, instead of copying the code, you could
+include the shared copy with an OMake command open Cat. The share
+directory should be added to your OMAKEPATH environment variable to
+ensure that omake knows how to find it.
   Better yet, if you are happy with your work, consider submitting it as
-a standard configuration (by sending a request to 'omake@metaprl.org')
-so that others can make use of it too.
+a standard configuration (by sending a request to omake@metaprl.org) so
+that others can make use of it too.
+
+File: omake-doc, Node: Section 3-5,	Prev: Section 3-4,	Up: Chapter 3
+  
+
+3.5   Collapsing the hierarchy, .SUBDIRS bodies
+***********************************************
+
+   
+  Some projects have many subdirectories that all have the same
+configuration. For instance, suppose you have a project with many
+subdirectories, each containing a set of images that are to be composed
+into a web page. Apart from the specific images, the configuration of
+each file is the same.
+  To make this more concrete, suppose the project has four
+subdirectories page1, page2, page3, and page4. Each contains two files
+image1.jpg and image2.jpg that are part of a web page generated by a
+program genhtml.
+  Instead of of defining a OMakefile in each directory, we can define it
+as a body to the .SUBDIRS command.
+<<    .SUBDIRS: page1 page2 page3 page4
+          index.html: image1.jpg image2jpg
+              genhtml $+ > $@
+>>
+  
+  The body of the .SUBDIRS is interpreted exactly as if it were the
+OMakefile, and it can contain any of the normal statements. The body is
+evaluated in the subdirectory for each of the subdirectories. We can see
+this if we add a statement that prints the current directory ($(CWD)).
+<<    .SUBDIRS: page1 page2 page3 page4
+          println($(absname $(CWD)))
+          index.html: image1.jpg image2jpg
+              genhtml $+ > $@
+    # prints
+      /home/jyh/.../page1
+      /home/jyh/.../page2
+      /home/jyh/.../page3
+      /home/jyh/.../page4
+>>
+  
+* Menu:
+
+* Subsection 3-5-1::	Using glob patterns
+* Subsection 3-5-2::	Simplified sub-configurations
+* Subsection 3-5-3::	Computing the subdirectory list
+* Subsection 3-5-4::	Temporary directories
+
