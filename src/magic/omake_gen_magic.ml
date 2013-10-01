@@ -86,7 +86,7 @@ let usage = "Generate special files"
 (*
  * Get the version from the version.txt file.
  *)
-let rec read_version_from_file inx =
+let read_version_from_file inx =
    let line = Lm_string_util.trim (input_line inx) in
       if line = "" then
          raise End_of_file;
@@ -123,7 +123,7 @@ let read_version () =
 (*
  * Copy a file from input to output.
  *)
-let rec copy_file buf inx =
+let copy_file buf inx =
    let rec copy () =
       let line = input_line inx in
          output_string buf line;

@@ -104,9 +104,7 @@ struct
    let symbol_magic   = 0xe4
    let int_magic      = 0xe5
    let magic_magic    = 0xe6
-   let rawint_magic   = 0xe7
    let float_magic    = 0xe8
-   let rawfloat_magic = 0xe9
    let string_magic   = 0xea
    let list_magic     = 0xeb
 
@@ -124,15 +122,6 @@ struct
 
    let input_byte inc =
       IO.input_byte inc
-
-   let output_bool out b =
-      output_byte out (if b then 1 else 0)
-
-   let input_bool inc =
-      match input_byte inc with
-         0 -> false
-       | 1 -> true
-       | _ -> raise (Failure "input_bool: input is not Boolean")
 
    let output_char out c =
       output_byte out (Char.code c)
@@ -161,19 +150,6 @@ struct
       let i1 = input_byte inc in
       let i2 = input_byte inc in
          (i1 lsl 8) lor i2
-
-   let output_int32 out i =
-      output_byte out ((Int32.to_int (Int32.shift_right i 24)) land 0xff);
-      output_byte out ((Int32.to_int (Int32.shift_right i 16)) land 0xff);
-      output_byte out ((Int32.to_int (Int32.shift_right i 8)) land 0xff);
-      output_byte out ((Int32.to_int i) land 0xff)
-
-   let input_int32 inc =
-      let i = Int32.shift_left (Int32.of_int (input_byte inc)) 24 in
-      let i = Int32.logor i (Int32.shift_left (Int32.of_int (input_byte inc)) 16) in
-      let i = Int32.logor i (Int32.shift_left (Int32.of_int (input_byte inc)) 8) in
-      let i = Int32.logor i (Int32.of_int (input_byte inc)) in
-         i
 
    let output_int64 out i =
       output_byte out ((Int64.to_int (Int64.shift_right i 56)) land 0xff);

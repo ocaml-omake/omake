@@ -76,9 +76,7 @@ val opt_osh : omake_options -> bool
 val set_osh_opt : omake_options -> omake_options
 
 val opt_dry_run : omake_options -> bool
-val opt_print_command : omake_options -> eval_flag
 val opt_print_dir : omake_options -> bool
-val opt_print_file : omake_options -> bool
 val opt_print_status : omake_options -> bool
 val opt_print_exit : omake_options -> bool
 val opt_print_progress : omake_options -> bool
@@ -94,6 +92,11 @@ val opt_project : omake_options -> bool
 val opt_flush_include : omake_options -> bool
 val opt_flush_static : omake_options -> bool
 val opt_verbose : omake_options -> bool
+
+val opt_print_command : omake_options -> eval_flag
+val set_print_command_opt : omake_options -> eval_flag -> omake_options
+val opt_print_file : omake_options -> bool
+val set_print_file_opt : omake_options -> bool -> omake_options
 
 val opt_absname : omake_options -> bool
 val set_absname_opt : omake_options -> bool -> omake_options
