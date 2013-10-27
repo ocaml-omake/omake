@@ -1,0 +1,11 @@
+UNIX_FILES[] =
+    lm_fs_case_sensitive
+    lm_mmap
+    lm_mmap_pipe
+    lm_rusage
+    lm_id
+    lm_inet
+    lm_uname
+    lm_unix_util
+    lm_notify
+    lm_dll

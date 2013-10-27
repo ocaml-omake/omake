@@ -1,0 +1,10 @@
+If you want to copy files from another project in the same repository
+(like omake), you will need to convince subversion that they are actually
+the same.
+
+Here is an example.
+
+svn switch --relocate svn://svn.metaprl.org/libmojave svn+ssh://svn.metaprl.org/svnroot/mojave/libmojave
+
+You should commit immediately if possible, because an "svn update" will revert
+back to using the old svn://... link.

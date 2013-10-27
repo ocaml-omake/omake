@@ -1,0 +1,35 @@
+#
+# Make sure omake is up-to-date
+#
+OMakeVersion(0.9.8)
+
+#
+# Threads are optional
+#
+if $(THREADS_ENABLED)
+    lm_thread_core.ml: lm_thread_core_system.ml
+        ln-or-cp $< $@
+
+    lm_thread_pool.ml: lm_thread_pool_system.ml
+        ln-or-cp $< $@
+else
+    lm_thread_core.ml: lm_thread_core_null.ml
+        ln-or-cp $< $@
+
+    lm_thread_pool.ml: lm_thread_pool_null.ml
+        ln-or-cp $< $@
+
+OCamlGeneratedFiles(lm_thread_pool.ml lm_thread_core.ml)
+
+#
+# Library
+#
+include Files
+
+#
+# Build the library.
+#
+OCamlLibrary(lmstdlib, $(STDLIB_FILES))
+
+clean:
+    $(CLEAN) lm_pervasives.ml lm_thread_core.ml lm_thread_pool.ml

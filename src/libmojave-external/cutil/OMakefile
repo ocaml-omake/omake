@@ -1,0 +1,66 @@
+#
+# Make sure omake is up-to-date
+#
+OMakeVersion(0.9.8)
+
+open configure/snprintf
+open configure/ncurses
+open configure/fs_case_sensitive
+
+if $(and $(LM_STANDALONE), $(NCURSES_AVAILABLE))
+    CFLAGS += -DNCURSES
+    export
+
+if $(NCURSES_TERMH_IN_NCURSES)
+    CFLAGS += -DTERMH_IN_NCURSES
+    export
+
+if $(DETECT_FS_CASE_SENSITIVE)
+    CFLAGS += $(DETECT_FS_CASE_SENSITIVE_CFLAGS)
+    export
+
+#
+# LibMojave C files
+#
+CFILES[] =
+    lm_heap
+    lm_abstract
+    lm_float
+    lm_ncurses
+    lm_printf
+    lm_raw
+    lm_readline
+    lm_rusage
+    lm_terminfo
+    lm_mmap
+    lm_marshal_shared
+    lm_ssl
+    lm_config
+    lm_uname_ext
+    lm_channel
+    lm_ctype
+    lm_nocompare
+    lm_compat_win32
+    lm_unix_cutil
+    fam_win32
+    fam_kqueue
+    fam_inotify
+    lm_notify
+    lm_termsize
+    lm_dll
+    lm_fs_case_sensitive
+
+if $(SNPRINTF_AVAILABLE)
+    CFLAGS += -DHAVE_SNPRINTF
+    export
+
+#
+# Libraries
+#
+StaticCLibraryInstall($(LMINSTALL), $(LIB), liblmcutil, $(CFILES))
+
+if $(LM_STANDALONE)
+    .DEFAULT: liblmcutil$(EXT_LIB)
+
+clean:
+    $(CLEAN)
