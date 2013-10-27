@@ -39,7 +39,7 @@ open configure/ncurses
             READLINE_CFLAGS += -DREADLINE_ENABLED
 
             # Test for GNU
-            if $(CheckLib ncurses readline, rl_on_new_line)
+            if $(CheckLib ncurses readline, history_list)
                 READLINE_GNU = true
                 READLINE_CFLAGS += -DREADLINE_GNU
                 export
