@@ -12,6 +12,8 @@
 *.cmxa
 *.out
 *.install
+*.default
+*.magic
 .\#*
 \#*\#
 *.omc
@@ -116,3 +118,9 @@ src/libmojave/lm_uname.ml
 src/libmojave/lm_uname.mli
 src/libmojave/lm_unix_util.ml
 src/libmojave/lm_unix_util.mli
+src/magic/omake_gen_magic
+src/magic/omake_magic.ml
+src/main/cvs_realclean
+src/main/omake
+src/main/osh
+src/util/ocaml_patch.ml
