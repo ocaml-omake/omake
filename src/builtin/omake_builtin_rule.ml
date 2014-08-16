@@ -36,27 +36,27 @@
  *)
 open Lm_printf
 
-open Lm_symbol
-open Lm_location
-open Lm_string_set
+
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_pos
-open Omake_eval
-open Omake_wild
-open Omake_node
-open Omake_exec
-open Omake_rule
-open Omake_lexer
-open Omake_value
-open Omake_state
-open Omake_symbol
+
+
+
+
+
+
+open! Omake_value
+
+
 open Omake_builtin
 open Omake_value_type
 open Omake_builtin_type
-open Omake_builtin_util
-open Omake_command_type
+open! Omake_builtin_util
+
 
 module Pos = MakePos (struct let name = "Omake_builtin_rule" end)
 open Pos
@@ -156,7 +156,7 @@ let phony_targets =
  * \end{verbatim}
  * \end{doc}
  *)
-let set_options venv pos loc args kargs =
+let set_options venv pos loc args _ =
    let pos = string_pos "OMakeFlags" pos in
       match args with
          [arg] ->

@@ -28,10 +28,10 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 open Lm_glob
 
-open Omake_node_sig
+
 open Omake_node
 
 (*

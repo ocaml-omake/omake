@@ -29,16 +29,16 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
-open Lm_location
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_var
-open Omake_node
+
 open Omake_eval
-open Omake_value
+open! Omake_value
 open Omake_symbol
 open Omake_builtin
 open Omake_builtin_type
@@ -248,7 +248,7 @@ let tgetstr venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
-let str_wrap name f v venv pos loc args =
+let str_wrap name f v _ pos loc args =
    let pos = string_pos name pos in
       if args <> [] then
          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
@@ -347,7 +347,7 @@ let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Om
  *
  * \end{doc}
  *)
-let gettimeofday venv pos loc args =
+let gettimeofday _ pos loc args =
    let pos = string_pos "gettimeofday" pos in
       match args with
          [] ->

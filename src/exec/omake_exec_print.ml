@@ -27,12 +27,12 @@
  * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 
 open Omake_util
 open Omake_node
 open Omake_state
-open Omake_command
+
 open Omake_exec_type
 open Omake_options
 open Omake_command_type
@@ -70,10 +70,10 @@ let print_progress options count total =
           | None ->
                0
       in
-         for i = off to blobs do
+         for _i = off to blobs do
             print_char '='
          done;
-         for i = 0 to progress_width - max off blobs do
+         for _i = 0 to progress_width - max off blobs do
             print_char ' '
          done;
          printf "] %05d / %05d\r@?" count total;
@@ -179,7 +179,7 @@ let print_status handle_out options shell remote name flag =
                      if not (List.mem QuietFlag flags) then
                         fprintf out "+%t %a@." pp_print_host shell.shell_print_exp exp
        | PrintExit (exp, code, _, time) ->
-            let flags, dir, target = shell.shell_info exp in
+            let _flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
                if should_print options flag && opt_print_file options then begin
                   print_flush ();
@@ -189,12 +189,12 @@ let print_status handle_out options shell remote name flag =
 (*
  * Print a list of lines.
  *)
-let pp_status_lines out options shell name el =
+let pp_status_lines out _options shell name el =
    (* Print the commands *)
    let first = ref true in
       fprintf out "   @[<v0>";
       List.iter (fun exp ->
-            let flags, dir, target = shell.shell_info exp in
+            let _flags, dir, target = shell.shell_info exp in
                if !first then begin
                   fprintf out "- %s %s %s" name (Dir.fullname dir) (Node.name dir target);
                   first := false;

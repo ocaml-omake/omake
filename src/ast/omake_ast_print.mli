@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 open Omake_ast
 
 val print_location : bool ref

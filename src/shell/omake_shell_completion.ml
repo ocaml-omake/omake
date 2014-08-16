@@ -24,19 +24,19 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
-open Lm_symbol
-open Lm_location
+
+
+
 open Lm_string_set
 
-open Omake_ir
+
 open Omake_env
 open Omake_var
 open Omake_pos
 open Omake_node
 open Omake_value
-open Omake_symbol
-open Omake_node_sig
+
+
 open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_shell_job" end)
@@ -113,7 +113,7 @@ let absolute_completion_exn s =
  * We are given a relative name ab/cd/ef.
  * Compute it relative to the current directory.
  *)
-let relative_completion_exn venv pos loc s =
+let relative_completion_exn venv _ _ s =
    let cwd = Dir.fullname (venv_dir venv) in
    let prefix, dir, name = split_relative s in
    let dir = Filename.concat cwd dir in
@@ -160,7 +160,7 @@ let filename_completion_exn venv pos loc s =
 (*
  * Command completion uses the Omake_cache.
  *)
-let command_completion_exn venv pos loc s =
+let command_completion_exn venv pos _loc s =
    let pos = string_pos "command_completion" pos in
 
    (* Aliases *)

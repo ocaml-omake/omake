@@ -33,12 +33,12 @@ open Lm_location
 
 open Omake_ir
 open Omake_env
-open Omake_pos
+
 open Omake_node
 open Omake_lexer
 open Omake_parser
-open Omake_value_type
-open Omake_var
+open! Omake_value_type
+
 
 (*
  * If there is only one value,

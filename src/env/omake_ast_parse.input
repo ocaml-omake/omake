@@ -23,7 +23,7 @@
  * jyh@cs.caltech.edu
  */
 %{
-open Lm_printf
+
 open Lm_symbol
 open Lm_location
 
@@ -169,7 +169,7 @@ let get_optcolon_text opt loc =
 (*
  * A 3-place rule.
  *)
-let rule3 multiple (target, loc1) ploc pattern source loc2 body =
+let rule3 multiple (target, loc1) _ pattern source loc2 body =
    let loc = union_loc loc1 loc2 in
       match pattern with
          Some (pattern, _) ->
@@ -1052,11 +1052,11 @@ arg_inner:
                NormalArg (ExpArg e)
           }
         | arg_id
-          { let (id, loc0), w, loc = $1 in
+          { let (id, _), w, loc = $1 in
 	       IdArg (id, w, loc)
           }
         | arg_key
-          { let (id, loc0), w, loc = $1 in
+          { let (id, _), w, loc = $1 in
 	       IdArg (id, w, loc)
           }
         | arg_key TokEq opt_white

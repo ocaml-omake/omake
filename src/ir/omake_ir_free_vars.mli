@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+
 
 open Omake_ir
 

@@ -34,10 +34,10 @@
  *)
 open Lm_hash
 open Lm_printf
-open Lm_symbol
+
 open Lm_hash_sig
-open Lm_location
-open Lm_string_util
+
+
 open Lm_filename_util
 
 open Fmarshal
@@ -45,7 +45,7 @@ open Fmarshal
 open Omake_state
 open Omake_marshal
 open Omake_node_sig
-open Omake_print_util
+
 
 (************************************************************************
  * This case [in-]sensitivity of file names is a complex issue.
@@ -384,7 +384,7 @@ struct
             FileCase.add_filename buf name;
             HashCode.code buf
 
-   let rec fine_compare dir1 dir2 =
+   let fine_compare dir1 dir2 =
       match dir1, dir2 with
          DirRoot root1, DirRoot root2 ->
             Pervasives.compare root1 root2
@@ -399,7 +399,7 @@ struct
        | DirSub _, DirRoot _ ->
             1
 
-   let rec coarse_compare dir1 dir2 =
+   let  coarse_compare dir1 dir2 =
       match dir1, dir2 with
          DirRoot root1, DirRoot root2 ->
             Pervasives.compare root1 root2
@@ -645,10 +645,10 @@ struct
                            cmp
                   else
                      cmp
-          | NodeFlagged (flag1, node1), NodeFlagged (flag2, node2) ->
+          | NodeFlagged (flag1, node1), NodeFlagged (flag2, _) ->
                let cmp = compare_flags flag1 flag2 in
                   if cmp = 0 then
-                     node_compare node1 node1
+                     node_compare node1 node1 (* TODO bug? *)
                   else
                      cmp
           | NodeFile _,        NodePhonyGlobal _
@@ -687,7 +687,7 @@ struct
          let add_node buf node =
             HashCode.add_int buf (NodeHash.hash node)
 
-         let add_filename buf name raw_name =
+         let add_filename buf name _raw_name =
             FileCase.add_filename buf name
 
          let filename_compare name1 _raw_name1 name2 _raw_name2 =
@@ -709,7 +709,7 @@ struct
          let add_node buf node =
             HashCode.add_int buf (NodeHash.fine_hash node)
 
-         let add_filename buf name raw_name =
+         let add_filename buf _name raw_name =
             HashCode.add_string buf raw_name
 
          let filename_compare _name1 raw_name1 _name2 raw_name2 =
@@ -835,7 +835,7 @@ let getcwd () =
       match Lm_filename_util.filename_path cwd with
          AbsolutePath (root, dir) ->
             make_dir root dir
-       | RelativePath dir ->
+       | RelativePath _dir ->
             raise (Invalid_argument "Unix.getcwd returned a relative path")
 
 (*
@@ -1325,7 +1325,7 @@ struct
    type dir   = Dir.t
    type mount = Mount.t
 
-   open Mount;;
+
 
    let dest = NodeHash.get
 
@@ -1470,7 +1470,7 @@ struct
    (*
     * Phony nodes.
     *)
-   let rec is_phony node =
+   let  is_phony node =
       match NodeHash.get node with
          NodePhonyGlobal _
        | NodePhonyDir _
@@ -1682,7 +1682,7 @@ struct
 
    let create_node mount_info mounts dir name =
       let { mount_file_exists = file_exists;
-            mount_file_reset = reset_file
+            _
           } = mount_info
       in
       let dir, key, name = new_file dir name in

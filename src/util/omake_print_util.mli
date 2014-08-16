@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 open Lm_symbol
 
 val pp_print_method_name : out_channel -> symbol list -> unit

@@ -32,7 +32,7 @@ open Omake_ir
 open Omake_node
 open Omake_wild
 open Omake_ir_print
-open Omake_print_util
+
 open Omake_value_type
 open Omake_command_type
 
@@ -80,7 +80,7 @@ let pp_print_required buf b =
 let rec pp_print_path buf = function
    PathVar info ->
       pp_print_var_info buf info
- | PathField (path, obj, v) ->
+ | PathField (path, _obj, v) ->
       fprintf buf "%a.%a" pp_print_symbol v pp_print_path path
 
 (************************************************************************

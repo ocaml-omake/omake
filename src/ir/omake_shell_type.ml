@@ -240,7 +240,8 @@ struct
             apply_stdin = stdin;
             apply_stdout = stdout;
             apply_stderr = stderr;
-            apply_append = append
+            apply_append = append;
+            _
           } = apply
       in
          fprintf buf "@[<hv 3>%aShell.%a(%a)%a%a@]" (**)
@@ -260,7 +261,8 @@ struct
             cmd_stdin = stdin;
             cmd_stdout = stdout;
             cmd_stderr = stderr;
-            cmd_append = append
+            cmd_append = append;
+            _
           } = command
       in
          fprintf buf "@[<hv 3>%a%a%a%a%a@]" (**)

@@ -34,7 +34,7 @@
  *                               Added sets, tables, indices for
  *                               symbol pairs and triples
  *)
-open Lm_printf
+open! Lm_printf
 
 (*
  * Representation of symbols.

@@ -33,11 +33,11 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
 
-open Lm_symbol
-open Lm_location
-open Lm_string_set
+
+
+
+
 
 open Omake_ir
 open Omake_env
@@ -45,15 +45,15 @@ open Omake_pos
 open Omake_eval
 open Omake_node
 open Omake_rule
-open Omake_exec
-open Omake_value
-open Omake_state
+
+open! Omake_value
+
 open Omake_symbol
 open Omake_builtin
 open Omake_node_sig
 open Omake_exec_util
 open Omake_build_type
-open Omake_cache_type
+
 open Omake_builtin_type
 open Omake_builtin_util
 open Omake_value_type
@@ -127,7 +127,7 @@ let dependencies venv pos loc args =
          [arg] ->
             let args  = values_of_value venv pos arg in
             let nodes = List.map (file_of_value venv pos) args in
-            let rec find_deps deps node =
+            let  find_deps deps node =
                try
                   let env = get_env pos loc in
                   let command = NodeTable.find env.env_commands node in
@@ -209,9 +209,10 @@ let dependencies_proper = dependencies_all_core (fun command -> not (is_leaf_com
 let array_of_node_set nodes =
    ValArray (List.map (fun v -> ValNode v) (NodeSet.to_list nodes))
 
-let split_command venv (values1, lines1) command =
+let split_command _ (values1, lines1) command =
    let { command_values = values2;
-         command_body = lines2
+         command_body = lines2;
+         _
        } = command
    in
    let values = List.rev_append values2 values1 in
@@ -244,7 +245,8 @@ let target_of_command venv pos loc command =
          command_static_deps  = static_deps;
          command_build_deps   = build_deps;
          command_tee          = tee;
-         command_lines        = commands
+         command_lines        = commands;
+         _
        } = command
    in
 

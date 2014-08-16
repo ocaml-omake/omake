@@ -37,26 +37,26 @@
  *)
 open Lm_arg
 open Lm_glob
-open Lm_printf
-open Lm_location
-open Lm_string_set
+open! Lm_printf
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_var
 open Omake_pos
-open Omake_eval
+
 open Omake_node
 open Omake_rule
-open Omake_value
+open! Omake_value
 open Omake_target
 open Omake_symbol
 open Omake_builtin
 open Omake_node_sig
-open Omake_build_util
+
 open Omake_builtin_util
 open Omake_builtin_type
-open Omake_build_type
+
 open Omake_cache_type
 open Omake_value_type
 
@@ -580,7 +580,7 @@ let where venv pos loc args =
  * The \verb+rehash+ function resets all search paths.
  * \end{doc}
  *)
-let rehash venv pos loc args =
+let rehash venv _ _ _ =
    let cache = venv_cache venv in
       Omake_cache.rehash cache;
       ValNone
@@ -670,7 +670,7 @@ let digest_optional = digest_aux false
 (*
  * A simple string.
  *)
-let digest_string venv pos loc args =
+let digest_string venv pos _ args =
    let pos = string_pos "digest_string" pos in
    let s =
       match args with
@@ -951,13 +951,13 @@ let filter_nodes node_exists venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let file_exists venv pos loc args =
-   node_exists (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
+   node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
 
 let file_exists_force venv pos loc args =
-   node_exists (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
+   node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
 
 let filter_exists venv pos loc args =
-   filter_nodes (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
+   filter_nodes (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
 
 (* Catch UnbuildableException *)
 let target_is_buildable cache venv pos node =

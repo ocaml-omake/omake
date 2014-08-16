@@ -30,13 +30,13 @@
  * @end[license]
  *)
 
-open Lm_debug
+
 open Lm_printf
 open Lm_thread_pool
 
 open Omake_node
-open Omake_state
-open Omake_exec_id
+
+
 open Omake_exec_util
 open Omake_exec_type
 open Omake_exec_print
@@ -44,7 +44,7 @@ open Omake_exec_local
 open Omake_exec_remote
 open Omake_exec_notify
 open Omake_options
-open Omake_command_type
+
 
 module Exec =
 struct
@@ -101,7 +101,7 @@ struct
         server_handle  = LocalServer local
       }
 
-   let start_notify notify options =
+   let start_notify notify _options =
       { server_host    = "notify";
         server_count   = 0;
         server_running = 0;
@@ -109,7 +109,7 @@ struct
         server_handle  = NotifyServer notify
       }
 
-   let start_remote root (machine, count) =
+   let start_remote _root (machine, count) =
       { server_host    = machine;
         server_count   = count;
         server_running = 0;
@@ -137,7 +137,7 @@ struct
     * When the server is closed, kill all the jobs.
     *)
    let close server =
-      List.iter (fun { server_handle = handle } ->
+      List.iter (fun { server_handle = handle ; _} ->
             match handle with
                LocalServer local ->
                   Local.close local
@@ -152,10 +152,10 @@ struct
    let print_status tee options shell remote name _ =
       let remote =
          match remote with
-            { server_handle = LocalServer _ }
-          | { server_handle = NotifyServer _ } ->
+            { server_handle = LocalServer _ ; _}
+          | { server_handle = NotifyServer _ ; _} ->
                None
-          | { server_host = host; server_handle = RemoteServer _ } ->
+          | { server_host = host; server_handle = RemoteServer _ ; _} ->
                Some host
       in
          print_status tee options shell remote name
@@ -168,7 +168,8 @@ struct
          List.iter (fun { server_host = host;
                           server_count = count;
                           server_running = running;
-                          server_enabled = enabled
+                          server_enabled = enabled;
+                          _
                         } ->
                eprintf "*** searching %s, count=%d, running=%d, enabled=%b@." host count running enabled) server.server_servers;
       let rec search best servers =
@@ -176,13 +177,14 @@ struct
             server :: servers ->
                let { server_enabled = enabled;
                      server_count = count;
-                     server_running = running
+                     server_running = running;
+                     _
                    } = server
                in
                let best =
                   if enabled && running <> count then
                      match best with
-                        Some { server_running = running' } ->
+                        Some { server_running = running' ; _} ->
                            if running < running' then
                               Some server
                            else
@@ -210,7 +212,8 @@ struct
       let id = Omake_exec_id.create () in
       let server = find_best_server server_main in
       let { server_running = running;
-            server_handle = handle
+            server_handle = handle;
+            _
           } = server
       in
 
@@ -241,8 +244,9 @@ struct
     * Wait for input on one of the servers.
     *)
    let wait_select server options =
-      let { server_notify = notify;
-            server_servers = servers
+      let { server_notify = _notify;
+            server_servers = servers;
+            _
           } = server
       in
       let fd_table =
@@ -277,11 +281,11 @@ struct
                         None
                in
                   match server with
-                     Some { server_handle = LocalServer local } ->
+                     Some { server_handle = LocalServer local ; _} ->
                         Local.handle local options fd
-                   | Some { server_handle = RemoteServer remote } ->
+                   | Some { server_handle = RemoteServer remote ; _} ->
                         Remote.handle remote options fd
-                   | Some { server_handle = NotifyServer notify } ->
+                   | Some { server_handle = NotifyServer notify ; _} ->
                         Notify.handle notify options fd
                    | None ->
                         ()) fd_set;
@@ -304,7 +308,8 @@ struct
    let wait_thread server options =
       let { server_servers = servers;
             server_fd_table = fd_table;
-            server_pid_table = pid_table
+            server_pid_table = pid_table;
+            _
           } = server
       in
 
@@ -340,7 +345,7 @@ struct
     * Wait for all threads to finish.
     *)
    let wait_all server =
-      let { server_pid_table = pid_table } = server in
+      let { server_pid_table = pid_table ; _} = server in
       let rec wait pid_table =
          if not (IntTable.is_empty pid_table) then
             let pids = Lm_thread_pool.wait () in
@@ -355,7 +360,7 @@ struct
     * The wait process handles output from each of the jobs.
     * Once both output channels are closed, the job is finished.
     *)
-   let rec wait server_main options =
+   let  wait server_main options =
       let rec poll servers =
          match servers with
             [] ->
@@ -367,7 +372,8 @@ struct
                let { server_host    = host;
                      server_count   = count;
                      server_running = running;
-                     server_handle  = handle
+                     server_handle  = handle;
+                     _
                    } = server
                in
                let wait_code =
@@ -409,10 +415,10 @@ struct
    (*
     * Ask for a file to be monitored.
     *)
-   let monitor { server_notify = notify } node =
+   let monitor { server_notify = notify ; _} node =
       Notify.monitor notify node
 
-   let monitor_tree { server_notify = notify } dir =
+   let monitor_tree { server_notify = notify ; _} dir =
       Notify.monitor_tree notify dir
 
    (*

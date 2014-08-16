@@ -24,7 +24,7 @@
  *)
 open Unix
 open Lm_debug
-open Lm_printf
+open! Lm_printf
 
 let debug_terminal =
    create_debug {

@@ -32,19 +32,19 @@
 open Lm_printf
 open Lm_location
 open Lm_symbol
-open Lm_lexer
 
-open Omake_ir
+
+open! Omake_ir
 open Omake_env
 open Omake_var
 open Omake_pos
 open Omake_node
 open Omake_symbol
 open Omake_options
-open Omake_ir_util
-open Omake_node_sig
+
+
 open Omake_ir_print
-open Omake_value_type
+open! Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ir_ast" end)
 open Pos;;
@@ -125,13 +125,13 @@ struct
       match SymbolTable.find env v with
          ForcedVar info ->
             info
-       | ForcedExtern info ->
+       | ForcedExtern _ ->
             raise Not_found
 
-   let add_param env pos v info =
+   let add_param env _pos v info =
       SymbolTable.add env v (ForcedVar info)
 
-   let add_var env pos v info =
+   let add_var env _pos v info =
       SymbolTable.add env v (ForcedVar info)
 
    let add_extern env v info =
@@ -179,7 +179,7 @@ end;;
 (************************************************************************
  * Types.
  *)
-type ast_exp = Omake_ast.exp
+
 
 (*
  * Environment for parsing AST files.
@@ -305,7 +305,7 @@ type param_info =
  | NormalParam
  | OptionalParam of string_exp
 
-type param = var * param_info * loc
+
 
 (************************************************************************
  * Name info.
@@ -351,7 +351,8 @@ let genv_add_warning genv =
 
 let genv_warn_error genv senv =
    let { genv_file = file;
-         genv_warning_count = count
+         genv_warning_count = count;
+         _
        } = genv
    in
       if count <> 0 && opt_warn_error (venv_options senv.senv_venv) then
@@ -378,9 +379,9 @@ let nested_object_vars vars =
  *)
 let rec collect_if cases el =
    match el with
-      Omake_ast.CommandExp (v, e, body, loc) :: el when Lm_symbol.eq v elseif_sym ->
+      Omake_ast.CommandExp (v, e, body, _) :: el when Lm_symbol.eq v elseif_sym ->
          collect_if ((e, body) :: cases) el
-    | Omake_ast.CommandExp (v, e, body, loc) :: el when Lm_symbol.eq v else_sym ->
+    | Omake_ast.CommandExp (v, _e, body, loc) :: el when Lm_symbol.eq v else_sym ->
          let cases = (Omake_ast.StringOtherExp ("true", loc), body) :: cases in
             List.rev cases, el
     | _ ->
@@ -471,7 +472,7 @@ let cenv_update_scope cenv info =
       }
 
 let cenv_scope cenv =
-   let { cenv_scope = scope;
+   let { cenv_scope = scope; _
        } = cenv
    in
       { name_scope  = scope;
@@ -483,17 +484,17 @@ let cenv_force_scope cenv info =
    let info = cenv_update_scope cenv info in
       { cenv with cenv_scope = info.name_scope }
 
-let cenv_fun_scope cenv id =
+let cenv_fun_scope _ id =
    { (* cenv with *) cenv_scope        = None;
                      cenv_context      = ContextFunction id
    }
 
-let cenv_rule_scope cenv =
+let cenv_rule_scope _ =
    { (* cenv with *) cenv_scope        = None;
                      cenv_context      = ContextRule
    }
 
-let cenv_sequence_scope cenv el =
+let cenv_sequence_scope cenv _ =
    cenv
 
 let cenv_return_id cenv pos loc =
@@ -540,7 +541,7 @@ let genv_close genv oenv senv e =
 (*
  * Create the environment when we enter a new object from a virtual object.
  *)
-let senv_object_body senv cenv v =
+let senv_object_body senv _ _ =
    let senv =
       { senv with senv_object_senv  = SymbolTable.empty;
                   senv_update_vars  = SymbolTable.empty
@@ -568,7 +569,8 @@ let senv_add_export_all pos senv1 forced_vars2 =
    let { senv_object_senv = object_senv1;
          senv_update_vars = update_vars1;
          senv_forced_vars = forced_vars1;
-         senv_all_vars    = all_vars1
+         senv_all_vars    = all_vars1;
+         _
        } = senv1
    in
 
@@ -636,7 +638,7 @@ let rec senv_merge_forced_vars pos export1 exports errors =
  *)
 let warned_solution = ref false
 
-let senv_warn_merge_errors genv senv loc errors =
+let senv_warn_merge_errors _genv senv loc errors =
    let forced_vars = senv.senv_forced_vars in
    let errors =
       SymbolTable.fold (fun errors v info ->
@@ -668,7 +670,7 @@ let senv_warn_merge_errors genv senv loc errors =
  * If they are not all exports, then check that the variables
  * being exported are already declared.
  *)
-let senv_merge_exports genv senv1 cenv pos loc results is_complete =
+let senv_merge_exports genv senv1 _cenv pos loc results is_complete =
    let pos = string_pos "senv_merge_exports" pos in
    let is_complete, exports =
       List.fold_left (fun (is_complete, exports) result ->
@@ -811,7 +813,7 @@ let create_pervasives_var loc v =
  * Create a variable for the given scope.
  * If we are not in an object, then this is actually a file variable.
  *)
-let create_var genv oenv senv cenv loc scope v =
+let create_var _genv _ _ _ loc scope v =
    match scope with
       VarScopePrivate ->
          VarPrivate (loc, v)
@@ -825,7 +827,7 @@ let create_var genv oenv senv cenv loc scope v =
 (*
  * Strip the leading qualifiers.
  *)
-let parse_declaration senv pos loc vl =
+let parse_declaration _senv pos loc vl =
    (* Check scoping *)
    let make_forced_scope info scope2 =
       match info.name_scope with
@@ -878,7 +880,7 @@ let builtin_vars =
  * Get the scope for a variable.
  * Numeric symbols are global by default.
  *)
-let senv_find_var genv oenv senv cenv pos loc v =
+let senv_find_var _ oenv senv cenv _pos loc v =
    if is_numeric_symbol v || SymbolSet.mem builtin_vars v then
       oenv, create_pervasives_var loc v
    else
@@ -945,11 +947,12 @@ let senv_open_file genv senv pos loc filename =
  *
  * This should be uncommented in 0.9.9.
  *)
-let senv_define_var_info_bogus senv pos loc scope v info =
+let senv_define_var_info_bogus senv _ _ scope v info =
    let { senv_object_senv = object_vars;
          senv_update_vars = update_vars;
          senv_forced_vars = forced_vars;
-         senv_all_vars    = all_vars
+         senv_all_vars    = all_vars;
+         _
        } = senv
    in
 
@@ -972,11 +975,12 @@ let senv_define_var_info_bogus senv pos loc scope v info =
 (*
  * Low-level variable definition.
  *)
-let senv_define_var_info senv pos loc scope v info =
+let senv_define_var_info senv pos _ scope v info =
    let { senv_object_senv = object_vars;
          senv_update_vars = update_vars;
          senv_forced_vars = forced_vars;
-         senv_all_vars    = all_vars
+         senv_all_vars    = all_vars;
+         _
        } = senv
    in
 
@@ -1367,7 +1371,7 @@ and build_quote_string_string genv oenv senv cenv c el pos loc =
    let genv, oenv, args = build_sequence_string_aux genv oenv senv cenv el pos loc in
       genv, oenv, QuoteStringString (loc, c, args)
 
-and build_sequence_string_aux genv oenv senv cenv el pos loc =
+and build_sequence_string_aux genv oenv senv cenv el pos _ =
    let pos = string_pos "build_sequence_string_aux" pos in
    let buf = Buffer.create 32 in
 
@@ -1447,7 +1451,7 @@ and fun_warning loc =
 This expression should use a => binding.@]@." (**)
       pp_print_location loc
 
-and build_compat_args genv oenv senv cenv v args pos loc =
+and build_compat_args _ _ _ _ v args _ loc =
    match args with
       [Omake_ast.ExpArg body;
        Omake_ast.ExpArg x;
@@ -1475,7 +1479,7 @@ and build_compat_args genv oenv senv cenv v args pos loc =
  * New-style foreach methods have a single argument: the function.
  * Multi-argument foreach should be converted.
  *)
-and build_method_compat_args genv oenv senv cenv vl args pos loc =
+and build_method_compat_args _ _ _ _ vl args _ loc =
    if Lm_symbol.eq (Lm_list_util.last vl) foreach_sym then
       (* New-style foreach methods have a single argument *)
       match args with
@@ -1607,7 +1611,7 @@ and build_method_apply_string genv oenv senv cenv strategy vars args pos loc =
 (*
  * Key application $|xxx|
  *)
-and build_key_apply_string genv oenv senv cenv strategy v pos loc =
+and build_key_apply_string genv oenv _ _ strategy v _ loc =
    let genv, lazy_state = lazy_push_strategy genv strategy in
    let e = KeyApplyString (loc, v) in
    let genv, e = lazy_pop_strategy genv lazy_state loc e in
@@ -1675,7 +1679,7 @@ and build_exp genv oenv senv cenv result e =
             build_rule_exp genv oenv senv cenv multiple target pattern source commands pos loc
        | Omake_ast.ShellExp (e, loc) ->
             build_shell_exp genv oenv senv cenv e pos loc
-       | Omake_ast.CatchExp (_, _, _, loc) ->
+       | Omake_ast.CatchExp (_, _, _, _) ->
             raise (OmakeException (pos, StringError "misplaced catch clause"))
        | Omake_ast.ClassExp (names, loc) ->
             build_class_exp genv oenv senv cenv loc names
@@ -1683,7 +1687,7 @@ and build_exp genv oenv senv cenv result e =
 (*
  * Add the class names.
  *)
-and build_class_exp genv oenv senv cenv loc names =
+and build_class_exp genv oenv senv _ loc names =
    let oenv = { (* oenv with *) oenv_class_names = SymbolSet.add_list oenv.oenv_class_names names } in
       genv, oenv, senv, SequenceExp (loc, []), ValValue
 
@@ -1748,10 +1752,10 @@ and build_sequence genv oenv senv cenv result pos rval el =
 (*
  * Normal sequences are always in global mode.
  *)
-and build_body genv oenv senv cenv el pos loc =
+and build_body genv oenv senv cenv el pos _ =
    let pos = string_pos "build_body" pos in
    let genv, oenv, senv, el, result =
-      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv cenv result ->
+      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv _ result ->
             genv, oenv, senv, [], result) el
    in
    let export, result = senv_add_exports senv result in
@@ -1892,7 +1896,7 @@ and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc
  * The command line is handled at parse time as well as
  * at evaluation time.
  *)
-and build_set_exp genv oenv senv cenv e pos loc =
+and build_set_exp genv oenv senv _ e pos loc =
    let _pos = string_pos "build_set_exp" pos in
    let argv = build_literal_argv e pos in
    let senv = { senv with senv_venv = venv_set_options senv.senv_venv loc pos argv } in
@@ -1961,7 +1965,7 @@ and build_if_exp genv oenv senv cenv cases pos loc =
 and build_sequence_exp genv oenv senv cenv result el pos loc =
    let pos = string_pos "build_sequence_exp" pos in
    let genv, oenv, senv, el, result =
-      build_sequence genv oenv senv cenv result pos (fun genv oenv senv cenv result ->
+      build_sequence genv oenv senv cenv result pos (fun genv oenv senv _ result ->
             genv, oenv, senv, [], result) el
    in
       genv, oenv, senv, SequenceExp (loc, el), result
@@ -2002,7 +2006,7 @@ and build_return_exp genv oenv senv cenv e pos loc =
 (*
  * Open the namespace from another file.
  *)
-and build_open_exp genv oenv senv cenv arg pos loc =
+and build_open_exp genv oenv senv _ arg pos loc =
    let pos = string_pos "build_open_exp" pos in
    let argv = build_literal_argv arg pos in
    let senv, nodes =
@@ -2043,14 +2047,14 @@ and build_declare_exp genv oenv senv cenv arg commands pos loc =
  *)
 and build_object_def_exp genv oenv senv cenv vl flag body pos loc =
    match parse_declaration senv pos loc vl with
-      NameEmpty { name_static = true; name_scope = None } ->
+      NameEmpty { name_static = true; name_scope = None ; _} ->
          build_static_object_exp genv oenv senv cenv body pos loc
-    | NameEmpty { name_static = true } ->
+    | NameEmpty { name_static = true ; _} ->
          raise (OmakeException (loc_pos loc pos, StringError "static objects cannot be qualified"))
     | NameEmpty info ->
          build_scope_exp genv oenv senv cenv info body pos loc
 
-    | NameMethod ({ name_static = true }, _, _) ->
+    | NameMethod ({ name_static = true; _ }, _, _) ->
          raise (OmakeException (loc_pos loc pos, StringError "static named objects are not allowed"))
     | NameMethod (info, v, vl) ->
          build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc
@@ -2062,8 +2066,8 @@ and build_object_def_exp genv oenv senv cenv vl flag body pos loc =
 and build_scope_exp genv oenv senv cenv info el pos loc =
    let pos = string_pos "build_scope_exp" pos in
    let cenv = cenv_force_scope cenv info in
-   let genv, oenv, senv, el, result =
-      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv cenv result ->
+   let genv, oenv, senv, el, _ =
+      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv _ result ->
             genv, oenv, senv, [], result) el
    in
       genv, oenv, senv, SequenceExp (loc, el), ValValue
@@ -2079,10 +2083,10 @@ and build_static_object_exp genv oenv senv cenv el pos loc =
 
    let senv_body, cenv_body = senv_static_body senv cenv (Lm_symbol.new_symbol static_sym) in
    let genv, oenv, senv_body, el, _ =
-      build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv cenv _ ->
+      build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv _ _ ->
             genv, oenv, senv, [ReturnObjectExp (loc, [])], ValValue) el
    in
-   let senv, vars =
+   let senv, _ =
       SymbolTable.fold (fun (senv, vars) _ info ->
             match info with
                VarThis (loc, v) ->
@@ -2124,14 +2128,14 @@ and build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc =
    in
 
    (* Compile the body *)
-   let rval genv oenv senv cenv result =
+   let rval genv oenv senv _ _ =
       let class_names = SymbolSet.to_list oenv.oenv_class_names in
          genv, oenv, senv, [ReturnObjectExp (loc, class_names)], ValValue
    in
 
    let senv_body, cenv_body = senv_object_body senv cenv v in
    let oenv_body = oenv_empty in
-   let genv, oenv_body, senv_body, body, result =
+   let genv, _, senv_body, body, result =
       build_sequence genv oenv_body senv_body cenv_body ValValue pos rval body
    in
    let export, _ = senv_add_exports senv_body result in
@@ -2272,7 +2276,7 @@ and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources bo
       let original_class_names = oenv.oenv_class_names in
       let oenv = { (* oenv with *) oenv_class_names = SymbolSet.empty } in
       let cenv = cenv_rule_scope cenv in
-      let genv, oenv, body, export, _ = build_body genv oenv senv cenv body pos loc in
+      let genv, _, body, export, _ = build_body genv oenv senv cenv body pos loc in
       let oenv = { (* oenv with *) oenv_class_names = original_class_names } in
          genv, oenv, BodyString (loc, body, export)
    in
@@ -2301,7 +2305,7 @@ and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources bod
    (* Build the body object expression *)
    let senv_body, cenv_body = senv_static_body senv cenv (Lm_symbol.new_symbol static_sym) in
    let genv, oenv, senv_body, el, _ =
-      build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv cenv _ ->
+      build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv _ _ ->
             genv, oenv, senv, [ReturnObjectExp (loc, [])], ValValue) body
    in
    let body = ObjectString (loc, el, ExportNone) in
@@ -2332,7 +2336,7 @@ and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources bod
                in
                let v =
                   match info with
-                     VarThis (loc, v) ->
+                     VarThis (_, v) ->
                         v
                    | VarPrivate _
                    | VarVirtual _
@@ -2365,7 +2369,7 @@ and build_shell_exp genv oenv senv cenv e pos loc =
  * A ReturnFile expression.
  * Place the initialization function right before.
  *)
-let build_return_file_exp genv oenv senv cenv loc =
+let build_return_file_exp _ _ _ _ loc =
    ReturnSaveExp loc
 
 (*
@@ -2387,7 +2391,7 @@ let compile_prog (genv, oenv, senv, cenv) el =
    let loc = bogus_loc "Omake_ir_ast" in
    let pos = string_pos "compile_prog" (loc_exp_pos loc) in
    let genv, oenv, senv, el, _ =
-      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv cenv result ->
+      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv cenv _ ->
             let e = build_return_file_exp genv oenv senv cenv loc in
                genv, oenv, senv, [e], ValValue) el
    in
@@ -2399,7 +2403,7 @@ let compile_exp_list (genv, oenv, senv, cenv) el =
    let loc = bogus_loc "Omake_ir_ast" in
    let pos = string_pos "compile_exp_list" (loc_exp_pos loc) in
    let genv, oenv, senv, el, _ =
-      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv cenv result ->
+      build_sequence genv oenv senv cenv ValValue pos (fun genv oenv senv _ result ->
             genv, oenv, senv, [], result) el
    in
    let genv, oenv, senv, ir = genv_close genv oenv senv (SequenceExp (loc, el)) in

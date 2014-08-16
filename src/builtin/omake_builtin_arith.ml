@@ -30,23 +30,23 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
 
-open Lm_symbol
-open Lm_location
-open Lm_string_set
+
+
+
+
 
 open Omake_ir
-open Omake_env
+
 open Omake_pos
-open Omake_eval
-open Omake_wild
-open Omake_node
-open Omake_exec
-open Omake_value
-open Omake_state
+
+
+
+
+open! Omake_value
+
 open Omake_builtin
-open Omake_cache_type
+
 open Omake_builtin_util
 open Omake_builtin_type
 open Omake_value_type
@@ -136,11 +136,11 @@ let unary_int op_int venv pos loc args =
    let pos = string_pos "unary_int" pos in
       match args with
          [arg] ->
-            concat_array (List.map (fun v -> ValInt (op_int (int_of_value venv pos arg))) (values_of_value venv pos arg))
+            concat_array (List.map (fun _ -> ValInt (op_int (int_of_value venv pos arg))) (values_of_value venv pos arg))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
-let arith_int id_int op_int venv pos loc args =
+let arith_int id_int op_int venv pos _ args =
    let pos = string_pos "arith_int" pos in
    let collect i arg =
       op_int i (int_of_value venv pos arg)

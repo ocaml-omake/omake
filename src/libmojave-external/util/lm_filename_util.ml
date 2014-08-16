@@ -51,7 +51,7 @@ let unix_is_executable s =
          let { Unix.LargeFile.st_kind = kind;
                Unix.LargeFile.st_perm = perm;
                Unix.LargeFile.st_uid = uid;
-               Unix.LargeFile.st_gid = gid
+               Unix.LargeFile.st_gid = gid; _
              } = Unix.LargeFile.stat s
          in
             (kind = Unix.S_REG)
@@ -412,7 +412,7 @@ let replace_basename s1 s2 =
 let simplify_path path =
    let rec simplify path' = function
       dir::tl ->
-         if dir = "" or dir = "." then
+         if dir = "" || dir = "." then
             simplify path' tl
          else if dir = ".." then
             match path' with

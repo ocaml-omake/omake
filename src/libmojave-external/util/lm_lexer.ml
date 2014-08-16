@@ -31,9 +31,9 @@
  *)
 open Lm_hash
 open Lm_debug
-open Lm_printf
+open! Lm_printf
 open Lm_location
-open Lm_int_set
+
 
 let debug_lex =
    create_debug (**)
@@ -83,7 +83,7 @@ struct
     * Increment one of the counters.
     * Return the new counter value too.
     *)
-   let rec incr_counter counters i min final max start =
+   let incr_counter counters i min final max start =
       let rec incr counters i =
          match counters with
             counter :: counters ->
@@ -499,15 +499,7 @@ struct
     | NfaActionResetCounter of int * int list              (* counter, next state list *)
     | NfaActionIncrCounter  of int * int * int * int * int (* counter, min, final, max, restart *)
 
-   (*
-    * This is the argument info we pass to the DFA.
-    *)
-   type arg =
-      { arg_index     : int;
-        arg_clause    : int;
-        arg_number    : int
-      }
-
+   
    (*
     * This is the info we accumulate during compilation.
     *    nfa_index       : the index of the next state to be allocated
@@ -1399,7 +1391,7 @@ struct
             exp_id = id1
           } = exp1
       in
-      let { exp_clauses = clauses2 } = exp2 in
+      let { exp_clauses = clauses2; _ } = exp2 in
       let actions =
          List.fold_left (fun actions (action, _, _) ->
                ActionSet.add actions action) ActionSet.empty clauses1
@@ -1485,7 +1477,8 @@ struct
             nfa_start = start;
             nfa_search_start = search;
             nfa_search_states = search_states;
-            nfa_table = table
+            nfa_table = table;
+            _
           } = nfa
       in
          fprintf buf "@[<hv 3>NFA:@ start = %a@ search = %a@ @[<b 3>search-states =%a@]" (**)
@@ -1500,7 +1493,7 @@ struct
     * Construct a new state.
     *)
    let nfa_state accum action =
-      let { nfa_index = index } = accum in
+      let { nfa_index = index ; _} = accum in
       let state =
          { nfa_state_index = index;
            nfa_state_action = action
@@ -1582,7 +1575,7 @@ struct
             in
                accum, info, start, start1 :: final1 :: states
        | RegexInterval (regex, min, max) ->
-            let { nfa_counter = counter } = accum in
+            let { nfa_counter = counter; _ } = accum in
             let accum, start1 = nfa_state accum NfaActionNone in
             let accum, final1 =
                nfa_state accum (NfaActionIncrCounter (counter, min, final.nfa_state_index, max, start1.nfa_state_index))
@@ -1605,11 +1598,11 @@ struct
 
          (* Arguments *)
        | RegexArg regex ->
-            let { nfa_arg_index = argindex } = accum in
+            let { nfa_arg_index = argindex; _ } = accum in
             let accum, final1 = nfa_state accum (NfaActionArgStop (argindex, final.nfa_state_index)) in
             let accum, start1 = nfa_state accum NfaActionNone in
             let start = set_action start (NfaActionArgStart (argindex, start1.nfa_state_index)) in
-            let { nfa_arg_number = argnumber } = info in
+            let { nfa_arg_number = argnumber; _ } = info in
             let accum = { accum with nfa_arg_index = succ argindex } in
             let info = { info with nfa_arg_number  = succ argnumber } in
             let accum, info, start1, states =
@@ -1900,7 +1893,7 @@ struct
       match action with
          { dfa_action_final = None; dfa_action_actions = actions } ->
             NfaStateTable.is_empty actions
-       | { dfa_action_final = Some _ } ->
+       | { dfa_action_final = Some _ ; _  } ->
             false
 
    (*
@@ -1921,7 +1914,8 @@ struct
 
    let dfa_eval_action dfa info action =
       let { dfa_channel = channel;
-            dfa_args = args_table
+            dfa_args = args_table;
+            _
           } = info
       in
       let { dfa_action_final = final;
@@ -2141,7 +2135,8 @@ struct
     *)
    let close_state dfa table nids c =
       let { dfa_search_states = search_states;
-            dfa_nfa_hash = nfa_hash
+            dfa_nfa_hash = nfa_hash;
+            _
           } = dfa
       in
       let final, actions =
@@ -2266,7 +2261,8 @@ struct
    let dfa_args dfa_info lexeme =
       let { dfa_start_pos = start;
             dfa_stop_pos = stop;
-            dfa_stop_args = args
+            dfa_stop_args = args;
+            _
           } = dfa_info
       in
 
@@ -2328,7 +2324,8 @@ struct
    let dfa_find_state dfa nids =
       let { dfa_map    = map;
             dfa_length = dfa_id;
-            dfa_states = states
+            dfa_states = states;
+            _
           } = dfa
       in
          try DfaStateTable.find map nids with
@@ -2363,11 +2360,13 @@ struct
     *)
    let create_entry dfa dfa_state c =
       let { dfa_dfa_hash = dfa_hash;
-            dfa_table = table
+            dfa_table = table;
+            _
           } = dfa
       in
       let { dfa_state_set = nids;
-            dfa_state_delta = delta
+            dfa_state_delta = delta;
+            _
           } = dfa_state
       in
       let frontier, actions = close_next_state dfa table (DfaState.get dfa_hash nids) c in
@@ -2439,6 +2438,7 @@ struct
       (* Now figure out what happened *)
       let { dfa_stop_clause = clause;
             dfa_stop_pos    = stop;
+            _
           } = dfa_info
       in
          (*
@@ -2491,6 +2491,7 @@ struct
       (* Now figure out what happened *)
       let { dfa_stop_clause = clause;
             dfa_stop_pos    = stop;
+            _
           } = dfa_info
       in
          (*
@@ -2553,6 +2554,7 @@ struct
       (* Now figure out what happened *)
       let { dfa_stop_clause = clause;
             dfa_stop_pos    = stop;
+            _
           } = dfa_info
       in
          (*
@@ -2615,7 +2617,8 @@ struct
             nfa_start         = nfa_start;
             nfa_actions       = actions;
             nfa_search_start  = nfa_search_start;
-            nfa_search_states = nfa_search_states
+            nfa_search_states = nfa_search_states;
+            _
           } = nfa
       in
       let dfa_hash = DfaState.create_state () in
@@ -2673,8 +2676,8 @@ struct
     * then we have seen all the rest of the clauses too.
     *)
    let union info1 info2 =
-      let { lex_exp = exp1 } = info1 in
-      let { lex_exp = exp2 } = info2 in
+      let { lex_exp = exp1 ; _} = info1 in
+      let { lex_exp = exp2 ; _} = info2 in
          (* Catch degenerate cases first *)
          match exp1.exp_clauses, exp2.exp_clauses with
             [], _ -> info2
@@ -2711,7 +2714,7 @@ struct
       ignore (dfa_of_info info)
 
    let pp_print_lexer buf info =
-      let { lex_exp = exp } = info in
+      let { lex_exp = exp ; _} = info in
       let dfa = dfa_of_info info in
          fprintf buf "@[<v 0>@[<hv 3>Lexer:@ %a@]" pp_print_exp exp;
          fprintf buf "@ @[<hv 3>NFA:";

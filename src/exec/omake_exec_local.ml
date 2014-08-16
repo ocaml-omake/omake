@@ -34,12 +34,12 @@ open Lm_thread_pool
 
 open Omake_node
 open Omake_state
-open Omake_command
+
 open Omake_exec_id
 open Omake_exec_util
 open Omake_exec_type
 open Omake_command_type
-open Omake_options
+
 
 let unix_close debug fd =
    if !debug_thread then
@@ -112,7 +112,7 @@ struct
    let pp_print_pid = pp_print_int
 
    let allow_output shell command =
-      let flags, dir, target = shell.shell_info command in
+      let flags, _dir, _target = shell.shell_info command in
          List.mem AllowOutputFlag flags
          
    (*
@@ -127,7 +127,7 @@ struct
     *)
    let close server =
       FdTable.iter (fun fd _ -> Unix.close fd) server.server_table;
-      List.iter (fun { job_shell = shell; job_pid = pid; job_state = state } ->
+      List.iter (fun { job_shell = shell; job_pid = pid; job_state = state ; _} ->
             match state with
                JobFinished _ ->
                   ()
@@ -145,9 +145,9 @@ struct
     *)
    let find_finished_job server =
       let rec find running_jobs = function
-         { job_state = JobFinished (code, value, time) } as job :: jobs ->
+         { job_state = JobFinished (code, value, time) ; _} as job :: jobs ->
             job, code, value, List.rev_append running_jobs jobs, time
-       | { job_state = JobStarted | JobRunning _ } as job :: jobs ->
+       | { job_state = JobStarted | JobRunning _ ; _} as job :: jobs ->
             find (job :: running_jobs) jobs
        | [] ->
             raise Not_found
@@ -157,7 +157,7 @@ struct
    (*
     * Start a command.  Takes the output channels, and returns a pid.
     *)
-   let start_command server shell stdout stderr command =
+   let start_command _server shell stdout stderr command =
       shell.shell_eval stdout stderr command
 
    (*
@@ -222,7 +222,7 @@ struct
 
    let err_print_status commands handle_status id =
       match commands with
-         command :: commands ->
+         command :: _ ->
             handle_status id (PrintLazy command)
        | [] ->
             ()
@@ -243,14 +243,15 @@ struct
    let spawn_next_part_exn server job =
       let { job_id = id;
             job_shell = shell;
-            job_target = target;
+            job_target = _target;
             job_commands = commands;
             job_handle_out = handle_out;
             job_handle_err = handle_err;
-            job_handle_status = handle_status
+            job_handle_status = handle_status;
+            _
           } = job
       in
-      let { server_table  = table } = server in
+      let { server_table  = table ; _} = server in
          match commands with
             command :: commands ->
                with_pipe (fun out_read out_write ->
@@ -300,7 +301,7 @@ struct
    (*
     * Check if a command is an error.
     *)
-   let command_code shell options command status =
+   let command_code shell _options command status =
       let flags, _, _ = shell.shell_info command in
       let code =
          match status with
@@ -319,7 +320,7 @@ struct
     * Wait for the current part to finish.
     *)
    let wait_for_job server options job =
-      let { job_pid = pid; job_command = command; job_shell = shell } = job in
+      let { job_pid = pid; job_command = command; job_shell = shell ; _} = job in
       let () =
          if !debug_exec then
             eprintf "Waiting for job %d@." (Obj.magic pid)
@@ -354,6 +355,7 @@ struct
             job_command = command;
             job_buffer_len = buffer_len;
             job_buffer = buffer_stdout, buffer_stderr;
+            _
           } = job
       in
       let handle, buffer =
@@ -411,12 +413,13 @@ struct
     * The wait process handles output from each of the jobs.
     * Once both output channels are closed, the job is finished.
     *)
-   let wait server options =
+   let wait server _options =
       try
          let job, code, value, jobs, time = find_finished_job server in
          let { job_id = id;
                job_handle_status = handle_status;
-               job_command = command
+               job_command = command;
+               _
              } = job
          in
             server.server_jobs <- jobs;

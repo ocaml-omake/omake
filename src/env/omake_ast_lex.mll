@@ -40,7 +40,7 @@ open Omake_pos
 open Omake_ast_util
 open Omake_ast_parse
 open Omake_ast_print
-open Omake_exn_print
+open! Omake_exn_print
 open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ast_lex" end)
@@ -229,7 +229,8 @@ let current_location state =
  *)
 let set_next_line state lexbuf =
    let { current_line = line;
-         current_file = file
+         current_file = file;
+         _
        } = state
    in
    let line = succ line in
@@ -244,7 +245,8 @@ let save_mode state =
    let { current_mode   = mode';
          current_parens = parens;
          current_indent = indent;
-         current_stack  = stack
+         current_stack  = stack;
+         _
        } = state
    in
    let info =
@@ -295,7 +297,7 @@ let push_dollar state mode =
  * Push a paren.
  *)
 let push_paren state =
-   let { current_parens = parens } = state in
+   let { current_parens = parens ; _} = state in
       match parens with
          Some i ->
             state.current_parens <- Some (succ i)
@@ -307,7 +309,7 @@ let push_paren state =
  * then return to the previous mode.
  *)
 let pop_paren state =
-   let { current_parens = parens } = state in
+   let { current_parens = parens ; _} = state in
       match parens with
          Some i ->
             let i = pred i in
@@ -325,7 +327,8 @@ let pop_paren state =
 let lexeme_loc state lexbuf =
    let { current_line = line;
          current_off  = off;
-         current_file = file
+         current_file = file;
+         _
        } = state
    in
    let schar = Lexing.lexeme_start lexbuf - off in
@@ -552,7 +555,8 @@ let lexeme_pos lexbuf =
    in
    let { Lexing.pos_lnum = line2;
          Lexing.pos_bol = bol2;
-         Lexing.pos_cnum = cnum2
+         Lexing.pos_cnum = cnum2;
+         _
        } = pos2
    in
    let loc = create_loc (Lm_symbol.add file) line1 (cnum1 - bol1) line2 (cnum2 - bol2) in
@@ -702,13 +706,13 @@ rule lex_main state = parse
         TokBeginQuote ("", loc)
    }
  | '$' squote
-   { let id, loc = lexeme_string state lexbuf in
+   { let id, _ = lexeme_string state lexbuf in
      let id = String.sub id 1 (pred (String.length id)) in
      let s, loc = lex_literal state (Buffer.create 32) id lexbuf in
         TokStringQuote (s, loc)
    }
  | paren_dollar pipe
-   { let strategy, id, loc = lexeme_dollar_pipe state lexbuf in
+   { let strategy, id, _ = lexeme_dollar_pipe state lexbuf in
      let s, loc = lex_literal state (Buffer.create 32) id lexbuf in
         TokVarQuote (strategy, s, loc)
    }
@@ -753,7 +757,7 @@ rule lex_main state = parse
               TokEol loc
    }
  | _
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         syntax_error state ("illegal character: " ^ String.escaped s) lexbuf
    }
 
@@ -868,7 +872,7 @@ and lex_string state = parse
  | eof
    { syntax_error state "unterminated string" lexbuf }
  | _
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         syntax_error state ("illegal character: " ^ String.escaped s) lexbuf
    }
 
@@ -889,14 +893,14 @@ and lex_skip_string state = parse
  *)
 and lex_literal state buf equote = parse
    strict_nl
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
         Buffer.add_string buf s;
         lex_literal_skip state buf equote lexbuf
    }
  | literal_text
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         Buffer.add_string buf s;
         lex_literal state buf equote lexbuf
    }
@@ -914,7 +918,7 @@ and lex_literal state buf equote = parse
  | eof
    { syntax_error state "unterminated string" lexbuf }
  | _
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         syntax_error state ("illegal character: " ^ String.escaped s) lexbuf
    }
 
@@ -939,7 +943,7 @@ and lex_indent state = parse
      lex_indent state lexbuf
    }
  | opt_white
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
      let indent = indent_of_string s in
         indent
    }
@@ -997,12 +1001,12 @@ and lex_deps_quote term buf = parse
    '\\'
  | '\\' ['"' '\'']
  | [^ '\\' '"' '\'']+
-   { let s, loc = lexeme_pos lexbuf in
+   { let s, _ = lexeme_pos lexbuf in
         Buffer.add_string buf s;
         lex_deps_quote term buf lexbuf
    }
  | ['\'' '"']
-   { let s, loc = lexeme_pos lexbuf in
+   { let s, _ = lexeme_pos lexbuf in
         Buffer.add_string buf s;
         if s <> term then
            lex_deps_quote term buf lexbuf
@@ -1075,9 +1079,10 @@ let body_parser state body =
  * Copy into the lexbuf.
  *)
 let lex_fill state buf len =
-   let { current_mode = mode;
+   let { 
          current_buffer = buffer;
-         current_index = index
+         current_index = index;
+         _
        } = state
    in
    let length = String.length buffer in
@@ -1098,6 +1103,7 @@ let state_refill state =
    let { current_fill_ok = fill_ok;
          current_prompt = prompt;
          readline = readline;
+         _
        } = state
    in
       if fill_ok then
@@ -1117,7 +1123,8 @@ let state_refill state =
  *)
 let lex_refill state buf len =
    let { current_buffer = buffer;
-         current_index = index
+         current_index = index;
+         _
        } = state
    in
    let length = String.length buffer in
@@ -1202,7 +1209,7 @@ let rec parse_exp state parse prompt root nest =
       else
          parse_exp_indent state parse prompt root nest
 
-and parse_exp_indent state parse prompt root nest =
+and parse_exp_indent state parse _ root nest =
    let code, e =
       try parse (lex_line state) state.current_lexbuf with
          Parsing.Parse_error ->
@@ -1262,7 +1269,7 @@ and parse_body_indent state parse prompt nest el =
  *)
 let parse_ast name =
    let inx = open_in name in
-   let readline prompt =
+   let readline _ =
       try input_line inx ^ "\n" with
          End_of_file ->
             ""
@@ -1278,7 +1285,7 @@ let parse_ast name =
 let parse_string s =
    let len = String.length s in
    let index = ref 0 in
-   let readline prompt =
+   let readline _ =
       let start = !index in
       let rec search i =
          if i = len then

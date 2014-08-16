@@ -28,14 +28,14 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
 
-open Fmarshal
 
-open Omake_node
-open Omake_marshal
-open Omake_ir_print
-open Omake_shell_type
+
+
+
+
+
+
 open Omake_command_type
 
 (************************************************************************

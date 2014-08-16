@@ -36,7 +36,7 @@ open Lm_location
 open Omake_ir
 open Omake_node
 open Omake_ir_util
-open Omake_node_sig
+
 open Omake_print_util
 
 let print_location = Omake_ast_print.print_location

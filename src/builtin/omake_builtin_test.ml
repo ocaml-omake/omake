@@ -36,15 +36,15 @@
  *)
 open Lm_glob
 open Lm_lexer
-open Lm_printf
-open Lm_location
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_node
 open Omake_value
-open Omake_symbol
+
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
@@ -267,84 +267,84 @@ let file_exists stat =
 
 let is_block_special stat =
    match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_BLK } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_BLK ; _} ->
          true
     | _ ->
          false
 
 let is_char_special stat =
    match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_CHR } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_CHR ; _} ->
          true
     | _ ->
          false
 
 let is_dir stat =
    match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_DIR } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_DIR ; _} ->
          true
     | _ ->
          false
 
 let is_reg_file stat =
     match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_REG } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_REG ; _} ->
          true
     | _ ->
          false
 
 let is_symlink_file stat =
      match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_LNK } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_LNK ; _} ->
          true
     | _ ->
          false
 
 let is_socket_file stat =
      match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_SOCK } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_SOCK ; _} ->
          true
     | _ ->
          false
 
 let is_named_pipe_file stat =
      match stat with
-      Some { Unix.LargeFile.st_kind = Unix.S_FIFO } ->
+      Some { Unix.LargeFile.st_kind = Unix.S_FIFO ; _} ->
          true
     | _ ->
          false
 
 let is_sticky_file stat =
    match stat with
-      Some { Unix.LargeFile.st_perm = perm } ->
+      Some { Unix.LargeFile.st_perm = perm  ; _} ->
          perm land 0o1000 <> 0
     | None ->
          false
 
 let is_setgid_file stat =
    match stat with
-      Some { Unix.LargeFile.st_perm = perm } ->
+      Some { Unix.LargeFile.st_perm = perm ; _} ->
          perm land 0o2000 <> 0
     | None ->
          false
 
 let is_setuid_file stat =
    match stat with
-      Some { Unix.LargeFile.st_perm = perm } ->
+      Some { Unix.LargeFile.st_perm = perm  ; _} ->
          perm land 0o4000 <> 0
     | None ->
          false
 
 let is_group_owner_file stat =
    match stat with
-      Some { Unix.LargeFile.st_gid = gid } ->
+      Some { Unix.LargeFile.st_gid = gid ; _} ->
          gid = Unix.getegid ()
     | None ->
          false
 
 let is_owner_file stat =
    match stat with
-      Some { Unix.LargeFile.st_uid = uid } ->
+      Some { Unix.LargeFile.st_uid = uid ; _} ->
          uid = Unix.geteuid ()
     | None ->
          false
@@ -353,7 +353,8 @@ let is_readable_file stat =
    match stat with
       Some { Unix.LargeFile.st_uid = uid;
              Unix.LargeFile.st_gid = gid;
-             Unix.LargeFile.st_perm = perm
+             Unix.LargeFile.st_perm = perm;
+             _
       } ->
          let my_uid = Unix.geteuid () in
          let my_gid = Unix.getegid () in
@@ -367,7 +368,8 @@ let is_writable_file stat =
    match stat with
       Some { Unix.LargeFile.st_uid = uid;
              Unix.LargeFile.st_gid = gid;
-             Unix.LargeFile.st_perm = perm
+             Unix.LargeFile.st_perm = perm;
+             _
       } ->
          let my_uid = Unix.geteuid () in
          let my_gid = Unix.getegid () in
@@ -381,7 +383,8 @@ let is_executable_file stat =
    match stat with
       Some { Unix.LargeFile.st_uid = uid;
              Unix.LargeFile.st_gid = gid;
-             Unix.LargeFile.st_perm = perm
+             Unix.LargeFile.st_perm = perm;
+             _
       } ->
          let my_uid = Unix.geteuid () in
          let my_gid = Unix.getegid () in
@@ -393,7 +396,7 @@ let is_executable_file stat =
 
 let is_nonempty_file stat =
    match stat with
-      Some { Unix.LargeFile.st_size = size } ->
+      Some { Unix.LargeFile.st_size = size ; _} ->
          size <> Int64.zero
     | None ->
          false
@@ -412,22 +415,22 @@ let eq_file =
             let pos = string_pos "eq_file" pos in
                stat_function2 venv pos file1 file2 (fun stat1 stat2 ->
                      match stat1, stat2 with
-                        Some { Unix.LargeFile.st_dev = dev1; Unix.LargeFile.st_ino = ino1 },
-                        Some { Unix.LargeFile.st_dev = dev2; Unix.LargeFile.st_ino = ino2 } ->
+                        Some { Unix.LargeFile.st_dev = dev1; Unix.LargeFile.st_ino = ino1 ; _},
+                        Some { Unix.LargeFile.st_dev = dev2; Unix.LargeFile.st_ino = ino2 ; _} ->
                            dev1 = dev2 && ino1 = ino2
                       | _ ->
                            false))
 
 let newer_than_file stat1 stat2 =
    match stat1, stat2 with
-      Some { Unix.LargeFile.st_mtime = mtime1 }, Some { Unix.LargeFile.st_mtime = mtime2 } ->
+      Some { Unix.LargeFile.st_mtime = mtime1 ; _}, Some { Unix.LargeFile.st_mtime = mtime2 ; _} ->
          mtime1 > mtime2
     | _ ->
          false
 
 let older_than_file stat1 stat2 =
    match stat1, stat2 with
-      Some { Unix.LargeFile.st_mtime = mtime1 }, Some { Unix.LargeFile.st_mtime = mtime2 } ->
+      Some { Unix.LargeFile.st_mtime = mtime1 ; _}, Some { Unix.LargeFile.st_mtime = mtime2 ; _} ->
          mtime1 < mtime2
     | _ ->
          false
@@ -446,7 +449,7 @@ let eval_string_exp venv pos arg =
     | _ ->
          string_of_token arg
 
-let eval_int_exp venv pos arg =
+let eval_int_exp _ _ arg =
    match arg with
       IntExp arg ->
          int_of_token arg
@@ -940,7 +943,7 @@ let rec find_file venv pos nodes name e =
 (*
  * The main function, from arguments.
  *)
-let find_top venv pos loc arg =
+let find_top venv pos _ arg =
    let argv = strings_of_value venv pos arg in
    let tokens = List.map token_of_string argv in
    let dir, tokens =
@@ -977,7 +980,7 @@ let shell_find venv pos loc args =
       match args with
          [arg] ->
             let stdout_fd = venv_find_var venv pos loc stdout_var in
-            let outp, close_flag = out_channel_of_any_value venv pos stdout_fd in
+            let outp, _ = out_channel_of_any_value venv pos stdout_fd in
             let outx = venv_find_channel venv pos outp in
             let nodes = find_top venv pos loc arg in
                List.iter (fun node ->

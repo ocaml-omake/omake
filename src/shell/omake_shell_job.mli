@@ -28,15 +28,15 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_glob
-open Lm_printf
-open Lm_symbol
-open Lm_location
+
+
+
+
 
 open Omake_env
-open Omake_pos
+
 open Omake_shell_type
-open Omake_value_type
+open! Omake_value_type
 
 (*
  * Create a thread or process running the function.

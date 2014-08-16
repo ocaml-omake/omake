@@ -31,7 +31,7 @@
  *)
 open Lm_symbol
 open Lm_location
-open Lm_printf
+open! Lm_printf
 
 (*
  * Lm_debug flags.

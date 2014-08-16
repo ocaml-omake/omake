@@ -576,7 +576,7 @@ let rec intersectq l = function
 
 let rec intersects l = function
    h :: t ->
-      List.mem h l or intersects l t
+      List.mem h l || intersects l t
  | [] ->
       false
 
@@ -763,7 +763,7 @@ let rec compare_cmp cmp l1 l2 =
 let rec compare_eq l1 l2 =
    match l1, l2 with
       h1::t1, h2::t2 ->
-         h1 == h2 & compare_eq t1 t2
+         h1 == h2 && compare_eq t1 t2
     | [], [] ->
          true
     | _ ->
@@ -813,7 +813,7 @@ let rec rev_iter2 f a b =
  *)
 let rec for_all2 f l1 l2 =
    match (l1,l2) with
-      h1::t1, h2::t2 -> f h1 h2 & for_all2 f t1 t2
+      h1::t1, h2::t2 -> f h1 h2 && for_all2 f t1 t2
     | [], [] -> true
     | _ -> false
 
@@ -822,7 +822,7 @@ let rec for_all2 f l1 l2 =
  *)
 let rec exists2 f l1 l2 = match (l1,l2) with
    h1::t1, h2::t2 ->
-      f h1 h2 or exists2 f t1 t2
+      f h1 h2 || exists2 f t1 t2
  | _ -> false
 
 (*

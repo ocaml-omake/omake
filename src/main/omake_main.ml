@@ -29,18 +29,18 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_location
 
-open Omake_ir
-open Omake_env
+
+
+
 open Omake_pos
-open Omake_eval
+
 open Omake_node
 open Omake_exec
 open Omake_rule
 open Omake_state
-open Omake_symbol
-open Omake_exec_type
+
+
 open Omake_value_type
 open Omake_options
 open Omake_var

@@ -28,12 +28,12 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
+
 open Lm_map_sig
 
-open Omake_node
+
 open Omake_exec_id
-open Omake_cache_type
+
 
 (*
  * Debugging.

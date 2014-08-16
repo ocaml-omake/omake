@@ -29,7 +29,7 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
+
 
 open Omake_node
 open Omake_exec_type
@@ -93,21 +93,21 @@ struct
     *)
    let pending notify =
       match notify with
-         { notify_event = Some _ } ->
+         { notify_event = Some _ ; _} ->
             true
-       | { notify_server = Some server } ->
+       | { notify_server = Some server ; _} ->
             Lm_thread_pool.blocking_section Lm_notify.pending server
-       | { notify_server = None } ->
+       | { notify_server = None ; _} ->
             false
 
    let next_event notify =
       match notify with
-         { notify_event = Some event } ->
+         { notify_event = Some event ; _} ->
             notify.notify_event <- None;
             event
-       | { notify_server = Some server } ->
+       | { notify_server = Some server ; _ } ->
             Lm_thread_pool.blocking_section (Lm_thread.Thread.raise_ctrl_c_wrapper Lm_notify.next_event) server
-       | { notify_server = None } ->
+       | { notify_server = None ; _} ->
             raise (Failure "Omake_exec_notify.next_event: no monitors")
 
    (*

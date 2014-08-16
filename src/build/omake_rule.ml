@@ -32,7 +32,7 @@ open Lm_printf
 
 open Lm_glob
 open Lm_debug
-open Lm_symbol
+
 open Lm_location
 open Lm_string_set
 
@@ -43,16 +43,16 @@ open Omake_pos
 open Omake_util
 open Omake_node
 open Omake_eval
-open Omake_exec
+
 open Omake_state
-open Omake_value
+open! Omake_value
 open Omake_symbol
 open Omake_command
-open Omake_ir_util
+
 open Omake_ir_print
 open Omake_node_sig
 open Omake_exec_type
-open Omake_exec_util
+
 open Omake_shell_lex
 open Omake_cache_type
 open Omake_shell_type
@@ -158,7 +158,8 @@ struct
     *)
    let target buf =
       let { buf_target = target;
-            buf_core = core
+            buf_core = core;
+            _
           } = buf
       in
          target, core
@@ -190,7 +191,8 @@ struct
             buf_sources  = sources';
             buf_values   = values';
             buf_commands = commands';
-            buf_info     = info'
+            buf_info     = info';
+            _
           } = buf
       in
       let info =
@@ -232,7 +234,8 @@ struct
             buf_scanners = scanners;
             buf_deps     = deps;
             buf_commands = commands;
-            buf_info     = info
+            buf_info     = info;
+            _
           } = buf
       in
       let info =
@@ -264,7 +267,7 @@ let find_rule venv pos loc target names =
  * Check if there are any computed commands.
  *)
 let commands_are_computed commands =
-   List.exists (fun { command_body = body } ->
+   List.exists (fun { command_body = body ; _} ->
          List.exists (fun command ->
                match command with
                   CommandSection _ ->
@@ -324,7 +327,8 @@ and expand_rule_section venv pos loc buf e =
                   rule_effects  = effects;
                   rule_sources  = deps;
                   rule_scanners = scanners;
-                  rule_commands = commands
+                  rule_commands = commands;
+                  _
                 } = erule
             in
             let buf = Command.add_locks buf locks in
@@ -332,7 +336,7 @@ and expand_rule_section venv pos loc buf e =
             let buf = Command.add_deps buf deps in
             let buf = Command.add_scanners buf scanners in
                expand_command_info_list pos loc buf commands
-       | v ->
+       | _ ->
             eprintf "@[<v 0>%a@ *** omake: section rule: did not compute a rule@]@." (**)
                pp_print_location loc;
             buf
@@ -340,7 +344,7 @@ and expand_rule_section venv pos loc buf e =
 (*
  * This section is to be evaluated when the rule is run.
  *)
-and expand_eval_section venv pos loc buf s fv e =
+and expand_eval_section _ pos _ buf s fv e =
    let _pos = string_pos "expand_eval_section" pos in
       Command.add_command buf (CommandSection (ValString s, fv, e))
 
@@ -375,7 +379,8 @@ let expand_rule erule =
          rule_match    = core;
          rule_sources  = deps;
          rule_scanners = scanners;
-         rule_commands = commands
+         rule_commands = commands;
+         _
        } = erule
    in
       if commands_are_computed commands then
@@ -421,7 +426,8 @@ let expand_rule erule =
 let eval_shell_info command =
    let { command_flags = flags;
          command_dir = dir;
-         command_target = target
+         command_target = target;
+         _
        } = command
    in
       flags, dir, target
@@ -477,7 +483,7 @@ let glob_options_of_string options s =
 (*
  * Glob an argument into directories and files.
  *)
-let glob_arg venv pos loc options arg =
+let glob_arg venv _ _ options arg =
    let cwd = venv_dir venv in
    let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [glob_string_of_arg options arg] in
    let dirs = List.sort String.compare dirs in
@@ -509,7 +515,7 @@ let glob_result_compare r1 r2 =
    in
       -(String.compare s1 s2)
 
-let glob_rev_arg venv pos loc options arg argv =
+let glob_rev_arg venv _ _ options arg argv =
    let cwd = venv_dir venv in
    let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [glob_string_of_arg options arg] in
    let args = List.fold_left (fun args s -> GFile s :: args) [] files in
@@ -564,7 +570,7 @@ let glob_value_argv venv pos loc options argv =
 (*
  * Glob the command line.
  *)
-let glob_command_line venv pos loc options argv =
+let glob_command_line venv _ _ options argv =
    let cwd = venv_dir venv in
    let dir = Dir.fullname cwd in
    let argv = List.map (glob_string_of_arg options) argv in
@@ -764,7 +770,7 @@ let sources_of_options venv pos loc sources options =
  *)
 let lazy_command venv pos command =
    match command with
-      SectionExp (loc, s, el, _) ->
+      SectionExp (_, s, el, _) ->
          let fv = free_vars_exp_list el in
             CommandSection (eval_string_exp venv pos s, fv, el)
     | ShellExp (loc, s) ->
@@ -951,7 +957,7 @@ and eval_subdir venv loc (kind, dir) commands export =
    let cwd = venv_dir venv in
    let venv_body = venv_chdir_dir venv loc dir in
    let node = venv_intern venv_body PhonyProhibited makefile_name in
-   let venv_body, result =
+   let venv_body, _ =
       (*
        * Ignore the file if the commands are listed explicity.
        * The OMakefile can always be included explicitly.
@@ -1061,7 +1067,7 @@ and exec_commands venv pos loc commands =
 (*
  * Evaluate the command lines.
  *)
-and eval_commands venv loc target sloppy_deps commands : arg_command_line list =
+and eval_commands _ loc target sloppy_deps commands : arg_command_line list =
    let rec collect commands' commands =
       match commands with
          command :: commands ->
@@ -1313,9 +1319,9 @@ and eval_shell venv pos =
  *)
 and eval_shell_internal stdout stderr command =
    let { command_loc  = loc;
-         command_dir  = dir;
          command_venv = venv;
-         command_inst = inst
+         command_inst = inst;
+         _
        } = command
    in
    let pos = string_pos "eval_shell_internal" (loc_exp_pos loc) in
@@ -1428,7 +1434,8 @@ and normalize_apply venv pos loc options apply =
    let { apply_env    = env;
          apply_args   = argv;
          apply_stdin  = stdin;
-         apply_stdout = stdout
+         apply_stdout = stdout;
+         _
        } = apply
    in
       { apply with apply_env = string_of_env env;
@@ -1447,7 +1454,8 @@ and normalize_command venv pos loc options command =
          cmd_exe    = exe;
          cmd_argv   = argv;
          cmd_stdin  = stdin;
-         cmd_stdout = stdout
+         cmd_stdout = stdout;
+         _
        } = command
    in
    let exe, args = glob_exe venv pos loc options exe in
@@ -1475,7 +1483,8 @@ and normalize_group venv pos loc options group =
    let pos = string_pos "normalize_group" pos in
    let { group_stdin  = stdin;
          group_stdout = stdout;
-         group_pipe = pipe
+         group_pipe = pipe;
+         _
        } = group
    in
    let group =

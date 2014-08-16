@@ -34,7 +34,7 @@
  * Author: Jason Hickey
  * jyh@cs.cornell.edu
  *)
-open Lm_printf
+open! Lm_printf
 
 (************************************************************************
  * Maps.

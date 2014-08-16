@@ -262,7 +262,8 @@ let omake_magic buf =
          Unix.tm_wday = wday;
          Unix.tm_hour = hour;
          Unix.tm_min = min;
-         Unix.tm_sec = sec
+         Unix.tm_sec = sec;
+         _
        } = Unix.localtime now
    in
       fprintf buf "let default_save_interval = %F\n" !default_save_interval;

@@ -27,18 +27,18 @@
  * Modified By: Aleksey Nogin <nogin@cs.caltech.edu>
  */
 %{
-open Lm_printf
-open Lm_symbol
+
+
 open Lm_location
 
-open Omake_env
+
 open Omake_pos
 open Omake_shell_type
-open Omake_command_type
+
 open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_shell_parse" end)
-open Pos
+
 
 (*
  * If the command is a node, detect it here.
@@ -86,8 +86,8 @@ let rec set_stdin_inner pipe file =
     | PipeCommand (loc, command) ->
          let command = { command with cmd_stdin = file } in
             PipeCommand (loc, command)
-    | PipeCond (loc, _, _, _)
-    | PipeCompose (loc, _, _, _) ->
+    | PipeCond (_, _, _, _)
+    | PipeCompose (_, _, _, _) ->
          raise (Invalid_argument "Omake_shell_parse.set_stdin: internal error")
     | PipeGroup (loc, group) ->
          let group = { group with group_stdin = file } in
@@ -113,8 +113,8 @@ let rec set_stdout_inner pipe file stderr append =
             }
          in
             PipeCommand (loc, command)
-    | PipeCond (loc, _, _, _)
-    | PipeCompose (loc, _, _, _) ->
+    | PipeCond (_, _, _, _)
+    | PipeCompose (_, _, _, _) ->
          raise (Invalid_argument "Omake_shell_parse.set_stdout: internal error")
     | PipeGroup (loc, group) ->
          let group =

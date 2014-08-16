@@ -34,23 +34,23 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
-open Lm_location
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_var
 open Omake_pos
-open Omake_node_sig
+
 open Omake_node
 open Omake_value
 open Omake_state
-open Omake_symbol
+
 open Omake_builtin
 open Omake_shell_type
 open Omake_value_type
 open Omake_builtin_type
-open Omake_builtin_util
+
 
 module Pos = MakePos (struct let name = "Omake_builtin_io" end)
 open Pos
@@ -189,7 +189,7 @@ type cd_status =
 let dir_test name =
    Sys.os_type = "Win32" || (Unix.access name [Unix.X_OK]; true)
 
-let cd_test venv pos loc dir =
+let cd_test _ _ _ dir =
    let name = Dir.fullname dir in
       try
          let stat = Unix.LargeFile.stat name in
@@ -277,7 +277,7 @@ let cd_fun venv pos loc args kargs =
  * \verb+jobs+
  * \end{doc}
  *)
-let jobs_fun venv pos loc args =
+let jobs_fun venv pos _ _ =
    let _pos = string_pos "jobs" pos in
       Omake_shell_job.jobs venv;
       ValNone
@@ -405,7 +405,7 @@ let kill_fun venv pos loc args =
  * lines in the history that you want saved.  The default value is \verb+100+.
  * \end{doc}
  *)
-let history_index venv pos loc args =
+let history_index _ pos loc args =
    let pos = string_pos "history-index" pos in
       match args with
          [] ->
@@ -413,7 +413,7 @@ let history_index venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
 
-let history venv pos loc args =
+let history _ pos loc args =
     let pos = string_pos "history" pos in
       match args with
          [] ->

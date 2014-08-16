@@ -32,9 +32,9 @@ open Lm_printf
 
 open Lm_debug
 
-open Omake_node
-open Omake_state
-open Omake_cache_type
+
+
+
 open Omake_exec_print
 
 (*
@@ -88,7 +88,7 @@ let with_pipe f =
 (*
  * Write the data in the buffer to the channel.
  *)
-let rec write_all name fd id buf off len =
+let  write_all name fd _id buf off len =
    if len <> 0 then
       let amount =
          try Unix.write fd buf off len with

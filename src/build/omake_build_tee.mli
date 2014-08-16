@@ -30,8 +30,8 @@
  *)
 open Lm_printf
  
-open Omake_env
-open Omake_exec_util
+
+
 open Omake_build_type
 
 val env_close_success_tee  : env -> command -> unit

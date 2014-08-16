@@ -28,11 +28,11 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+
 
 open Omake_env
-open Omake_exec
-open Omake_build_type
+
+
 open Omake_builtin_type
 
 (*

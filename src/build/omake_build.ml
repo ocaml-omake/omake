@@ -37,25 +37,25 @@
  *)
 open Lm_printf
 
-open Lm_heap
+
 open Lm_debug
-open Lm_symbol
+
 open Lm_notify
 open Lm_location
-open Lm_string_util
+
 open Lm_string_set
 
 open Omake_util
-open Omake_ir
+
 open Omake_env
 open Omake_pos
-open Omake_eval
+
 open Omake_node
 open Omake_exec
 open Omake_rule
-open Omake_eval
+open! Omake_eval
 open Omake_state
-open Omake_symbol
+
 open Omake_command
 open Omake_node_sig
 open Omake_exec_type
@@ -156,7 +156,7 @@ let build_failure_target = Node.create_phony_global build_failure
 (*
  * Directory listing.
  *)
-let rec list_directory dir =
+let  list_directory dir =
    let dirx =
       try Some (Unix.opendir dir) with
          Unix.Unix_error _ ->
@@ -302,7 +302,8 @@ let pp_print_command_opt buf command_opt =
    match command_opt with
       Some command ->
          let { command_target = target;
-               command_state = state
+               command_state = state;
+               _
              } = command
          in
             fprintf buf "%a[%a]" pp_print_node target pp_print_command_state state
@@ -316,7 +317,8 @@ let pp_print_command buf command =
          command_state        = state;
          command_scanner_deps = scanner_deps;
          command_build_deps   = build_deps;
-         command_blocked      = blocked
+         command_blocked      = blocked;
+         _
        } = command
    in
       fprintf buf "@[<v 3>%a[%a],@ @[<b 3>effects =%a@]@ @[<b 3>locks =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>blocked =%a@]@]" (**)
@@ -383,7 +385,8 @@ let rec pp_print_dependencies_aux show_all env buf command =
          command_effects      = effects;
          command_scanner_deps = scanner_deps;
          command_static_deps  = static_deps;
-         command_build_deps   = build_deps
+         command_build_deps   = build_deps;
+         _
        } = command
    in
    let inverse = find_parents env target in
@@ -663,7 +666,7 @@ let set_tee env command tee =
 (*
  * Create a command for a target that always exists.
  *)
-let create_exists_command env pos loc target =
+let create_exists_command env _ loc target =
    (* Create the command, and link it to the worklist *)
    let l = command_worklist env CommandSucceededTag in
    let next = !l in
@@ -701,7 +704,7 @@ let create_exists_command env pos loc target =
  * where the digest value is ignored, but the
  * target should be built.
  *)
-let create_squashed_command env pos loc target =
+let create_squashed_command env _ loc target =
    (* Create the command, and link it to the worklist *)
    let l = command_worklist env CommandInitialTag in
    let next = !l in
@@ -737,7 +740,7 @@ let create_squashed_command env pos loc target =
 (*
  * Create a command in a state.
  *)
-let create_command env venv target effects lock_deps static_deps scanner_deps loc dir commands =
+let create_command env venv target effects lock_deps static_deps scanner_deps loc _ commands =
    (* Create the command, and link it to the worklist *)
    let l = command_worklist env CommandInitialTag in
    let next = !l in
@@ -927,7 +930,8 @@ let build_implicit_command env pos loc target venv =
                 rule_locks    = locks;
                 rule_sources  = sources;
                 rule_scanners = scanners;
-                rule_commands = commands
+                rule_commands = commands;
+                _
          } ->
             build_explicit_command env pos loc target effects locks venv sources scanners commands
        | None ->
@@ -941,7 +945,7 @@ let build_implicit_command env pos loc target venv =
  * If the erule specifies some commands, use them.
  * Otherwise, find an implicit rule to use.
  *)
-let build_explicit_target env pos loc target erule =
+let build_explicit_target env pos _ target erule =
    let pos = string_pos "build_explicit_target" pos in
    let { rule_loc         = loc;
          rule_env         = venv;
@@ -949,7 +953,8 @@ let build_explicit_target env pos loc target erule =
          rule_locks       = locks;
          rule_sources     = sources;
          rule_scanners    = scanners;
-         rule_commands    = commands
+         rule_commands    = commands;
+         _
        } = expand_rule erule
    in
       if commands = [] then
@@ -1110,7 +1115,7 @@ let build_command env pos loc target =
  * and set the blocked queue.
  *)
 let command_set_blocked env command deps =
-   let { command_target = target } = command in
+   let { command_target = target ; _} = command in
    let inverse =
       NodeSet.fold (fun inverse dep ->
             NodeTable.filter_add inverse dep (fun commands ->
@@ -1155,7 +1160,7 @@ let command_succeeded command =
  * Command is blocked until all dependencies have been built.
  *)
 let command_is_blocked env command =
-   let { command_blocked = blocked } = command in
+   let { command_blocked = blocked ; _} = command in
       if blocked = [] then
          false
       else
@@ -1178,7 +1183,8 @@ let command_is_blocked env command =
  *)
 let command_effects_are_scanned env command =
    let { command_target = target;
-         command_effects = effects
+         command_effects = effects;
+         _
        } = command
    in
       NodeSet.for_all (fun effect ->
@@ -1226,7 +1232,7 @@ let enable_parents env command =
 (*
  * Parse the dependency list.
  *)
-let parse_deps env venv target file =
+let parse_deps _ venv target file =
    let deps = compile_deps venv target file in
       if !debug_deps then
          begin
@@ -1288,7 +1294,8 @@ let abort_commands env targets code =
 let finish_scanned env command =
    let { command_loc          = loc;
          command_target       = target;
-         command_effects      = effects
+         command_effects      = effects;
+         _
        } = command
    in
    let pos = loc_exp_pos loc in
@@ -1325,7 +1332,8 @@ let finish_scanned env command =
       List.fold_left (fun deps command ->
             let { command_target = target;
                   command_static_deps = static_deps;
-                  command_scanner_deps = scanner_deps
+                  command_scanner_deps = scanner_deps;
+                  _
                 } = command
             in
             let deps = NodeSet.union deps static_deps in
@@ -1364,9 +1372,10 @@ let finish_scanned env command =
  * Notify the parents.
  *)
 let finish_scanner env command scanned_deps =
-   let { command_loc = loc;
+   let { 
          command_target = target;
-         command_effects = effects
+
+         _
        } = command
    in
       if debug debug_scanner then
@@ -1402,7 +1411,8 @@ let save_and_finish_scanner_results env command scanned_deps =
          command_target         = target;
          command_lines          = scanner;
          command_locks          = locks;
-         command_build_deps     = build_deps
+         command_build_deps     = build_deps;
+         _
        } = command
    in
 
@@ -1441,7 +1451,8 @@ let save_and_finish_scanner_results env command scanned_deps =
 let save_and_finish_scanner_success env command filename =
    let { command_loc = loc;
          command_venv = venv;
-         command_target  = target
+         command_target  = target;
+         _
        } = command
    in
 
@@ -1500,7 +1511,8 @@ let save_and_finish_scanner_failed env command filename code =
 let execute_scanner env command =
    let { command_target = target;
          command_loc = loc;
-         command_venv = venv
+         command_venv = venv;
+         _
        } = command
    in
    let pos = string_pos "execute_scanner" (loc_exp_pos loc) in
@@ -1548,7 +1560,8 @@ let start_scanner env command =
          command_loc            = loc;
          command_target         = target;
          command_lines          = scanner;
-         command_build_deps     = build_deps
+         command_build_deps     = build_deps;
+         _
        } = command
    in
    let pos = string_pos "start_scanner" (loc_exp_pos loc) in
@@ -1616,7 +1629,7 @@ let finish_rule_success env command =
  * A command remains failed.
  *)
 let finish_rule_failed env command code =
-   let { command_effects = effects } = command in
+   let { command_effects = effects ; _} = command in
       abort_commands env effects code
 
 (*
@@ -1634,11 +1647,12 @@ let save_and_finish_rule_success env command =
          command_target     = target;
          command_effects    = effects;
          command_locks      = locks;
-         command_build_deps = build_deps
+         command_build_deps = build_deps;
+         _
        } = command
    in
    let cache = env.env_cache in
-   let commands, commands_digest = command_lines command in
+   let _, commands_digest = command_lines command in
 
    (* Collect the effects that are not phony, check that they were created *)
    let effects =
@@ -1682,11 +1696,12 @@ let save_and_finish_rule_failed env command code =
    (* Add the run to the cache *)
    let { command_target     = target;
          command_effects    = effects;
-         command_build_deps = build_deps
+         command_build_deps = build_deps;
+         _
        } = command
    in
    let cache = env.env_cache in
-   let commands, commands_digest = command_lines command in
+   let _, commands_digest = command_lines command in
       env_close_failed_tee env command;
       Omake_cache.add cache rule_fun target effects build_deps commands_digest (MemoFailure code);
       abort_commands env effects code
@@ -1697,8 +1712,9 @@ let save_and_finish_rule_failed env command code =
 let run_rule env command =
    let { command_loc     = loc;
          command_target  = target;
-         command_effects = effects;
+
          command_venv    = venv;
+         _
        } = command
    in
    let pos = string_pos "run_rule" (loc_exp_pos loc) in
@@ -1729,12 +1745,13 @@ let run_rule env command =
  *)
 let execute_rule env command =
    let { command_loc          = loc;
-         command_state        = state;
+
          command_target       = target;
          command_effects      = effects;
          command_lines        = commands;
          command_build_deps   = build_deps;
-         command_venv         = venv
+         command_venv         = venv;
+         _
        } = command
    in
    let pos = string_pos "execute_rule" (loc_exp_pos loc) in
@@ -1844,7 +1861,8 @@ let create exec venv cache summary =
    let erule_info = venv_explicit_rules venv in
    let { explicit_targets     = target_table;
          explicit_directories = dir_table;
-         explicit_deps        = dep_table
+         explicit_deps        = dep_table;
+         _
        } = erule_info
    in
    let includes = venv_files venv in
@@ -1931,7 +1949,7 @@ let close env =
 let invalidate_parents env command =
    find_parents env command.command_target
 
-let invalidate_children env command =
+let invalidate_children _ command =
    command.command_build_deps
 
 (*
@@ -1987,7 +2005,8 @@ let process_initial env =
          command_target = target;
          command_effects = effects;
          command_scanner_deps = scanner_deps;
-         command_static_deps = static_deps
+         command_static_deps = static_deps;
+         _
        } = command
    in
    let pos = string_pos "process_initial" (loc_exp_pos loc) in
@@ -2071,13 +2090,13 @@ let rec process_running env notify =
                let command = find_pid env pid in
                let () =
                   match code, command with
-                     0, { command_state = CommandRunning (_, None) } ->
+                     0, { command_state = CommandRunning (_, None) ; _} ->
                         save_and_finish_rule_success env command
-                   | _, { command_state = CommandRunning (_, None) } ->
+                   | _, { command_state = CommandRunning (_, None) ; _} ->
                         save_and_finish_rule_failed env command code
-                   | 0, { command_state = CommandRunning (_, Some filename) } ->
+                   | 0, { command_state = CommandRunning (_, Some filename) ; _} ->
                         save_and_finish_scanner_success env command filename
-                   | _, { command_state = CommandRunning (_, Some filename) } ->
+                   | _, { command_state = CommandRunning (_, Some filename) ; _} ->
                         save_and_finish_scanner_failed env command filename code
                    | _ ->
                         raise (Invalid_argument "process_running")
@@ -2241,13 +2260,14 @@ let rec main_loop env progress =
  * Print statistics.
  *)
 let print_stats env message start_time =
-   let { env_cwd = root;
+   let { 
          env_venv = venv;
          env_cache = cache;
          env_scan_count = scan_count;
          env_scan_exec_count = scan_exec_count;
          env_rule_count = rule_count;
-         env_rule_exec_count = rule_exec_count
+         env_rule_exec_count = rule_exec_count;
+         _
        } = env
    in
    let stat_count, digest_count = Omake_cache.stats cache in
@@ -2278,7 +2298,8 @@ let print_deadlock_exn env buf state =
             command_scanner_deps = scanner_deps;
             command_static_deps  = static_deps;
             command_build_deps   = build_deps;
-            command_loc          = loc
+            command_loc          = loc;
+            _
           } = command
       in
          fprintf buf "@[<v 3>*** omake: inconsistent state %a@ state = %a@ @[<b 3>effects =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>static deps = %a@]@." (**)
@@ -2313,6 +2334,7 @@ let print_deadlock_exn env buf state =
    let rec print marked command =
       let { command_target = target;
             command_loc = loc;
+            _
           } = command
       in
 
@@ -2407,7 +2429,7 @@ let notify_wait_simple venv cwd exec cache =
       if opt_print_status (venv_options venv) then
          fun node -> printf "*** omake: file %s changed@." (Node.fullname node)
       else
-         fun node -> ()
+         fun _ -> ()
    in
    let rec loop changed =
       let event = Exec.next_event exec in
@@ -2668,11 +2690,11 @@ let wait_for_lock, unlock_db =
              *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
              *)
             Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
-               eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
-\t%s. Will proceed anyway.
-\tWARNING: Be aware that simultaneously running more than one instance
-\t\tof OMake on the same project is not recommended.  It may
-\t\tresult in some OMake instances failing to record their
+               eprintf "*** omake WARNING: Can not lock the project database file .omakedb:\
+\t%s. Will proceed anyway.\
+\tWARNING: Be aware that simultaneously running more than one instance\
+\t\tof OMake on the same project is not recommended.  It may\
+\t\tresult in some OMake instances failing to record their\
 \t\tprogress in the database@."
                   (Unix.error_message err)
           | Unix.Unix_error (err, _, _) ->
@@ -2740,7 +2762,8 @@ let make env =
  *)
 let notify_wait env =
    let { env_exec = exec;
-         env_venv = venv
+         env_venv = venv;
+         _
        } = env
    in
    let db_node = venv_intern_cd venv PhonyProhibited (Dir.cwd ()) db_name in
@@ -2935,7 +2958,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
       else if not (command_list_is_empty env CommandFailedTag) then
          build_on_error env save_flag start_time parallel print targets options deadlock_error_code
 
-and build_on_error env save_flag start_time parallel print targets options error_code =
+and build_on_error env save_flag _ parallel print targets options error_code =
    if not (opt_poll options) then
       raise (BuildExit error_code)
    else begin
@@ -2963,7 +2986,7 @@ let rec notify_loop env options targets =
 (*
  * Start the core build.
  *)
-let build_core env dir_name dir start_time options targets =
+let build_core env _ dir start_time options targets =
    (* First, build all the included files *)
    let changed =
       if opt_dry_run options then

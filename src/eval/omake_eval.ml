@@ -33,29 +33,29 @@ open Lm_debug
 open Lm_printf
 open Lm_symbol
 open Lm_location
-open Lm_string_set
+
 
 open Omake_ir
 open Omake_env
 open Omake_var
 open Omake_pos
-open Omake_exec
-open Omake_wild
+
+
 open Omake_node
-open Omake_util
+
 open Omake_state
 open Omake_ir_ast
 open Omake_symbol
 open Omake_command
 open Omake_ir_print
 open Omake_node_sig
-open Omake_exec_type
-open Omake_exec_util
+
+
 open Omake_shell_type
 open Omake_cache_type
 open Omake_value_type
 open Omake_value_print
-open Omake_command_type
+
 open Omake_command_digest
 
 module Pos = MakePos (struct let name = "Omake_eval" end);;
@@ -104,9 +104,6 @@ let param_loc = bogus_loc "Omake_eval.param"
 (*
  * Including files.
  *)
-type include_flag =
-   IncludeFile
- | IncludeSubdir
 
 (************************************************************************
  * Utilities.
@@ -292,7 +289,7 @@ let rec parse_ir venv scope node =
          eprintf "@[<v 3>AST %a:@ %a@]@." pp_print_node node Omake_ast_print.pp_print_prog ast
    in
    let vars = venv_include_scope venv scope in
-   let senv, ir = Omake_ir_ast.compile_prog (penv_of_vars (open_ir venv) venv node vars) ast in
+   let _senv, ir = Omake_ir_ast.compile_prog (penv_of_vars (open_ir venv) venv node vars) ast in
       postprocess_ir venv ir
 
 (*
@@ -310,7 +307,7 @@ and path_of_values_select venv pos values dirname =
                match v with
                   ValDir dir ->
                      false, dir
-                | ValNode node ->
+                | ValNode _ ->
                      let dir = venv_intern_dir venv (string_of_value venv pos v) in
                         false, dir
                 | _ ->
@@ -434,7 +431,7 @@ and open_ir venv filename pos loc =
  * Try to load the old entry.
  * If it fails, compile the file and save the new entry.
  *)
-and compile_add_ir_info venv scope pos loc source info =
+and compile_add_ir_info venv scope pos _ source info =
    let _pos = string_pos "compile_add_ir_info" pos in
       try Static.get_ir info with
          Not_found ->
@@ -469,7 +466,7 @@ and compile_ir venv scope pos loc source =
 (*
  * The object file contains the evaluated file.
  *)
-and compile_add_object_info compile venv pos source info =
+and compile_add_object_info compile _ pos source info =
    let _pos = string_pos "compile_add_object_info_info" pos in
       try Static.get_object info with
          Not_found ->
@@ -1031,7 +1028,8 @@ and eval_value_static venv pos key v =
             let { srule_env  = venv;
                   srule_deps = deps;
                   srule_vals = values;
-                  srule_exp  = e
+                  srule_exp  = e;
+                  _
                 } = srule
             in
             let values = List.flatten (List.map (values_of_value venv pos) values) in
@@ -1490,7 +1488,7 @@ and eval_find_field_aux venv envl pos v vl =
     | [] ->
          raise Not_found
 
-and eval_find_field venv pos loc v vl =
+and eval_find_field venv pos _ v vl =
    let envl = venv_current_objects venv pos v in
       try eval_find_field_aux venv envl pos v vl with
          Not_found ->
@@ -1598,7 +1596,7 @@ and eval_defined_field_aux venv envl pos vl =
     | [] ->
          raise Not_found
 
-and eval_defined_field venv pos loc v vl =
+and eval_defined_field venv pos _ v vl =
    let envl = venv_current_objects venv pos v in
       try eval_defined_field_aux venv envl pos vl with
          Not_found ->
@@ -1672,7 +1670,7 @@ and eval_string_exp venv pos s =
             ValString s
        | KeyApplyString (loc, v) ->
             eval_key venv pos loc v
-       | FunString (loc, opt_params, params, body, export) ->
+       | FunString (_, opt_params, params, body, export) ->
             let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
             let env = venv_get_env venv in
                ValFun (env, opt_params, params, body, export)
@@ -1686,7 +1684,7 @@ and eval_string_exp venv pos s =
        | MethodApplyString (loc, v, vl, args, kargs) ->
             let venv_obj, v = eval_find_method venv pos loc v vl in
                eval_apply_string_exp venv venv_obj pos loc v args kargs
-       | SequenceString (loc, sl) ->
+       | SequenceString (_, sl) ->
             ValSequence (List.map (eval_string_exp venv pos) sl)
        | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
@@ -1713,7 +1711,7 @@ and eval_string_exp venv pos s =
             ValVar (loc, v)
        | ThisString _ ->
             ValObject (venv_this venv)
-       | LazyString (loc, s) ->
+       | LazyString (_, s) ->
             ValStringExp (venv_get_env venv, s)
        | LetVarString (_, v, s1, s2) ->
             let x = eval_string_exp venv pos s1 in
@@ -1952,7 +1950,7 @@ and eval_string_export_exp venv pos s =
             venv, ValString s
        | KeyApplyString (loc, v) ->
             venv, eval_key venv pos loc v
-       | FunString (loc, opt_params, params, body, export) ->
+       | FunString (_, opt_params, params, body, export) ->
             let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
             let env = venv_get_env venv in
                venv, ValFun (env, opt_params, params, body, export)
@@ -1966,7 +1964,7 @@ and eval_string_export_exp venv pos s =
        | MethodApplyString (loc, v, vl, args, kargs) ->
             let venv_obj, path, v = eval_with_method venv pos loc v vl in
                eval_apply_method_export_exp venv venv_obj pos loc path v args kargs
-       | SequenceString (loc, sl) ->
+       | SequenceString (_, sl) ->
             venv, ValSequence (List.map (eval_string_exp venv pos) sl)
        | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
@@ -1992,7 +1990,7 @@ and eval_string_export_exp venv pos s =
             venv, ValVar (loc, v)
        | ThisString _ ->
             venv, ValObject (venv_this venv)
-       | LazyString (loc, s) ->
+       | LazyString (_, s) ->
             venv, ValStringExp (venv_get_env venv, s)
        | LetVarString (_, v, s1, s2) ->
             let venv, x = eval_string_export_exp venv pos s1 in
@@ -2002,7 +2000,7 @@ and eval_string_export_exp venv pos s =
 (************************************************************************
  * Evaluate an expression.
  *)
-and eval_exp venv result e =
+and eval_exp venv _ e =
    let pos = string_pos "eval_exp" (ir_exp_pos e) in
       match e with
          LetVarExp (_, v, [], flag, s) ->
@@ -2116,7 +2114,7 @@ and eval_let_key_exp venv pos v flag s =
 (*
  * Function definitions.
  *)
-and eval_let_fun_exp venv pos loc v curry opt_params params body export =
+and eval_let_fun_exp venv pos _ v curry opt_params params body export =
    let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
    let env = venv_get_env venv in
    let e =
@@ -2268,7 +2266,7 @@ and eval_let_this_exp venv pos s =
  * The environment after the file is evaluated is used in the rest
  * of this file.
  *)
-and eval_include_exp venv pos loc s commands =
+and eval_include_exp venv pos loc s _ =
    let pos = string_pos "eval_include" pos in
    let name =
       match eval_string_exp venv pos s with
@@ -2347,7 +2345,7 @@ and eval_return_save_exp venv pos =
    let _pos = string_pos "eval_return_save_exp" pos in
       venv, ValNone
 
-and eval_return_object_exp venv pos names =
+and eval_return_object_exp venv _ names =
    let result = venv_current_object venv names in
       venv, ValObject result
 
@@ -2374,12 +2372,13 @@ and eval_object_file venv pos loc node =
    let parse_obj info node =
       let ir = compile_add_ir_info venv IncludePervasives pos loc node info in
       let { ir_classnames = names;
-            ir_exp = e
+            ir_exp = e;
+            _
           } = ir
       in
       let venv = venv_get_pervasives venv node in
       let venv = venv_define_object venv in
-      let venv, result = eval_exp venv ValNone e in
+      let venv, _ = eval_exp venv ValNone e in
          venv_current_object venv names
    in
       compile_object parse_obj venv pos loc node

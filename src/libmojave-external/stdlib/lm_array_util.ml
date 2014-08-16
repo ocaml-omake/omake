@@ -85,7 +85,7 @@ let exists f v =
 let mem i v =
    let l = Array.length v in
    let rec aux j =
-      j < l & ( i = v.(j) or
+      j < l && ( i = v.(j) ||
                 aux (j + 1) )
    in
       aux 0
@@ -112,7 +112,7 @@ let index i v =
 let exists f v =
    let l = Array.length v in
    let rec aux j =
-      j < l & ( f v.(j) or
+      j < l && ( f v.(j) ||
                 aux (j + 1) )
    in
       aux 0

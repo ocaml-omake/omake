@@ -24,15 +24,15 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
+
 open Lm_symbol
-open Lm_location
+
 
 open Omake_ast
 open Omake_pos
 open Omake_symbol
 open Omake_ast_util
-open Omake_ast_print
+
 open Omake_exp_parse
 open Omake_value_type
 
@@ -213,7 +213,7 @@ let apply_mode mode = function
 
 let languages = "legal languages are (program, make); you said"
 
-let language_mode loc pattern source =
+let language_mode loc _pattern source =
    let pos = string_pos "language_mode" (loc_exp_pos loc) in
       if SymbolTable.cardinal source <> 1 || not (SymbolTable.mem source normal_sym) then
          raise (OmakeException (pos, StringError "illegal language"));

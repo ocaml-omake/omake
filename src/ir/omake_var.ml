@@ -29,17 +29,17 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_hash
-open Lm_printf
-open Lm_symbol
+
+
+
 open Lm_location
 
 open Omake_ir
-open Omake_node
-open Omake_util
-open Omake_state
+
+
+
 open Omake_symbol
-open Omake_print_util
+
 
 (*
  * These are all builtin variables.

@@ -36,13 +36,13 @@
  *)
 open Lm_printf
 open Lm_symbol
-open Lm_string_set
-open Lm_hash_sig
-open Lm_hash
+
+
+
 
 open Omake_ir
 open Omake_env
-open Omake_pos
+
 open Omake_node
 open Omake_shell_type
 open Omake_value_type
@@ -92,14 +92,14 @@ type code =
  | CodeMethodApplyString
  | CodeQuoteString
  | CodeQuoteStringString
- | CodeExportExp
+
  | CodeExportNone
  | CodeExportAll
  | CodeExportList
  | CodeExportRules
  | CodeExportPhonies
  | CodeExportVar
- | CodeCancelExportExp
+
  | CodeReturnBodyExp
  | CodeStringExp
  | CodeReturnExp
@@ -149,13 +149,13 @@ type code =
  | CodeLetKeyExp
  | CodeKeyApplyString
  | CodeKeyExp
- | CodeRequiredParam
- | CodeOptionalParam
+
+
  | CodeValStaticApply
  | CodeArg
  | CodeArgString
  | CodeArgData
- | CodeArgNone
+
  | CodePipeAnd
  | CodePipeOr
  | CodePipeSequence
@@ -167,8 +167,6 @@ type code =
  | CodePipeBackground
  | CodeCommandEnvItem
  | CodeCommandEnv
- | CodeTrue
- | CodeFalse
  | CodeQuietFlag
  | CodeAllowFailureFlag
  | CodeAllowOutputFlag
@@ -827,7 +825,7 @@ and squash_map pos buf map =
          squash_value pos buf v;
          Hash.add_code buf CodeEnd) map
 
-and squash_case pos buf (x, v1, x2, export) =
+and squash_case pos buf (x, v1, _x2, export) =
    Hash.add_code buf CodeCase;
    squash_var buf x;
    Hash.add_code buf CodeSpace;
@@ -923,14 +921,15 @@ let squash_pipe_op buf op =
    in
       Hash.add_code buf code
 
-let squash_pipe_command pos buf (info : arg_cmd) =
+let squash_pipe_command _pos buf (info : arg_cmd) =
    let { cmd_env   = env;
          cmd_exe   = exe;
          cmd_argv  = argv;
          cmd_stdin = stdin;
          cmd_stdout = stdout;
          cmd_stderr = stderr;
-         cmd_append = append
+         cmd_append = append;
+         _
        } = info
    in
       Hash.add_code buf CodePipeCommand;
@@ -955,7 +954,8 @@ let squash_pipe_apply pos buf (info : arg_apply) =
          apply_stdin = stdin;
          apply_stdout = stdout;
          apply_stderr = stderr;
-         apply_append = append
+         apply_append = append;
+         _
        } = info
    in
       Hash.add_code buf CodePipeApply;
@@ -1028,7 +1028,8 @@ let squash_command_line pos buf (command : arg_command_inst) =
 
 let squash_command pos buf (command : arg_command_line) =
    let { command_dir = dir;
-         command_inst = inst
+         command_inst = inst;
+         _
        } = command
    in
       Hash.add_code buf CodeCommand;

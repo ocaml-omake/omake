@@ -32,18 +32,18 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
-open Lm_location
+
+
 
 open Omake_ir
-open Omake_env
+
 open Omake_pos
 open Omake_eval
-open Omake_node
-open Omake_value
+
+open! Omake_value
 open Omake_builtin
 open Omake_builtin_type
-open Omake_builtin_util
+
 open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_builtin_fun" end)
@@ -78,7 +78,7 @@ open Pos
  * \end{verbatim}
  * \end{doc}
  *)
-let fun_fun venv pos loc args =
+let fun_fun _ pos loc args =
    let pos = string_pos "fun" pos in
       match args with
          [arg] ->

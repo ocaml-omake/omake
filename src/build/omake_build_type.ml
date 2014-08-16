@@ -28,13 +28,13 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+
 open Lm_location
 
-open Omake_ir
+
 open Omake_env
 open Omake_node
-open Omake_exec
+
 open Omake_exec_util
 open Omake_cache_type
 open Omake_command_type

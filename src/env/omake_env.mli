@@ -31,27 +31,27 @@
  *)
 open Lm_printf
 
-open Lm_string_util
-open Lm_string_set
+
+
 open Lm_location
 open Lm_symbol
 
-open Omake_ir
-open Omake_pos
-open Omake_var
+open! Omake_ir
+
+
 open Omake_node
 open Omake_exec
-open Omake_cache
-open Omake_lexer
-open Omake_parser
+
+
+
 open Omake_options
 open Omake_node_sig
-open Omake_exec_type
+
 open Omake_shell_type
-open Omake_value_type
+open! Omake_value_type
 open Omake_command_type
-open Omake_ir_free_vars
-open Omake_handle_table
+
+
 
 (*
  * Debugging.

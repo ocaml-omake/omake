@@ -51,7 +51,7 @@ let target_exists_or_is_phony cache target =
 (*
  * Target is part of an explicit rule.
  *)
-let target_is_explicit cache venv target =
+let target_is_explicit _ venv target =
    venv_explicit_exists venv target
 
 (*

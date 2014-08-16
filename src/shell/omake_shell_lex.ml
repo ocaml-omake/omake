@@ -304,7 +304,8 @@ let pre_pipe_command venv find_alias options pos info =
          cmd_stdin   = stdin;
          cmd_stdout  = stdout;
          cmd_stderr  = stderr;
-         cmd_append  = append
+         cmd_append  = append;
+         _
        } = info
    in
    let stdin = arg_of_redirect venv pos stdin in
@@ -362,7 +363,8 @@ let pre_pipe_apply venv pos info =
    let { apply_env    = env;
          apply_args   = args;
          apply_stdin  = stdin;
-         apply_stdout = stdout
+         apply_stdout = stdout;
+         _
        } = info
    in
       { info with apply_env = List.map (fun (x, v) -> x, arg_of_values venv pos v) env;
@@ -392,7 +394,8 @@ let rec pre_pipe venv find_alias options pos pipe =
 and pre_pipe_group venv find_alias options pos info =
    let { group_stdin   = stdin;
          group_stdout  = stdout;
-         group_pipe    = pipe
+         group_pipe    = pipe;
+         _
        } = info
    in
       { info with group_stdin  = arg_of_redirect venv pos stdin;

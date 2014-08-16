@@ -28,10 +28,10 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_hash_sig
-open Lm_hash
+
+open! Lm_hash
 open Lm_printf
-open Lm_hash_sig
+open! Lm_hash_sig
 
 open Omake_node_sig
 

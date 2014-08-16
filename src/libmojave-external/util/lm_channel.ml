@@ -340,7 +340,8 @@ let info channel =
    let { channel_id = id;
          channel_kind = kind;
          channel_mode = mode;
-         channel_binary = binary
+         channel_binary = binary;
+         _
        } = channel
    in
       id, kind, mode, binary
@@ -418,7 +419,7 @@ let debug_set s i c =
 let string_get = String.unsafe_get
 let string_set = String.unsafe_set
 
-let rec expand_text obuffer omax wbuffer =
+let  expand_text obuffer omax wbuffer =
    assert (omax >= 0 && omax <= String.length obuffer && omax * 2 <= String.length wbuffer);
    let rec copy1 src dst =
       if src = omax then
@@ -472,7 +473,8 @@ let line_of_index info buffer index =
          start_char   = start_char;
          middle_index = middle_index;
          middle_line  = middle_line;
-         middle_char  = middle_char
+         middle_char  = middle_char;
+         _
        } = info
    in
    let rec search line char i =
@@ -512,7 +514,8 @@ let shift_input_buffer info =
    let { in_buffer = in_buffer;
          in_index  = in_index;
          lex_index = lex_index;
-         in_max    = in_max
+         in_max    = in_max;
+         _
        } = info
    in
    let line, char = line_of_index info in_buffer in_index in
@@ -563,7 +566,8 @@ let reset_output_buffer info =
  *)
 let expand_output info =
    let { out_buffer = buffer;
-         out_max    = max
+         out_max    = max;
+         _
        } = info
    in
       if max = String.length buffer then begin
@@ -576,7 +580,8 @@ let expand_output info =
 
 let to_string info =
    let { out_buffer = buffer;
-         out_max = max
+         out_max = max;
+         _
        } = info
    in
       String.sub buffer 0 max
@@ -617,7 +622,8 @@ let flush_output_once info =
    let { write_index  = off;
          write_max    = max;
          write_buffer = buf;
-         write_fun    = write
+         write_fun    = write;
+         _
        } = info
    in
    let count = write buf off (max - off) in
@@ -633,14 +639,16 @@ let flush_output_once info =
 let flush_aux info =
    setup_write_buffer info;
    let { write_buffer = buf;
-         write_fun    = writer
+         write_fun    = writer;
+         _
        } = info
    in
 
    (* Now write the data directly *)
    let rec write () =
       let { write_index = index;
-            write_max = max
+            write_max = max;
+            _
           } = info
       in
       let len = max - index in
@@ -702,7 +710,8 @@ let close info =
  *)
 let rec output_char info c =
    let { out_max = max;
-         out_buffer = buffer
+         out_buffer = buffer;
+         _
        } = info
    in
       flush_input info;
@@ -725,7 +734,8 @@ let output_byte info c =
  *)
 let rec output_buffer info buf off len =
    let { out_max = max;
-         out_buffer = buffer
+         out_buffer = buffer;
+         _
        } = info
    in
    let avail = String.length buffer - max in
@@ -759,7 +769,8 @@ let write info buf off len =
  *)
 let poll info =
    let { in_index = index;
-         in_max = max
+         in_max = max;
+         _
        } = info
    in
       index <> max
@@ -770,7 +781,8 @@ let poll info =
 let fillbuf info =
    let { channel_binary = binary;
          in_buffer = buf;
-         read_fun = reader
+         read_fun = reader;
+         _
        } = info
    in
    let count = reader buf 0 buf_size in
@@ -800,6 +812,7 @@ let rec input_char info =
    let { in_index = index;
          in_max = max;
          in_buffer = buf;
+         _
        } = info
    in
       flush_output info;
@@ -825,7 +838,8 @@ let input_byte info =
 let rec input_buffer info s off len =
    let { in_index = index;
          in_max = max;
-         in_buffer = buf
+         in_buffer = buf;
+         _
        } = info
    in
    let avail = max - index in
@@ -887,7 +901,8 @@ let read info s off len =
    let { in_index = index;
          in_max = max;
          in_buffer = buf;
-         read_fun = reader
+         read_fun = reader;
+         _
        } = info
    in
    let avail = max - index in
@@ -929,7 +944,8 @@ let loc info =
          in_index = in_index;
          in_buffer = in_buffer;
          out_buffer = out_buffer;
-         channel_file = file
+         channel_file = file;
+         _
        } = info
    in
    let line, char =
@@ -1133,7 +1149,8 @@ struct
     *)
    let lex_start channel =
       let { in_index = index;
-            in_buffer = buffer
+            in_buffer = buffer;
+            _
           } = channel
       in
       let prev =
@@ -1150,7 +1167,8 @@ struct
     *)
    let lex_restart channel pos =
       let { in_max = max;
-            in_index = index
+            in_index = index;
+            _
           } = channel
       in
          assert (pos >= 0 && pos <= max - index);
@@ -1169,7 +1187,8 @@ struct
     *)
    let lex_string channel pos =
       let { in_index = start;
-            in_buffer = buffer
+            in_buffer = buffer;
+            _
           } = channel
       in
          String.sub buffer start pos
@@ -1179,7 +1198,8 @@ struct
     *)
    let lex_substring channel off len =
       let { in_index = start;
-            in_buffer = buffer
+            in_buffer = buffer;
+            _
           } = channel
       in
          String.sub buffer (start + off) len
@@ -1193,7 +1213,8 @@ struct
             in_buffer      = buffer;
             in_index       = start;
             read_fun       = reader;
-            channel_binary = binary
+            channel_binary = binary;
+            _
           } = channel
       in
       let len = String.length buffer in
@@ -1247,7 +1268,8 @@ struct
    let lex_next channel =
       let { in_max = max;
             in_buffer = buffer;
-            lex_index = index
+            lex_index = index;
+            _
           } = channel
       in
          if index = max then
@@ -1272,7 +1294,8 @@ struct
             channel_file = file;
             lex_index = index;
             in_buffer = buffer;
-            in_max = max
+            in_max = max;
+            _
           } = channel
       in
       let line1, char1 =
@@ -1295,7 +1318,8 @@ struct
    let lex_buffer channel buf =
       let { in_max    = max;
             in_buffer = buffer;
-            in_index  = start
+            in_index  = start;
+            _
           } = channel
       in
          Buffer.add_substring buf buffer start (max - start);

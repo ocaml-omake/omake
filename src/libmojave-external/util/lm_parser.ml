@@ -31,7 +31,7 @@
  *)
 open Lm_debug
 open Lm_hash
-open Lm_printf
+open! Lm_printf
 open Lm_location
 open Lm_int_set
 
@@ -285,7 +285,8 @@ struct
          let { prod_item_name   = name;
                prod_item_left   = left;
                prod_item_right  = right;
-               prod_item_action = action
+               prod_item_action = action;
+               _
              } = item
          in
          let hash = hash_combine (IVar.hash name) (IAction.hash action) in
@@ -331,7 +332,7 @@ struct
    module ProdItemSet   = Lm_set.LmMake (ProdItem);;
    module ProdItemTable = Lm_map.LmMake (ProdItem);;
 
-   type prod_item = ProdItem.t
+
 
    (*
     * An LR(0) state is a set of ProdItems, and
@@ -435,9 +436,8 @@ struct
     * An action is shift, reduce, or accept.
     *)
    type 'a pda_action =
-      ReduceAction of iaction * ivar * int  (* semantic action, production name, #args *)
+    | ReduceAction of iaction * ivar * int  (* semantic action, production name, #args *)
     | GotoAction   of 'a
-    | AcceptAction
     | ErrorAction
 
    (*
@@ -572,7 +572,7 @@ struct
    let pp_print_var buf v =
       Arg.pp_print_symbol buf (Var.get v)
 
-   let rec pp_print_vars buf vl =
+   let  pp_print_vars buf vl =
       List.iter (fun v -> fprintf buf " %a" pp_print_var v) vl
 
    let pp_print_var_set buf s =
@@ -594,7 +594,7 @@ struct
    let pp_print_ivar hash buf v =
       Arg.pp_print_symbol buf (IVar.get hash.hash_ivar_state v)
 
-   let rec pp_print_ivars hash buf vl =
+   let  pp_print_ivars hash buf vl =
       List.iter (fun v -> fprintf buf " %a" (pp_print_ivar hash) v) vl
 
    let pp_print_ivar_set hash buf s =
@@ -649,8 +649,7 @@ struct
             fprintf buf "goto %d" state
        | ErrorAction ->
             pp_print_string buf "error"
-       | AcceptAction  ->
-            pp_print_string buf "accept"
+       
 
    let pp_print_pda_actions info buf actions =
       IVarTable.iter (fun v action ->
@@ -660,7 +659,8 @@ struct
       let { prod_item_action = action;
             prod_item_name   = name;
             prod_item_left   = left;
-            prod_item_right  = right
+            prod_item_right  = right;
+            _
           } = item
       in
       let hash = info.info_hash in
@@ -678,24 +678,27 @@ struct
             fprintf buf "@ %a" (pp_print_prod_item info) item) items
 
    let pp_print_state info buf state =
-      let { info_state_items = items } = State.get info.info_hash.hash_state_state state in
+      let { info_state_items = items; _ } = State.get info.info_hash.hash_state_state state in
          eprintf "@[<v 3>State %d" (State.hash state);
          pp_print_prod_item_set info buf items;
          eprintf "@]"
 
    let pp_print_info_item info buf info_item =
       let { info_hash = hash;
-            info_hash_state_item = hash_state_item
+            info_hash_state_item = hash_state_item;
+            _
           } = info
       in
       let { info_item_index = index;
-            info_item_entries = entries
+            info_item_entries = entries;
+            _
           } = info_item
       in
          fprintf buf "@[<v 3>State %d:" index;
          Array.iter (fun entry ->
                let { prop_state_item = state_item;
-                     prop_vars = lookahead
+                     prop_vars = lookahead;
+                     _
                    } = entry
                in
                let _, prod_item = StateItem.get hash_state_item state_item in
@@ -706,7 +709,8 @@ struct
       let { info_grammar = gram;
             info_nullable = nullable;
             info_first = first;
-            info_hash = hash
+            info_hash = hash;
+            _
           } = info
       in
          fprintf buf "@[<v 0>%a" pp_print_grammar gram;
@@ -919,7 +923,8 @@ struct
                List.fold_left (fun (changed, prods) prod ->
                      let { prod_action = action;
                            prod_name   = name;
-                           prod_prec   = pre
+                           prod_prec   = pre;
+                           _
                          } = prod
                      in
                         if ActionSet.mem actions action then
@@ -1013,7 +1018,8 @@ struct
          IVarTable.fold (fun (first, changed) _ prods ->
                List.fold_left (fun (first, changed) prod ->
                      let { prod_item_name = x;
-                           prod_item_right = rhs
+                           prod_item_right = rhs;
+                           _
                          } = ProdItem.get prod_state prod
                      in
                      let set = IVarTable.find first x in
@@ -1060,7 +1066,8 @@ struct
     *)
    let lookahead info rhs =
       let { info_first = first;
-            info_nullable = nullable
+            info_nullable = nullable;
+            _
           } = info
       in
       let rec search set rhs =
@@ -1275,7 +1282,8 @@ struct
          ProdItemSet.fold (fun delta prod_item ->
                let core = ProdItem.get hash prod_item in
                let { prod_item_left = left;
-                     prod_item_right = right
+                     prod_item_right = right;
+                     _
                    } = core
                in
                   match right with
@@ -1518,7 +1526,8 @@ struct
       let prod_item_hash = info.info_hash.hash_prod_item_state in
       let prod_item_core = ProdItem.get prod_item_hash prod_item in
       let { prod_item_left = left;
-            prod_item_right = right
+            prod_item_right = right;
+            _
           } = prod_item_core
       in
          match right with
@@ -1834,7 +1843,7 @@ struct
                         let core = ProdItem.get hash item in
                         let empty_flag =
                            match core with
-                              { prod_item_left = []; prod_item_right = [] } ->
+                              { prod_item_left = []; prod_item_right = [];_ } ->
                                  true
                             | _ ->
                                  false
@@ -1865,12 +1874,13 @@ struct
                      look)
 
    let reduce_actions info empties prop_table =
-      let { info_head_lookahead = look_table } = info in
+      let { info_head_lookahead = look_table ; _} = info in
       let hash = info.info_hash.hash_prod_item_state in
       let hash_state_item = info.info_hash_state_item in
          Array.fold_left (fun actions entry ->
                let { prop_state_item = state_item;
-                     prop_vars = look3
+                     prop_vars = look3;
+                     _
                    } = entry
                in
                let state, item = StateItem.get hash_state_item state_item in
@@ -1902,8 +1912,8 @@ struct
     * Error messages.
     *)
    let shift_reduce_conflict info state v shift_state reduce_item =
-      let { info_hash = hash } = info in
-      let { hash_prod_item_state = hash_prod_item } = hash in
+      let { info_hash = hash ;_ } = info in
+      let { hash_prod_item_state = hash_prod_item ; _} = hash in
       let pp_print_ivar = pp_print_ivar hash in
       let pp_print_iaction = pp_print_iaction hash in
       let reduce_core = ProdItem.get hash_prod_item reduce_item in
@@ -1917,8 +1927,8 @@ struct
             raise (Invalid_argument "Lm_parser.shift_reduce_conflict\n\tset MP_DEBUG=parse_conflict_is_warning to ignore this error")
 
    let reduce_reduce_conflict info state v reduce_item action =
-      let { info_hash = hash } = info in
-      let { hash_prod_item_state = hash_prod_item } = hash in
+      let { info_hash = hash; _ } = info in
+      let { hash_prod_item_state = hash_prod_item;_ } = hash in
       let pp_print_ivar = pp_print_ivar hash in
       let pp_print_iaction = pp_print_iaction hash in
       let reduce_core = ProdItem.get hash_prod_item reduce_item in
@@ -1938,10 +1948,11 @@ struct
    let process_reduce_actions info reduce_actions action_table =
       let { info_grammar         = gram;
             info_prec            = var_prec_table;
-            info_hash = { hash_prod_item_state = hash_prod_item }
+            info_hash = { hash_prod_item_state = hash_prod_item ; _};
+            _
           } = info
       in
-      let { gram_prec_table = prec_table } = gram in
+      let { gram_prec_table = prec_table; _ } = gram in
       let state_item_hash = info.info_hash_state_item in
          StateItemTable.fold (fun action_table state_item look ->
                let look = lookahead_set look in
@@ -1949,7 +1960,8 @@ struct
                let { prod_item_name   = name;
                      prod_item_action = action;
                      prod_item_left   = left;
-                     prod_item_prec   = prec_name
+                     prod_item_prec   = prec_name;
+                     _
                    } = ProdItem.get hash_prod_item item
                in
                let assoc = Precedence.assoc prec_table prec_name in
@@ -1985,9 +1997,8 @@ struct
                                  (* Reduce/reduce conflict *)
                                  reduce_reduce_conflict info state v item action2;
                                  actions
-                            | ErrorAction
-                            | AcceptAction ->
-                                 raise (Invalid_argument "reduce_action")
+                            | ErrorAction -> 
+                                  raise (Invalid_argument "reduce_action")
                         with
                            Not_found ->
                               IVarTable.add actions v reduce) actions look
@@ -2006,7 +2017,8 @@ struct
                { prod_item_right = [];
                  prod_item_action = action;
                  prod_item_name = name;
-                 prod_item_left = left
+                 prod_item_left = left;
+                 _
                } ->
                   let state_item = StateItem.create info.info_hash_state_item (state, item) in
                   let lookahead = prop_table.(StateItem.hash state_item).prop_vars in
@@ -2029,14 +2041,16 @@ struct
    let pda_info_of_items info prop_table state items =
       let { info_first = first;
             info_hash_state_item = hash_state_item;
-            info_hash = { hash_prod_item_state = hash_prod_item }
+            info_hash = { hash_prod_item_state = hash_prod_item;_ };
+            _
           } = info
       in
       let items, next =
          ProdItemSet.fold (fun (items, next) prod_item ->
                let core = ProdItem.get hash_prod_item prod_item in
                let { prod_item_left  = left;
-                     prod_item_right = right
+                     prod_item_right = right;
+                     _
                    } = core
                in
                let item =
@@ -2070,7 +2084,6 @@ struct
          GotoAction state ->
             GotoAction (State.hash state)
        | ReduceAction _
-       | AcceptAction
        | ErrorAction as action ->
             action
 
@@ -2094,7 +2107,7 @@ struct
       (* Build the PDA states *)
       let table =
          State.map_array (fun state core ->
-               let { info_state_items = items } = core in
+               let { info_state_items = items; _ } = core in
                   { pda_delta  = pda_delta (StateTable.find trans_table state);
                     pda_reduce = reduce_early info prop_table state items;
                     pda_info   = pda_info_of_items info prop_table state items
@@ -2155,7 +2168,7 @@ struct
     * Exceptions.
     *)
    let parse_error loc hash run _stack state (v : ivar) =
-      let { pda_info = { pda_items = items; pda_next = next } } = run.run_states.(state) in
+      let { pda_info = { pda_items = items; pda_next = next;_ }; _ } = run.run_states.(state) in
       let pp_print_ivar = pp_print_ivar hash in
       let buf = stdstr in
          fprintf buf "@[<v 0>Syntax error on token %a" pp_print_ivar v;
@@ -2188,7 +2201,7 @@ struct
 
    let pda_loop hash run arg start =
       let rec pda_lookahead arg stack state tok =
-         let { pda_delta = delta } = run.run_states.(state) in
+         let { pda_delta = delta; _ } = run.run_states.(state) in
          let v, loc, x = tok in
             match
                (try IVarTable.find delta v with
@@ -2206,12 +2219,6 @@ struct
                      pda_goto_lookahead arg stack (state, loc, x) name tok
              | ErrorAction ->
                   parse_error loc hash run stack state v
-             | AcceptAction ->
-                  match stack with
-                     [_, _, x] ->
-                        arg, x
-                   | _ ->
-                        raise (Invalid_argument "pda_lookahead")
 
       and pda_goto_lookahead arg stack state_loc_x name tok =
          let state, loc, _x = state_loc_x in
@@ -2234,8 +2241,7 @@ struct
                   let stack = state_loc_x :: stack in
                      pda_lookahead arg stack new_state tok
              | ErrorAction
-             | ReduceAction _
-             | AcceptAction ->
+             | ReduceAction _ ->
                   eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
                   raise (Invalid_argument "pda_goto_lookahead: illegal action")
 
@@ -2275,8 +2281,7 @@ struct
                   let stack = (state, loc, x) :: stack in
                      pda_no_lookahead arg stack new_state
              | ErrorAction
-             | ReduceAction _
-             | AcceptAction ->
+             | ReduceAction _ ->
                   eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
                   raise (Invalid_argument "pda_goto_no_lookahead")
       in
@@ -2323,24 +2328,24 @@ struct
    let prec_max = Precedence.prec_max
 
    let add_assoc info pre assoc =
-      let { parse_grammar = gram } = info in
-      let { gram_prec_table = prec_table } = gram in
+      let { parse_grammar = gram; _ } = info in
+      let { gram_prec_table = prec_table ; _} = gram in
       let prec_table = Precedence.add_assoc prec_table pre assoc in
       let gram = { gram with gram_prec_table = prec_table } in
       let info = { parse_grammar = gram; parse_pda = None } in
          info
 
    let create_prec_lt info pre assoc =
-      let { parse_grammar = gram } = info in
-      let { gram_prec_table = prec_table } = gram in
+      let { parse_grammar = gram ; _} = info in
+      let { gram_prec_table = prec_table; _ } = gram in
       let prec_table, pre = Precedence.create_prec_lt prec_table pre assoc in
       let gram = { gram with gram_prec_table = prec_table } in
       let info = { parse_grammar = gram; parse_pda = None } in
          info, pre
 
    let create_prec_gt info pre assoc =
-      let { parse_grammar = gram } = info in
-      let { gram_prec_table = prec_table } = gram in
+      let { parse_grammar = gram ; _} = info in
+      let { gram_prec_table = prec_table ; _} = gram in
       let prec_table, pre = Precedence.create_prec_gt prec_table pre assoc in
       let gram = { gram with gram_prec_table = prec_table } in
       let info = { parse_grammar = gram; parse_pda = None } in

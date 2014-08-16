@@ -110,7 +110,7 @@ struct
    let replaceq entries key x =
       let rec loop entries1 entries2 =
          match entries2 with
-            (key', x') :: entries2 when key' == key ->
+            (key', _) :: entries2 when key' == key ->
                List.rev_append entries1 ((key, x) :: entries2)
           | h :: entries2 ->
                loop (h :: entries1) entries2
@@ -122,7 +122,7 @@ struct
    let rec assq_value entries x =
       match entries with
          (key, x') :: _ when x' == x -> key
-       | _ :: t -> assq_value entries x
+       | _ :: _ -> assq_value entries x
        | [] -> raise Not_found
 
    (************************************************

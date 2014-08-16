@@ -43,7 +43,7 @@ open Lm_string_set
 
 open Omake_options
 open Omake_node
-open Omake_command
+
 open Omake_node_sig
 open Omake_cache_type
 open Omake_value_type
@@ -246,7 +246,7 @@ let pp_print_node_digest_table buf deps =
 (*
  * Print a result.
  *)
-let pp_print_memo_result pp_print_result buf result =
+let pp_print_memo_result _pp_print_result buf result =
    match result with
       MemoSuccess _ ->
          fprintf buf "@ success"
@@ -260,7 +260,7 @@ let pp_print_memo buf memo =
    let { memo_index    = index;
          memo_targets  = targets;
          memo_deps     = deps;
-         memo_result   = result;
+         memo_result   = _result;
          memo_commands = commands
        } = memo
    in
@@ -304,7 +304,8 @@ let rehash cache =
    cache.cache_exe_path <- DirListTable.empty
 
 let stats { cache_file_stat_count = stat_count;
-            cache_digest_count = digest_count
+            cache_digest_count = digest_count;
+            _
     } =
    stat_count, digest_count
 
@@ -315,7 +316,8 @@ let stats { cache_file_stat_count = stat_count;
 let save_of_cache cache =
    let { cache_nodes  = cache_nodes;
          cache_info   = cache_info;
-         cache_static_values = cache_values
+         cache_static_values = cache_values;
+         _
        } = cache
    in
    let cache_nodes =
@@ -341,7 +343,8 @@ let save_of_cache cache =
 let create_index memos =
    NodeTable.fold (fun (memos, index) target memo ->
          let { memo_result = result;
-               memo_index = hash
+               memo_index = hash;
+               _
              } = memo
          in
             match result with
@@ -358,6 +361,7 @@ let create_index memos =
 let cache_of_save options save =
    let { save_cache_nodes = cache_nodes;
          save_cache_info  = cache_info;
+         _
        } = save
    in
    let flush_scanner = opt_flush_dependencies options in
@@ -447,22 +451,25 @@ let stats_equal stat1 stat2 =
    let { Unix.LargeFile.st_ino   = ino1;
          Unix.LargeFile.st_kind  = kind1;
          Unix.LargeFile.st_size  = size1;
-         Unix.LargeFile.st_mtime = mtime1
+         Unix.LargeFile.st_mtime = mtime1;
+         _
        } = stat1
    in
    let { Unix.LargeFile.st_ino   = ino2;
          Unix.LargeFile.st_kind  = kind2;
          Unix.LargeFile.st_size  = size2;
-         Unix.LargeFile.st_mtime = mtime2
+         Unix.LargeFile.st_mtime = mtime2;
+         _
        } = stat2
    in
       ino1 = ino2 && kind1 = kind2 && size1 = size2 && mtime1 = mtime2
 
 let pp_print_stat buf stat =
    let { Unix.LargeFile.st_ino  = ino;
-         Unix.LargeFile.st_kind = kind;
+         Unix.LargeFile.st_kind = _kind;
          Unix.LargeFile.st_size = size;
-         Unix.LargeFile.st_mtime = mtime
+         Unix.LargeFile.st_mtime = mtime;
+         _
        } = stat
    in
       fprintf buf "ino = %d, size = %Ld, mtime = %g" ino size mtime
@@ -549,7 +556,7 @@ let stat_file cache node =
              * We've recently computed the digest for this file.
              *)
             digest
-       | Some ({ nmemo_stats = OldStats stats } as nmemo) ->
+       | Some ({ nmemo_stats = OldStats stats ; _} as nmemo) ->
             (*
              * We have no recent record of this file.
              * Get current stats.  If they match, then
@@ -584,7 +591,7 @@ let stat_file cache node =
                cache.cache_nodes <- NodeTable.add nodes node nmemo;
                nmemo.nmemo_digest
 
-       | Some { nmemo_stats = PartialStats stats } ->
+       | Some { nmemo_stats = PartialStats stats ; _} ->
             (*
              * We have taken stats of this file, and found that they
              * differed from the old value, so the digest is out-of-date.
@@ -690,15 +697,15 @@ let stat_unix_node cache ~force node =
             None
    in
       match stats with
-         Some { nmemo_stats = FreshStats stats }
-       | Some { nmemo_stats = PartialStats stats } ->
+         Some { nmemo_stats = FreshStats stats ; _}
+       | Some { nmemo_stats = PartialStats stats ; _} ->
             stats
-       | Some { nmemo_stats = NoStats } ->
+       | Some { nmemo_stats = NoStats ; _} ->
             if force then
                do_stat_unix cache node
             else
                raise Not_found
-       | Some ({ nmemo_stats = OldStats old_stats } as nmemo) ->
+       | Some ({ nmemo_stats = OldStats old_stats ; _} as nmemo) ->
             let name = Node.fullname node in
             let nmemo =
                try
@@ -971,7 +978,8 @@ let find_memo cache key deps commands =
          let memo = NodeTable.find memos target in
          let { memo_index = hash';
                memo_deps  = deps';
-               memo_commands = commands'
+               memo_commands = commands';
+               _
              } = memo
          in
             if hash' = hash && deps_equal cache deps deps' && commands = commands' then
@@ -1033,7 +1041,8 @@ let target_results results =
 let find_result cache key deps commands =
    let memo = find_memo cache key deps commands in
    let { memo_targets = targets;
-         memo_result  = result
+         memo_result  = result;
+         _
        } = memo
    in
       if targets_equal cache targets then
@@ -1045,7 +1054,7 @@ let find_result cache key deps commands =
  * Find the result of a run, without the commands.
  *)
 let find_result_sloppy cache key target =
-   let { cache_memos = memos } = get_info cache key in
+   let { cache_memos = memos ; _} = get_info cache key in
    let memo = NodeTable.find memos target in
       match memo.memo_result with
          MemoFailure _ ->
@@ -1071,7 +1080,8 @@ let find_value_memo cache key is_static deps1 commands1 =
    let hash1 = hash_index deps1 commands1 in
    let { memo_index = hash2;
          memo_deps  = deps2;
-         memo_commands = commands2
+         memo_commands = commands2;
+         _
        } = memo
    in
       if hash1 = hash2 && deps_equal cache deps1 deps2 && commands1 = commands2 then
@@ -1082,7 +1092,8 @@ let find_value_memo cache key is_static deps1 commands1 =
 let find_value cache key is_static deps commands =
    let memo = find_value_memo cache key is_static deps commands in
    let { memo_targets = targets;
-         memo_result  = result
+         memo_result  = result;
+         _
        } = memo
    in
       if targets_equal cache targets then
@@ -1161,7 +1172,7 @@ let check_stats auto_rehash (stats_old, entries) stats_new =
 (*
  * List a directory.
  *)
-let rec list_directory cache dir =
+let  list_directory _cache dir =
    let dirx =
       try Unix.opendir (Dir.fullname dir) with
          Unix.Unix_error _ ->
@@ -1321,7 +1332,8 @@ let is_exe_file cache node =
       let { Unix.LargeFile.st_kind = kind;
             Unix.LargeFile.st_perm = perm;
             Unix.LargeFile.st_uid = uid;
-            Unix.LargeFile.st_gid = gid
+            Unix.LargeFile.st_gid = gid;
+            _
           } = stat_unix cache node
       in
          (kind = Unix.S_REG)
@@ -1362,7 +1374,7 @@ let ls_exe_path, is_exe, name_exe, exe_suffixes =
    else
       ls_exe_path_unix, is_exe_unix, (fun s -> s), [""]
 
-let rec search_exe cache entries =
+let  search_exe cache entries =
    Lm_list_util.some_map (fun (dir, s) ->
          is_exe cache dir s) entries
 

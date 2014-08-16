@@ -33,7 +33,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+
 
 open Omake_ir
 
@@ -135,9 +135,9 @@ and free_vars_string_exp fv s =
     | BodyString (_, e, export)
     | ExpString (_, e, export) ->
          free_vars_exp_list (free_vars_export_info fv export) e
-    | CasesString (loc, cases) ->
+    | CasesString (_loc, cases) ->
          free_vars_cases fv cases
-    | LetVarString (_, v, e1, e2) ->
+    | LetVarString (_, v, e1, _e2) ->
          let fv = free_vars_string_exp fv e1 in
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv e1

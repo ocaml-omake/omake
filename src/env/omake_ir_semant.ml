@@ -34,7 +34,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+
 open Lm_printf
 open Lm_location
 
@@ -42,7 +42,7 @@ open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_options
-open Omake_ir_util
+
 open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ir_semant" end)

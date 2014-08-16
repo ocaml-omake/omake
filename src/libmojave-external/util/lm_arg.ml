@@ -32,7 +32,7 @@
  *          Justin David Smith
  * Modified By: Aleksey Nogin <nogin@cs.caltech.edu>
  *)
-open Lm_printf
+open! Lm_printf
 
 
 (***  Basic Specifications  ***)
@@ -162,7 +162,7 @@ type 'a option_node =
  | NameNode of 'a option_node CharTable.t
  | SpecOrName of 'a poly_spec * 'a option_node CharTable.t
 
-type 'a options = 'a option_node CharTable.t
+
 
 (* is_alnum
 

@@ -113,7 +113,7 @@
 open Lm_debug
 open Lm_printf
 open Lm_parser
-open Lm_location
+
 open Lm_symbol
 
 open Omake_ir
@@ -121,11 +121,11 @@ open Omake_env
 open Omake_var
 open Omake_pos
 open Omake_eval
-open Omake_node
-open Omake_value
+
+open! Omake_value
 open Omake_lexer
 open Omake_parser
-open Omake_printf
+
 open Omake_symbol
 open Omake_builtin
 open Omake_value_type
@@ -474,7 +474,7 @@ type rewrite_option =
    RewriteHex
  | RewriteNone
 
-let scan_options venv pos loc options s =
+let scan_options _ pos loc options s =
    let len = String.length s in
    let rec collect ((poption, roption) as options) i =
       if i = len then
@@ -488,7 +488,7 @@ let scan_options venv pos loc options s =
                   ParseWords, roption
              | 'x' ->
                   poption, RewriteHex
-             | c ->
+             | _ ->
                   raise (OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
          in
             collect options (succ i)
@@ -520,7 +520,7 @@ let scan_args venv pos loc args =
 (*
  * Awk the value.
  *)
-let scan venv pos loc args kargs =
+let scan venv pos loc args _ =
    let pos = string_pos "scan" pos in
    let cases, token_mode, rewrite_mode, files = scan_args venv pos loc args in
 
@@ -798,7 +798,7 @@ let awk_flags pos loc s =
 (*
  * Awk the value.
  *)
-let awk venv pos loc args kargs =
+let awk venv pos loc args _ =
    let pos = string_pos "awk" pos in
    let cases, flags, files = awk_option_args venv pos loc args in
    let flags = awk_flags pos loc flags in
@@ -954,7 +954,7 @@ let awk venv pos loc args kargs =
  *)
 let subst_global_opt = 1
 
-let subst_options venv pos loc options s =
+let subst_options _ pos loc options s =
    let len = String.length s in
    let rec collect options i =
       if i = len then
@@ -964,7 +964,7 @@ let subst_options venv pos loc options s =
             match s.[i] with
                'g' ->
                   subst_global_opt
-             | c ->
+             | _ ->
                   raise (OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
          in
             collect (options lor flag) (succ i)
@@ -998,7 +998,7 @@ let subst_eval_line venv pos loc line cases =
                subst_eval_case venv pos loc buffer channel lex options body;
                Buffer.contents buffer) line cases
 
-let fsubst venv pos loc args kargs =
+let fsubst venv pos loc args _ =
    let pos = string_pos "fsubst" pos in
    let cases, files = awk_args venv pos loc args in
    let outp = prim_channel_of_var venv pos loc stdout_var in
@@ -1139,7 +1139,7 @@ let fsubst venv pos loc args kargs =
  *)
 let eof_sym = Lm_symbol.add "eof"
 
-let lex venv pos loc args kargs =
+let lex venv pos loc args _ =
    let pos = string_pos "lex" pos in
    let cases, files = awk_args venv pos loc args in
 
@@ -1262,7 +1262,7 @@ let lex venv pos loc args kargs =
  * The \hyperfun{break} can be used to abort the loop.
  * \end{doc}
  *)
-let lex_search venv pos loc args kargs =
+let lex_search venv pos loc args _ =
    let pos = string_pos "lex-search" pos in
    let cases, files = awk_args venv pos loc args in
 
@@ -1312,7 +1312,7 @@ let lex_search venv pos loc args kargs =
       match Lexer.searchto lex inx with
          Lexer.LexEOF ->
             venv
-       | Lexer.LexSkipped (lexeme_loc, lexeme) ->
+       | Lexer.LexSkipped (_, lexeme) ->
             skip venv loc lexeme
        | Lexer.LexMatched (action_sym, lexeme_loc, skipped, lexeme, args) ->
             (* Process skipped text *)
@@ -1836,8 +1836,8 @@ let parse_build venv pos loc args =
 (*
  * Get the precedence option.
  *)
-let prec_option venv pos loc options =
-   venv_map_fold (fun pre optname optval ->
+let prec_option venv pos _ options =
+   venv_map_fold (fun _ optname optval ->
          let s = string_of_value venv pos optname in
             if s = ":prec:" then
                Some (Lm_symbol.add (string_of_value venv pos optval))

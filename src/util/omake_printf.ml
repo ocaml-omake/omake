@@ -201,58 +201,58 @@ struct
    (*
     * Base printers.
     *)
-   let rec print_bool (buf : Args.t) (args : Args.value list) i len s fmt info =
+   let rec print_bool (buf : Args.t) (args : Args.value list) i len s fmt _info =
       let args, arg = next_arg args in
       let b = Args.bool_of_value buf arg in
       let str = ext_print_string fmt (if b then "true" else "false") in
          Args.print_string buf str;
          print_loop buf args i len s
 
-   and print_char buf args i len s fmt info =
+   and print_char buf args i len s fmt _info =
       let args, arg = next_arg args in
       let c = Args.char_of_value buf arg in
       let str = ext_print_char fmt c in
          Args.print_string buf str;
          print_loop buf args i len s
 
-   and print_int buf args i len s fmt info spec =
+   and print_int buf args i len s fmt _ _ =
       let args, arg = next_arg args in
       let j = Args.int_of_value buf arg in
       let str = ext_print_int fmt j in
          Args.print_string buf str;
          print_loop buf args i len s
 
-   and print_float buf args i len s fmt info spec =
+   and print_float buf args i len s fmt _ _ =
       let args, arg = next_arg args in
       let x = Args.float_of_value buf arg in
       let str = ext_print_float fmt x in
          Args.print_string buf str;
          print_loop buf args i len s
 
-   and print_string buf args i len s fmt info =
+   and print_string buf args i len s fmt _info =
       let args, arg = next_arg args in
       let str = Args.string_of_value buf arg in
       let str = ext_print_string fmt str in
          Args.print_string buf str;
          print_loop buf args i len s
 
-   and print_value buf args i len s fmt info =
+   and print_value buf args i len s _fmt _ =
       let args, arg = next_arg args in
          Args.print_value buf arg;
          print_loop buf args i len s
 
-   and print_user1 buf args i len s fmt info =
+   and print_user1 buf args i len s _fmt _ =
       let args, arg = next_arg args in
          Args.apply1 buf arg;
          print_loop buf args i len s
 
-   and print_user2 buf args i len s fmt info =
+   and print_user2 buf args i len s _fmt _ =
       let args, arg1 = next_arg args in
       let args, arg2 = next_arg args in
          Args.apply2 buf arg1 arg2;
          print_loop buf args i len s
 
-   and print_percent buf args i len s fmt info =
+   and print_percent buf args i len s fmt _info =
       let str = ext_print_string fmt "%" in
          Args.print_string buf str;
          print_loop buf args i len s

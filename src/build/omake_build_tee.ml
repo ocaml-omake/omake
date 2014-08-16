@@ -32,7 +32,7 @@ open Lm_printf
 open Lm_string_set
 
 open Omake_env
-open Omake_node
+
 open Omake_exec_util
 open Omake_exec_print
 open Omake_build_type
@@ -59,7 +59,7 @@ let try_unlink table name =
     | Unix.Unix_error _ ->
          StringSet.add table name 
 
-let rec unlink_file name =
+let unlink_file name =
    let table = StringSet.add (!failed_unlink) name in
       failed_unlink := StringSet.fold try_unlink StringSet.empty table
 
@@ -123,9 +123,10 @@ let format_file_with_nl buf name =
  * Close tee channels.
  * For commands that are successful, repeat the diversion.
  *)
-let env_close_success_tee env command =
+let env_close_success_tee _ command =
    let { command_venv = venv;
-         command_tee  = tee
+         command_tee  = tee;
+         _
        } = command
    in
       match tee_file tee with
@@ -147,9 +148,10 @@ let env_close_success_tee env command =
  * Don't remove the diversion if we are going to print it again
  * at the end of the run.
  *)
-let env_close_failed_tee env command =
+let env_close_failed_tee _ command =
    let { command_venv = venv;
-         command_tee  = tee
+         command_tee  = tee;
+         _
        } = command
    in
       match tee_file tee with

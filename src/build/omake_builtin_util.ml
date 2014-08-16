@@ -28,24 +28,24 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
 
-open Lm_symbol
+
+
 open Lm_location
-open Lm_string_set
+
 
 open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_eval
-open Omake_wild
+
 open Omake_node
-open Omake_value
-open Omake_state
-open Omake_node_sig
+
+
+
 open Omake_value_type
 open Omake_build_type
-open Omake_symbol
+open! Omake_symbol
 
 module Pos = MakePos (struct let name = "Omake_builtin" end)
 open Pos
@@ -57,7 +57,7 @@ open Pos
  * This is a big hack, repeating Omake_ir_ast.
  * We may want to move this into there.
  *)
-let parse_path unlinked venv pos loc s =
+let parse_path _ venv pos loc s =
    let vl = List.map Lm_symbol.add (Lm_string_util.split "." s) in
       match Omake_ir_ast.parse_declaration venv pos loc vl with
          NameEmpty _ ->
@@ -210,7 +210,8 @@ let is_leaf_command command =
    let { command_scanner_deps = scanner_deps;
          command_static_deps  = static_deps;
          command_build_deps   = build_deps;
-         command_lines        = lines
+         command_lines        = lines;
+         _
        } = command
    in
       NodeSet.is_empty scanner_deps

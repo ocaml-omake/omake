@@ -29,8 +29,8 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
-open Lm_location
+open! Lm_printf
+
 
 open Omake_node
 open Omake_exec_id

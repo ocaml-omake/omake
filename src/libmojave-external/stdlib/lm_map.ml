@@ -1574,7 +1574,7 @@ struct
       in
          MMap.exists cmp_list t
 
-   let rec find_iter cmp t =
+   let find_iter cmp t =
       let rec cmp_list key l =
          match l with
             h :: t ->

@@ -31,10 +31,10 @@
 open Lm_printf
 
 open Omake_node
-open Omake_exec_id
-open Omake_exec_util
+
+
 open Omake_exec_type
-open Omake_cache_type
+
 open Omake_options
 
 (*

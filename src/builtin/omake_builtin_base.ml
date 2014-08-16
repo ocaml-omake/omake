@@ -35,10 +35,10 @@
  * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 
-open Lm_symbol
-open Lm_location
+
+
 open Lm_string_set
 
 open Omake_ir
@@ -47,19 +47,19 @@ open Omake_var
 open Omake_pos
 open Omake_eval
 open Omake_wild
-open Omake_node
-open Omake_exec
+
+
 open Omake_rule
 open Omake_lexer
-open Omake_value
+open! Omake_value
 open Omake_state
 open Omake_symbol
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
-open Omake_command_type
-open Omake_value_type
-open Omake_value_print
+
+open! Omake_value_type
+
 
 module Pos = MakePos (struct let name = "Omake_builtin_base" end)
 open Pos
@@ -219,7 +219,7 @@ let equal venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let and_fun venv pos loc args =
+let and_fun venv pos _ args =
    let pos = string_pos "and" pos in
       val_of_bool (**)
          (List.for_all (fun arg ->
@@ -248,7 +248,7 @@ let and_fun venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let or_fun venv pos loc args =
+let or_fun venv pos _ args =
    let pos = string_pos "or" pos in
       val_of_bool (**)
          (List.exists (fun arg ->
@@ -564,7 +564,7 @@ let object_of_uncaught_exception venv pos exn =
  *)
 let rec eval_finally_case venv pos result cases =
    match cases with
-      (v, _, e, export) :: cases when Lm_symbol.eq v finally_sym ->
+      (v, _, e, export) :: _ when Lm_symbol.eq v finally_sym ->
          eval_sequence_export venv pos result e export
     | _ :: cases ->
          eval_finally_case venv pos result cases
@@ -732,7 +732,7 @@ let exit_aux f venv pos loc args =
             0
        | [s] ->
             (match values_of_value venv pos s with
-                [i] ->
+                [_] ->
                    int_of_value venv pos s
               | [] ->
                    0
@@ -1123,7 +1123,7 @@ let setvar venv pos loc args kargs =
  * preserved literally.
  * \end{doc}
  *)
-let array_fun venv pos loc args =
+let array_fun venv pos _ args =
    let pos = string_pos "array" pos in
    let args =
       List.fold_left (fun args arg ->
@@ -2316,11 +2316,11 @@ let set_diff venv pos loc args =
  * For example \verb+$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)+ evaluates to \verb+x.o b.h y.o+.
  * \end{doc}
  *)
-let compile_patterns venv loc pos patterns =
+let compile_patterns venv _ pos patterns =
    let patterns = strings_of_value venv pos patterns in
    let rec f = function
       [] ->
-         (fun f -> false)
+         (fun _ -> false)
     | pattern :: patterns ->
          let f = f patterns in
             if is_wild pattern then
@@ -2711,7 +2711,7 @@ let export venv pos loc args kargs =
  *)
 let rec eval_while_cases venv pos loc orig_cases arg cases =
    match cases with
-      (v, pattern, e, export) :: cases ->
+      (v, pattern, e, _) :: cases ->
          if Lm_symbol.eq v case_sym && bool_of_value venv pos pattern || Lm_symbol.eq v default_sym then
             let venv, _ = eval_sequence_exp venv pos e in
                while_loop venv pos loc orig_cases arg
@@ -2758,7 +2758,7 @@ let while_fun venv pos loc args kargs =
  * Terminate execution of the innermost loop, returning the current state.
  * \end{doc}
  *)
-let break venv pos loc args =
+let break venv _ loc _ =
    raise (Break (loc, venv))
 
 (*
@@ -2782,7 +2782,7 @@ let break venv pos loc args =
  *)
 let () = Random.self_init ()
 
-let random venv pos loc args =
+let random _ _ _ _ =
    ValInt (Random.bits ())
 
 let random_init venv pos loc args =

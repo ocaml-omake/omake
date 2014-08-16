@@ -31,7 +31,7 @@ open Lm_printf
 
 open Lm_location
 
-open Omake_ast
+
 open Omake_env
 open Omake_pos
 open Omake_symbol

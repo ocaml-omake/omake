@@ -29,8 +29,8 @@
  * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
-open Lm_symbol
+
+
 
 open Omake_ir
 

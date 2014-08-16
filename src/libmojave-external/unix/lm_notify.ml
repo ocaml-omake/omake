@@ -32,7 +32,7 @@
  *)
 open Lm_debug
 open Lm_printf
-open Lm_map_sig
+
 
 let debug_notify =
    create_debug {
@@ -154,7 +154,8 @@ let is_monitored_name requests name =
    let new_path = path_of_name name in
       IntTable.exists (fun _ job ->
             let { job_path = path;
-                  job_recursive = recursive
+                  job_recursive = recursive;
+                  _
                 } = job
             in
                new_path = path || (recursive && is_path_prefix path new_path)) requests
@@ -215,7 +216,7 @@ let close notify =
 (*
  * Get the file descriptor.
  *)
-let file_descr { notify_fd = fd } =
+let file_descr { notify_fd = fd ; _} =
    fd
 
 (*
@@ -224,7 +225,8 @@ let file_descr { notify_fd = fd } =
 let monitor notify dir recursive =
    let { notify_info = info;
          notify_dirs = dirs;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
    let name = name_of_dir dir in
@@ -252,7 +254,8 @@ let monitor notify dir recursive =
 let suspend notify dir =
    let { notify_info = info;
          notify_dirs = dirs;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
    let dir = name_of_dir dir in
@@ -270,7 +273,8 @@ let suspend notify dir =
 
 let suspend_all notify =
    let { notify_info = info;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
       IntTable.iter (fun _ job ->
@@ -283,7 +287,8 @@ let suspend_all notify =
 let resume notify dir =
    let { notify_info = info;
          notify_dirs = dirs;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
    let dir = name_of_dir dir in
@@ -301,7 +306,8 @@ let resume notify dir =
 
 let resume_all notify =
    let { notify_info = info;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
       IntTable.iter (fun _ job ->
@@ -317,7 +323,8 @@ let resume_all notify =
 let cancel notify dir =
    let { notify_info = info;
          notify_dirs = dirs;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
    let dir = name_of_dir dir in
@@ -333,7 +340,8 @@ let cancel notify dir =
 
 let cancel_all notify =
    let { notify_info = info;
-         notify_requests = requests
+         notify_requests = requests;
+         _
        } = notify
    in
       IntTable.iter (fun request _ -> notify_cancel info request) requests;

@@ -32,10 +32,10 @@ open Lm_printf
 
 open Lm_debug
 open Lm_symbol
-open Lm_int_set
+
 open Lm_location
 open Lm_string_set
-open Lm_string_util
+
 
 open Omake_ir
 open Omake_pos
@@ -47,13 +47,13 @@ open Omake_state
 open Omake_symbol
 open Omake_ir_print
 open Omake_node_sig
-open Omake_print_util
+
 open Omake_shell_type
 open Omake_command_type
-open Omake_ir_free_vars
+
 open Omake_handle_table
 open Omake_value_print
-open Omake_value_type
+open! Omake_value_type
 open Omake_options
 open Omake_var
 
@@ -402,7 +402,7 @@ let venv_map_length = ValueTable.cardinal
  *)
 let rec pp_print_command buf command =
    match command with
-      CommandSection (arg, fv, e) ->
+      CommandSection (arg, _fv, e) ->
          fprintf buf "@[<hv 3>section %a@ %a@]" pp_print_value arg pp_print_exp_list e
     | CommandValue (_, _, v) ->
          pp_print_string_exp buf v
@@ -413,7 +413,8 @@ and pp_print_commands buf commands =
 and pp_print_command_info buf info =
    let { command_env     = venv;
          command_sources = sources;
-         command_body    = commands
+         command_body    = commands;
+         _
        } = info
    in
       fprintf buf "@[<hv 0>@[<hv 3>{@ command_dir = %a;@ @[<b 3>command_sources =%a@]@ @[<b 3>command_body =%a@]@]@ }@]" (**)
@@ -430,7 +431,8 @@ and pp_print_rule buf erule =
          rule_locks       = locks;
          rule_sources     = sources;
          rule_scanners    = scanners;
-         rule_commands    = commands
+         rule_commands    = commands;
+         _
        } = erule
    in
       fprintf buf "@[<hv 0>@[<hv 3>rule {";
@@ -629,7 +631,7 @@ let venv_add_index_channel index data =
       IntHandleTable.add channels channel data;
       channel
 
-let venv_add_channel venv data =
+let venv_add_channel _venv data =
    let channels = venv_runtime.venv_channels in
    let channel = IntHandleTable.new_handle channels in
    let index = IntHandleTable.int_of_handle channel in
@@ -647,12 +649,12 @@ let venv_stderr = venv_add_index_channel 2 (add_channel "<stderr>" Lm_channel.Pi
 (*
  * A formatting channel.
  *)
-let venv_add_formatter_channel venv fmt =
+let venv_add_formatter_channel _venv fmt =
    let channels = venv_runtime.venv_channels in
    let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
    let channel = IntHandleTable.new_handle channels in
    let index = IntHandleTable.int_of_handle channel in
-   let reader s off len =
+   let reader _s _off _len =
       raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
    in
    let writer s off len =
@@ -677,7 +679,7 @@ let venv_channel_data channel =
 (*
  * When a channel is closed, close the buffers too.
  *)
-let venv_close_channel venv pos channel =
+let venv_close_channel _venv _pos channel =
    try
       let fd = venv_channel_data channel in
          Lm_channel.close fd;
@@ -690,7 +692,7 @@ let venv_close_channel venv pos channel =
 (*
  * Get the channel.
  *)
-let venv_find_channel venv pos channel =
+let venv_find_channel _venv pos channel =
    let pos = string_pos "venv_find_in_channel" pos in
       try venv_channel_data channel with
          Not_found ->
@@ -699,13 +701,13 @@ let venv_find_channel venv pos channel =
 (*
  * Finding by identifiers.
  *)
-let venv_find_channel_by_channel venv pos fd =
+let venv_find_channel_by_channel _venv pos fd =
    let index, _, _, _ = Lm_channel.info fd in
       try IntHandleTable.find_value venv_runtime.venv_channels index fd with
          Not_found ->
             raise (OmakeException (pos, StringError "channel is closed"))
 
-let venv_find_channel_by_id venv pos index =
+let venv_find_channel_by_id _venv pos index =
    try IntHandleTable.find_any_handle venv_runtime.venv_channels index with
       Not_found ->
          raise (OmakeException (pos, StringError "channel is closed"))
@@ -717,7 +719,7 @@ let venv_find_channel_by_id venv pos index =
 (*
  * Allocate a function primitive.
  *)
-let venv_add_prim_fun venv name data =
+let venv_add_prim_fun _venv name data =
    venv_runtime.venv_primitives <- SymbolTable.add venv_runtime.venv_primitives name data;
    name
 
@@ -755,7 +757,8 @@ let venv_add_target_is_buildable_proper venv target flag =
 let venv_add_explicit_targets venv rules =
    let globals = venv.venv_inner.venv_globals in
    let { venv_target_is_buildable = cache;
-         venv_target_is_buildable_proper = cache_proper
+         venv_target_is_buildable_proper = cache_proper;
+         _
        } = globals
    in
    let cache =
@@ -777,7 +780,7 @@ let venv_flush_target_cache venv =
 (*
  * Save explicit rules.
  *)
-let venv_save_explicit_rules venv loc rules =
+let venv_save_explicit_rules venv _loc rules =
    let globals = venv.venv_inner.venv_globals in
       globals.venv_explicit_new <- List.rev_append rules globals.venv_explicit_new;
       venv_add_explicit_targets venv rules
@@ -810,7 +813,8 @@ let venv_add_phony venv loc names =
    else
       let inner = venv.venv_inner in
       let { venv_dir = dir;
-            venv_phony = phony
+            venv_phony = phony;
+            _
           } = inner
       in
       let globals = venv_globals venv in
@@ -1001,11 +1005,11 @@ struct
     *)
    let close info =
       match info with
-         { db_file = Some fd; db_name = name } ->
+         { db_file = Some fd; db_name = name ; _} ->
             if !debug_db then
                eprintf "Omake_db.close: %a@." pp_print_node name;
             Unix.close fd
-       | { db_file = None } ->
+       | { db_file = None ; _} ->
             ()
 
    let perform mode venv source f =
@@ -1026,70 +1030,70 @@ struct
     *)
    let add_ir info ir =
       match info with
-         { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
+         { db_file = Some fd; db_name = name; db_digest = digest; db_env = _venv ; _} ->
             if !debug_db then
                eprintf "Omake_db.add_ir: %a@." pp_print_node name;
             Lm_db.add fd (Node.absname name) ir_tag Omake_magic.ir_magic digest ir
-       | { db_file = None } ->
+       | { db_file = None ; _} ->
             ()
 
    let add_object info obj =
       match info with
-         { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
+         { db_file = Some fd; db_name = name; db_digest = digest; db_env = _venv ; _} ->
             if !debug_db then
                eprintf "Omake_db.add_object: %a@." pp_print_node name;
             Lm_db.add fd (Node.absname name) object_tag Omake_magic.obj_magic digest obj
-       | { db_file = None } ->
+       | { db_file = None ; _} ->
             ()
 
    let add_values info obj =
       match info with
-         { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
+         { db_file = Some fd; db_name = name; db_digest = digest; db_env = _venv ; _} ->
             if !debug_db then
                eprintf "Omake_db.add_values: %a@." pp_print_node name;
             Lm_db.add fd (Node.absname name) values_tag Omake_magic.obj_magic digest obj
-       | { db_file = None } ->
+       | { db_file = None ; _} ->
             ()
 
    (*
     * Fetch the three kinds of entries.
     *)
    let find_ir = function
-      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false } ->
+      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false ; _} ->
          if !debug_db then
             eprintf "Omake_db.find_ir: finding: %a@." pp_print_node name;
          let ir = Lm_db.find fd (Node.absname name) ir_tag Omake_magic.ir_magic digest in
             if !debug_db then
                eprintf "Omake_db.find_ir: found: %a@." pp_print_node name;
             ir
-    | { db_file = None }
-    | { db_flush_ir = true } ->
+    | { db_file = None ; _}
+    | { db_flush_ir = true ; _} ->
          raise Not_found
 
    let find_object = function
-      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false; db_flush_static = false } ->
+      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false; db_flush_static = false ; _} ->
          if !debug_db then
             eprintf "Omake_db.find_object: finding: %a@." pp_print_node name;
          let obj = Lm_db.find fd (Node.absname name) object_tag Omake_magic.obj_magic digest in
             if !debug_db then
                eprintf "Omake_db.find_object: found: %a@." pp_print_node name;
             obj
-    | { db_file = None }
-    | { db_flush_ir = true }
-    | { db_flush_static = true } ->
+    | { db_file = None ; _}
+    | { db_flush_ir = true ;_}
+    | { db_flush_static = true ; _} ->
          raise Not_found
 
    let find_values = function
-      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false; db_flush_static = false } ->
+      { db_file = Some fd; db_name = name; db_digest = digest; db_flush_ir = false; db_flush_static = false ; _} ->
          if !debug_db then
             eprintf "Omake_db.find_values: finding: %a@." pp_print_node name;
          let obj = Lm_db.find fd (Node.absname name) values_tag Omake_magic.obj_magic digest in
             if !debug_db then
                eprintf "Omake_db.find_values: found: %a@." pp_print_node name;
             obj
-    | { db_file = None }
-    | { db_flush_ir = true }
-    | { db_flush_static = true } ->
+    | { db_file = None ; _}
+    | { db_flush_ir = true ; _}
+    | { db_flush_static = true ; _} ->
          raise Not_found
 
    let get_ir     = find_ir
@@ -1186,7 +1190,8 @@ let venv_find_object_or_empty venv v =
 let venv_defined venv v =
    let { venv_this = this;
          venv_static = static;
-         venv_dynamic = dynamic
+         venv_dynamic = dynamic;
+         _
        } = venv
    in
       match v with
@@ -1205,7 +1210,8 @@ let venv_defined venv v =
 let venv_add_var venv v s =
    let { venv_this = this;
          venv_static = static;
-         venv_dynamic = dynamic
+         venv_dynamic = dynamic;
+         _
        } = venv
    in
       match v with
@@ -1241,7 +1247,7 @@ let rec venv_add_keyword_args pos venv keywords kargs =
                raise (OmakeException (pos, StringVarError ("no such keyword", v2)))
     | (v1, _, None) :: _, [] ->
          raise (OmakeException (pos, StringVarError ("keyword argument is required", v1)))
-    | (v1, v_info, Some arg) :: keywords_tl, [] ->
+    | (_, v_info, Some arg) :: keywords_tl, [] ->
          venv_add_keyword_args pos (venv_add_var venv v_info arg) keywords_tl kargs
     | [], [] ->
          venv
@@ -1337,7 +1343,7 @@ let rec venv_add_curry_args pos venv params args keywords skipped_kargs kargs =
     | [], [] ->
          apply_curry_args pos venv skipped_kargs params args
 
-let venv_add_curry_args venv pos loc static pargs params args keywords kargs1 kargs2 =
+let venv_add_curry_args venv pos _loc static pargs params args keywords kargs1 kargs2 =
    let venv = { venv with venv_static = static } in
    let venv = add_partial_args venv pargs in
       venv_add_curry_args pos venv params args keywords [] (merge_kargs pos kargs1 kargs2)
@@ -1368,7 +1374,7 @@ let rec apply_partial_args venv pos loc static env skipped_keywords keywords ski
 
 let rec venv_add_partial_args venv pos loc static env params args skipped_keywords keywords skipped_kargs kargs =
    match keywords, kargs with
-      ((v1, v_info, opt_arg) as key) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
+      ((v1, v_info, _) as key) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
          let i = Lm_symbol.compare v1 v2 in
             if i = 0 then
                venv_add_partial_args venv pos loc static ((v_info, arg) :: env) params args skipped_keywords keywords_tl skipped_kargs kargs_tl
@@ -1419,7 +1425,7 @@ let venv_with_options venv options =
 
 let venv_set_options_aux venv loc pos argv =
    let argv = Array.of_list argv in
-   let add_unknown options s =
+   let add_unknown _options s =
       raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
    in
    let options_spec =
@@ -1467,7 +1473,8 @@ let venv_find_static_object venv node v =
 let venv_add_static_object venv node key obj =
    let globals = venv.venv_inner.venv_globals in
    let { venv_static_values = static;
-         venv_modified_values = modified
+         venv_modified_values = modified;
+         _
        } = globals
    in
    let table =
@@ -1483,7 +1490,7 @@ let venv_add_static_object venv node key obj =
  * Inline the static variables into the current environment.
  *)
 let venv_include_static_object venv obj =
-   let { venv_dynamic = dynamic } = venv in
+   let { venv_dynamic = dynamic ; _} = venv in
    let dynamic = SymbolTable.fold SymbolTable.add dynamic obj in
       { venv with venv_dynamic = dynamic }
 
@@ -1526,7 +1533,7 @@ let rec squash_path_info path info =
  * When finding a value, also construct the path to
  * the value.
  *)
-let venv_find_field_path_exn venv path obj pos v =
+let venv_find_field_path_exn _venv path obj _pos v =
    PathField (path, obj, v), SymbolTable.find obj v
 
 let venv_find_field_path venv path obj pos v =
@@ -1538,7 +1545,7 @@ let venv_find_field_path venv path obj pos v =
 (*
  * Simple finding.
  *)
-let venv_find_field_exn venv obj pos v =
+let venv_find_field_exn _venv obj _pos v =
    SymbolTable.find obj v
 
 let venv_find_field venv obj pos v =
@@ -1563,7 +1570,7 @@ let venv_find_super_field venv pos loc v1 v2 =
 (*
  * Add a field.
  *)
-let venv_add_field venv obj pos v e =
+let venv_add_field venv obj _pos v e =
    venv, SymbolTable.add obj v e
 
 (*
@@ -1585,7 +1592,7 @@ let venv_object_length = SymbolTable.cardinal
 (*
  * Test whether a field is defined.
  *)
-let venv_defined_field_exn venv obj v =
+let venv_defined_field_exn _venv obj v =
    SymbolTable.mem obj v
 
 let venv_defined_field venv obj v =
@@ -1684,7 +1691,8 @@ let rec filter_objects venv pos v objl = function
 let venv_current_objects venv pos v =
    let { venv_this = this;
          venv_dynamic = dynamic;
-         venv_static = static
+         venv_static = static;
+         _
        } = venv
    in
    let v, objl =
@@ -1709,12 +1717,14 @@ let venv_current_objects venv pos v =
  *)
 let venv_intern venv phony_flag name =
    let { venv_mount   = mount;
-         venv_dir     = dir
+         venv_dir     = dir;
+         _
        } = venv.venv_inner
    in
    let globals = venv_globals venv in
    let { venv_phonies = phonies;
-         venv_mount_info = mount_info
+         venv_mount_info = mount_info;
+         _
        } = globals
    in
       create_node_or_phony phonies mount_info mount phony_flag dir name
@@ -1728,7 +1738,8 @@ let venv_intern_cd venv phony_flag dir name =
    let mount = venv.venv_inner.venv_mount in
    let globals = venv_globals venv in
    let { venv_phonies = phonies;
-         venv_mount_info = mount_info
+         venv_mount_info = mount_info;
+         _
        } = globals
    in
       create_node_or_phony phonies mount_info mount phony_flag dir name
@@ -1810,7 +1821,7 @@ let string_of_target venv target =
  * Compile a wild pattern.
  * It is an error if it isn't wild.
  *)
-let compile_wild_pattern venv pos loc target =
+let compile_wild_pattern _venv pos loc target =
    match target with
       TargetString s when is_wild s ->
          if Lm_string_util.contains_any s Lm_filename_util.separators then
@@ -1996,7 +2007,7 @@ let create_environ () =
    in
       collect SymbolTable.empty 0
 
-let create options dir exec cache =
+let create options _dir exec cache =
    let cwd = Dir.cwd () in
    let env = create_environ () in
    let mount_info =
@@ -2096,16 +2107,16 @@ let venv_set_pervasives venv =
       globals.venv_pervasives_vars <- vars
 
 let venv_get_pervasives venv node =
-   let { venv_inner = inner } = venv in
+   let { venv_inner = inner ; _} = venv in
    let { venv_environ = env;
          venv_options = options;
-         venv_globals = globals
+         venv_globals = globals;
+         _
        } = inner
    in
-   let { venv_exec            = exec;
-         venv_cache           = cache;
+   let { 
          venv_pervasives_obj  = obj;
-         venv_pervasives_vars = vars
+         _
        } = globals
    in
    let inner =
@@ -2152,11 +2163,13 @@ let copy_var_list =
 
 let venv_unfork venv_dst venv_src =
    let { venv_dynamic = dst_dynamic;
-         venv_inner = dst_inner
+         venv_inner = dst_inner;
+         _
        } = venv_dst
    in
    let { venv_dynamic = src_dynamic;
-         venv_inner = src_inner
+         venv_inner = src_inner;
+         _
        } = venv_src
    in
    let inner = { dst_inner with venv_globals = src_inner.venv_globals } in
@@ -2175,7 +2188,8 @@ let venv_include_scope venv mode =
     | IncludeAll ->
          let loc = bogus_loc "venv_include_scope" in
          let { venv_this = this;
-               venv_dynamic = dynamic
+               venv_dynamic = dynamic;
+               _
              } = venv
          in
          let vars = SymbolTable.mapi (fun v _ -> VarThis (loc, v)) this in
@@ -2219,7 +2233,8 @@ let venv_chdir_tmp venv dir =
 let venv_chdir_dir venv loc dir =
    let inner = venv.venv_inner in
    let { venv_dir = cwd;
-         venv_phony = phony
+         venv_phony = phony;
+         _
        } = inner
    in
       if Dir.equal dir cwd then
@@ -2475,7 +2490,8 @@ let venv_explicit_flush venv =
    let globals = venv.venv_inner.venv_globals in
    let { venv_explicit_rules           = erules;
          venv_explicit_targets         = targets;
-         venv_explicit_new             = enew
+         venv_explicit_new             = enew;
+         _
        } = globals
    in
       if enew <> [] then
@@ -2576,6 +2592,7 @@ let venv_explicit_rules venv =
                         rule_locks    = locks;
                         rule_sources  = sources;
                         rule_scanners = scanners;
+                        _
                       } = erule
                   in
                   let target_table   = add_target info.explicit_targets target erule in
@@ -2603,7 +2620,8 @@ let venv_find_implicit_deps_inner venv target =
                   inrule_locks    = locks;
                   inrule_sources  = sources;
                   inrule_scanners = scanners;
-                  inrule_values   = values
+                  inrule_values   = values;
+                  _
                 } = nrule
             in
                if rule_kind multiple = is_scanner then
@@ -2819,7 +2837,8 @@ let venv_get_ordering_deps venv orules deps =
             let target_str = Node.tail dep in
                List.fold_left (fun deps orule ->
                      let { orule_pattern = pattern;
-                           orule_sources = sources
+                           orule_sources = sources;
+                           _
                          } = orule
                      in
                         match wild_match pattern target_str with
@@ -2846,7 +2865,7 @@ let venv_get_ordering_deps venv orules deps =
 (*
  * Each of the commands evaluates to an object.
  *)
-let venv_add_memo_rule venv pos loc multiple is_static key vars sources values body =
+let venv_add_memo_rule venv _pos loc _multiple is_static key vars sources values body =
    let source_args = List.map (intern_source venv) sources in
    let sources = node_set_of_list source_args in
    let srule =
@@ -2906,12 +2925,14 @@ let export_item pos venv_dst venv_src = function
        *)
       let { venv_dynamic = dynamic_src;
             venv_static  = static_src;
-            venv_this    = this_src
+            venv_this    = this_src;
+            _
           } = venv_src
       in
       let { venv_dynamic = dynamic_dst;
             venv_static  = static_dst;
-            venv_this    = this_dst
+            venv_this    = this_dst;
+            _
           } = venv_dst
       in
       let dynamic, found =

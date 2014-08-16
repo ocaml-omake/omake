@@ -173,7 +173,7 @@ let create_debug
  *)
 let load_debug name =
    let rec search = function
-      { info_name = name'; info_flag = flag } :: t ->
+      { info_name = name'; info_flag = flag ; _} :: t ->
          if name' = name then
             flag
          else
@@ -189,7 +189,7 @@ let load_debug name =
 let set_debug name flag =
    let rec search = function
       h :: t ->
-         let { info_name = name'; info_flag = flag' } = h in
+         let { info_name = name'; info_flag = flag'; _ } = h in
             if name' = name then
                flag' := flag
             else
@@ -227,7 +227,7 @@ let get_debug name =
    let rec search = function
       h :: t ->
          if h.info_name = name then
-            let { info_info = description; info_flag = flag } = h in
+            let { info_info = description; info_flag = flag ; _} = h in
             let description =
                match description with
                   Some desc ->

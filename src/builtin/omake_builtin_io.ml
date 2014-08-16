@@ -33,7 +33,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_parser
+
 open Lm_location
 
 open Omake_ir
@@ -41,17 +41,17 @@ open Omake_env
 open Omake_var
 open Omake_pos
 open Omake_eval
-open Omake_node
-open Omake_value
-open Omake_lexer
-open Omake_parser
+
+open! Omake_value
+
+
 open Omake_printf
 open Omake_symbol
 open Omake_builtin
-open Omake_value_type
+open! Omake_value_type
 open Omake_value_print
 open Omake_builtin_type
-open Omake_builtin_util
+
 
 module Pos = MakePos (struct let name = "Omake_builtin_io" end)
 open Pos
@@ -1671,7 +1671,8 @@ struct
       let { print_fd = fd;
             print_venv = venv;
             print_pos = pos;
-            print_fmt = fmt
+            print_fmt = fmt;
+            _
           } = info
       in
          venv_close_channel venv pos fd;
@@ -1745,14 +1746,16 @@ struct
     *)
    let bool_of_value info v =
       let { print_venv = venv;
-            print_pos = pos
+            print_pos = pos;
+            _
           } = info
       in
          bool_of_value venv pos v
 
    let char_of_value info v =
       let { print_venv = venv;
-            print_pos = pos
+            print_pos = pos;
+            _
           } = info
       in
       let s = string_of_value venv pos v in
@@ -1762,21 +1765,24 @@ struct
 
    let int_of_value info v =
       let { print_venv = venv;
-            print_pos = pos
+            print_pos = pos;
+            _
           } = info
       in
          int_of_value venv pos v
 
    let float_of_value info v =
       let { print_venv = venv;
-            print_pos = pos
+            print_pos = pos;
+            _
           } = info
       in
          float_of_value venv pos v
 
    let string_of_value info v =
       let { print_venv = venv;
-            print_pos = pos
+            print_pos = pos;
+            _
           } = info
       in
          string_of_value venv pos v
@@ -1792,7 +1798,8 @@ struct
       let { print_venv = venv;
             print_pos = pos;
             print_loc = loc;
-            print_fd = fd
+            print_fd = fd;
+            _
           } = info
       in
          ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd)] [])
@@ -1801,7 +1808,8 @@ struct
       let { print_venv = venv;
             print_pos = pos;
             print_loc = loc;
-            print_fd = fd
+            print_fd = fd;
+            _
           } = info
       in
          ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd); arg2] [])
@@ -1814,8 +1822,9 @@ struct
          [] ->
             ValNone
        | arg :: _ ->
-            let { print_venv = venv;
-                  print_pos = pos
+            let { 
+                  print_pos = pos;
+                  _
                 } = info
             in
                raise (OmakeException (pos, StringValueError ("too many arguments to printf", arg)))

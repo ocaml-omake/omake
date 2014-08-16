@@ -30,10 +30,10 @@
  *)
 open Lm_printf
 open Lm_symbol
-open Lm_location
-open Lm_string_set
 
-open Omake_ir
+
+
+
 open Omake_var
 open Omake_env
 open Omake_pos
@@ -44,7 +44,7 @@ open Omake_symbol
 open Omake_shell_sys
 open Omake_shell_type
 open Omake_value_type
-open Omake_shell_sys_type
+open! Omake_shell_sys_type
 
 module Pos = MakePos (struct let name = "Omake_shell_job" end)
 open Pos
@@ -168,7 +168,8 @@ let rec pp_print_exp buf e =
          fprintf buf "@[<hv 1>(%a@ | %a)@]" pp_print_exp e1 pp_print_exp e2
     | SubjobCond (e, cond) ->
          let { cond_op = op;
-               cond_pipe = pipe
+               cond_pipe = pipe;
+               _
              } = cond
          in
             fprintf buf "@[<hv 1>(%a)@ %a@ %a@]" (**)
@@ -308,7 +309,7 @@ let remove_job job =
  * Create a simple thread.
  * We have a function and channels.
  *)
-let create_top_thread venv f stdin stdout stderr =
+let create_top_thread _ f stdin stdout stderr =
    if !debug_shell then
       eprintf "create_top_thread@.";
    let apply_fun stdin stdout stderr _ =
@@ -382,14 +383,15 @@ let create_channels stdin stdin_file append stdout stdout_file stderr_divert std
 let restore_vars = [stdin_sym; stdout_sym; stderr_sym]
 
 let create_apply_top venv stdin stdout stderr apply =
-   let { apply_loc = loc;
+   let { 
          apply_env = env;
          apply_fun = f;
          apply_args = args;
          apply_stdin = stdin_file;
          apply_stdout = stdout_file;
          apply_stderr = stderr_divert;
-         apply_append = append
+         apply_append = append;
+         _
        } = apply
    in
    let stdin, close_stdin, stdout, close_stdout, stderr =
@@ -436,14 +438,15 @@ let create_apply_top venv stdin stdout stderr apply =
 let create_apply venv pgrp bg stdin stdout stderr apply =
    if !debug_shell then
       eprintf "create_apply@.";
-   let { apply_loc = loc;
+   let { 
          apply_env = env;
          apply_fun = f;
          apply_args = args;
          apply_stdin = stdin_file;
          apply_stdout = stdout_file;
          apply_stderr = stderr_divert;
-         apply_append = append
+         apply_append = append;
+         _
        } = apply
    in
    let stdin, close_stdin, stdout, close_stdout, stderr =
@@ -451,7 +454,7 @@ let create_apply venv pgrp bg stdin stdout stderr apply =
    in
 
    (* The actual function call *)
-   let apply_fun stdin stdout stderr pgrp =
+   let apply_fun stdin stdout stderr _ =
       let code, _, _ = f venv stdin stdout stderr env args in
          code
    in
@@ -754,7 +757,7 @@ and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
    if !debug_shell then
       eprintf "create_pipe_aux (fork: %b): %a@." fork pp_print_string_pipe pipe;
    match pipe with
-      PipeApply (loc, apply) ->
+      PipeApply (_, apply) ->
          if fork then
             SubjobProcess (create_apply venv pgrp true stdin stdout stderr apply, venv)
          else
@@ -918,7 +921,7 @@ let wait_top venv job =
       print_exit_code venv false job.job_id code;
       code
 
-let wait_pid venv job =
+let wait_pid _ job =
    let _, status = wait_top_aux job in
       Omake_shell_sys.set_tty_pgrp 0;
       status
@@ -960,7 +963,7 @@ let rec create_job_aux venv pipe stdin stdout stderr =
       eprintf "Creating pipe: %a@." pp_print_string_pipe pipe;
 
    match pipe with
-      PipeApply (loc, apply) ->
+      PipeApply (_, apply) ->
          (* Evaluate applications eagerly *)
          create_apply_top venv stdin stdout stderr apply
     | PipeBackground (_, pipe) ->
@@ -1020,7 +1023,7 @@ let create_process venv pipe stdin stdout stderr =
        * The restriction to stdout and stderr is necessary to
        * prevent possible blocking on I/O.
        *)
-      PipeApply (loc, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
+      PipeApply (_, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
          let code, venv, value =
             create_apply_top venv stdin stdout stderr apply
          in
@@ -1121,7 +1124,7 @@ let kill_job job signal =
 (*
  * List the jobs.
  *)
-let jobs venv =
+let jobs _ =
    IntTable.iter (fun _ job -> printf "%a@." pp_print_job job) shell.shell_jobs
 
 (*
@@ -1135,7 +1138,7 @@ let job_of_pid pos pid =
 (*
  * Process management.
  *)
-let bg venv pos pid =
+let bg _ pos pid =
    let pos = string_pos "bg" pos in
       bg_job (job_of_pid pos pid)
 
@@ -1147,11 +1150,11 @@ let stop venv pos pid =
    let pos = string_pos "stop" pos in
       ignore (stop_job venv (job_of_pid pos pid))
 
-let kill venv pos pid signal =
+let kill _ pos pid signal =
    let pos = string_pos "kill" pos in
       kill_job (job_of_pid pos pid) signal
 
-let wait venv pos pid =
+let wait _ pos pid =
    let pos = string_pos "wait" pos in
       wait (job_of_pid pos pid)
 

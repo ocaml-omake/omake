@@ -31,7 +31,7 @@
 open Lm_symbol
 open Lm_location
 
-open Omake_ir
+open! Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_node

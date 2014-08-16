@@ -51,7 +51,7 @@
  * Author: Jason Hickey
  * jyh@cs.cornell.edu
  *)
-open Lm_printf
+open! Lm_printf
 open Lm_set_sig
 
 (*
@@ -1186,7 +1186,7 @@ struct
    (*
     * Equality of sets.
     *)
-   let rec equal set1 set2 =
+   let  equal set1 set2 =
       if cardinality set1 = cardinality set2 then
          let list1 = to_list set1 in
          let list2 = to_list set2 in

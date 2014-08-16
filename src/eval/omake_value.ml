@@ -28,9 +28,9 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_printf
 
-open Omake_ir
+
+
 open Omake_var
 open Omake_env
 open Omake_pos
@@ -66,7 +66,7 @@ let bool_of_value     = Omake_eval.bool_of_value
 (*
  * Get the $value field of the object.
  *)
-let eval_object_value venv pos obj =
+let eval_object_value _ pos obj =
    let pos = string_pos "eval_object_value" pos in
       try venv_find_field_internal_exn obj builtin_sym with
          Not_found ->

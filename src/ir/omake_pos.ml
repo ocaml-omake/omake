@@ -28,9 +28,9 @@ open Lm_printf
 open Lm_symbol
 open Lm_location
 
-open Omake_ir
+
 open Omake_node
-open Omake_ir_util
+
 open Omake_ir_print
 open Omake_print_util
 open Omake_value_type
@@ -43,7 +43,7 @@ type pos = Omake_value_type.pos
  *)
 let string_loc = bogus_loc "<Omake_env>"
 
-let rec loc_of_item x =
+let loc_of_item x =
    match x with
       AstExp e ->
          Omake_ast_util.loc_of_exp e
@@ -173,7 +173,7 @@ struct
 end
 
 module Pos = MakePos (struct let name = "Omake_env" end)
-             open Pos;;
+
 
 (*
  * -*-

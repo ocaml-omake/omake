@@ -33,10 +33,10 @@ open Lm_symbol
 open Lm_location
 
 open Omake_env
-open Omake_pos
+
 open Omake_shell_type
 open Omake_command_type
-open Omake_value_type
+open! Omake_value_type
 
 (*
  * Commands with a leading \ are quoted.

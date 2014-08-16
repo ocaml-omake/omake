@@ -31,8 +31,8 @@
  *)
 open Omake_ir
 open Omake_env
-open Omake_pos
-open Omake_value_type
+
+open! Omake_value_type
 open Omake_command_type
 
 (*

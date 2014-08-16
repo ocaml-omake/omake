@@ -47,7 +47,7 @@
  * @end[license]
  *)
 open Lm_lexer
-open Lm_printf
+open! Lm_printf
 open Lm_filename_util
 
 (************************************************************************
@@ -158,7 +158,8 @@ let getusers () =
    let users = Lm_unix_util.getpwents () in
       List.map (fun entry ->
             let { Unix.pw_name = name;
-                  Unix.pw_dir  = dir
+                  Unix.pw_dir  = dir;
+                  _
                 } = entry
             in
                tilde_insert dir name;

@@ -28,25 +28,25 @@
  * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
 
-open Lm_symbol
-open Lm_location
-open Lm_string_set
+
+
+
+
 
 open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_eval
-open Omake_wild
-open Omake_node
-open Omake_exec
-open Omake_value
-open Omake_state
+
+
+
+open! Omake_value
+
 open Omake_symbol
 open Omake_builtin
-open Omake_build_type
-open Omake_cache_type
+
+
 open Omake_builtin_type
 open Omake_builtin_util
 open Omake_value_type
@@ -59,7 +59,7 @@ open Pos
  * Extend an object with another.
  * The argument may be a file or an object.
  *)
-let extends_fun venv pos loc args kargs =
+let extends_fun venv pos loc args _ =
    let pos = string_pos "extends" pos in
    let extend_arg venv v =
       let obj =
@@ -148,7 +148,7 @@ let object_length venv pos loc args =
 (*
  * Iterate over the object.
  *)
-let object_map venv pos loc args kargs =
+let object_map venv pos loc args _ =
    let pos = string_pos "map" pos in
    let pos = string_pos "map" pos in
    let f, obj =
@@ -196,7 +196,7 @@ let object_instanceof venv pos loc args =
 (*
  * Map manipulation.
  *)
-let map_of_object venv pos obj =
+let map_of_object _ pos obj =
    try
       match venv_find_field_internal_exn obj map_sym with
          ValMap map ->
@@ -1001,7 +1001,7 @@ let sort_fun venv pos loc args kargs =
  * \end{verbatim}
  * \end{doc}
  *)
-let compare_fun venv pos loc args =
+let compare_fun _ pos loc args =
    let pos = string_pos "compare" pos in
    let x, y =
       match args with

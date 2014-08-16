@@ -41,12 +41,12 @@ open Omake_eval
 open Omake_exec
 open Omake_node_sig
 open Omake_node
-open Omake_value
+open! Omake_value
 open Omake_state
 open Omake_symbol
 open Omake_ir_ast
 open Omake_options
-open Omake_exn_print
+open! Omake_exn_print
 open Omake_shell_job
 open Omake_shell_type
 open Omake_value_type

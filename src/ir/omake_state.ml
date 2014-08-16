@@ -29,7 +29,7 @@
  * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
-open Lm_printf
+open! Lm_printf
 open Lm_filename_util
 
 (*

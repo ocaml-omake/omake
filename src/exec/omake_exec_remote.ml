@@ -40,8 +40,8 @@ open Omake_exec_id
 open Omake_exec_util
 open Omake_exec_type
 open Omake_exec_local
-open Omake_cache_type
-open Omake_command
+
+
 
 (*
  * Build debugging.
@@ -72,7 +72,7 @@ type ('exp, 'pid, 'value) response =
 (*
  * A local exception when the connection fails.
  *)
-exception RemoteFailed
+
 
 (*
  * During login, there is a synchronization string.
@@ -89,7 +89,7 @@ let pp_print_command_line buf (shell, command) =
 let pp_print_command_lines buf (shell, commands) =
    List.iter (fun exp -> fprintf buf "@ %a" shell.shell_print_exp exp) commands
 
-let pp_print_request buf (shell, request) =
+let pp_print_request _buf (shell, request) =
    match request with
       RequestSpawn (id, target, commands) ->
          eprintf "@[<hv 0>@[<hv 3>RequestSpawn {@ id = %a;@ target = %a;@ @[<v 3>commands = %a@]@]@ }@]" (**)
@@ -106,7 +106,7 @@ let pp_print_flag buf (shell, flag) =
     | PrintExit (command, code, _, time) ->
          fprintf buf "@[<hv 3>Exit %d,@ %a,@ %a@]" code pp_time time pp_print_command_line (shell, command)
 
-let pp_print_response buf (shell, response) =
+let pp_print_response _buf (shell, response) =
    match response with
       ResponseCreate flag ->
          eprintf "ResponseCreate %b" flag
@@ -350,7 +350,8 @@ struct
    let close server =
       let { server_out = requestc;
             server_in  = responsec;
-            server_pid = pid
+            server_pid = pid;
+            _
           } = server
       in
       let () =
@@ -410,7 +411,7 @@ struct
             Not_found ->
                raise (Invalid_argument "Omake_exec_remote.handle_stdout: no such job")
       in
-      let { job_handle_out = handle_out } = job in
+      let { job_handle_out = handle_out ; _} = job in
          handle_out id buf 0 (String.length buf)
 
    let handle_stderr server id buf =
@@ -419,7 +420,7 @@ struct
             Not_found ->
                raise (Invalid_argument "Omake_exec_remote.handle_stderr: no such job")
       in
-      let { job_handle_err = handle_err } = job in
+      let { job_handle_err = handle_err ; _} = job in
          handle_err id buf 0 (String.length buf)
 
    let handle_status server id flag =
@@ -428,13 +429,13 @@ struct
             Not_found ->
                raise (Invalid_argument "Omake_exec_remote.handle_status: no such job")
       in
-      let { job_handle_status = handle_status } = job in
+      let { job_handle_status = handle_status ; _} = job in
          handle_status id flag
 
    (*
     * Handle input.
     *)
-   let handle_normal server fd =
+   let handle_normal server _fd =
       if !debug_remote then
          eprintf "*** handle_normal@.";
       match recv_response server with
@@ -453,9 +454,10 @@ struct
        | ResponseStatus (id, flag) ->
             handle_status server id flag
 
-   let handle server options fd =
+   let handle server _options fd =
       let { server_state = state;
-            server_in = responsec
+            server_in = responsec;
+            _
           } = server
       in
          match state with
@@ -489,9 +491,9 @@ struct
    let wait_for_job server =
       let search _ job =
          match job with
-            { job_id = id; job_state = JobFinished (code, value) } ->
+            { job_id = id; job_state = JobFinished (code, value) ; _} ->
                Some (id, code, value)
-          | { job_state = JobRunning } ->
+          | { job_state = JobRunning ; _} ->
                None
       in
          match IdTable.find_iter search server.server_jobs with
@@ -501,7 +503,7 @@ struct
           | None ->
                WaitInternalNone
 
-   let rec wait server options =
+   let wait server _options =
       if !debug_remote then
          eprintf "*** remote: wait@.";
          match server.server_state with

@@ -29,10 +29,10 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_debug
 
-open Omake_pos
-open Omake_exn_print
+
+
+open! Omake_exn_print
 open Omake_shell_type
 open Omake_shell_sys_type
 

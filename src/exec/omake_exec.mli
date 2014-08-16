@@ -28,10 +28,10 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Omake_node
-open Omake_exec_util
+
+
 open Omake_exec_type
-open Omake_cache_type
+
 
 module Exec : ExecService
 

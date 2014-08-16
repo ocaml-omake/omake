@@ -132,7 +132,7 @@ let is_elide_exp = function
  | _ ->
       false
 
-let add_elide_code loc code1 code2 =
+let add_elide_code _loc code1 code2 =
    match code1, code2 with
       NoBody, code
     | code, NoBody ->
@@ -434,7 +434,7 @@ and flatten_body_aux items el ell =
          flatten_body_aux items el ell
     | e :: el, _ ->
          match e with
-            SequenceExp (el2, loc) ->
+            SequenceExp (el2, _) ->
                flatten_body_aux items el2 (el :: ell)
           | NullExp _ ->
                flatten_body_aux items el ell
@@ -592,7 +592,7 @@ and flatten_string_list_exp el =
              | StringKeywordExp (s, loc) ->
                   let buf_opt = add_string buf_opt s loc in
                      collect buf_opt args el ell
-             | SequenceExp (el2, loc) ->
+             | SequenceExp (el2, _) ->
                   collect buf_opt args el2 (el :: ell)
              | StringWhiteExp _
              | IntExp _
