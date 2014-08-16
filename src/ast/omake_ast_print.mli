@@ -28,15 +28,15 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open! Lm_printf
+
 open Omake_ast
 
 val print_location : bool ref
 
-val pp_print_strategy : out_channel -> apply_strategy -> unit
-val pp_print_exp : out_channel -> exp -> unit
-val pp_print_prog : out_channel -> exp list -> unit
-val pp_print_simple_exp : out_channel -> exp -> unit
+val pp_print_strategy : Lm_printf.out_channel -> apply_strategy -> unit
+val pp_print_exp : Lm_printf.out_channel -> exp -> unit
+val pp_print_prog : Lm_printf.out_channel -> exp list -> unit
+val pp_print_simple_exp : Lm_printf.out_channel -> exp -> unit
 
 (*!
  * @docoff
