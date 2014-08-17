@@ -1,3 +1,95 @@
+* boot  
+  The bootstrap uses the file =src/Makefile= and =src/Makefile.nt=
+  with default options, like CC=cc.  If something goes wrong, you can
+  edit these files by hand to suit your taste.  However, the
+  *src/Makefiles* are *generated*, and they will be clobbered when you
+  run omake for the first time.  
+
+** make bootstrap
+   omake_gen_parse
+
+* library
+** lm
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o lm.cma lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash_sig.cmo lm_hash.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_lexer.cmo lm_parser.cmo lm_unix_util.cmo lm_glob.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo
+     ocamlc -g -custom -o omake_gen_magic  unix.cma  lm.cma omake_gen_magic.cmo
+   #+END_EXAMPLE
+** omake_gen_magic
+   src/magic/omake_gen_magic.ml
+   #+BEGIN_EXAMPLE
+   ocamlc -g -custom -o omake_gen_magic  unix.cma  lm.cma omake_gen_magic.cmo
+   #+END_EXAMPLE
+
+** magic 
+   boot/omake_magic.ml
+   
+   #+BEGIN_EXAMPLE
+     ./omake_gen_magic -o omake_magic.ml --version version.txt --magic --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
+     ocamlc -g -c omake_magic.ml
+     ocamlc -g  -a -o magic.cma omake_magic.cmo
+   #+END_EXAMPLE
+** util 
+   
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o util.cma fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
+   #+END_EXAMPLE
+
+** ast 
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o ast.cma omake_ast.cmo omake_ast_util.cmo omake_ast_print.cmo   
+   #+END_EXAMPLE
+
+** ir
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o ir.cma omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_node_sig.cmo omake_node.cmo omake_virtual_id.cmo omake_install.cmo omake_ir.cmo omake_var.cmo omake_ir_util.cmo omake_ir_print.cmo omake_ir_free_vars.cmo omake_lexer.cmo omake_parser.cmo omake_value_type.cmo omake_command_type.cmo omake_value_print.cmo omake_pos.cmo omake_shell_type.cmo omake_command.cmo omake_cache_type.cmo omake_cache.cmo
+   #+END_EXAMPLE
 
 
+** env 
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o env.cma omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo   
+   #+END_EXAMPLE
 
+** eval
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o eval.cma omake_eval.cmo omake_value.cmo   
+   #+END_EXAMPLE
+
+** shell
+   #+BEGIN_EXAMPLE
+     ocamlc -g  -a -o shell.cma omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo
+   #+END_EXAMPLE
+
+** builtin
+   #+BEGIN_EXAMPLE
+     ocamlc -g -linkall -a -o builtin.cma omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo
+   #+END_EXAMPLE
+
+** clib
+   #+BEGIN_EXAMPLE
+     cc  -I"`ocamlc -where`" -c lm_heap.c
+     cc  -I"`ocamlc -where`" -c lm_channel.c
+     cc  -I"`ocamlc -where`" -c lm_printf.c
+     cc  -I"`ocamlc -where`" -c lm_ctype.c
+     cc  -I"`ocamlc -where`" -c lm_uname_ext.c
+     cc  -I"`ocamlc -where`" -c lm_unix_cutil.c
+     cc  -I"`ocamlc -where`" -c lm_compat_win32.c
+     cc  -I"`ocamlc -where`" -c readline.c
+     cc  -I"`ocamlc -where`" -c omake_shell_sys.c
+     cc  -I"`ocamlc -where`" -c fam_win32.c
+     cc  -I"`ocamlc -where`" -c fam_kqueue.c
+     cc  -I"`ocamlc -where`" -c fam_inotify.c
+     cc  -I"`ocamlc -where`" -c lm_notify.c
+     cc  -I"`ocamlc -where`" -c lm_termsize.c
+     cc  -I"`ocamlc -where`" -c lm_terminfo.c
+     cc  -I"`ocamlc -where`" -c lm_fs_case_sensitive.c
+     rm -f clib.a
+     ar cq clib.a lm_heap.o lm_channel.o lm_printf.o lm_ctype.o lm_uname_ext.o lm_unix_cutil.o lm_compat_win32.o readline.o omake_shell_sys.o fam_win32.o fam_kqueue.o fam_inotify.o lm_notify.o lm_termsize.o lm_terminfo.o lm_fs_case_sensitive.o
+   #+END_EXAMPLE
+** boot/omake
+   #+BEGIN_EXAMPLE
+     ocamlc -g -custom -o omake -cclib clib.a unix.cma  lm.cma util.cma magic.cma ast.cma ir.cma env.cma exec.cma eval.cma shell.cma build.cma builtin.cma omake_shell.cmo omake_main.cmo   
+   #+END_EXAMPLE
+   
+* exe
+  
