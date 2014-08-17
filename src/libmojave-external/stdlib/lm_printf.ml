@@ -1,6 +1,6 @@
 
 include Format
-
+type 'a t = Format.formatter -> 'a  -> unit
 (**
  * Redirect formatter's output to both a channel and a log file.
  * The log file will be appended (not truncated), lockf-mutexed,

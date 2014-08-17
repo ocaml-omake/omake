@@ -4,15 +4,15 @@
  * For now, just use normal output channels.
  * Type t of buffers.
  *)
-
+type 'a t = Format.formatter -> 'a  -> unit
 type out_channel = Format.formatter
 
 (*
  * Normal buffers.
  *)
-val stdout : out_channel
-val stderr : out_channel
-val stdstr : out_channel
+val stdout : Format.formatter
+val stderr : Format.formatter
+val stdstr : Format.formatter
 
 (*
  * Get the string from the stdstr channel.
@@ -22,14 +22,14 @@ val flush_stdstr : unit -> string
 (*
  * Open new channels.
  *)
-val open_out     : string -> out_channel
-val open_out_bin : string -> out_channel
+val open_out     : string -> Format.formatter
+val open_out_bin : string -> Format.formatter
 
 (*
  * Simple printing.
  *)
-val output_char    : out_channel -> char -> unit
-val output_string  : out_channel -> string -> unit
+val output_char    : Format.formatter -> char -> unit
+val output_string  : Format.formatter -> string -> unit
 
 (*
  * These functions are bad style for functional programs.
@@ -41,24 +41,24 @@ val prerr_string  : string -> unit
 (*
  * Flush the output.
  *)
-val flush  : out_channel -> unit
-val eflush : out_channel -> unit
+val flush  : Format.formatter -> unit
+val eflush : Format.formatter -> unit
 
 (*
  * Printing.
  *)
-val eprintf : ('a, out_channel, unit) format -> 'a
-val printf  : ('a, out_channel, unit) format -> 'a
+val eprintf : ('a, Format.formatter, unit) format -> 'a
+val printf  : ('a, Format.formatter, unit) format -> 'a
 val sprintf : ('a, unit, string) format -> 'a
-val fprintf : out_channel -> ('a, out_channel, unit) format -> 'a
-val bprintf : Buffer.t -> ('a, out_channel, unit) format -> 'a
+val fprintf : Format.formatter -> ('a, Format.formatter, unit) format -> 'a
+val bprintf : Buffer.t -> ('a, Format.formatter, unit) format -> 'a
 
 (*
  * List printing helpers.
  *)
-val print_any_list : (out_channel -> 'a -> unit) -> out_channel -> 'a list -> unit
-val print_string_list : out_channel -> string list -> unit
-val print_int_list : out_channel -> int list -> unit
+val print_any_list : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a list -> unit
+val print_string_list : Format.formatter -> string list -> unit
+val print_int_list : Format.formatter -> int list -> unit
 
 (************************************************************************
  * Formatter interface.
@@ -153,7 +153,7 @@ val get_all_formatter_output_functions :
 (*
  * Multiple formatted output.
  *)
-type formatter = out_channel
+type formatter = Format.formatter
 
 val formatter_of_out_channel     : Pervasives.out_channel -> formatter
 val std_formatter                : formatter
@@ -225,7 +225,7 @@ val pp_get_all_formatter_output_functions :
 (*
  * Allow the use of the Format modules.
  *)
-val out_channel_of_formatter : Format.formatter -> out_channel
+val out_channel_of_formatter : Format.formatter -> Format.formatter
 
 (************************************************************************
  * Helper utilities.
