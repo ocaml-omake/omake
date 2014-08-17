@@ -124,3 +124,4 @@ src/main/cvs_realclean
 src/main/omake
 src/main/osh
 src/util/ocaml_patch.ml
+tmp/

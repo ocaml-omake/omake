@@ -51,7 +51,7 @@
  * Author: Jason Hickey
  * jyh@cs.cornell.edu
  *)
-open! Lm_printf
+
 open Lm_set_sig
 
 (*
@@ -127,21 +127,21 @@ struct
     *)
    let rec pp_print_tree out tree =
       match tree with
-         Black (_, left, right, size) ->
-            fprintf out "@[<v 3>Black(%d):@ %a@ %a@]" size pp_print_tree left pp_print_tree right
-       | Red (_, left, right, size) ->
-            fprintf out "@[<v 3>Red(%d):@ %a@ %a@]" size pp_print_tree left pp_print_tree right
-       | Leaf ->
-            fprintf out "Leaf"
+      | Black (_, left, right, size) ->
+        Lm_printf.fprintf out "@[<v 3>Black(%d):@ %a@ %a@]" size pp_print_tree left pp_print_tree right
+      | Red (_, left, right, size) ->
+        Lm_printf.fprintf out "@[<v 3>Red(%d):@ %a@ %a@]" size pp_print_tree left pp_print_tree right
+      | Leaf ->
+            Lm_printf.fprintf out "Leaf"
 
-   let print_tree = pp_print_tree stdout
+   let print_tree = pp_print_tree Lm_printf.stdout
 
    (*
     * Check the size of the set.
     *)
    let check_size tree =
       let abort tree' =
-         printf "%a@\n%a@\n" pp_print_tree tree pp_print_tree tree';
+         Lm_printf.printf "%a@\n%a@\n" pp_print_tree tree pp_print_tree tree';
          raise (Invalid_argument "check_size")
       in
       let rec check tree =
@@ -1364,25 +1364,24 @@ struct
     * Print the tree.
     *)
    let rec pp_print out tree =
-      fprintf out "@ ";
+      Lm_printf.fprintf out "@ ";
       match tree with
-         Black (key, left, right, size) ->
-            fprintf out "(@[<hv 0>Black@ %a:%d %a %a)@]" (**)
+      | Black (key, left, right, size) ->
+            Lm_printf.fprintf out "(@[<hv 0>Black@ %a:%d %a %a)@]" (**)
                Ord.print key
                size
                pp_print left
                pp_print right
 
        | Red (key, left, right, size) ->
-            fprintf out "(@[<hv 0>Red@ %a:%d %a %a)@]" (**)
+            Lm_printf.fprintf out "(@[<hv 0>Red@ %a:%d %a %a)@]" (**)
                Ord.print key
                size
                pp_print left
                pp_print right
 
        | Leaf ->
-            output_string out "Leaf"
-
+            Lm_printf.output_string out "Leaf"
    let print = pp_print
 end
 

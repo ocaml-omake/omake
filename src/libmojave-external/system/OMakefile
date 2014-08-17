@@ -1,9 +1,0 @@
-#
-# Library
-#
-include Files
-
-OCAMLINCLUDES += ../stdlib ../unix
-
-clean:
-    $(CLEAN)
