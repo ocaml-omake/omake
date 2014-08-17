@@ -1,39 +1,4 @@
-(*
- * Debugging utilities.
- *
- * ----------------------------------------------------------------
- *
- * This file is part of MetaPRL, a modular, higher order
- * logical framework that provides a logical programming
- * environment for OCaml and other languages.
- *
- * See the file doc/htmlman/default.html or visit http://metaprl.org/
- * for more information.
- *
- * Copyright (C) 1998-2005 PRL Group, Cornell University and Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey
- * jyh@cs.cornell.edu
- *)
+
 open Printf
 
 (************************************************************************
@@ -306,9 +271,9 @@ let split c s =
             [String.sub s i (j - i)]
       else if String.contains c s.[j] then
          if i = j then
-            loop (succ j) (succ j)
+            loop (j + 1 ) (j + 1)
          else
-            (String.sub s i (j - i)) :: (loop (succ j) (succ j))
+            String.sub s i (j - i) :: loop ( j + 1) ( j + 1)
       else
          loop i (succ j)
    in
@@ -333,12 +298,13 @@ let set_debug_flags flags =
 
 open Unix
 
-type times = {
+type times = 
+    {
    mutable calls : int;
    mutable wtime : float;
    mutable utime : float;
    mutable stime : float
-}
+   }
 
 type profile = {
    ok : times;
@@ -407,13 +373,6 @@ let timing_wrap s f arg =
       times.utime <- times.utime +. end_p.tms_utime -. start_p.tms_utime;
       times.stime <- times.stime +. end_p.tms_stime -. start_p.tms_stime;
       match res with
-         Ok res -> res
-       | Exn exn -> raise exn
+      | Ok res -> res
+      | Exn exn -> raise exn
 
-(*
- * -*-
- * Local Variables:
- * Caml-master: "refiner.run"
- * End:
- * -*-
- *)
