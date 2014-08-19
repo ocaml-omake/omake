@@ -126,3 +126,5 @@ src/main/osh
 src/util/ocaml_patch.ml
 tmp/
 *.tmp
+omakerun
+omaketop
