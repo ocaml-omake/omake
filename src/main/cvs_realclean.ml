@@ -2,33 +2,6 @@
  * This is a script to remove all files in a project that are
  * unknown to CVS.  This would be easier in a scripting language,
  * but Win32 is limited.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
- * @end[license]
  *)
 open Lm_printf
 
@@ -127,19 +100,19 @@ let add_dir s =
 let main () =
    let rm_command =
       match Sys.os_type with
-         "Win32" ->
-            if !rm_force then
-               "del /F "
-            else
-               "del /P "
-       | "Unix"
-       | "Cygwin" ->
-            if !rm_force then
-               "/bin/rm -rf "
-            else
-               "/bin/rm -ri "
-       | s ->
-            raise (Failure ("cvs_realclean: unknown architecture " ^ s))
+      |  "Win32" ->
+          if !rm_force then
+            "del /F "
+          else
+            "del /P "
+      | "Unix"
+      | "Cygwin" ->
+          if !rm_force then
+            "/bin/rm -rf "
+          else
+            "/bin/rm -ri "
+      | s ->
+          raise (Failure ("cvs_realclean: unknown architecture " ^ s))
    in
    (*
     * Remove a file/directory.
@@ -149,8 +122,7 @@ let main () =
          if not (StringSet.mem !ignore_files name) then begin
             printf "removing %s...@." name;
             ignore (Unix.system (rm_command ^ (Filename.quote name)))
-         end
-   in
+         end in
    (*
     * Remove all entries that are not known to CVS.
     *)

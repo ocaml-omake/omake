@@ -1,33 +1,5 @@
 (*
  * Utilities on filenames.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
- * @end[license]
  *)
 
 type pathname = string list
@@ -112,15 +84,15 @@ let has_drive_letters,
     search_separator_char,
     is_executable =
    match Sys.os_type with
-      "Win32" ->
+   | "Win32" ->
          true, String.lowercase, List.map String.lowercase, '\\', ';', win32_is_executable
-    | "Cygwin" ->
-         false, String.lowercase, List.map String.lowercase, '/', ':', cygwin_is_executable
-    | "Unix" ->
-         false, (fun s -> s), (fun s -> s), '/', ':', unix_is_executable
-    | s ->
+   | "Cygwin" ->
+       false, String.lowercase, List.map String.lowercase, '/', ':', cygwin_is_executable
+   | "Unix" ->
+       false, (fun s -> s), (fun s -> s), '/', ':', unix_is_executable
+   | s ->
          raise (Invalid_argument ("Omake_node: unknown system type " ^ s))
-
+         
 let separator_string = String.make 1 separator_char
 let search_separator_string = String.make 1 search_separator_char
 

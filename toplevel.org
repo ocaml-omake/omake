@@ -1,0 +1,20 @@
+
+
+ocamlc  -make-runtime -o omakerun src/clib/clib.a unix.cma boot/lm.cma
+./omakerun -p
+
+#+BEGIN_EXAMPLE
+  nm ./omakerun | grep lm_
+  0000000100006000 T _lm_compat_init
+  0000000100005d10 T _lm_flock
+  00000001000074f0 T _lm_fs_case_sensitive
+  00000001000074e0 T _lm_fs_case_sensitive_available
+  0000000100005f30 T _lm_getlk
+  0000000100005d70 T _lm_getpwents
+  0000000100005010 T _lm_heap_check
+  0000000100005c90 T _lm_print_stack_pointer
+  0000000100005b10 T _lm_uname
+  
+#+END_EXAMPLE
+
+Note runtime is not the same as toplevel

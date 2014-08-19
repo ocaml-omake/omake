@@ -1,0 +1,16 @@
+
+OCAMLINCLUDES+= +compiler-libs
+
+top_config.ml:
+        section
+            FP = $(fopen top_config.ml,w)
+            fprintln($(FP), $""let bootdir = "$(absname $(BOOTDIR))" "")
+            close($(FP))
+# OCamlGeneratedFiles(top_config.ml)
+# Here the order matters which should be fixed later
+FILES[] = 
+	top_config	
+	boot_top
+
+
+.DEFAULT: $(OCamlLibrary boot_repl, $(FILES))

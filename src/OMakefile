@@ -25,7 +25,7 @@ LocalOCamlGeneratedFiles(magic/omake_magic.ml)
 
 LocalOCamlGeneratedFiles(env/omake_ast_lex.ml env/omake_ast_parse.mly env/omake_ast_parse.ml env/omake_ast_parse.mli)
 
-.SUBDIRS: shell eval build builtin main
+.SUBDIRS: shell eval build builtin main top
 
 #
 # Generate a Makefile

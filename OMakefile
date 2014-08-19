@@ -6,6 +6,9 @@ open build/svn_realclean
 include mk/defaults
 include mk/make_gen
 
+
+BOOTDIR=$(dir boot)
+
 .PHONY: realclean clean install all main
 
 #
