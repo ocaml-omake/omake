@@ -175,8 +175,7 @@ let chroot () =
     with
       Unix.Unix_error _ ->
         eprintf "*** omake: fatal error: current directory does not exist@.";
-        exit 1
-  in
+        exit 1  in
   let len = String.length cwd in
   let start = Lm_filename_util.drive_skip cwd in
   let rec search i =
@@ -191,9 +190,9 @@ let chroot () =
         let rest = String.sub cwd (succ i) (len - i - 1) in
         dir, rest
       else
-        search (pred i)
+        search (i - 1)
     else
-      search (pred i)
+      search (i - 1)
   in
   let dir, rest =
     if Sys.file_exists (Filename.concat cwd Omake_state.makeroot_name) || Sys.file_exists
@@ -300,9 +299,3 @@ let _ =
       else
         Omake_exn_print.catch main options
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
