@@ -344,7 +344,7 @@ struct
                   DirRoot _ ->
                      ()
                 | _ ->
-                     Buffer.add_char buf Lm_filename_util.separator_char
+                     Buffer.add_string buf Filename.dir_sep 
                end;
                FileCase.add_filename_string buf key
       in
@@ -957,7 +957,7 @@ let rec flatten_generic (add_string : 'a -> string -> 'a) (contents : 'a -> stri
          contents buf
     | name :: path ->
          let buf = add_string buf name in
-         let buf = add_string buf Lm_filename_util.separator_string in
+         let buf = add_string buf Filename.dir_sep in
             flatten_generic add_string contents buf path
 
 (*
@@ -1049,16 +1049,16 @@ let relocate_dir dir1 dir2 =
 let file_contents name buf =
    let len = Buffer.length buf in
    let buf =
-      if len = 0 || Buffer.nth buf (len - 1) = Lm_filename_util.separator_char then
+      if len = 0 || Buffer.nth buf (len - 1) = Filename.dir_sep.[0] then
          buf
       else
-         dir_add_string buf Lm_filename_util.separator_string
+         dir_add_string buf Filename.dir_sep
    in
    let buf = dir_add_string buf name in
       dir_contents buf
 
 let flatten_file dir name =
-   let buf = dir_add_string dir_buffer Lm_filename_util.separator_string in
+   let buf = dir_add_string dir_buffer Filename.dir_sep in
       flatten_generic dir_add_string (file_contents name) buf dir
 
 let relocate_file dir1 dir2 name =

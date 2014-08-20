@@ -67,8 +67,8 @@ open Pos
  * Utilities.
  *)
 let is_dir dir =
-   try (Unix.LargeFile.lstat dir).Unix.LargeFile.st_kind = Unix.S_DIR with
-      Unix.Unix_error _ ->
+   try Sys.is_directory dir  with
+     Sys_error _ ->
          false
 
 (*
@@ -2008,13 +2008,13 @@ let rm_aux unlink info filename =
  * Remove a directory or file recursively.
  *)
 let rec rm_rec info filename =
-   if is_dir filename then begin
-      let names = Lm_filename_util.lsdir filename in
-      let names = List.map (fun name -> Filename.concat filename name) names in
-         List.iter (rm_rec info) names;
-         rm_aux Unix.rmdir info filename
-   end else
-      rm_aux Unix.unlink info filename
+   if is_dir filename then
+     begin
+       Array.iter (fun name -> rm_rec info (Filename.concat filename name))
+         ( Sys.readdir filename) ;
+       rm_aux Unix.rmdir info filename
+     end else
+     rm_aux Unix.unlink info filename
 
 (*
  * Main command.
@@ -2279,9 +2279,9 @@ let cp_file info file1 file2 =
 
 let rec cp_rec info file1 file2 =
    if is_dir file1 then
-      let subnames = Lm_filename_util.lsdir file1 in
+      let subnames = Sys.readdir file1 in
          Unix.mkdir file2 0o777;
-         List.iter (fun name ->
+         Array.iter (fun name ->
                let file1 = Filename.concat file1 name in
                let file2 = Filename.concat file2 name in
                   cp_rec info file1 file2) subnames
@@ -2545,12 +2545,10 @@ let chmod info filename =
  *)
 let rec chmod_rec info filename =
    let subnames =
-      try Lm_filename_util.lsdir filename with
-         Unix.Unix_error _ ->
-            []
-   in
-      List.iter (fun name -> chmod_rec info (Filename.concat filename name)) subnames;
-      chmod info filename
+      try Sys.readdir filename with
+        Sys_error _ -> [||] in
+   Array.iter (fun name -> chmod_rec info (Filename.concat filename name)) subnames;
+   chmod info filename
 
 (*
  * The command-line version.

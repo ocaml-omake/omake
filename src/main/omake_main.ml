@@ -152,11 +152,11 @@ let concat =
   let buf = Buffer.create 17 in
   let concat sl =
     if sl = [] then
-      Lm_filename_util.separator_string
+      Filename.dir_sep
     else
       let _ =
         List.iter (fun s ->
-          Buffer.add_char buf Lm_filename_util.separator_char;
+          Buffer.add_string buf Filename.dir_sep;
           Buffer.add_string buf s) sl
       in
       let s = Buffer.contents buf in

@@ -1,28 +1,6 @@
 (*
  * Completion functions for the interactive shell.
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2006 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
 
 
@@ -93,7 +71,7 @@ let username_completion_exn s =
  * given name.
  *)
 let list_completion_exn prefix dir name =
-   let names = Lm_filename_util.lsdir dir in
+   let names = Array.to_list (Sys.readdir dir) in
       List.fold_left (fun names n ->
             if Lm_string_util.is_string_prefix name n then
                StringSet.add names (prefix ^ n)
@@ -107,7 +85,7 @@ let list_completion_exn prefix dir name =
 let absolute_completion_exn s =
    let prefix, dir, name = split_last s in
    let dir = if dir = "" then "/" else dir in
-      list_completion_exn prefix dir name
+   list_completion_exn prefix dir name
 
 (*
  * We are given a relative name ab/cd/ef.
@@ -117,7 +95,7 @@ let relative_completion_exn venv _ _ s =
    let cwd = Dir.fullname (venv_dir venv) in
    let prefix, dir, name = split_relative s in
    let dir = Filename.concat cwd dir in
-      list_completion_exn prefix dir name
+   list_completion_exn prefix dir name
 
 (*
  * We are given a home directory name ~abc/def/geh
@@ -131,7 +109,7 @@ let homedir_completion_exn s =
          Lm_glob.gethomedir (String.sub user 1 (String.length user - 1))
    in
    let dir = Filename.concat home dir in
-      list_completion_exn prefix dir name
+   list_completion_exn prefix dir name
 
 (*
  * Filename completion has several cases:
@@ -155,7 +133,7 @@ let filename_completion_exn venv pos loc s =
       else if Lm_filename_util.is_absolute s then
          absolute_completion_exn s
       else
-         relative_completion_exn venv pos loc s
+        relative_completion_exn venv pos loc s
 
 (*
  * Command completion uses the Omake_cache.
@@ -232,22 +210,13 @@ let complete_names s names =
  *)
 let catch f venv pos loc s =
    try complete_names s (f venv pos loc s) with
-      Not_found
-    | Sys_error _
-    | OmakeException _ ->
-         [||]
+   | Not_found
+   | Sys_error _ (* TODO might refined later *)
+   | OmakeException _ -> [||]
 
 let set_completion_functions venv pos loc =
    let filename_completion s = catch filename_completion_exn venv pos loc s in
    let command_completion s = catch command_completion_exn venv pos loc s in
-      Callback.register "omake_filename_completion" filename_completion;
-      Callback.register "omake_command_completion" command_completion
+   Callback.register "omake_filename_completion" filename_completion;
+   Callback.register "omake_command_completion" command_completion
 
-(*
- * -*-
- * Local Variables:
- * Fill-column: 100
- * End:
- * -*-
- * vim:ts=3:et:tw=100
- *)

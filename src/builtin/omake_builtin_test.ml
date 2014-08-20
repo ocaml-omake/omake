@@ -930,10 +930,8 @@ let rec find_file venv pos nodes name e =
          ValDir dir ->
             let dirname = Dir.fullname dir in
             let names =
-               try Lm_filename_util.lsdir dirname with
-                  Unix.Unix_error _ ->
-                     []
-            in
+               try Array.to_list @@ Sys.readdir dirname with
+                 Sys_error _ -> [] in
                List.fold_left (fun nodes name' ->
                      let filename = Filename.concat name name' in
                         find_file venv pos nodes filename e) nodes names

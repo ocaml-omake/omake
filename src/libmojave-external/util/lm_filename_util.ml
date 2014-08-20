@@ -80,20 +80,22 @@ let cygwin_is_executable name =
 let has_drive_letters,
     normalize_string,
     normalize_path,
-    separator_char,
     search_separator_char,
     is_executable =
    match Sys.os_type with
    | "Win32" ->
-         true, String.lowercase, List.map String.lowercase, '\\', ';', win32_is_executable
+         true, String.lowercase, List.map String.lowercase, ';', win32_is_executable
    | "Cygwin" ->
-       false, String.lowercase, List.map String.lowercase, '/', ':', cygwin_is_executable
+       false, String.lowercase, List.map String.lowercase, ':', cygwin_is_executable
    | "Unix" ->
-       false, (fun s -> s), (fun s -> s), '/', ':', unix_is_executable
+       false, (fun s -> s), (fun s -> s),  ':', unix_is_executable
    | s ->
          raise (Invalid_argument ("Omake_node: unknown system type " ^ s))
          
-let separator_string = String.make 1 separator_char
+let separator_string = Filename.dir_sep
+
+(* TODO Mantis ticket to *)
+let separator_char = separator_string.[0]
 let search_separator_string = String.make 1 search_separator_char
 
 (*
@@ -101,12 +103,12 @@ let search_separator_string = String.make 1 search_separator_char
  *)
 (* %%MAGICBEGIN%% *)
 type root =
-   NullRoot
- | DriveRoot of char
+  | NullRoot
+  | DriveRoot of char
 
 type 'a path =
-   RelativePath of 'a
- | AbsolutePath of root * 'a
+  | RelativePath of 'a
+  | AbsolutePath of root * 'a
 (* %%MAGICEND%% *)
 
 let null_root = NullRoot
@@ -117,11 +119,9 @@ let null_root = NullRoot
  *)
 let is_drive_letter c =
    match c with
-      'a'..'z'
-    | 'A'..'Z' ->
-         true
-    | _ ->
-         false
+   |'a'..'z'
+   |'A'..'Z' -> true
+   | _ -> false
 
 let drive_skip name =
    let len = String.length name in
@@ -344,9 +344,7 @@ let strip_suffixes name =
          Not_found ->
             name
 
-(*
- * Pathname separator chars.
- *)
+
 let separators = "/\\"
 
 (*
@@ -383,7 +381,7 @@ let replace_basename s1 s2 =
  *)
 let simplify_path path =
    let rec simplify path' = function
-      dir::tl ->
+     | dir::tl ->
          if dir = "" || dir = "." then
             simplify path' tl
          else if dir = ".." then
@@ -507,12 +505,12 @@ let where name =
 let mkdirhier dir mode =
    let rec mkdir dir path =
       match path with
-         head :: path ->
-            let dir = Filename.concat dir head in
-            let () =
-               try
+      | head :: path ->
+          let dir = Filename.concat dir head in
+          let () =
+            try
                   let s = Unix.LargeFile.stat dir in
-                     if s.Unix.LargeFile.st_kind <> Unix.S_DIR then
+                     if s.st_kind <> S_DIR then
                         raise (Unix.Unix_error (Unix.ENOTDIR, "Lm_filename_util.mkdirhier", dir))
                with
                   Unix.Unix_error (Unix.ENOENT, _, _) ->
@@ -541,28 +539,18 @@ let lsdir dirname =
    let dir = Unix.opendir dirname in
    let rec loop names =
       let name =
-         try Some (Unix.readdir dir) with
-            End_of_file ->
-               None
+        try Some (Unix.readdir dir) with
+          End_of_file ->
+            None
       in
          match name with
-            Some "."
-          | Some ".." ->
-               loop names
-          | Some name ->
-               loop (name :: names)
-          | None ->
-               Unix.closedir dir;
-               List.rev names
-   in
-      loop []
+         | Some "."
+         | Some ".." ->
+             loop names
+         | Some name ->
+             loop (name :: names)
+         | None ->
+             Unix.closedir dir;
+             List.rev names in
+   loop []
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
