@@ -1,48 +1,18 @@
 (*
  * Execution codes.
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology
- * and HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
  *)
-open! Lm_printf
 
 
-open Omake_node
-open Omake_exec_id
-open Omake_options
-open Omake_command_type
+(* open Omake_options *)
+
 
 (*
  * Type of process codes.
  *)
 type process_code =
    ProcessFailed
- | ProcessStarted of id
+ | ProcessStarted of Omake_exec_id.t
 
 (*
  * Print flags.
@@ -56,7 +26,7 @@ type ('exp, 'pid, 'value) print_flag =
  * Internal wait status.
  *)
 type ('exp, 'pid, 'value) wait_internal_code =
-   WaitInternalExited of id * int * 'value
+   WaitInternalExited of Omake_exec_id.t * int * 'value
  | WaitInternalNotify of Lm_notify.event
  | WaitInternalStarted of bool
  | WaitInternalNone
@@ -66,7 +36,7 @@ type ('exp, 'pid, 'value) wait_internal_code =
  * WaitServer count: a new server started, willing to serve "count" more jobs
  *)
 type ('exp, 'pid, 'value) wait_code =
-   WaitExited of id * int * 'value
+ | WaitExited of Omake_exec_id.t * int * 'value
  | WaitServer of int
  | WaitNotify of Lm_notify.event
  | WaitNone
@@ -76,17 +46,19 @@ type ('exp, 'pid, 'value) wait_code =
  *)
 type ('exp, 'pid, 'value) shell =
    { shell_eval           : Unix.file_descr -> Unix.file_descr -> 'exp -> 'pid;
-     shell_info           : 'exp -> command_flag list * Dir.t * Node.t;
+     shell_info           : 
+       'exp ->
+       Omake_command_type.command_flag list * Omake_node.Dir.t * Omake_node.Node.t;
      shell_kill           : 'pid -> unit;
      shell_wait           : 'pid -> Unix.process_status * 'value;
      shell_error_value    : 'value;
-     shell_print_exp      : out_channel -> 'exp -> unit;
-     shell_print_exn      : out_channel -> exn -> unit;
+     shell_print_exp      : 'exp Lm_printf.t;
+     shell_print_exn      : exn Lm_printf.t ;
      shell_is_failure_exn : exn -> bool
    }
 
-type ('exp, 'pid, 'value) status_fun = id -> ('exp, 'pid, 'value) print_flag -> unit
-type output_fun = id -> string -> int -> int -> unit
+type ('exp, 'pid, 'value) status_fun = Omake_exec_id.t -> ('exp, 'pid, 'value) print_flag -> unit
+type output_fun = Omake_exec_id.t -> string -> int -> int -> unit
 
 (*
  * Internal execution server has a few extra functions.
@@ -115,11 +87,11 @@ sig
    val spawn :
       ('exp, 'pid, 'value) t ->                 (* Current state *)
       ('exp, 'pid, 'value) shell ->             (* The shell that does evaluation *)
-      id ->                                     (* Id for the new process *)
+      Omake_exec_id.t ->                                     (* Id for the new process *)
       output_fun ->                             (* Function to handle output from stdout *)
       output_fun ->                             (* Function to handle output from stderr *)
       ('exp, 'pid, 'value) status_fun ->        (* Function to handle status commands *)
-      Node.t ->                                 (* Target being built *)
+      Omake_node.Node.t ->                                 (* Target being built *)
       'exp list ->                              (* Commands to execute *)
       process_code                              (* The process id *)
 
@@ -131,12 +103,12 @@ sig
    (*
     * Handle input from one of the descriptors.
     *)
-   val handle : ('exp, 'pid, 'value) t -> omake_options -> Unix.file_descr -> unit
+   val handle : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> Unix.file_descr -> unit
 
    (*
     * Wait for any one of the commands to finish.
     *)
-   val wait : ('exp, 'pid, 'value) t -> omake_options -> ('exp, 'pid, 'value) wait_internal_code
+   val wait : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> ('exp, 'pid, 'value) wait_internal_code
 end
 
 (*
@@ -153,7 +125,7 @@ sig
     * Create the processor.
     * The directory is the current working root directory.
     *)
-   val create : Dir.t -> omake_options -> ('exp, 'pid, 'value) t
+   val create : Omake_node.Dir.t -> Omake_options.omake_options -> ('exp, 'pid, 'value) t
 
    (*
     * Close it, and possibly deallocate state.
@@ -166,25 +138,25 @@ sig
    val spawn :
       ('exp, 'pid, 'value) t ->                 (* Current state *)
       ('exp, 'pid, 'value) shell ->             (* Evaluate a shell command *)
-      omake_options ->                          (* Current options in effect *)
+      Omake_options.omake_options ->                          (* Current options in effect *)
       output_fun ->                             (* Function to handle the OMake messages meant for stdout *)
       output_fun ->                             (* Function to handle output from stdout *)
       output_fun ->                             (* Function to handle output from stderr *)
       string ->                                 (* Name of this command *)
-      Node.t ->                                 (* Target being built *)
+      Omake_node.Node.t ->                                 (* Target being built *)
       'exp list ->                              (* Commands to execute *)
       process_code                              (* The process id *)
 
    (*
     * Wait for any one of the commands to finish.
     *)
-   val wait : ('exp, 'pid, 'value) t -> omake_options -> ('exp, 'pid, 'value) wait_code
+   val wait : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> ('exp, 'pid, 'value) wait_code
 
    (*
     * Notify when a file changes.
     *)
-   val monitor : ('exp, 'pid, 'value) t -> Node.t -> unit
-   val monitor_tree : ('exp, 'pid, 'value) t -> Dir.t -> unit
+   val monitor : ('exp, 'pid, 'value) t -> Omake_node.Node.t -> unit
+   val monitor_tree : ('exp, 'pid, 'value) t -> Omake_node.Dir.t -> unit
 
    (*
     * Get the next file change notification.

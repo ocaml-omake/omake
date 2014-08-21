@@ -28,8 +28,8 @@ val open_out_bin : string -> Format.formatter
 (*
  * Simple printing.
  *)
-val output_char    : Format.formatter -> char -> unit
-val output_string  : Format.formatter -> string -> unit
+val output_char    : char t 
+val output_string  : string t 
 
 (*
  * These functions are bad style for functional programs.

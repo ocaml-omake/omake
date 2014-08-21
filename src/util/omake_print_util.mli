@@ -31,7 +31,7 @@
 open! Lm_printf
 open Lm_symbol
 
-val pp_print_method_name : out_channel -> symbol list -> unit
+val pp_print_method_name : symbol list Lm_printf.t 
 
 (*!
  * @docoff

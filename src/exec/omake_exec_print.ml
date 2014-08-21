@@ -175,7 +175,8 @@ let print_status handle_out options shell remote name flag =
                      print_flush ();
                      print_entering_current_directory options dir;
                      if opt_print_file options then
-                        fprintf out "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
+                        fprintf out "-%t %s %s %s@." pp_print_host name dirname 
+                         (Node.name dir target);
                      if not (List.mem QuietFlag flags) then
                         fprintf out "+%t %a@." pp_print_host shell.shell_print_exp exp
        | PrintExit (exp, code, _, time) ->

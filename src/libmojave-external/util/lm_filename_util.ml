@@ -532,25 +532,4 @@ let mkdirhier dir mode =
    in
       mkdir top path
 
-(*
- * Get the names in a directory.
- *)
-let lsdir dirname =
-   let dir = Unix.opendir dirname in
-   let rec loop names =
-      let name =
-        try Some (Unix.readdir dir) with
-          End_of_file ->
-            None
-      in
-         match name with
-         | Some "."
-         | Some ".." ->
-             loop names
-         | Some name ->
-             loop (name :: names)
-         | None ->
-             Unix.closedir dir;
-             List.rev names in
-   loop []
 

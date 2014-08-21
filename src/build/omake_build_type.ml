@@ -54,7 +54,7 @@ type command_state =
   | CommandBlocked
   | CommandReady
   | CommandPending
-  | CommandRunning of Omake_exec_id.id * string option
+  | CommandRunning of Omake_exec_id.t * string option
   | CommandSucceeded of NodeSet.t NodeTable.t
   | CommandFailed of int
 

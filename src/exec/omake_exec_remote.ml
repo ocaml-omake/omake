@@ -57,17 +57,17 @@ let debug_remote =
  * Type of messages sent to the service.
  *)
 type ('exp, 'pid, 'value) request =
-   RequestSpawn of id * Node.t * 'exp
+   RequestSpawn of Omake_exec_id.t * Node.t * 'exp
 
 (*
  * Type of messages received from the remote server.
  *)
 type ('exp, 'pid, 'value) response =
    ResponseCreate of bool
- | ResponseExited of id * int * 'value
- | ResponseStdout of id * string
- | ResponseStderr of id * string
- | ResponseStatus of id * ('exp, 'pid, 'value) print_flag
+ | ResponseExited of Omake_exec_id.t * int * 'value
+ | ResponseStdout of Omake_exec_id.t * string
+ | ResponseStderr of Omake_exec_id.t * string
+ | ResponseStatus of Omake_exec_id.t * ('exp, 'pid, 'value) print_flag
 
 (*
  * A local exception when the connection fails.
@@ -276,7 +276,7 @@ struct
     * A Job has some handlers.
     *)
    type ('exp, 'pid, 'value) job =
-      { job_id            : id;
+      { job_id            : Omake_exec_id.t;
         job_handle_out    : output_fun;
         job_handle_err    : output_fun;
         job_handle_status : ('exp, 'pid, 'value) status_fun;

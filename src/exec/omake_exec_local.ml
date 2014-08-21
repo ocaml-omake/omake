@@ -65,7 +65,7 @@ struct
     * plus info.
     *)
    type ('exp, 'pid, 'value) job =
-      { job_id                 : id;
+      { job_id                 : Omake_exec_id.t;
         job_target             : Node.t;
         job_handle_out         : output_fun;
         job_handle_err         : output_fun;
