@@ -201,7 +201,7 @@ val string_of_target : venv -> target -> string
 (*
  * This takes the starting directory.
  *)
-val create          : omake_options -> string -> exec -> Omake_cache.t -> venv
+val create          : Omake_options.t -> string -> exec -> Omake_cache.t -> venv
 
 (*
  * Pervasives management.
@@ -306,8 +306,8 @@ val venv_defined_env : venv -> var -> bool
 (*
  * Handle options.
  *)
-val venv_options          : venv -> omake_options
-val venv_with_options     : venv -> omake_options -> venv
+val venv_options          : venv -> Omake_options.t
+val venv_with_options     : venv -> Omake_options.t -> venv
 val venv_set_options      : venv -> loc -> pos -> string list -> venv
 
 (*

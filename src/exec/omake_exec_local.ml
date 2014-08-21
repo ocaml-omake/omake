@@ -1,64 +1,28 @@
-(*
- * Execute on the local machine.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
- * @end[license]
- *)
+(* Execute on the local machine. *)
+
 open Lm_printf
-open Lm_thread_pool
-
-open Omake_node
-open Omake_state
-
-open Omake_exec_id
-open Omake_exec_util
 open Omake_exec_type
 open Omake_command_type
 
 
 let unix_close debug fd =
-   if !debug_thread then
+   if !Lm_thread_pool.debug_thread then
       eprintf "Closing: %s: %d@." debug (Lm_unix_util.int_of_fd fd);
    try Unix.close fd with
       Unix.Unix_error (errno, f, arg) as exn ->
-         if !debug_thread then
+         if !Lm_thread_pool.debug_thread then
             eprintf "%s: close failed: %s %s(%s)@." debug (Unix.error_message errno) f arg;
          raise exn
 
-module Local =
-struct
+(* module Local = *)
+(* struct *)
    (*
     * Status of a job.
     *)
    type 'value job_state =
-      JobStarted
-    | JobRunning of 'value
-    | JobFinished of int * 'value * float
+     |JobStarted
+     | JobRunning of 'value
+     | JobFinished of int * 'value * float
 
    (*
     * A job has channels for communication,
@@ -66,14 +30,14 @@ struct
     *)
    type ('exp, 'pid, 'value) job =
       { job_id                 : Omake_exec_id.t;
-        job_target             : Node.t;
-        job_handle_out         : output_fun;
-        job_handle_err         : output_fun;
-        job_handle_status      : ('exp, 'pid, 'value) status_fun;
+        job_target             : Omake_node.Node.t;
+        job_handle_out         : Omake_exec_type.output_fun;
+        job_handle_err         : Omake_exec_type.output_fun;
+        job_handle_status      : ('exp, 'pid, 'value) Omake_exec_type.status_fun;
         job_start_time         : float;
 
         (* Evaluator *)
-        job_shell              : ('exp, 'pid, 'value) shell;
+        job_shell              : ('exp, 'pid, 'value) Omake_exec_type.shell;
 
         (* State while a job is running *)
         mutable job_pid        : 'pid;
@@ -97,12 +61,12 @@ struct
     *    server_jobs: currently running jobs
     *)
    type ('exp, 'pid, 'value) t =
-      { mutable server_table : ('exp, 'pid, 'value) job FdTable.t;
+      { mutable server_table : ('exp, 'pid, 'value) job Omake_exec_util.FdTable.t;
         mutable server_jobs  : ('exp, 'pid, 'value) job list
       }
 
    let create _ =
-      { server_table  = FdTable.empty;
+      { server_table  = Omake_exec_util.FdTable.empty;
         server_jobs   = []
       }
 
@@ -126,7 +90,7 @@ struct
     * When the server is closed, kill all the jobs.
     *)
    let close server =
-      FdTable.iter (fun fd _ -> Unix.close fd) server.server_table;
+      Omake_exec_util.FdTable.iter (fun fd _ -> Unix.close fd) server.server_table;
       List.iter (fun { job_shell = shell; job_pid = pid; job_state = state ; _} ->
             match state with
                JobFinished _ ->
@@ -157,7 +121,7 @@ struct
    (*
     * Start a command.  Takes the output channels, and returns a pid.
     *)
-   let start_command _server shell stdout stderr command =
+   let start_command _server (shell : _ Omake_exec_type.shell) stdout stderr command =
       shell.shell_eval stdout stderr command
 
    (*
@@ -175,9 +139,9 @@ struct
             server_jobs   = jobs
           } = server
       in
-         with_pipe (fun out_read out_write ->
-         with_pipe (fun err_read err_write ->
-               if !debug_thread then
+         Omake_exec_util.with_pipe (fun out_read out_write ->
+         Omake_exec_util.with_pipe (fun err_read err_write ->
+               if !Lm_thread_pool.debug_thread then
                   begin
                      eprintf "out_read: %d, out_write: %d@." (Lm_unix_util.int_of_fd out_read) (Lm_unix_util.int_of_fd out_write);
                      eprintf "err_read: %d, err_write: %d@." (Lm_unix_util.int_of_fd err_read) (Lm_unix_util.int_of_fd err_write)
@@ -209,9 +173,9 @@ struct
                     job_buffer = String.create 1024, String.create 1024;
                   }
                in
-               let table = FdTable.add table out_read job in
-               let table = FdTable.add table err_read job in
-                  if !debug_exec then
+               let table = Omake_exec_util.FdTable.add table out_read job in
+               let table = Omake_exec_util.FdTable.add table err_read job in
+                  if !Omake_exec_util.debug_exec then
                      eprintf "Started job %d, stdout=%d, stderr=%d@." (**)
                         (Obj.magic pid) (Lm_unix_util.int_of_fd out_read) (Lm_unix_util.int_of_fd err_read);
                   unix_close "spawn_exn.1" out_write;
@@ -254,17 +218,17 @@ struct
       let { server_table  = table ; _} = server in
          match commands with
             command :: commands ->
-               with_pipe (fun out_read out_write ->
-               with_pipe (fun err_read err_write ->
+               Omake_exec_util.with_pipe (fun out_read out_write ->
+               Omake_exec_util.with_pipe (fun err_read err_write ->
                      let () =
                         handle_status id (PrintEager command);
                         Unix.set_close_on_exec out_read;
                         Unix.set_close_on_exec err_read
                      in
                      let pid = start_command server shell out_write err_write command in
-                     let table = FdTable.add table out_read job in
-                     let table = FdTable.add table err_read job in
-                        if !debug_exec then
+                     let table = Omake_exec_util.FdTable.add table out_read job in
+                     let table = Omake_exec_util.FdTable.add table err_read job in
+                        if !Omake_exec_util.debug_exec then
                            eprintf "Started next job %d, stdout=%d, stderr=%d@." (**)
                               (Obj.magic pid) (Lm_unix_util.int_of_fd out_read) (Lm_unix_util.int_of_fd err_read);
                         unix_close "spawn_next_part.1" out_write;
@@ -294,7 +258,7 @@ struct
             let shell = job.job_shell in
                err_print_status job.job_commands job.job_handle_status job.job_id;
                handle_exn job.job_handle_err shell.shell_print_exn job.job_id exn;
-               job.job_state <- JobFinished (fork_error_code, shell.shell_error_value, Unix.gettimeofday() -. job.job_start_time);
+               job.job_state <- JobFinished (Omake_state.fork_error_code, shell.shell_error_value, Unix.gettimeofday() -. job.job_start_time);
                if not (shell.shell_is_failure_exn exn) then
                   raise exn
 
@@ -309,7 +273,7 @@ struct
                code
           | Unix.WSIGNALED _
           | Unix.WSTOPPED _ ->
-               signal_error_code
+               Omake_state.signal_error_code
       in
          if code <> 0 && not (List.mem AllowFailureFlag flags) then
             code
@@ -322,12 +286,12 @@ struct
    let wait_for_job server options job =
       let { job_pid = pid; job_command = command; job_shell = shell ; _} = job in
       let () =
-         if !debug_exec then
+         if !Omake_exec_util.debug_exec then
             eprintf "Waiting for job %d@." (Obj.magic pid)
       in
       let status, v = shell.shell_wait pid in
       let code = command_code shell options command status in
-         if !debug_exec then
+         if !Omake_exec_util.debug_exec then
             eprintf "Job exited with code %d@." code;
          if code <> 0 then
             job.job_state <- JobFinished (code, shell.shell_error_value, Unix.gettimeofday() -. job.job_start_time)
@@ -342,7 +306,7 @@ struct
     *)
    let handle server options fd =
       let job =
-         try FdTable.find server.server_table fd with
+         try Omake_exec_util.FdTable.find server.server_table fd with
             Not_found ->
                raise (Invalid_argument "Omake_exec.handle_channel: no such job")
       in
@@ -377,10 +341,10 @@ struct
          (* Handle end of file *)
          if count = 0 then
             begin
-               let table = FdTable.remove server.server_table fd in
+               let table = Omake_exec_util.FdTable.remove server.server_table fd in
                let fd_count = pred job.job_fd_count in
                   (* Reached eof *)
-                  if !debug_exec then
+                  if !Omake_exec_util.debug_exec then
                      eprintf "Removing fd %d@." (Lm_unix_util.int_of_fd fd);
                   server.server_table <- table;
                   unix_close "handle" fd;
@@ -404,8 +368,8 @@ struct
     * Get all the descriptors.
     *)
    let descriptors server =
-      FdTable.fold (fun fd_set fd _ ->
-            if !debug_thread then
+      Omake_exec_util.FdTable.fold (fun fd_set fd _ ->
+            if !Lm_thread_pool.debug_thread then
                eprintf "Local.descriptors: %d@." (Lm_unix_util.int_of_fd fd);
             fd :: fd_set) [] server.server_table
 
@@ -428,11 +392,4 @@ struct
       with
          Not_found ->
             WaitInternalNone
-end
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+(* end *)

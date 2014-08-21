@@ -40,7 +40,6 @@ open Omake_node
 open Omake_exec_util
 open Omake_exec_type
 open Omake_exec_print
-open Omake_exec_local
 open Omake_exec_remote
 open Omake_exec_notify
 open Omake_options
@@ -52,8 +51,8 @@ struct
     * Local and remote servers.
     *)
    type ('venv, 'exp, 'value) server_handle =
-      LocalServer  of ('venv, 'exp, 'value) Local.t
-    | RemoteServer of ('venv, 'exp, 'value) Remote.t
+      LocalServer  of ('venv, 'exp, 'value) Omake_exec_local.t
+    | RemoteServer of ('venv, 'exp, 'value) Omake_exec_remote.t
     | NotifyServer of ('venv, 'exp, 'value) Notify.t
 
    (*
@@ -83,7 +82,7 @@ struct
     *)
    type ('venv, 'exp, 'value) t =
       { server_root              : Dir.t;
-        server_local             : ('venv, 'exp, 'value) Local.t;
+        server_local             : ('venv, 'exp, 'value) Omake_exec_local.t;
         server_notify            : ('venv, 'exp, 'value) Notify.t;
         mutable server_servers   : ('venv, 'exp, 'value) server_info list;
         mutable server_fd_table  : int FdTable.t;
@@ -114,11 +113,11 @@ struct
         server_count   = count;
         server_running = 0;
         server_enabled = false;
-        server_handle  = RemoteServer (Remote.create machine)
+        server_handle  = RemoteServer (Omake_exec_remote.create machine)
       }
 
    let create root options =
-      let local = Local.create "local" in
+      let local = Omake_exec_local.create "local" in
       let notify = Notify.create "notify" in
       let servers =
          start_local local options
@@ -140,9 +139,9 @@ struct
       List.iter (fun { server_handle = handle ; _} ->
             match handle with
                LocalServer local ->
-                  Local.close local
+                  Omake_exec_local.close local
              | RemoteServer remote ->
-                  Remote.close remote
+                  Omake_exec_remote.close remote
              | NotifyServer notify ->
                   Notify.close notify) server.server_servers
 
@@ -224,9 +223,9 @@ struct
       let status =
          match handle with
             LocalServer local ->
-               Local.spawn  local  shell id handle_out handle_err handle_status target commands
+               Omake_exec_local.spawn  local  shell id handle_out handle_err handle_status target commands
           | RemoteServer remote ->
-               Remote.spawn remote shell id handle_out handle_err handle_status target commands
+               Omake_exec_remote.spawn remote shell id handle_out handle_err handle_status target commands
           | NotifyServer notify ->
                Notify.spawn notify shell id handle_out handle_err handle_status target commands
       in
@@ -254,9 +253,9 @@ struct
                let fd_set =
                   match server.server_handle with
                      LocalServer local ->
-                        Local.descriptors local
+                        Omake_exec_local.descriptors local
                    | RemoteServer remote ->
-                        Remote.descriptors remote
+                        Omake_exec_remote.descriptors remote
                    | NotifyServer notify ->
                         Notify.descriptors notify
                in
@@ -282,9 +281,9 @@ struct
                in
                   match server with
                      Some { server_handle = LocalServer local ; _} ->
-                        Local.handle local options fd
+                        Omake_exec_local.handle local options fd
                    | Some { server_handle = RemoteServer remote ; _} ->
-                        Remote.handle remote options fd
+                        Omake_exec_remote.handle remote options fd
                    | Some { server_handle = NotifyServer notify ; _} ->
                         Notify.handle notify options fd
                    | None ->
@@ -318,9 +317,9 @@ struct
          List.fold_left (fun tables server ->
                match server.server_handle with
                   LocalServer local ->
-                     List.fold_left (start_handler (Local.handle local options)) tables (Local.descriptors local)
+                     List.fold_left (start_handler (Omake_exec_local.handle local options)) tables (Omake_exec_local.descriptors local)
                 | RemoteServer remote ->
-                     List.fold_left (start_handler (Remote.handle remote options)) tables (Remote.descriptors remote)
+                     List.fold_left (start_handler (Omake_exec_remote.handle remote options)) tables (Omake_exec_remote.descriptors remote)
                 | NotifyServer notify ->
                      List.fold_left (start_handler (Notify.handle notify options)) tables (Notify.descriptors notify)) (pid_table, fd_table) servers
       in
@@ -379,9 +378,9 @@ struct
                let wait_code =
                   match handle with
                      LocalServer local ->
-                        Local.wait local options
+                        Omake_exec_local.wait local options
                    | RemoteServer remote ->
-                        Remote.wait remote options
+                        Omake_exec_remote.wait remote options
                    | NotifyServer notify ->
                         Notify.wait notify options
                in
@@ -435,9 +434,3 @@ struct
       Notify.next_event server.server_notify
 end
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

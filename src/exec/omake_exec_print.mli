@@ -35,7 +35,7 @@ open Omake_node
 
 open Omake_exec_type
 
-open Omake_options
+
 
 (*
  * Flush the progress meter.
@@ -46,25 +46,25 @@ val progress_flushed : unit -> bool
 (*
  * Print a progress indicator.
  *)
-val print_progress : omake_options -> int -> int -> unit
+val print_progress : Omake_options.t -> int -> int -> unit
 
 (*
  * Saving the cache messages.
  *)
-val print_saving   : omake_options -> unit
+val print_saving   : Omake_options.t -> unit
 
 (*
  * Directory changes.
  *)
-val print_entering_current_directory : omake_options -> Dir.t -> unit
-val print_leaving_current_directory  : omake_options -> unit
+val print_entering_current_directory : Omake_options.t -> Dir.t -> unit
+val print_leaving_current_directory  : Omake_options.t -> unit
 
 (*
  * Print a status line.
  *)
 val print_status :
    (string -> int -> int -> unit) ->    (* Diversion *)
-   omake_options ->                     (* Options currently in effect *)
+   Omake_options.t ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The context *)
    string option ->                     (* Remote host name *)
    string ->                            (* Name of operation being performed *)
@@ -76,7 +76,7 @@ val print_status :
  *)
 val pp_status_lines :
    formatter ->                         (* Output channel *)
-   omake_options ->                     (* Options currently in effect *)
+   Omake_options.t ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The current shell *)
    string ->                            (* Name of operation being performed *)
    'exp list ->                         (* What to print *)

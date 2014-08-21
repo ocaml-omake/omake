@@ -215,7 +215,7 @@ and venv_inner =
      venv_phony          : NodeSet.t;
      venv_implicit_deps  : inrule list;
      venv_implicit_rules : irule list;
-     venv_options        : omake_options;
+     venv_options        : Omake_options.t;
      venv_globals        : venv_globals;
      venv_mount          : Mount.t;
      venv_included_files : NodeSet.t

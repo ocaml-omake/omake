@@ -103,12 +103,12 @@ sig
    (*
     * Handle input from one of the descriptors.
     *)
-   val handle : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> Unix.file_descr -> unit
+   val handle : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
 
    (*
     * Wait for any one of the commands to finish.
     *)
-   val wait : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> ('exp, 'pid, 'value) wait_internal_code
+   val wait : ('exp, 'pid, 'value) t -> Omake_options.t -> ('exp, 'pid, 'value) wait_internal_code
 end
 
 (*
@@ -125,7 +125,7 @@ sig
     * Create the processor.
     * The directory is the current working root directory.
     *)
-   val create : Omake_node.Dir.t -> Omake_options.omake_options -> ('exp, 'pid, 'value) t
+   val create : Omake_node.Dir.t -> Omake_options.t -> ('exp, 'pid, 'value) t
 
    (*
     * Close it, and possibly deallocate state.
@@ -138,7 +138,7 @@ sig
    val spawn :
       ('exp, 'pid, 'value) t ->                 (* Current state *)
       ('exp, 'pid, 'value) shell ->             (* Evaluate a shell command *)
-      Omake_options.omake_options ->                          (* Current options in effect *)
+      Omake_options.t ->                          (* Current options in effect *)
       output_fun ->                             (* Function to handle the OMake messages meant for stdout *)
       output_fun ->                             (* Function to handle output from stdout *)
       output_fun ->                             (* Function to handle output from stderr *)
@@ -150,7 +150,8 @@ sig
    (*
     * Wait for any one of the commands to finish.
     *)
-   val wait : ('exp, 'pid, 'value) t -> Omake_options.omake_options -> ('exp, 'pid, 'value) wait_code
+   val wait : ('exp, 'pid, 'value) t -> Omake_options.t -> 
+     ('exp, 'pid, 'value) wait_code
 
    (*
     * Notify when a file changes.
@@ -167,9 +168,4 @@ sig
    val next_event : ('exp, 'pid, 'value) t -> Lm_notify.event
 end
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+

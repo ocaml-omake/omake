@@ -1,34 +1,7 @@
-1(*
+(*
  * Remote execution of jobs.  This includes both the job server
  * as well as the server handler.
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
- * @end[license]
  *)
 open Lm_printf
 open Lm_debug
@@ -185,7 +158,7 @@ let eval _ =
  *)
 let handle_spawn local shell id target commands =
    let code =
-      Local.spawn (**)
+      Omake_exec_local.spawn (**)
          local
          shell
          id
@@ -214,13 +187,13 @@ let handle local shell options fd =
          RequestSpawn (id, target, commands) ->
             handle_spawn local shell id target commands
    else
-      Local.handle local options fd
+      Omake_exec_local.handle local options fd
 
 (*
  * Serve.
  *)
 let rec serve local shell options =
-   match Local.wait local options with
+   match Omake_exec_local.wait local options with
       WaitInternalExited (id, code, value) ->
          send_response (ResponseExited (id, code, value));
          serve local shell options
@@ -229,7 +202,7 @@ let rec serve local shell options =
     | WaitInternalStarted _ ->
          raise (Invalid_argument "Omake_exec_remote.serve: received started message")
     | WaitInternalNone ->
-         let fd_read = Unix.stdin :: Local.descriptors local in
+         let fd_read = Unix.stdin :: Omake_exec_local.descriptors local in
          let fd_read =
             try
                let fd_read, _, _ = Unix.select fd_read [] [] (-1.0) in
@@ -250,7 +223,7 @@ let main_exn shell options =
       eprintf "*** server: starting@.";
    send_sync ();
    send_response (ResponseCreate true);
-   serve (Local.create "local") shell options
+   serve (Omake_exec_local.create "local") shell options
 
 let main shell options =
    try
@@ -263,8 +236,6 @@ let main shell options =
 (************************************************************************
  * Remote service.
  *)
-module Remote =
-struct
    (*
     * Status of a job.
     *)
@@ -515,11 +486,5 @@ struct
                WaitInternalStarted succeeded
           | ServerRunning ->
                wait_for_job server
-end
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+

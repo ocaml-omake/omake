@@ -1,44 +1,16 @@
 (*
  * Options for the omake program.
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Authors:
- *    Jason Hickey @email{jyh@cs.caltech.edu}
- *    Aleksey Nogin @email{nogin@metaprl.org}
- * @end[license]
  *)
 
-open Lm_printf
 
 (*
  * When to print output.
  *)
 type eval_flag =
-   EvalNever
- | EvalLazy
- | EvalEager
+  |  EvalNever
+  | EvalLazy
+  | EvalEager
 
 (*
  * Diversion control.
@@ -59,7 +31,7 @@ type 'a setting =
 (*
  * The basic make flags.
  *)
-type omake_options =
+type t =
    { opt_job_count            : int;
      opt_remote_servers       : (string * int) list;
      opt_terminate_on_error   : bool setting;
@@ -184,14 +156,16 @@ let opt_print_progress opts =
                (* XXX: TODO: in OCaml 3.10, use Unix.isatty *)
                ignore (Unix.tcgetattr Unix.stdout); true
             with
-               Unix.Unix_error _ ->
-                  eprintf "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
+            | Unix.Unix_error _ ->
+                  Format.eprintf 
+                   "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
                   false
-             | Invalid_argument "Unix.tcgetattr not implemented" ->
-                  (* We are on Windows :-( *)
-                  true
-             | exn ->
-                  eprintf "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
+            | Invalid_argument "Unix.tcgetattr not implemented" ->
+                (* We are on Windows :-( *)
+                true
+            | exn ->
+                Format.eprintf
+                  "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
                   (Printexc.to_string exn);
                   true
          in
@@ -544,9 +518,3 @@ let output_spec =
        "Short output options [01jwWpPxXsS] (see the manual)";
     ]
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
