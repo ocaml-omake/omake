@@ -4,33 +4,6 @@
  * Node may be virtual: the node may exist before the file
  * does.  For each file, we maintain stat and MD5 information
  * (if they exist).
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey <jyh@cs.caltech.edu>
- * Modified by: Aleksey Nogin <nogin@cs.caltech.edu>, <anogin@hrl.com>
- * @end[license]
  *)
 open Lm_hash
 open Lm_printf

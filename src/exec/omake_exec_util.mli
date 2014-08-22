@@ -4,7 +4,7 @@
  *)
 
 
-open Omake_exec_id
+
 
 
 (*
@@ -41,9 +41,3 @@ val tee_file        : tee -> string option
 val tee_stdout      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
 val tee_stderr      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

@@ -14,16 +14,11 @@ let unix_close debug fd =
             eprintf "%s: close failed: %s %s(%s)@." debug (Unix.error_message errno) f arg;
          raise exn
 
-(* module Local = *)
-(* struct *)
-   (*
-    * Status of a job.
-    *)
-   type 'value job_state =
-     |JobStarted
-     | JobRunning of 'value
-     | JobFinished of int * 'value * float
-
+type 'value job_state =
+  |JobStarted
+  | JobRunning of 'value
+  | JobFinished of int * 'value * float
+        
    (*
     * A job has channels for communication,
     * plus info.
@@ -392,4 +387,4 @@ let unix_close debug fd =
       with
          Not_found ->
             WaitInternalNone
-(* end *)
+

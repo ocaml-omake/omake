@@ -41,8 +41,8 @@ open Omake_build_type
  * The symbol is the name of the ordering relation.
  * The bool is whether to work in debug mode.
  *)
-val sort : env -> venv -> pos -> symbol -> Node.t list -> Node.t list
-val check_sort : env -> venv -> pos -> symbol -> Node.t list -> unit
+val sort : env -> venv -> Omake_value_type.pos -> symbol -> Node.t list -> Node.t list
+val check_sort : env -> venv -> Omake_value_type.pos -> symbol -> Node.t list -> unit
 
 (*!
  * @docoff
