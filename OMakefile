@@ -1,6 +1,14 @@
 ########################################################################
 # Configuration.
 #
+
+###################################
+# DEV MODE 
+# Turn it off when release
+BYTE_ENABLED=true
+NATIVE_ENABLED=false
+###################################
+
 open build/C
 open build/svn_realclean
 include mk/defaults
