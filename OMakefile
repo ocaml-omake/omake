@@ -5,8 +5,10 @@
 ###################################
 # DEV MODE 
 # Turn it off when release
-BYTE_ENABLED=true
-NATIVE_ENABLED=false
+# BYTE_ENABLED=true
+# NATIVE_ENABLED=false
+OCAMLCFLAGS += -w -3-40
+OCAMLOPTFLAGS += -w -3-40
 ###################################
 
 open build/C

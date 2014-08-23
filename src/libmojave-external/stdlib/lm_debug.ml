@@ -58,7 +58,7 @@ let debuggers () =
  *)
 let debug_usage () =
   let usage { debug_name = name; debug_description = desc; debug_value = flag } =
-    Printf.eprintf "\t%s: %s: %b\n" name desc flag  in
+  Printf.eprintf "\t%s: %s: %b\n" name desc flag  in
   Printf.eprintf "Debugging flags:\n";
   Printf.eprintf "You can specify these as a colon-separated list\n";
   Array.iter usage (debuggers ());
@@ -122,13 +122,7 @@ let set_debug name flag =
         flag' := flag
       else
         search t
-    | [] ->
-      (*
-         (* Try a C function *)
-         try ml_debug name flag with
-            Failure "ml_debug" ->
-*)
-      raise (Failure "set_debug")
+    | [] -> raise (Failure "set_debug")
   in
   search !info
 
@@ -170,17 +164,6 @@ let get_debug name =
       else
         search t
     | [] ->
-      (* Try a C function *)
-      (*
-         try
-            let info, flag = ml_get_debug name in
-               { debug_name = name;
-                 debug_description = info;
-                 debug_value = flag
-               }
-         with
-            Failure "ml_get_debug" ->
-*)
       Printf.eprintf "Lm_debug.get_debug: no such variable: %s\n%t" name flush;
       raise (Failure "get_debug")
   in
@@ -191,13 +174,6 @@ let get_debug name =
  *)
 let check_debug () =
   ()
-  (*
-   if List.exists (fun info -> info.info_info = None) !info then
-      begin
-         debug_usage ();
-         raise (Failure "check_debug")
-      end
-*)
 
 (************************************************************************
  * PARTICULAR DEBUG                                                     *
@@ -275,7 +251,7 @@ type profile = {
 }
 
 type 'a res =
-    Ok of 'a
+  | Ok of 'a
   | Exn of exn
 
 let tbl = Hashtbl.create 19

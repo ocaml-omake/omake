@@ -1,159 +1,118 @@
 (* Standard exceptions. *)
 open Lm_printf
-open Lm_symbol
-open Lm_location
-
-
 open Omake_node
-
 open Omake_ir_print
 open Omake_print_util
-open Omake_value_type
 open Omake_value_print
 
-type pos = Omake_value_type.pos
 
-(************************************************************************
- * Utilities.
- *)
-let string_loc = bogus_loc "<Omake_env>"
 
-let loc_of_item x =
-   match x with
-      AstExp e ->
-         Omake_ast_util.loc_of_exp e
-    | IrExp e ->
-         Omake_ir_util.loc_of_exp e
-    | Location loc ->
-         loc
-    | Value _
-    | Symbol _
-    | String _
-    | Error _ ->
-         string_loc
+let string_loc = Lm_location.bogus_loc "<Omake_env>"
 
-(*
- * Value printing.
- *)
-let rec pp_print_item buf x =
-   match x with
-      AstExp e ->
-         Omake_ast_print.pp_print_exp buf e
+let loc_of_item (x : Omake_value_type.item ) =
+  match x with
+  | AstExp e -> Omake_ast_util.loc_of_exp e
+  | IrExp e ->
+    Omake_ir_util.loc_of_exp e
+  | Location loc -> loc
+  | Value _
+  | Symbol _
+  | String _
+  | Error _ -> string_loc
 
-    | IrExp e ->
-         Omake_ir_print.pp_print_exp buf e
+let rec pp_print_item buf (x  : Omake_value_type.item ) =
+  match x  with
+  | AstExp e ->
+    Omake_ast_print.pp_print_exp buf e
+  | IrExp e -> Omake_ir_print.pp_print_exp buf e
+  | Location _ -> ()
 
-    | Location _ ->
-         ()
+  | Symbol v ->
+    Lm_symbol.pp_print_symbol buf v
+  | String s ->
+    pp_print_string buf s
+  | Value v ->
+    pp_print_value buf v
+  | Error e ->
+    pp_print_exn buf e
 
-    | Symbol v ->
-         pp_print_symbol buf v
+and pp_print_exn buf (x : Omake_value_type.omake_error )= 
+  match x with 
+  | SyntaxError s ->
+    fprintf buf "syntax error: %s" s
+  | StringAstError (s, e) ->
+    fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
+  | StringError s ->
+    pp_print_string buf s
+  | StringIntError (s, i) ->
+    fprintf buf "%s: %d" s i
+  | StringStringError (s1, s2) ->
+    fprintf buf "%s: %s" s1 s2
+  | StringVarError (s, v) ->
+    fprintf buf "%s: %a" s Lm_symbol.pp_print_symbol v
+  | StringMethodError (s, v) ->
+    fprintf buf "%s: %a" s pp_print_method_name v
+  | StringDirError (s, n)->
+    fprintf buf "%s: %a" s pp_print_dir n
+  | StringNodeError (s, n)->
+    fprintf buf "%s: %a" s pp_print_node n
+  | StringValueError (s, v) ->
+    fprintf buf "@[<hv 3>%s:@ %a@]" s pp_print_value v
+  | StringTargetError (s, t) ->
+    fprintf buf "%s: %a" s pp_print_target t
+  | LazyError printer ->
+    printer buf
+  | UnboundVar v ->
+    fprintf buf "unbound variable: %a" Lm_symbol.pp_print_symbol v
+  | UnboundVarInfo v ->
+    fprintf buf "unbound variable: %a" pp_print_var_info v
+  | UnboundKey v ->
+    fprintf buf "unbound key: %s" v
+  | UnboundValue v ->
+    fprintf buf "unbound value: %a" pp_print_value v
+  | UnboundFun v ->
+    fprintf buf "unbound function: %a" Lm_symbol.pp_print_symbol v
+  | UnboundMethod vl ->
+    fprintf buf "unbound method: %a" pp_print_method_name vl
+  | UnboundFieldVar (obj, v) ->
+    fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" Lm_symbol.pp_print_symbol v;
+    Lm_symbol.SymbolTable.iter (fun v _ ->
+      fprintf buf "@ %a" Lm_symbol.pp_print_symbol v) (Omake_value_type.venv_get_class obj);
+    fprintf buf "@]@]"
+  | ArityMismatch (len1, len2) ->
+    fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
+  | NotImplemented s ->
+    fprintf buf "not implemented: %s" s
+  | NullCommand ->
+    pp_print_string buf "invalid null command"
 
-    | String s ->
-         pp_print_string buf s
 
-    | Value v ->
-         pp_print_value buf v
 
-    | Error e ->
-         pp_print_exn buf e
 
-(*
- * Exception printer.
- *)
-and pp_print_exn buf = function
-   SyntaxError s ->
-      fprintf buf "syntax error: %s" s
- | StringAstError (s, e) ->
-      fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
- | StringError s ->
-      pp_print_string buf s
- | StringIntError (s, i) ->
-      fprintf buf "%s: %d" s i
- | StringStringError (s1, s2) ->
-      fprintf buf "%s: %s" s1 s2
- | StringVarError (s, v) ->
-      fprintf buf "%s: %a" s pp_print_symbol v
- | StringMethodError (s, v) ->
-      fprintf buf "%s: %a" s pp_print_method_name v
- | StringDirError (s, n)->
-      fprintf buf "%s: %a" s pp_print_dir n
- | StringNodeError (s, n)->
-      fprintf buf "%s: %a" s pp_print_node n
- | StringValueError (s, v) ->
-      fprintf buf "@[<hv 3>%s:@ %a@]" s pp_print_value v
- | StringTargetError (s, t) ->
-      fprintf buf "%s: %a" s pp_print_target t
- | LazyError printer ->
-      printer buf
- | UnboundVar v ->
-      fprintf buf "unbound variable: %a" pp_print_symbol v
- | UnboundVarInfo v ->
-      fprintf buf "unbound variable: %a" pp_print_var_info v
- | UnboundKey v ->
-      fprintf buf "unbound key: %s" v
- | UnboundValue v ->
-      fprintf buf "unbound value: %a" pp_print_value v
- | UnboundFun v ->
-      fprintf buf "unbound function: %a" pp_print_symbol v
- | UnboundMethod vl ->
-      fprintf buf "unbound method: %a" pp_print_method_name vl
- | UnboundFieldVar (obj, v) ->
-      fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" pp_print_symbol v;
-      SymbolTable.iter (fun v _ ->
-            fprintf buf "@ %a" pp_print_symbol v) (venv_get_class obj);
-      fprintf buf "@]@]"
- | ArityMismatch (len1, len2) ->
-      fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
- | NotImplemented s ->
-      fprintf buf "not implemented: %s" s
- | NullCommand ->
-      pp_print_string buf "invalid null command"
 
-(************************************************************************
- * Positions.
- *)
-module type NameSig =
-sig
-   val name : string
-end
-
-module MakePos (Name : NameSig) : PosSig =
+module MakePos (Name : sig val name : string end) : Omake_value_type.PosSig =
 struct
-  module Pos = Lm_position.MakePos 
+  include Lm_position.MakePos 
       (struct
-      type t = item
-
-      let name = Name.name
-
-      let loc_of_value = loc_of_item
-      let pp_print_value = pp_print_item
-   end
+        type t = Omake_value_type.item
+        let name = Name.name
+        let loc_of_value = loc_of_item
+        let pp_print_value = pp_print_item
+      end
       )
+  let loc_pos_pos loc pos =
+    cons_pos (Location loc) pos
 
-   include Pos
-
-   let loc_pos_pos loc pos =
-      cons_pos (Location loc) pos
-
-   let ast_exp_pos e    = base_pos (AstExp e)
-   let ir_exp_pos e     = base_pos (IrExp e)
-   let var_exp_pos v    = base_pos (Symbol v)
-   let string_exp_pos s = base_pos (String s)
-   let value_exp_pos v  = base_pos (Value v)
-   let var_pos          = symbol_pos
-   let value_pos v pos  = cons_pos (Value v) pos
-   let error_pos e pos  = cons_pos (Error e) pos
+  let ast_exp_pos e    = base_pos (AstExp e)
+  let ir_exp_pos e     = base_pos (IrExp e)
+  let var_exp_pos v    = base_pos (Symbol v)
+  let string_exp_pos s = base_pos (String s)
+  let value_exp_pos v  = base_pos (Value v)
+  let var_pos          = symbol_pos
+  let value_pos v pos  = cons_pos (Value v) pos
+  let error_pos e pos  = cons_pos (Error e) pos
 end
 
-module Pos = MakePos (struct let name = "Omake_env" end)
 
 
-(*
- * -*-
- * Local Variables:
- * Fill-column: 100
- * End:
- * -*-
- * vim:ts=3:et:tw=100
- *)
+
