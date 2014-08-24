@@ -1,9 +1,5 @@
-open Lm_symbol
-open Lm_location
-
-open Omake_ast
-
-let loc_of_exp = function
+let loc_of_exp (e : Omake_ast.exp) = 
+  match e with 
   | NullExp loc
   | IntExp (_, loc)
   | FloatExp (_, loc)
@@ -41,15 +37,14 @@ let loc_of_exp = function
  *)
 let rec last vl =
   match vl with
-    [v] ->
-    v
+  | [v] -> v
   | _ :: vl ->
     last vl
-  | [] ->
-    raise (Invalid_argument "last")
+  | [] -> invalid_arg "last"
 
-let key_of_exp = function
-    NullExp _ ->
+let key_of_exp (e : Omake_ast.exp ) = 
+  match e with 
+  | NullExp _ ->
     "null"
   | IntExp _
   | FloatExp _
@@ -95,16 +90,17 @@ let key_of_exp = function
  * If there is no elision, then the body is added as the
  * first argument.
  *)
-let is_elide_exp = function
-    StringOpExp ("...", _)
+let is_elide_exp (e : Omake_ast.exp) = 
+  match e with 
+  | StringOpExp ("...", _)
   | StringOpExp ("[...]", _) ->
     true
   | _ ->
     false
 
-let add_elide_code _loc code1 code2 =
+let add_elide_code _loc (code1 : Omake_ast.body_flag) (code2  : Omake_ast.body_flag) =
   match code1, code2 with
-    NoBody, code
+  | NoBody, code
   | code, NoBody ->
     code
   | OptBody, code
@@ -117,35 +113,35 @@ let add_elide_code _loc code1 code2 =
       raise (Invalid_argument "conflicting elisions")
 
 let scan_elide_args code args =
-  List.fold_left (fun code arg ->
-      let arg =
-        match arg with
-          KeyArg (_, e)
-        | ExpArg e
-        | ArrowArg (_, e) ->
-          Some e
-      in
+  List.fold_left (fun code (arg : Omake_ast.arg) ->
+    let arg =
       match arg with
-        Some (StringOpExp ("...", loc)) ->
-        add_elide_code loc code ColonBody
-      | Some (StringOpExp ("[...]", loc)) ->
-        add_elide_code loc code ArrayBody
-      | _ ->
-        code) code args
+      | KeyArg (_, e)
+      | ExpArg e
+      | ArrowArg (_, e) ->
+        Some e
+    in
+    match arg with
+    | Some (StringOpExp ("...", loc)) ->
+      add_elide_code loc code ColonBody
+    | Some (StringOpExp ("[...]", loc)) ->
+      add_elide_code loc code ArrayBody
+    | _ ->
+      code) code args
 
-let scan_body_flag code e =
+let scan_body_flag code (e : Omake_ast.exp) =
   match e with
-    ApplyExp (_, _, args, _)
+  | ApplyExp (_, _, args, _)
   | SuperApplyExp (_, _, _, args, _)
   | MethodApplyExp (_, _, args, _) ->
     scan_elide_args code args
   | _ ->
     code
 
-let update_body_args loc code body args =
-  let body =
+let update_body_args loc (code : Omake_ast.body_flag) body args =
+  let body : Omake_ast.exp=
     match code with
-      NoBody
+    | NoBody
     | OptBody
     | ColonBody ->
       BodyExp (body, loc)
@@ -153,26 +149,26 @@ let update_body_args loc code body args =
       ArrayExp (body, loc)
   in
   let rev_args, found =
-    List.fold_left (fun (args, found) arg ->
-        let arg, found =
-          match arg with
-            KeyArg (v, e) ->
-            if is_elide_exp e then
-              KeyArg (v, body), true
-            else
-              arg, found
-          | ExpArg e ->
-            if is_elide_exp e then
-              ExpArg body, true
-            else
-              arg, found
-          | ArrowArg (params, e) ->
-            if is_elide_exp e then
-              ArrowArg (params, body), true
-            else
-              arg, found
-        in
-        arg :: args, found) ([], false) args
+    List.fold_left (fun (args, found) (arg : Omake_ast.arg) ->
+      let arg, found =
+        match arg with
+        | KeyArg (v, e) ->
+          if is_elide_exp e then
+            Omake_ast.KeyArg (v, body), true
+          else
+            arg, found
+        | ExpArg e ->
+          if is_elide_exp e then
+            ExpArg body, true
+          else
+            arg, found
+        | ArrowArg (params, e) ->
+          if is_elide_exp e then
+            ArrowArg (params, body), true
+          else
+            arg, found
+      in
+      arg :: args, found) ([], false) args
   in
   let args = List.rev rev_args in
   if found then
@@ -185,9 +181,9 @@ let update_body_args loc code body args =
  * If there is no elision, then the body is added as the
  * first argument.
  *)
-let update_body_exp e code body =
-  match e with
-    NullExp _
+let update_body_exp e code body : Omake_ast.exp =
+  match (e : Omake_ast.exp) with
+  | NullExp _
   | IntExp _
   | FloatExp _
   | StringOpExp _
@@ -229,9 +225,9 @@ let update_body_exp e code body =
   | CatchExp (name, v, _, loc) ->
     CatchExp (name, v, body, loc)
 
-let update_body e code body =
+let update_body e (code : Omake_ast.body_flag) body =
   match code, body with
-    NoBody, []
+  | NoBody, []
   | OptBody, []
   | ColonBody, [] ->
     e
@@ -255,11 +251,11 @@ let continue_commands =
 
 let continue_syms =
   List.fold_left (fun set (s1, s2) ->
-      SymbolTable.add set (Lm_symbol.add s1) s2) SymbolTable.empty continue_commands
+    Lm_symbol.SymbolTable.add set (Lm_symbol.add s1) s2) Lm_symbol.SymbolTable.empty continue_commands
 
-let can_continue e =
+let can_continue (e : Omake_ast.exp) =
   match e with
-    NullExp _
+  | NullExp _
   | IntExp _
   | FloatExp _
   | StringIdExp _
@@ -291,16 +287,16 @@ let can_continue e =
   | CatchExp _ ->
     Some "catch"
   | CommandExp (v, _, _, _) ->
-    try Some (SymbolTable.find continue_syms v) with
+    try Some (Lm_symbol.SymbolTable.find continue_syms v) with
       Not_found ->
       None
 
 (************************************************************************
  * Sequence flattening.
 *)
-let rec flatten_exp e =
+let rec flatten_exp (e : Omake_ast.exp) =
   match e with
-    NullExp _
+  | NullExp _
   | IntExp _
   | FloatExp _
   | ClassExp _
@@ -343,11 +339,11 @@ let rec flatten_exp e =
     FunDefExp (vl, flatten_param_list params, flatten_body el, loc)
   | RuleExp (multiple, target, pattern, options, body, loc) ->
     RuleExp (multiple,
-             flatten_exp target,
-             flatten_exp pattern,
-             flatten_table_exp options,
-             flatten_body body,
-             loc)
+        flatten_exp target,
+        flatten_exp pattern,
+        flatten_table_exp options,
+        flatten_body body,
+        loc)
   | BodyExp (el, loc) ->
     BodyExp (flatten_body el, loc)
   | CatchExp (v1, v2, el, loc) ->
@@ -362,8 +358,9 @@ let rec flatten_exp e =
 and flatten_exp_list el =
   List.map flatten_exp el
 
-and flatten_arg = function
-    KeyArg (v, e) ->
+and flatten_arg  (arg : Omake_ast.arg) : Omake_ast.arg =
+  match arg with 
+  | KeyArg (v, e) ->
     KeyArg (v, flatten_exp e)
   | ExpArg e ->
     ExpArg (flatten_exp e)
@@ -373,8 +370,9 @@ and flatten_arg = function
 and flatten_arg_list args =
   List.map flatten_arg args
 
-and flatten_param = function
-    OptionalParam (v, e, loc) ->
+and flatten_param (param : Omake_ast.param) : Omake_ast.param = 
+  match param with 
+  | OptionalParam (v, e, loc) ->
     OptionalParam (v, flatten_exp e, loc)
   | RequiredParam _
   | NormalParam _ as param ->
@@ -384,11 +382,11 @@ and flatten_param_list params =
   List.map flatten_param params
 
 and flatten_table_exp table =
-  SymbolTable.map flatten_exp table
+  Lm_symbol.SymbolTable.map flatten_exp table
 
-and flatten_body_kind kind el =
+and flatten_body_kind (kind : Omake_ast.define_kind) el =
   match kind with
-    DefineString ->
+  | DefineString ->
     flatten_body el
   | DefineArray ->
     flatten_exp_list el
@@ -396,15 +394,15 @@ and flatten_body_kind kind el =
 and flatten_body el =
   flatten_body_aux [] el []
 
-and flatten_body_aux items el ell =
+and flatten_body_aux items (el : Omake_ast.exp list) (ell : Omake_ast.exp list list) =
   match el, ell with
-    [], [] ->
+  | [], [] ->
     List.rev items
   | [], el :: ell ->
     flatten_body_aux items el ell
   | e :: el, _ ->
     match e with
-      SequenceExp (el2, _) ->
+    |  SequenceExp (el2, _) ->
       flatten_body_aux items el2 (el :: ell)
     | NullExp _ ->
       flatten_body_aux items el ell
@@ -417,9 +415,9 @@ let flatten_sequence_prog = flatten_body
 (************************************************************************
  * String flattening.
 *)
-let rec string_exp e =
+let rec string_exp (e : Omake_ast.exp) =
   match e with
-    NullExp _
+  | NullExp _
   | IntExp _
   | FloatExp _
   | ClassExp _
@@ -463,11 +461,11 @@ let rec string_exp e =
     FunDefExp (vl, string_param_list params, string_body el, loc)
   | RuleExp (multiple, target, pattern, options, body, loc) ->
     RuleExp (multiple,
-             string_exp target,
-             string_exp pattern,
-             string_table_exp options,
-             string_body body,
-             loc)
+        string_exp target,
+        string_exp pattern,
+        string_table_exp options,
+        string_body body,
+        loc)
   | BodyExp (el, loc) ->
     BodyExp (string_body el, loc)
   | CatchExp (v1, v2, el, loc) ->
@@ -485,8 +483,9 @@ and string_exp_list el =
 and string_body el =
   string_exp_list el
 
-and string_arg = function
-    KeyArg (v, e) ->
+and string_arg (arg : Omake_ast.arg) : Omake_ast.arg = 
+  match arg with 
+  | KeyArg (v, e) ->
     KeyArg (v, string_exp e)
   | ExpArg e ->
     ExpArg (string_exp e)
@@ -496,8 +495,9 @@ and string_arg = function
 and string_arg_list args =
   List.map string_arg args
 
-and string_param = function
-    OptionalParam (v, e, loc) ->
+and string_param (param : Omake_ast.param) : Omake_ast.param = 
+  match param with 
+  | OptionalParam (v, e, loc) ->
     OptionalParam (v, string_exp e, loc)
   | RequiredParam _
   | NormalParam _ as param ->
@@ -507,11 +507,11 @@ and string_param_list params =
   List.map string_param params
 
 and string_table_exp table =
-  SymbolTable.map string_exp table
+  Lm_symbol.SymbolTable.map string_exp table
 
-and string_sequence_exp el loc =
+and string_sequence_exp el loc : Omake_ast.exp  =
   match flatten_string_list_exp el with
-    [] ->
+  | [] ->
     NullExp loc
   | [e] ->
     e
@@ -522,10 +522,10 @@ and flatten_string_list_exp el =
   let buf = Buffer.create 32 in
 
   (* Flush the buffer *)
-  let flush_buffer buf_opt args =
+  let flush_buffer buf_opt (args : Omake_ast.exp list) : Omake_ast.exp list =
     match buf_opt with
-      Some loc ->
-      let args = StringOtherExp (Buffer.contents buf, loc) :: args in
+    | Some loc ->
+      let args = Omake_ast.StringOtherExp (Buffer.contents buf, loc) :: args in
       Buffer.clear buf;
       args
     | None ->
@@ -536,15 +536,15 @@ and flatten_string_list_exp el =
   let add_string buf_opt s loc =
     Buffer.add_string buf s;
     match buf_opt with
-      Some loc' ->
-      let loc = union_loc loc' loc in
+    | Some loc' ->
+      let loc =  Lm_location.union_loc loc' loc in
       Some loc
     | None ->
       Some loc
   in
 
   (* Collect all the strings in the sequence *)
-  let rec collect buf_opt args el ell =
+  let rec collect buf_opt args (el : Omake_ast.exp list) (ell : Omake_ast.exp list list) =
     match el, ell with
     | [], [] ->
       List.rev (flush_buffer buf_opt args)
@@ -593,12 +593,3 @@ and flatten_string_list_exp el =
 
 let flatten_string_prog = string_exp_list
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
-*)

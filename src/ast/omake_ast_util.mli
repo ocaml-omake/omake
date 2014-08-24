@@ -1,21 +1,12 @@
 
 
-open Omake_ast
 
-val loc_of_exp : exp -> Lm_location.loc
-val key_of_exp : exp -> string
-val scan_body_flag : body_flag -> exp -> body_flag
-val update_body : exp -> body_flag -> exp list -> exp
-val can_continue : exp -> string option
-val flatten_sequence_prog : prog -> prog
-val flatten_string_prog   : prog -> prog
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
+val loc_of_exp : Omake_ast.exp -> Lm_location.loc
+val key_of_exp : Omake_ast.exp -> string
+val scan_body_flag : Omake_ast.body_flag -> Omake_ast.exp -> Omake_ast.body_flag
+val update_body : Omake_ast.exp -> Omake_ast.body_flag -> Omake_ast.exp list -> Omake_ast.exp
+val can_continue : Omake_ast.exp -> string option
+val flatten_sequence_prog : Omake_ast.prog -> Omake_ast.prog
+val flatten_string_prog   : Omake_ast.prog -> Omake_ast.prog
+
