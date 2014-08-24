@@ -1,17 +1,5 @@
-open Lm_printf
-open Lm_location
 
-open Omake_env
-open Omake_pos
-
-open Omake_node_sig
-open Omake_value_type
-
-open Omake_builtin_util
-
-
-include MakePos (struct let name = "Omake_builtin" end)
-
+include Omake_pos.MakePos (struct let name = "Omake_builtin" end)
 
 let object_sym = Lm_symbol.add "Object"
 
@@ -70,13 +58,13 @@ let wrap_normal_prim_fun f venv pos loc args kargs =
     [] ->
       venv, f venv pos loc args
   | (v, _) :: _ ->
-      raise (OmakeException (loc_pos loc pos, StringVarError ("no such parameter", v)))
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("no such parameter", v)))
 
 (*
  * Add all the functions to the environment.
  *)
 let venv_add_builtins venv =
-  let loc = bogus_loc "<builtins>" in
+  let loc = Lm_location.bogus_loc "<builtins>" in
   let pos = string_pos "venv_add_builtins" (loc_exp_pos loc) in
   match get_registered_builtins () with 
     { builtin_vars ;
@@ -88,65 +76,65 @@ let venv_add_builtins venv =
       builtin_rules      
     } -> 
   (* Add only to the protected (current object) environment *)
-  let venv = venv_add_phony venv loc (List.map (fun s -> TargetString s) phony_targets) in
+  let venv = Omake_env.venv_add_phony venv loc (List.map (fun s -> Omake_value_type.TargetString s) phony_targets) in
   let venv =
     List.fold_left (fun venv (special, s, f, arity) ->
       let name = Lm_symbol.add s in
       let (v : Omake_ir.var_info) = VarGlobal (loc, name) in
-      let p = venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
+      let p = Omake_env.venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
       let no_args   =
         match (arity : Omake_ir.arity) with
         | ArityExact 0 -> Omake_ir.ApplyEmpty
         | _ -> ApplyNonEmpty
       in
-      venv_add_var venv v (ValPrim (arity, special,no_args, p))) venv builtin_funs
+      Omake_env.venv_add_var venv v (ValPrim (arity, special,no_args, p))) venv builtin_funs
   in
   let venv =
     List.fold_left (fun venv (special, s, f, arity) ->
       let name = Lm_symbol.add s in
       let (v : Omake_ir.var_info) = VarGlobal (loc, name) in
-      let p = venv_add_prim_fun venv name f in
+      let p = Omake_env.venv_add_prim_fun venv name f in
       let (no_args : Omake_ir.apply_empty_strategy)  =
         match (arity : Omake_ir.arity) with
         | ArityExact 0 -> ApplyEmpty
         | _ -> ApplyNonEmpty
       in
-      venv_add_var venv v (ValPrim (arity, special,no_args,  p))) venv builtin_kfuns
+      Omake_env.venv_add_var venv v (ValPrim (arity, special,no_args,  p))) venv builtin_kfuns
   in
   let venv =
     List.fold_left (fun venv (multiple, targets, sources) ->
-      let targets = List.map (fun name -> TargetString name) targets in
-      let sources = List.map (fun source -> NodeNormal, TargetString source) sources in
-      let multiple =
+      let targets = List.map (fun name -> Omake_value_type.TargetString name) targets in
+      let sources = List.map (fun source -> Omake_node_sig.NodeNormal, Omake_value_type.TargetString source) sources in
+      let multiple : Omake_value_type.rule_multiple =
         if multiple then
           RuleMultiple
         else
           RuleSingle
       in
-      let venv, _ = venv_add_rule venv pos loc multiple targets [] [] sources [] [] [] in
+      let venv, _ = Omake_env.venv_add_rule venv pos loc multiple targets [] [] sources [] [] [] in
       venv) venv builtin_rules
   in
 
   (* Add the Object object *)
-  let obj = venv_empty_object in
+  let obj = Omake_env.venv_empty_object in
 
   (* Add values to each of the primitive objects *)
   let venv =
     List.fold_left (fun venv (s, v, x) ->
-      let obj = venv_add_field_internal obj v x in
-      venv_add_var venv (VarGlobal (loc, Lm_symbol.add s)) 
+      let obj = Omake_env.venv_add_field_internal obj v x in
+      Omake_env.venv_add_var venv (VarGlobal (loc, Lm_symbol.add s)) 
         (ValObject obj)) venv builtin_objects
   in
   let venv =
     List.fold_left (fun venv s ->
-      venv_add_var venv (VarGlobal (loc, Lm_symbol.add s))
+      Omake_env.venv_add_var venv (VarGlobal (loc, Lm_symbol.add s))
         (ValObject obj)) venv pervasives_objects
   in
 
   (* Add the variables last *)
   let venv =
     List.fold_left (fun venv (s, v) ->
-      venv_add_var venv (VarGlobal (loc, Lm_symbol.add s))
+      Omake_env.venv_add_var venv (VarGlobal (loc, Lm_symbol.add s))
         (v venv)) venv builtin_vars
   in
   venv
@@ -155,12 +143,12 @@ let venv_add_builtins venv =
  * Add the Pervasives module.
  *)
 let venv_add_pervasives venv =
-  let loc = bogus_loc "Omake_builtin" in
+  let loc = Lm_location.bogus_loc "Omake_builtin" in
   let pos = string_pos "venv_add_pervasives" (loc_exp_pos loc) in
-  let () = venv_set_pervasives venv in
-  let obj = object_of_file venv pos loc "Pervasives" in
-  let venv = venv_flatten_object venv obj in
-  venv_set_pervasives venv;
+  let () = Omake_env.venv_set_pervasives venv in
+  let obj = Omake_builtin_util.object_of_file venv pos loc "Pervasives" in
+  let venv = Omake_env.venv_flatten_object venv obj in
+  Omake_env.venv_set_pervasives venv;
   venv
 
 (*
@@ -168,14 +156,14 @@ let venv_add_pervasives venv =
  *)
 let venv_include_rc_file venv name =
   if Sys.file_exists name then
-    let node = venv_intern venv PhonyProhibited name in
+    let node = Omake_env.venv_intern venv PhonyProhibited name in
     try
-      let loc = bogus_loc (Filename.basename name) in
+      let loc = Lm_location.bogus_loc (Filename.basename name) in
       let pos = string_pos "create_venv" (loc_exp_pos loc) in
       Omake_eval.include_file venv IncludePervasives pos loc node
     with
       exn ->
-        eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+        Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
         venv
   else
     venv

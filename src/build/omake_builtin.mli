@@ -1,10 +1,9 @@
-open Omake_env
-open Omake_builtin_type
+
 
 (*
  * Register some builtin info.
  *)
-val register_builtin : builtin_info -> unit
+val register_builtin : Omake_builtin_type.builtin_info -> unit
 
 (*
  * Add a command line variable definition.
@@ -19,21 +18,12 @@ val command_defs_are_nonempty : unit -> bool
 (*
  * Add all the command-line defs to the encironment.
  *)
-val venv_add_command_defs : venv -> venv
+val venv_add_command_defs : Omake_env.venv -> Omake_env.venv
 
 (*
  * Builtin functions.
  *)
-val venv_add_builtins : venv -> venv
-val venv_add_pervasives : venv -> venv
-val venv_include_rc_file : venv -> string -> venv
+val venv_add_builtins : Omake_env.venv -> Omake_env.venv
+val venv_add_pervasives : Omake_env.venv -> Omake_env.venv
+val venv_include_rc_file : Omake_env.venv -> string -> Omake_env.venv
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

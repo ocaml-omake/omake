@@ -1,12 +1,3 @@
-open Lm_location
-
-
-open Omake_env
-open Omake_node
-
-open Omake_exec_util
-open Omake_cache_type
-open Omake_command_type
 
 (*
  * Magic number for marshaling.
@@ -46,7 +37,7 @@ let magic_number = ""
  *    - Only one of the Succeeded or Failed states is assigned
  *)
 type command_state =
-    CommandIdle
+  | CommandIdle
   | CommandInitial
   | CommandScanBlocked
   | CommandScannedPending
@@ -55,7 +46,7 @@ type command_state =
   | CommandReady
   | CommandPending
   | CommandRunning of Omake_exec_id.t * string option
-  | CommandSucceeded of NodeSet.t NodeTable.t
+  | CommandSucceeded of Omake_node.NodeSet.t Omake_node.NodeTable.t
   | CommandFailed of int
 
 type command_tag =
@@ -82,9 +73,10 @@ type command_tag =
  *)
 type command_body =
     CommandNone
-  | CommandInfo of command_info list
-  | CommandLines of command_info list * arg_command_line list * command_digest
-  | CommandScanner of command_info list * NodeSet.t * arg_command_line list * command_digest
+  | CommandInfo of Omake_env.command_info list
+  | CommandLines of Omake_env.command_info list * Omake_env.arg_command_line list * Omake_command_type.command_digest
+  | CommandScanner of Omake_env.command_info list * Omake_node.NodeSet.t * 
+    Omake_env.arg_command_line list * Omake_command_type.command_digest
 
 (*
  * The command.
@@ -109,31 +101,31 @@ type command_body =
  *        is blocked
  *)
 type command =
-    { command_venv                       : venv;
-      mutable command_state              : command_state;
-      command_target                     : Node.t;
-      mutable command_effects            : NodeSet.t;
-      command_locks                      : NodeSet.t;
-      command_loc                        : loc;
+  { command_venv                       : Omake_env.venv;
+    mutable command_state              : command_state;
+    command_target                     : Omake_node.Node.t;
+    mutable command_effects            : Omake_node.NodeSet.t;
+    command_locks                      : Omake_node.NodeSet.t;
+    command_loc                        : Lm_location.loc;
 
-      (* Scanners for this command *)
-      command_scanner_deps               : NodeSet.t;
+    (* Scanners for this command *)
+    command_scanner_deps               : Omake_node.NodeSet.t;
 
-      (* Static deps from the OMakefiles *)
-      command_static_deps                : NodeSet.t;
+    (* Static deps from the OMakefiles *)
+    command_static_deps                : Omake_node.NodeSet.t;
 
-      (* Actual dynamic dependencies *)
-      mutable command_build_deps         : NodeSet.t;
-      mutable command_blocked            : Node.t list;
-      mutable command_lines              : command_body;
+    (* Actual dynamic dependencies *)
+    mutable command_build_deps         : Omake_node.NodeSet.t;
+    mutable command_blocked            : Omake_node.Node.t list;
+    mutable command_lines              : command_body;
 
-      (* Output tees *)
-      mutable command_tee                : tee;
+    (* Output tees *)
+    mutable command_tee                : Omake_exec_util.tee;
 
-      (* Linked list *)
-      mutable command_pred               : command option ref;
-      command_succ                       : command option ref
-    }
+    (* Linked list *)
+    mutable command_pred               : command option ref;
+    command_succ                       : command option ref
+  }
 
 (*
  * The environment remembers all the commands.  In addition
@@ -153,70 +145,61 @@ type command =
  *    env_idle_count: number of idle processors
  *)
 type env_wl =
-    { env_idle_wl                    : command option ref;
-      env_initial_wl                 : command option ref;
-      env_scan_blocked_wl            : command option ref;
-      env_scanned_pending_wl         : command option ref;
-      env_scanned_wl                 : command option ref;
-      env_blocked_wl                 : command option ref;
-      env_ready_wl                   : command option ref;
-      env_pending_wl                 : command option ref;
-      env_running_wl                 : command option ref;
-      env_succeeded_wl               : command option ref;
-      env_failed_wl                  : command option ref
-    }
+  { env_idle_wl                    : command option ref;
+    env_initial_wl                 : command option ref;
+    env_scan_blocked_wl            : command option ref;
+    env_scanned_pending_wl         : command option ref;
+    env_scanned_wl                 : command option ref;
+    env_blocked_wl                 : command option ref;
+    env_ready_wl                   : command option ref;
+    env_pending_wl                 : command option ref;
+    env_running_wl                 : command option ref;
+    env_succeeded_wl               : command option ref;
+    env_failed_wl                  : command option ref
+  }
 
 type env =
-    { env_venv                       : venv;
-      env_cwd                        : Dir.t;
-      env_cache                      : Omake_cache.t;
-      env_exec                       : exec;
-      mutable env_explicit_deps      : (NodeSet.t * NodeSet.t * NodeSet.t) NodeTable.t;
-      env_explicit_targets           : erule NodeTable.t;
-      env_explicit_directories       : venv DirTable.t;
-      mutable env_includes           : digest NodeTable.t;
+  { env_venv                       : Omake_env.venv;
+    env_cwd                        : Omake_node.Dir.t;
+    env_cache                      : Omake_cache.t;
+    env_exec                       : Omake_env.exec;
+    mutable env_explicit_deps      : (Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t) Omake_node.NodeTable.t;
+    env_explicit_targets           : Omake_env.erule Omake_node.NodeTable.t;
+    env_explicit_directories       : Omake_env.venv Omake_node.DirTable.t;
+    mutable env_includes           : Omake_cache_type.digest Omake_node.NodeTable.t;
 
-      (* Build state *)
-      mutable env_commands           : command NodeTable.t;
-      mutable env_inverse            : command NodeTable.t NodeTable.t;
-      mutable env_error_code         : int;
-      mutable env_idle_count         : int;
-      mutable env_print_dependencies : NodeSet.t;
+    (* Build state *)
+    mutable env_commands           : command Omake_node.NodeTable.t;
+    mutable env_inverse            : command Omake_node.NodeTable.t Omake_node.NodeTable.t;
+    mutable env_error_code         : int;
+    mutable env_idle_count         : int;
+    mutable env_print_dependencies : Omake_node.NodeSet.t;
 
-      (* Worklists *)
-      mutable env_current_wl         : env_wl;
-      env_main_wl                    : env_wl;
+    (* Worklists *)
+    mutable env_current_wl         : env_wl;
+    env_main_wl                    : env_wl;
 
-      (* Pending events *)
-      mutable env_pending_events     : Lm_notify.event Queue.t;
+    (* Pending events *)
+    mutable env_pending_events     : Lm_notify.event Queue.t;
 
-      (* Output files *)
-      env_summary                    : string;
+    (* Output files *)
+    env_summary                    : string;
 
-      (* Statistics *)
-      mutable env_succeeded_count    : int;
-      mutable env_optional_count     : int;
-      mutable env_scan_count         : int;
-      mutable env_scan_exec_count    : int;
-      mutable env_rule_count         : int;
-      mutable env_rule_exec_count    : int
-    }
+    (* Statistics *)
+    mutable env_succeeded_count    : int;
+    mutable env_optional_count     : int;
+    mutable env_scan_count         : int;
+    mutable env_scan_exec_count    : int;
+    mutable env_rule_count         : int;
+    mutable env_rule_exec_count    : int
+  }
 
 (*
  * Helper type for determining how to build a command
  * from a rule.
  *)
 type explicit_rule =
-    ExplicitTarget of erule
-  | ExplicitDirectory of venv
+  | ExplicitTarget of Omake_env.erule
+  | ExplicitDirectory of Omake_env.venv
   | ExplicitNone
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
