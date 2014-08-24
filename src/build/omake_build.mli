@@ -26,9 +26,3 @@ val command_fold   :
 val build : Omake_options.t -> string -> string list -> unit
 val build_fun : Omake_env.venv -> string list -> bool
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
