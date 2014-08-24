@@ -121,9 +121,3 @@ val values_of_value  : Omake_env.venv -> Omake_value_type.pos -> Omake_value_typ
 val strings_of_value : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> string list
 val bool_of_value    : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> bool
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

@@ -1,7 +1,7 @@
 (*  Predefined set of functions. *)
 
 
-open Omake_value_type
+(* open Omake_value_type *)
 
 
 
@@ -56,7 +56,7 @@ let param_loc = Lm_location.bogus_loc "Omake_eval.param"
  * Utilities.
 *)
 let raise_uncaught_exception pos = function
-    Sys.Break
+  | Sys.Break
   | Omake_value_type.OmakeException _
   | Omake_value_type.OmakeFatal _
   | Omake_value_type.OmakeFatalErr _
@@ -169,7 +169,7 @@ let rec is_array_value (v : Omake_value_type.value) =
  *)
 type partial_arity =
   | FullArity    of Omake_value_type.value list * Omake_value_type.value list
-  | PartialArity of Omake_ir.arity * value list
+  | PartialArity of Omake_ir.arity * Omake_value_type.value list
 
 let rec concat_n_args args1 args2 n =
   if n = 0 then
@@ -246,13 +246,13 @@ let rec parse_ir venv scope node =
  *    values  : the path
  *    dirname : the subdirectory to search (often ".")
  *)
-and path_of_values_select venv pos values dirname =
-  let rec collect groups auto_rehash items values =
+and path_of_values_select venv pos (values : Omake_value_type.value list) dirname =
+  let rec collect groups auto_rehash items (values : Omake_value_type.value list) =
     match values with
-      v :: values ->
+    | v :: values ->
       let rehash_flag, dir =
         match v with
-          ValDir dir ->
+        | ValDir dir ->
           false, dir
         | ValNode _ ->
           let dir = Omake_env.venv_intern_dir venv (string_of_value venv pos v) in
@@ -280,10 +280,10 @@ and path_of_values_select venv pos values dirname =
   List.rev (collect [] false [] values)
 
 and path_of_values_rehash venv pos values dirname =
-  let dir_of_value v =
+  let dir_of_value (v : Omake_value_type.value) =
     let dir =
       match v with
-        ValDir dir ->
+      | ValDir dir ->
         dir
       | _ ->
         Omake_env.venv_intern_dir venv (string_of_value venv pos v)
@@ -329,7 +329,7 @@ and find_include_file venv pos loc filename =
             Omake_node.pp_print_node node1
             Omake_node.pp_print_node node2
         in
-        raise (OmakeException (loc_pos loc pos, LazyError print_error))
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, LazyError print_error))
   else
     let dirname = Filename.dirname filename in
     let basename = Filename.basename filename in
@@ -342,7 +342,7 @@ and find_include_file venv pos loc filename =
     try
       match Omake_cache.listing_find cache listing fullname with
         DirEntry dir ->
-        raise (OmakeException (loc_pos loc pos, StringDirError ("is a directory", dir)))
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringDirError ("is a directory", dir)))
       | NodeEntry node ->
         node
     with
@@ -350,7 +350,7 @@ and find_include_file venv pos loc filename =
       try
         match Omake_cache.listing_find cache listing basename with
           DirEntry dir ->
-          raise (OmakeException (loc_pos loc pos, StringDirError ("is a directory", dir)))
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringDirError ("is a directory", dir)))
         | NodeEntry node ->
           node
       with
@@ -360,7 +360,7 @@ and find_include_file venv pos loc filename =
             filename
             Omake_value_print.pp_print_value_list full_path
         in
-        raise (OmakeException (loc_pos loc pos, LazyError print_error))
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, LazyError print_error))
 
 and open_ir venv filename pos loc =
   let pos = string_pos "open_ir" pos in
@@ -406,7 +406,7 @@ and compile_ir venv scope pos loc source =
                 *)
       try Omake_env.Static.read venv source (compile_ir_info venv scope pos loc source)
       with Not_found ->
-        raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open IR", source)))
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringNodeError ("can't open IR", source)))
     in
     Omake_env.venv_add_ir_file venv source ir;
     ir
@@ -446,7 +446,7 @@ and compile_object compile venv pos loc source =
                 *)
       try Omake_env.Static.read venv source (compile_object_info compile venv pos source)
       with Not_found ->
-        raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open object", source)))
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringNodeError ("can't open object", source)))
     in
     Omake_env.venv_add_object_file venv source obj;
     obj
@@ -459,13 +459,13 @@ and compile_object compile venv pos loc source =
  * Get the string representation of a value.
  * It not legal to convert an array to a string.
  *)
-and string_of_value venv pos v =
+and string_of_value venv pos (v : Omake_value_type.value) =
   let pos = string_pos "string_of_value" pos in
   let scratch_buf = Buffer.create 32 in
-  let rec collect v =
+  let rec collect (v : Omake_value_type.value) =
     match eval_prim_value venv pos v with
-      (* Values that expand to nothing *)
-      ValNone
+    (* Values that expand to nothing *)
+    | ValNone
     | ValFun _
     | ValFunCurry _
     | ValPrim _
@@ -501,7 +501,7 @@ and string_of_value venv pos v =
             succ index) 0 vl);
         Format.fprintf buf "@]@]@."
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
     | ValInt i ->
       Buffer.add_string scratch_buf (string_of_int i)
     | ValFloat x ->
@@ -517,8 +517,7 @@ and string_of_value venv pos v =
     | ValStringExp _
     | ValMaybeApply _
     | ValDelayed _ ->
-      raise (Invalid_argument "string_of_value")
-  in
+      raise (Invalid_argument "string_of_value")  in
   collect v;
   Buffer.contents scratch_buf
 
@@ -537,9 +536,9 @@ and string_of_quote venv pos c vl =
 and string_of_quote_buf scratch_buf venv pos vl =
   let pos = string_pos "string_of_quote_buf" pos in
   let rec collect v =
-    match eval_value venv pos v with
+    match (eval_value venv pos v : Omake_value_type.value) with
       (* Values that expand to nothing *)
-      ValNone
+    | ValNone
     | ValFun _
     | ValFunCurry _
     | ValPrim _
@@ -611,10 +610,10 @@ and values_of_value venv pos v =
   (*
     * Convert a catenable value to a string
     *)
-  let group tokens  = ValSequence tokens in
-  let wrap_string s = ValString s in
-  let wrap_data s   = ValData s in
-  let wrap_token s  = ValData s in
+  let group tokens : Omake_value_type.value  = ValSequence tokens in
+  let wrap_string s : Omake_value_type.value = ValString s in
+  let wrap_data s   : Omake_value_type.value = ValData s in
+  let wrap_token s  : Omake_value_type.value = ValData s in
   let lexer _ _ _   = None in
   let tokens = Lm_string_util.tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group in
 
@@ -622,16 +621,17 @@ and values_of_value venv pos v =
     * Array elements are always separate values.
     * The arrays are flattened.
     *)
-  let rec collect_array tokens vl vll =
+  let rec collect_array tokens (vl : Omake_value_type.value list) vll =
     match vl, vll with
-      v :: vl, _ ->
-      (match eval_value venv pos v with
+    | v :: vl, _ ->
+      begin match eval_value venv pos v with
         ValArray el ->
         collect_array tokens el (vl :: vll)
       | ValSequence [v] ->
         collect_array tokens (v :: vl) vll
       | v ->
-        collect_array (Lm_string_util.tokens_atomic tokens v) vl vll)
+        collect_array (Lm_string_util.tokens_atomic tokens v) vl vll
+      end
     | [], vl :: vll ->
       collect_array tokens vl vll
     | [], [] ->
@@ -645,10 +645,10 @@ and values_of_value venv pos v =
     *)
   let rec collect tokens vl vll =
     match vl, vll with
-      v :: vl, _ ->
-      let v = eval_catenable_value venv pos v in
-      (match v with
-        ValNone ->
+    | v :: vl, _ ->
+      let v : Omake_value_type.value = eval_catenable_value venv pos v in
+      begin match v with
+      | ValNone ->
         collect tokens vl vll
 
       (* Strings *)
@@ -688,7 +688,8 @@ and values_of_value venv pos v =
       | ValStringExp _
       | ValMaybeApply _
       | ValDelayed _ ->
-        raise (OmakeException (pos, StringValueError ("illegal application", v))))
+        raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal application", v)))
+      end
     | [], vl :: vll ->
       collect tokens vl vll
     | [], [] ->
@@ -792,7 +793,7 @@ and tokens_of_value venv pos lexer v =
       | ValStringExp _
       | ValMaybeApply _
       | ValDelayed _ ->
-        raise (OmakeException (pos, StringValueError ("illegal application", v))))
+        raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal application", v))))
     | [], vl :: vll ->
       collect tokens vl vll
     | [], [] ->
@@ -864,7 +865,7 @@ and arg_of_values venv pos vl =
       | ValStringExp _
       | ValMaybeApply _
       | ValDelayed _ ->
-        raise (OmakeException (pos, StringValueError ("illegal application", v))))
+        raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal application", v))))
     | [], vl :: vll ->
       collect is_quoted tokens vl vll
     | [], [] ->
@@ -936,13 +937,13 @@ and file_of_value venv pos file =
   | ValVar _
   | ValDelayed _
   | ValOther _ ->
-    raise (OmakeException (pos, StringError "illegal value"))
+    raise (Omake_value_type.OmakeException (pos, StringError "illegal value"))
 
 (*
  * Be lazy about concatenating arrays, to
  * avoid quadratic behavior.
  *)
-and append_arrays venv pos a1 a2 =
+and append_arrays venv pos a1 a2 : Omake_value_type.value  =
   if is_array_value a1 then
     if is_array_value a2 then
       ValArray [a1; a2]
@@ -990,8 +991,8 @@ and eval_value_static venv pos key v =
           Not_found ->
           (* Finally, if we don't have a value, evaluate the rule.
            * Prevent recursive calls *)
-          let () = Omake_env.venv_set_static_info venv key (StaticValue empty_obj) in
-          let venv, v = eval_exp venv ValNone e in
+          let () = Omake_env.venv_set_static_info venv key (StaticValue Omake_value_type.empty_obj) in
+          let venv, v = eval_exp venv Omake_value_type.ValNone e in
           let obj = eval_object venv pos v in
           Omake_cache.add_value cache key srule_static deps digest (MemoSuccess obj);
           obj
@@ -1001,9 +1002,9 @@ and eval_value_static venv pos key v =
   in
   Omake_env.venv_find_field_internal obj pos v
 
-and eval_value_delayed venv pos p =
+and eval_value_delayed venv pos (p : Omake_value_type.value_delayed ref) =
   match !p with
-    ValValue v ->
+  | ValValue v ->
     eval_value_core venv pos v
   | ValStaticApply (key, v) ->
     let v = eval_value_static venv pos key v in
@@ -1013,17 +1014,18 @@ and eval_value_delayed venv pos p =
 (*
  * Unfold the outermost application to get a real value.
  *)
-and eval_value_core venv pos v =
+and eval_value_core venv pos v : Omake_value_type.value =
   match v with
-    ValMaybeApply (loc, v) ->
+  | ValMaybeApply (loc, v) ->
     let v =
       try Some (Omake_env.venv_find_var_exn venv v) with
         Not_found ->
         None
     in
-    (match v with
-      Some v -> ValArray [eval_value_core venv pos (eval_var venv pos loc v)]
-    | None -> ValNone)
+    begin match v with
+    | Some v -> ValArray [eval_value_core venv pos (eval_var venv pos loc v)]
+    | None -> ValNone
+    end
   | ValDelayed p ->
     eval_value_delayed venv pos p
   | ValSequence [v] ->
@@ -1046,7 +1048,7 @@ and eval_single_value venv pos v =
   | _ ->
     v
 
-and eval_prim_value venv pos v =
+and eval_prim_value venv pos v : Omake_value_type.value =
   let pos = string_pos "eval_prim_value" pos in
   let v = eval_value venv pos v in
   match v with
@@ -1093,9 +1095,9 @@ and eval_catenable_value venv pos v =
  * Evaluate the value in a function body.
  * Expand all applications.
  *)
-and eval_body_value venv pos v =
-  match eval_value venv pos v with
-    ValSequence sl ->
+and eval_body_value venv pos v : Omake_value_type.value =
+  match (eval_value venv pos v : Omake_value_type.value) with
+  | ValSequence sl ->
     ValSequence (List.map (eval_body_value venv pos) sl)
   | ValArray sl ->
     ValArray (List.map (eval_body_value venv pos) sl)
@@ -1129,9 +1131,9 @@ and eval_body_value venv pos v =
   | ValDelayed _ ->
     raise (Invalid_argument "eval_body_value")
 
-and eval_body_exp venv pos x v =
-  match eval_value venv pos v with
-    ValSequence sl ->
+and eval_body_exp venv pos x v : (Omake_env.venv * Omake_value_type.value) =
+  match (eval_value venv pos v : Omake_value_type.value) with
+  | ValSequence sl ->
     venv, ValSequence (List.map (eval_body_value venv pos) sl)
   | ValArray sl ->
     venv, ValArray (List.map (eval_body_value venv pos) sl)
@@ -1172,9 +1174,9 @@ and eval_body_exp venv pos x v =
  *)
 and eval_var venv pos loc v =
   match v with
-    ValFun (env, _, [], body, _) ->
+  | ValFun (env, _, [], body, _) ->
     let venv = Omake_env.venv_with_env venv env in
-    let _, result = eval_sequence venv pos ValNone body in
+    let _, result = eval_sequence venv pos Omake_value_type.ValNone body in
     result
   | ValFunCurry (env, args, _, [], body, _, []) ->
     let venv = Omake_env.venv_with_partial_args venv env args in
@@ -1200,7 +1202,7 @@ and eval_key venv pos loc v =
     Omake_env.venv_map_find map pos (ValData v)
   with
     Not_found ->
-    raise (OmakeException (loc_pos loc pos, UnboundKey v))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, UnboundKey v))
 
 (*
  * Evaluate an application.
@@ -1233,7 +1235,7 @@ and eval_apply venv pos loc v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_value_print.pp_print_value arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
 (*
  * Evaluate an application with string arguments.
@@ -1274,7 +1276,7 @@ and eval_apply_string_exp venv venv_obj pos loc v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_ir_print.pp_print_string_exp arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
 (*
  * Get a function from a value.
@@ -1307,13 +1309,13 @@ and eval_fun venv pos v =
   | ValBody (body, export) ->
     let f venv pos loc args kargs =
       if args <> [] || kargs <> [] then
-        raise (OmakeException (loc_pos loc pos, 
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, 
             ArityMismatch (ArityExact 0, List.length args)));
       eval_sequence_export_exp venv pos body export
     in
     true, f
   | _ ->
-    raise (OmakeException (pos, StringError "not a function"))
+    raise (Omake_value_type.OmakeException (pos, StringError "not a function"))
 
 (*
  * Get an object from a variable.
@@ -1323,12 +1325,12 @@ and eval_map venv pos x =
     ValMap map ->
     map
   | _ ->
-    raise (OmakeException (pos, StringError "not a map"))
+    raise (Omake_value_type.OmakeException (pos, StringError "not a map"))
 
 and eval_object venv pos x =
   try eval_object_exn venv pos x with
     Not_found ->
-    raise (OmakeException (pos, StringError "not an object"))
+    raise (Omake_value_type.OmakeException (pos, StringError "not an object"))
 
 and eval_object_exn venv pos x =
   let x = eval_value venv pos x in
@@ -1377,7 +1379,7 @@ and eval_object_exn venv pos x =
   | ValOther (ValLocation _) ->
     create_object venv x Omake_var.location_object_var
   | ValOther (ValEnv _) ->
-    raise (OmakeException (pos, StringError "dereferenced <env>"))
+    raise (Omake_value_type.OmakeException (pos, StringError "dereferenced <env>"))
   | ValClass _ ->
     raise (Invalid_argument "internal error: dereferenced $class")
   | ValCases _ ->
@@ -1419,18 +1421,17 @@ and eval_find_field_exn venv path obj pos vl =
     let obj = eval_object_exn venv pos v in
     eval_find_field_exn venv path obj pos vl
   | [] ->
-    raise (OmakeException (pos, StringError "empty method name"))
+    raise (Omake_value_type.OmakeException (pos, StringError "empty method name"))
 
 and eval_find_field_aux venv envl pos v vl =
   match envl with
-    [env] ->
+  | [env] ->
     let env = eval_object_exn venv pos env in
-    let path = PathVar v in
+    let path : Omake_value_type.path = PathVar v in
     eval_find_field_exn venv path env pos vl
   | env :: envl ->
     let env = eval_object_exn venv pos env in
-    let path = PathVar v in
-    (try eval_find_field_exn venv path env pos vl with
+    (try eval_find_field_exn venv (PathVar v) env pos vl with
       Not_found ->
       eval_find_field_aux venv envl pos v vl)
   | [] ->
@@ -1441,7 +1442,7 @@ and eval_find_field venv pos _ v vl =
   try eval_find_field_aux venv envl pos v vl with
     Not_found ->
     let pos = string_pos "eval_find_field" pos in
-    raise (OmakeException (pos, UnboundMethod vl))
+    raise (Omake_value_type.OmakeException (pos, UnboundMethod vl))
 
 (*
  * Method paths.
@@ -1457,18 +1458,16 @@ and eval_with_method_exn venv path obj pos vl =
     let obj = eval_object_exn venv pos v in
     eval_with_method_exn venv path obj pos vl
   | [] ->
-    raise (OmakeException (pos, StringError "empty method name"))
+    raise (Omake_value_type.OmakeException (pos, StringError "empty method name"))
 
 and eval_with_method_aux venv envl pos v vl =
   match envl with
-    [env] ->
+  | [env] ->
     let env = eval_object_exn venv pos env in
-    let path = PathVar v in
-    eval_with_method_exn venv path env pos vl
+    eval_with_method_exn venv (PathVar v) env pos vl
   | env :: envl ->
     let env = eval_object_exn venv pos env in
-    let path = PathVar v in
-    (try eval_with_method_exn venv path env pos vl with
+    (try eval_with_method_exn venv (PathVar v) env pos vl with
       Not_found ->
       eval_with_method_aux venv envl pos v vl)
   | [] ->
@@ -1479,7 +1478,7 @@ and eval_with_method venv pos loc v vl =
   try eval_with_method_aux venv envl pos v vl with
     Not_found ->
     let pos = string_pos "eval_with_method" (loc_pos loc pos) in
-    raise (OmakeException (pos, UnboundMethod vl))
+    raise (Omake_value_type.OmakeException (pos, UnboundMethod vl))
 
 (*
  * Method paths.
@@ -1495,7 +1494,7 @@ and eval_find_method_exn venv obj pos vl =
     let obj = eval_object_exn venv pos v in
     eval_find_method_exn venv obj pos vl
   | [] ->
-    raise (OmakeException (pos, StringError "empty method name"))
+    raise (Omake_value_type.OmakeException (pos, StringError "empty method name"))
 
 and eval_find_method_aux venv envl pos vl =
   match envl with
@@ -1515,7 +1514,7 @@ and eval_find_method venv pos loc v vl =
   try eval_find_method_aux venv envl pos vl with
     Not_found ->
     let pos = string_pos "eval_find_method" (loc_pos loc pos) in
-    raise (OmakeException (pos, UnboundMethod vl))
+    raise (Omake_value_type.OmakeException (pos, UnboundMethod vl))
 
 (*
  * Check whether a field is defined.
@@ -1529,7 +1528,7 @@ and eval_defined_field_exn venv env pos vl =
     let obj = eval_object_exn venv pos v in
     eval_defined_field_exn venv obj pos vl
   | [] ->
-    raise (OmakeException (pos, StringError "empty method name"))
+    raise (Omake_value_type.OmakeException (pos, StringError "empty method name"))
 
 and eval_defined_field_aux venv envl pos vl =
   match envl with
@@ -1554,37 +1553,38 @@ and eval_defined_field venv pos _ v vl =
  * Simplify a quoted value if possible.
  * Strings are concatenated.
  *)
-and simplify_quote_val venv pos c el =
+and simplify_quote_val venv pos c (el : Omake_value_type.value list) : Omake_value_type.value  =
   match el with
-    [ValWhite s]
+  | [ValWhite s]
   | [ValString s]
   | [ValData s] ->
-    (match c with
-      None ->
+    begin match c with
+    | None ->
       ValData s
     | Some c ->
-      ValQuoteString (c, [ValData s]))
+      ValQuoteString (c, [ValData s])
+    end
   | _ ->
     let buf = Buffer.create 32 in
-    let flush vl =
+    let flush vl : Omake_value_type.value list =
       if Buffer.length buf = 0 then
         vl
       else
         let s = Buffer.contents buf in
         Buffer.clear buf;
-        ValData s :: vl
-    in
+        ValData s :: vl in
     let rec collect vl el =
       match el with
-        e :: el ->
-        (match eval_value venv pos e with
+      | e :: el ->
+        begin match eval_value venv pos e with
           ValWhite s
         | ValString s
         | ValData s ->
           Buffer.add_string buf s;
           collect vl el
         | v ->
-          collect (v :: flush vl) el)
+          collect (v :: flush vl) el
+        end
       | [] ->
         List.rev (flush vl)
     in
@@ -1690,12 +1690,12 @@ and eval_prim_arg_exp be_eager venv pos s =
  * These functions with the _export suffix also allow modifications
  * to the environment.
 *)
-and eval_var_export venv pos loc v =
+and eval_var_export venv pos loc (v : Omake_value_type.value) =
   let pos = string_pos "eval_var_export" pos in
 
   (* Do not use eval_value; we don't want to force evaluation *)
   match v with
-    ValFun (env, _, [], body, export) ->
+  | ValFun (env, _, [], body, export) ->
     let venv_new = Omake_env.venv_with_env venv env in
     let venv_new, result = eval_sequence venv_new pos ValNone body in
     let venv = Omake_env.add_exports venv venv_new pos export in
@@ -1720,8 +1720,8 @@ and eval_var_export venv pos loc v =
  *)
 and eval_apply_export venv pos loc v args kargs =
   let pos = string_pos "eval_apply_export" pos in
-  match eval_value venv pos v with
-    ValFun (env, keywords, params, body, export) ->
+  match (eval_value venv pos v : Omake_value_type.value) with
+  | ValFun (env, keywords, params, body, export) ->
     let venv_new = Omake_env.venv_add_args venv pos loc env params args keywords kargs in
     let venv_new, result = eval_sequence_exp venv_new pos body in
     let venv = Omake_env.add_exports venv venv_new pos export in
@@ -1747,18 +1747,21 @@ and eval_apply_export venv pos loc v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_value_print.pp_print_value arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
-and eval_partial_apply venv pos loc v args kargs =
+and eval_partial_apply venv pos loc v args kargs :  (Omake_env.venv * Omake_value_type.value )=
   match eval_value venv pos v with
-    ValFun (env, keywords, params, body, export) ->
-    (match Omake_env.venv_add_partial_args venv pos loc env [] params args keywords [] kargs with
-      PartialApply (env, pargs, keywords, params, kargs) ->
+  | ValFun (env, keywords, params, body, export) ->
+    begin match 
+      (Omake_env.venv_add_partial_args venv pos loc env [] params args keywords [] kargs
+      ) with
+    | PartialApply (env, pargs, keywords, params, kargs) ->
       venv, ValFunCurry (env, pargs, keywords, params, body, export, kargs)
     | FullApply (venv, args, kargs) ->
       let venv_new, v = eval_sequence_exp venv pos body in
       let venv = Omake_env.add_exports venv venv_new pos export in
-      eval_partial_apply venv pos loc v args kargs)
+      eval_partial_apply venv pos loc v args kargs
+    end
   | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
     (match Omake_env.venv_add_partial_args venv pos loc env pargs params args keywords kargs1 kargs with
       PartialApply (env, pargs, keywords, params, kargs) ->
@@ -1795,7 +1798,7 @@ and eval_partial_apply venv pos loc v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_value_print.pp_print_value arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
 and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
   let pos = string_pos "eval_apply_string_export_exp" pos in
@@ -1834,7 +1837,7 @@ and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_ir_print.pp_print_string_exp arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
 and eval_apply_method_export_exp venv venv_obj pos loc path v args kargs =
   let pos = string_pos "eval_apply_method_export_exp" pos in
@@ -1878,12 +1881,13 @@ and eval_apply_method_export_exp venv venv_obj pos loc path v args kargs =
           Format.fprintf buf "@ @[<hv 3>%a = %a@]" Lm_symbol.pp_print_symbol v Omake_ir_print.pp_print_string_exp arg) kargs;
         Format.fprintf buf "@]"
       in
-      raise (OmakeException (pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
 
 (*
  * Evaluate a string expression, and allow exports.
  *)
-and eval_string_export_exp venv pos ( s : Omake_ir.string_exp) =
+and eval_string_export_exp venv pos ( s : Omake_ir.string_exp)
+  : (Omake_env.venv * Omake_value_type.value)=
   let pos = string_pos "eval_string_export_exp" pos in
   match s with
   | NoneString _ ->
@@ -2036,21 +2040,21 @@ and eval_let_var_field_exp venv pos loc v vl flag s =
  *)
 and eval_let_key_exp venv pos v flag s =
   let pos = string_pos "eval_let_key_exp" pos in
-  let v = ValData v in
+
   let venv, s = eval_string_export_exp venv pos s in
 
   (* Get the current property list *)
   let map =
     try Omake_env.venv_find_var_exn venv Omake_var.map_field_var with
       Not_found ->
-      raise (OmakeException (pos, StringError "current object is not a Map"))
+      raise (Omake_value_type.OmakeException (pos, StringError "current object is not a Map"))
   in
   let map = eval_map venv pos map in
-
+  let v : Omake_value_type.value = ValData v in
   (* Add the new definition *)
   let s =
     match flag with
-      VarDefNormal ->
+    | VarDefNormal ->
       s
     | VarDefAppend ->
       append_arrays venv pos (Omake_env.venv_map_find map pos v) s
@@ -2065,7 +2069,7 @@ and eval_let_key_exp venv pos v flag s =
 and eval_let_fun_exp venv pos _ v curry opt_params params body export =
   let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
   let env = Omake_env.venv_get_env venv in
-  let e =
+  let e : Omake_value_type.value =
     if curry then
       ValFunCurry (env, [], opt_params, params, body, export, [])
     else
@@ -2077,7 +2081,7 @@ and eval_let_fun_exp venv pos _ v curry opt_params params body export =
 and eval_let_fun_field_exp venv pos loc v vl curry opt_params params body export =
   let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
   let env = Omake_env.venv_get_env venv in
-  let e =
+  let e : Omake_value_type.value =
     if curry then
       ValFunCurry (env, [], opt_params, params, body, export, [])
     else
@@ -2276,13 +2280,13 @@ and eval_method_apply_exp venv pos loc v vl args kargs =
 and eval_return_body_exp venv pos e id =
   let _pos = string_pos "eval_return_body_exp" pos in
   try eval_sequence_exp venv pos e with
-    Return (_, v, id') when id' == id ->
+    Omake_value_type.Return (_, v, id') when id' == id ->
     venv, v
 
 and eval_return_exp venv pos loc s id =
   let pos = string_pos "eval_return_exp" pos in
   let result = eval_string_exp venv pos s in
-  raise (Return (loc, result, id))
+  raise (Omake_value_type.Return (loc, result, id))
 
 and eval_string_value_exp venv pos s =
   let pos = string_pos "eval_string_value_exp" pos in
@@ -2367,19 +2371,13 @@ let compile_deps venv node buf =
   let deps = Omake_ast_lex.parse_deps buf in
   let vars = Omake_env.venv_include_scope venv IncludePervasives in
   let senv_empty = Omake_ir_ast.penv_of_vars (open_ir venv) venv node vars in
-  List.map (fun (target, source, loc) ->
-    let pos = string_pos "compile_deps" (loc_exp_pos loc) in
-    let _, target = Omake_ir_ast.build_string senv_empty target pos in
-    let _, source = Omake_ir_ast.build_string senv_empty source pos in
-    let target = eval_string_exp venv pos target in
-    let source = eval_string_exp venv pos source in
-    let targets = strings_of_value venv pos target in
-    let sources = strings_of_value venv pos source in
-    targets, sources) deps
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+  List.map 
+    (fun (target, source, loc) ->
+      let pos = string_pos "compile_deps" (loc_exp_pos loc) in
+      let _, target = Omake_ir_ast.build_string senv_empty target pos in
+      let _, source = Omake_ir_ast.build_string senv_empty source pos in
+      let target = eval_string_exp venv pos target in
+      let source = eval_string_exp venv pos source in
+      let targets = strings_of_value venv pos target in
+      let sources = strings_of_value venv pos source in
+      targets, sources) deps
