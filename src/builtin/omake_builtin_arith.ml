@@ -4,22 +4,10 @@
  * \end{doc}
  *)
 
-
-
-
-
-
 open Omake_ir
-
 open Omake_pos
-
-
-
-
 open! Omake_value
-
 open Omake_builtin
-
 open Omake_builtin_util
 open Omake_builtin_type
 open Omake_value_type
@@ -266,9 +254,3 @@ let () =
    let builtin_info = { builtin_empty with builtin_funs = builtin_funs } in
       register_builtin builtin_info
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
