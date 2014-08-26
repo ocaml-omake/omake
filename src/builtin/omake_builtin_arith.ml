@@ -4,11 +4,10 @@
  * \end{doc}
  *)
 
-open! Omake_value
-open Omake_builtin
-open Omake_builtin_util
-open Omake_builtin_type
-open Omake_value_type
+
+
+
+
 
 include Omake_pos.MakePos (struct let name = "Omake_builtin_arith" end)
 
@@ -33,21 +32,21 @@ let int_fun venv pos loc args =
   let pos = string_pos "int" pos in
   match args with
     [arg] ->
-    let values = values_of_value venv pos arg in
-    let values = List.map (fun v -> ValInt (int_of_value venv pos v)) values in
-    concat_array values
+    let values = Omake_value.values_of_value venv pos arg in
+    let values = List.map (fun v -> Omake_value_type.ValInt (Omake_value.int_of_value venv pos v)) values in
+    Omake_value.concat_array values
   | _ ->
-    raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let float_fun venv pos loc args =
   let pos = string_pos "int" pos in
   match args with
     [arg] ->
-    let values = values_of_value venv pos arg in
-    let values = List.map (fun v -> ValFloat (float_of_value venv pos v)) values in
-    concat_array values
+    let values = Omake_value.values_of_value venv pos arg in
+    let values = List.map (fun v -> Omake_value_type.ValFloat (Omake_value.float_of_value venv pos v)) values in
+    Omake_value.concat_array values
   | _ ->
-    raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Basic arithmetic.
@@ -94,51 +93,50 @@ let float_fun venv pos loc args =
 let unary_int op_int venv pos loc args =
   let pos = string_pos "unary_int" pos in
   match args with
-    [arg] ->
-    concat_array (List.map (fun _ -> ValInt (op_int (int_of_value venv pos arg))) (values_of_value venv pos arg))
+  | [arg] ->
+    Omake_value.concat_array (List.map (fun _ -> Omake_value_type.ValInt (op_int (Omake_value.int_of_value venv pos arg))) (Omake_value.values_of_value venv pos arg))
   | _ ->
-    raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let arith_int id_int op_int venv pos _ args =
   let pos = string_pos "arith_int" pos in
   let collect i arg =
-    op_int i (int_of_value venv pos arg)
-  in
+    op_int i (Omake_value.int_of_value venv pos arg) in
   let args =
     match args with
-      [arg] ->
-      values_of_value venv pos arg
+    | [arg] ->
+      Omake_value.values_of_value venv pos arg
     | _ ->
       args
   in
   match args with
-    arg :: args ->
-    ValInt (List.fold_left collect (int_of_value venv pos arg) args)
+  | arg :: args ->
+    Omake_value_type.ValInt (List.fold_left collect (Omake_value.int_of_value venv pos arg) args)
   | [] ->
     ValInt id_int
 
 let unary op_int op_float venv pos loc args =
   let pos = string_pos "unary" pos in
   match args with
-    [arg] ->
-    concat_array (List.map (fun v ->
-          match number_of_value venv pos v with
-            ValInt i ->
-            ValInt (op_int i)
+  | [arg] ->
+    Omake_value.concat_array (List.map (fun v ->
+          match Omake_value.number_of_value venv pos v with
+          | ValInt i ->
+            Omake_value_type.ValInt (op_int i)
           | ValFloat x ->
             ValFloat (op_float x)
           | _ ->
-            raise (OmakeException (loc_pos loc pos, StringError "not a number"))) (**)
-          (values_of_value venv pos arg))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "not a number"))) (**)
+          (Omake_value.values_of_value venv pos arg))
   | _ ->
-    raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let arith id_int op_int op_float venv pos loc args =
   let pos = string_pos "arith" pos in
   let collect i arg =
-    match i, number_of_value venv pos arg with
-      ValInt i, ValInt arg ->
-      ValInt (op_int i arg)
+    match i, Omake_value.number_of_value venv pos arg with
+    | Omake_value_type.ValInt i, ValInt arg ->
+      Omake_value_type.ValInt (op_int i arg)
     | ValInt i, ValFloat arg ->
       ValFloat (op_float (float_of_int i) arg)
     | ValFloat i, ValInt arg ->
@@ -146,18 +144,18 @@ let arith id_int op_int op_float venv pos loc args =
     | ValFloat i, ValFloat arg ->
       ValFloat (op_float i arg)
     | _ ->
-      raise (OmakeException (loc_pos loc pos, StringError "not a number"))
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "not a number"))
   in
   let args =
     match args with
-      [arg] ->
-      values_of_value venv pos arg
+    | [arg] ->
+      Omake_value.values_of_value venv pos arg
     | _ ->
       args
   in
   match args with
     arg :: args ->
-    List.fold_left collect (number_of_value venv pos arg) args
+    List.fold_left collect (Omake_value.number_of_value venv pos arg) args
   | [] ->
     ValInt id_int
 
@@ -195,11 +193,11 @@ let compare op_int op_float venv pos loc args =
   let pos = string_pos "arith" pos in
   let rec collect i args =
     match args with
-      arg :: args ->
-      let arg = number_of_value venv pos arg in
+    | arg :: args ->
+      let arg = Omake_value.number_of_value venv pos arg in
       let test =
-        match i, number_of_value venv pos arg with
-          ValInt i, ValInt arg ->
+        match i, Omake_value.number_of_value venv pos arg with
+        | Omake_value_type.ValInt i, ValInt arg ->
           op_int i arg
         | ValInt i, ValFloat arg ->
           op_float (float_of_int i) arg
@@ -208,17 +206,17 @@ let compare op_int op_float venv pos loc args =
         | ValFloat i, ValFloat arg ->
           op_float i arg
         | _ ->
-          raise (OmakeException (loc_pos loc pos, StringError "not a number"))
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "not a number"))
       in
       test && collect arg args
     | [] ->
       true
   in
   match args with
-    arg :: args ->
-    val_of_bool (collect (number_of_value venv pos arg) args)
+  | arg :: args ->
+     Omake_builtin_util.val_of_bool (collect (Omake_value.number_of_value venv pos arg) args)
   | [] ->
-    val_true
+     Omake_builtin_util.val_true
 
 (************************************************************************
  * Tables.
@@ -250,6 +248,6 @@ let builtin_funs =
 
 
 let () = 
-  let builtin_info = { builtin_empty with builtin_funs = builtin_funs } in
-  register_builtin builtin_info
+  let builtin_info = { Omake_builtin_type.builtin_empty with builtin_funs = builtin_funs } in
+  Omake_builtin.register_builtin builtin_info
 

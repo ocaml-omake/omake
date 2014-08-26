@@ -6,63 +6,24 @@
  * \label{chapter:base}
  * \cutname{omake-base.html}
  * \end{doc}
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Calufornia Institute of Technology and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
- * @end[license]
  *)
 open! Lm_printf
-
-
-
 open Lm_string_set
-
 open Omake_ir
 open Omake_env
 open Omake_var
-open Omake_pos
 open Omake_eval
 open Omake_wild
-
-
 open Omake_rule
 open Omake_lexer
 open! Omake_value
 open Omake_state
 open Omake_symbol
-open Omake_builtin
-open Omake_builtin_type
-open Omake_builtin_util
-
-open! Omake_value_type
 
 
-module Pos = MakePos (struct let name = "Omake_builtin_base" end)
-open Pos
+
+include Omake_pos.MakePos (struct let name = "Omake_builtin_base" end)
+
 
 (*
  * Table of variables.
@@ -164,12 +125,12 @@ open Pos
  * \end{doc}
  *)
 let not_fun venv pos loc args =
-   let pos = string_pos "not" pos in
-      match args with
-         [s] ->
-            val_of_bool(not (bool_of_value venv pos s))
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "not" pos in
+  match args with
+  | [s] ->
+    Omake_builtin_util.val_of_bool(not (bool_of_value venv pos s))
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Check if two values are equal.
@@ -192,9 +153,9 @@ let equal venv pos loc args =
    let _pos = string_pos "equal" pos in
       match args with
          [s1; s2] ->
-            val_of_bool (strings_of_value venv pos s1 = strings_of_value venv pos s2)
+            Omake_builtin_util.val_of_bool (strings_of_value venv pos s1 = strings_of_value venv pos s2)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Conjunction.
@@ -221,7 +182,7 @@ let equal venv pos loc args =
  *)
 let and_fun venv pos _ args =
    let pos = string_pos "and" pos in
-      val_of_bool (**)
+      Omake_builtin_util.val_of_bool (**)
          (List.for_all (fun arg ->
                List.for_all (bool_of_value venv pos) (values_of_value venv pos arg)) args)
 
@@ -250,7 +211,7 @@ let and_fun venv pos _ args =
  *)
 let or_fun venv pos _ args =
    let pos = string_pos "or" pos in
-      val_of_bool (**)
+      Omake_builtin_util.val_of_bool (**)
          (List.exists (fun arg ->
                List.exists (bool_of_value venv pos) (values_of_value venv pos arg)) args)
 
@@ -310,7 +271,7 @@ let or_fun venv pos _ args =
  * \end{verbatim}
  * \end{doc}
  *)
-let empty_val = ValSequence []
+let empty_val  : Omake_value_type.value = ValSequence []
 
 let if_fun venv pos loc args =
    let pos = string_pos "if" pos in
@@ -318,7 +279,7 @@ let if_fun venv pos loc args =
          match args with
             [test; v1; v2] -> test, v1, v2
           | [test; v1] -> test, v1, empty_val
-          | _ -> raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+          | _ -> raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
       in
          if bool_of_value venv pos test then
             v1
@@ -411,7 +372,7 @@ let rec eval_match_cases1 compare venv pos loc s cases =
          else if Lm_symbol.eq v default_sym then
             eval_sequence_export_exp venv pos el export
          else
-            raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
     | [] ->
          venv, ValNone
 
@@ -425,7 +386,7 @@ let rec eval_match_cases2 compare venv pos loc s cases =
               | None ->
                    eval_match_cases2 compare venv pos loc s cases)
     | [v] ->
-         raise (OmakeException (loc_pos loc pos, StringValueError ("match requires an odd number of arguments", v)))
+         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringValueError ("match requires an odd number of arguments", v)))
     | [] ->
          venv, ValNone
 
@@ -438,14 +399,14 @@ let eval_match_exp compare venv pos loc args kargs =
                    let s = string_of_value venv pos arg in
                       eval_match_cases1 compare venv pos loc s cases
               | _ ->
-                   raise (OmakeException (pos, StringError "malformed match expression")))
+                   raise (Omake_value_type.OmakeException (pos, StringError "malformed match expression")))
        | arg :: rest, [] ->
             let s = string_of_value venv pos arg in
                eval_match_cases2 compare venv pos loc s rest
        | [], [] ->
             venv, ValNone
        | _, _ :: _ ->
-            raise (OmakeException (pos, StringError "illegal keyword arguments"))
+            raise (Omake_value_type.OmakeException (pos, StringError "illegal keyword arguments"))
 
 let switch_fun =
    let compare venv _ _ s1 s2 =
@@ -462,7 +423,7 @@ let match_fun =
          try lexer_of_string s1 with
             Failure err ->
                let msg = sprintf "Malformed regular expression '%s'" s1 in
-                  raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
       in
       let channel = Lm_channel.of_string s2 in
          match Lexer.search lex channel with
@@ -522,11 +483,11 @@ let match_fun =
  * Temporary type for evaluating try blocks.
  *)
 type try_exp =
-   TrySuccessExp of ( (venv * value) )
- | TryFailureExp of pos * obj * exn
+  | TrySuccessExp of ( (venv *  Omake_value_type.value) )
+  | TryFailureExp of  Omake_value_type.pos *  Omake_value_type.obj * exn
 
 (*
- * Build an object from an OmakeException.
+ * Build an object from an Omake_value_type.OmakeException.
  * The default object is RuntimeException.
  *)
 let object_of_omake_exception venv pos exp =
@@ -535,7 +496,7 @@ let object_of_omake_exception venv pos exp =
       flush_stdstr ()
    in
    let exp =
-      pp_print_exn stdstr exp;
+      Omake_pos.pp_print_exn stdstr exp;
       flush_stdstr ()
    in
    let obj = venv_find_object_or_empty venv runtime_exception_var in
@@ -545,7 +506,7 @@ let object_of_omake_exception venv pos exp =
       obj
 
 (*
- * Build an object from an OmakeException.
+ * Build an object from an Omake_value_type.OmakeException.
  * The default object is RuntimeException.
  *)
 let object_of_uncaught_exception venv pos exn =
@@ -627,22 +588,22 @@ let try_fun venv pos loc args kargs =
                 ValCases cases ->
                    cases, e
               | _ ->
-                   raise (OmakeException (pos, StringError "malformed try expression")))
+                   raise (Omake_value_type.OmakeException (pos, StringError "malformed try expression")))
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
    let e =
       try
          let result = eval_body_exp venv pos ValNone e in
             TrySuccessExp result
       with
-         OmakeException (pos, exp) as exn ->
+         Omake_value_type.OmakeException (pos, exp) as exn ->
             TryFailureExp (pos, object_of_omake_exception venv pos exp, exn)
-       | UncaughtException (pos, exn) ->
+       |  Omake_value_type.UncaughtException (pos, exn) ->
             TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
-       | RaiseException (pos, obj) as exn ->
+       |  Omake_value_type.RaiseException (pos, obj) as exn ->
             TryFailureExp (pos, obj, exn)
-       | Return _
+       |  Omake_value_type.Return _
        | Break _ as exn ->
             TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
    in
@@ -656,11 +617,11 @@ let try_fun venv pos loc args kargs =
                  | None ->
                       e
              with
-                OmakeException (pos, exp) as exn ->
+                Omake_value_type.OmakeException (pos, exp) as exn ->
                    TryFailureExp (pos, object_of_omake_exception venv pos exp, exn)
-              | UncaughtException (pos, exn) ->
+              |  Omake_value_type.UncaughtException (pos, exn) ->
                    TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
-              | RaiseException (pos, obj) as exn ->
+              |  Omake_value_type.RaiseException (pos, obj) as exn ->
                    TryFailureExp (pos, obj, exn))
        | TrySuccessExp _ ->
             e
@@ -699,9 +660,9 @@ let raise_fun venv pos loc args =
          [arg] ->
             let obj = eval_value venv pos arg in
             let obj = eval_object venv pos obj in
-               raise (RaiseException (pos, obj))
+               raise ( Omake_value_type.RaiseException (pos, obj))
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Exit the program.
@@ -737,17 +698,17 @@ let exit_aux f venv pos loc args =
               | [] ->
                    0
               | args ->
-                   raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args))))
+                   raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args))))
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
       f loc pos code
 
 let exit_fun =
-   exit_aux (fun loc pos code -> raise (ExitException (loc_pos loc pos, code)))
+   exit_aux (fun loc pos code -> raise (Omake_value_type.ExitException (loc_pos loc pos, code)))
 
 let exit_parent_fun =
-   exit_aux (fun loc pos code -> raise (ExitParentException (loc_pos loc pos, code)))
+   exit_aux (fun loc pos code -> raise ( Omake_value_type.ExitParentException (loc_pos loc pos, code)))
 
 (*
  * Check whether a variable is defined.
@@ -783,13 +744,13 @@ let defined venv pos loc args =
       match args with
          [arg] ->
             let args = strings_of_value venv pos arg in
-            let b = List.for_all (fun s -> defined_sym venv pos loc s) args in
+            let b = List.for_all (fun s -> Omake_builtin_util.defined_sym venv pos loc s) args in
                if b then
-                  val_true
+                  Omake_builtin_util.val_true
                else
-                  val_false
+                  Omake_builtin_util.val_false
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -822,9 +783,9 @@ let defined_env venv pos loc args =
                List.for_all (fun s ->
                      venv_defined_env venv (Lm_symbol.add s)) args
             in
-               val_of_bool b
+               Omake_builtin_util.val_of_bool b
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get a variable from the environment.
@@ -862,25 +823,25 @@ let defined_env venv pos loc args =
  * \end{doc}
  *)
 let getenv venv pos loc args =
-   let pos = string_pos "getenv" pos in
-   let arg, def =
-      match args with
-         [arg] ->
-            arg, None
-       | [(ValBody _) as def; arg]
-       | [arg; def] ->
-            arg, Some def
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-   let s = string_of_value venv pos arg in
-      try ValString (venv_getenv venv (Lm_symbol.add s)) with
-         Not_found ->
-            match def with
-               Some def ->
-                  eval_body_value venv pos def
-             | None ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("undefined environment variable", s)))
+  let pos = string_pos "getenv" pos in
+  let arg, def =
+    match args with
+      [arg] ->
+      arg, None
+    | [( Omake_value_type.ValBody _) as def; arg]
+    | [arg; def] ->
+      arg, Some def
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  let s = string_of_value venv pos arg in
+  try  Omake_value_type.ValString (venv_getenv venv (Lm_symbol.add s)) with
+    Not_found ->
+    match def with
+    | Some def ->
+      eval_body_value venv pos def
+    | None ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("undefined environment variable", s)))
 
 (*
  * \begin{doc}
@@ -899,15 +860,15 @@ let getenv venv pos loc args =
  * \end{doc}
  *)
 let setenv venv pos loc args kargs =
-   let pos = string_pos "setenv" pos in
-      match args, kargs with
-         [arg1; arg2], [] ->
-            let v = string_of_value venv pos arg1 in
-            let s = string_of_value venv pos arg2 in
-            let venv = venv_setenv venv (Lm_symbol.add v) s in
-               venv, ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "setenv" pos in
+  match args, kargs with
+  | [arg1; arg2], [] ->
+    let v = string_of_value venv pos arg1 in
+    let s = string_of_value venv pos arg2 in
+    let venv = venv_setenv venv (Lm_symbol.add v) s in
+    venv,  Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -925,17 +886,17 @@ let setenv venv pos loc args kargs =
  * \end{doc}
  *)
 let unsetenv venv pos loc args kargs =
-   let pos = string_pos "unsetenv" pos in
-      match args, kargs with
-         [arg], [] ->
-            let vars = strings_of_value venv pos arg in
-            let venv =
-               List.fold_left (fun venv v ->
-                     venv_unsetenv venv (Lm_symbol.add v)) venv vars
-            in
-               venv, ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "unsetenv" pos in
+  match args, kargs with
+    [arg], [] ->
+    let vars = strings_of_value venv pos arg in
+    let venv =
+      List.fold_left (fun venv v ->
+        venv_unsetenv venv (Lm_symbol.add v)) venv vars
+    in
+    venv,  Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -980,43 +941,43 @@ let unsetenv venv pos loc args kargs =
  * \end{doc}
  *)
 let get_registry venv pos loc args =
-   let pos = string_pos "get-registry" pos in
-   let hkey, key, field, def =
-      match args with
-         [hkey; key; field] ->
-            hkey, key, field, None
-       | [(ValBody _) as def; hkey; key; field]
-       | [hkey; key; field; def] ->
-            hkey, key, field, Some def
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
-   in
-   let hkey = String.uppercase (string_of_value venv pos hkey) in
-   let hkey_code =
-      match hkey with
-         "HKEY_CLASSES_ROOT"   -> Lm_unix_util.HKEY_CLASSES_ROOT
-       | "HKEY_CURRENT_CONFIG" -> Lm_unix_util.HKEY_CURRENT_CONFIG
-       | "HKEY_CURRENT_USER"   -> Lm_unix_util.HKEY_CURRENT_USER
-       | "HKEY_LOCAL_MACHINE"  -> Lm_unix_util.HKEY_LOCAL_MACHINE
-       | "HKEY_USERS"          -> Lm_unix_util.HKEY_USERS
-       | s -> raise (OmakeException (loc_pos loc pos, StringStringError ("unknown hkey", s)))
-   in
-   let key = String.copy (string_of_value venv pos key) in
-   let () =
-      for i = 0 to String.length key - 1 do
-         if key.[i] = '/' then
-            key.[i] <- '\\'
-      done
-   in
-   let field = string_of_value venv pos field in
-      try ValString (Lm_unix_util.registry_find hkey_code key field) with
-         Not_found ->
-            match def with
-               Some def ->
-                  eval_body_value venv pos def
-             | None ->
-                  let s = Printf.sprintf "%s\\%s\\%s" hkey key field in
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("key not found", s)))
+  let pos = string_pos "get-registry" pos in
+  let hkey, key, field, def =
+    match args with
+      [hkey; key; field] ->
+      hkey, key, field, None
+    | [( Omake_value_type.ValBody _) as def; hkey; key; field]
+    | [hkey; key; field; def] ->
+      hkey, key, field, Some def
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
+  in
+  let hkey = String.uppercase (string_of_value venv pos hkey) in
+  let hkey_code =
+    match hkey with
+      "HKEY_CLASSES_ROOT"   -> Lm_unix_util.HKEY_CLASSES_ROOT
+    | "HKEY_CURRENT_CONFIG" -> Lm_unix_util.HKEY_CURRENT_CONFIG
+    | "HKEY_CURRENT_USER"   -> Lm_unix_util.HKEY_CURRENT_USER
+    | "HKEY_LOCAL_MACHINE"  -> Lm_unix_util.HKEY_LOCAL_MACHINE
+    | "HKEY_USERS"          -> Lm_unix_util.HKEY_USERS
+    | s -> raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("unknown hkey", s)))
+  in
+  let key = String.copy (string_of_value venv pos key) in
+  let () =
+    for i = 0 to String.length key - 1 do
+      if key.[i] = '/' then
+        key.[i] <- '\\'
+    done
+  in
+  let field = string_of_value venv pos field in
+  try  Omake_value_type.ValString (Lm_unix_util.registry_find hkey_code key field) with
+    Not_found ->
+    match def with
+      Some def ->
+      eval_body_value venv pos def
+    | None ->
+      let s = Printf.sprintf "%s\\%s\\%s" hkey key field in
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("key not found", s)))
 
 (*
  * Get a variable from the environment.
@@ -1052,9 +1013,9 @@ let getvar venv pos loc args =
    let pos = string_pos "getvar" pos in
       match args with
          [arg] ->
-            get_sym venv pos loc (string_of_value venv pos arg)
+            Omake_builtin_util.get_sym venv pos loc (string_of_value venv pos arg)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1086,10 +1047,10 @@ let setvar venv pos loc args kargs =
       match args, kargs with
          [arg1; arg2], [] ->
             let s = string_of_value venv pos arg1 in
-            let venv = add_sym venv pos loc s arg2 in
+            let venv = Omake_builtin_util.add_sym venv pos loc s arg2 in
                venv, arg2
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (************************************************************************
  * Arrays.
@@ -1124,13 +1085,12 @@ let setvar venv pos loc args kargs =
  * \end{doc}
  *)
 let array_fun venv pos _ args =
-   let pos = string_pos "array" pos in
-   let args =
-      List.fold_left (fun args arg ->
-            let args' = values_of_value venv pos arg in
-               List.rev_append args' args) [] args
-   in
-      ValArray (List.rev args)
+  let pos = string_pos "array" pos in
+  let args =
+    List.fold_left (fun args arg ->
+      let args' = values_of_value venv pos arg in
+      List.rev_append args' args) [] args in
+  Omake_value_type.ValArray (List.rev args)
 
 (*
  * Concatenate the strings with a separator.
@@ -1181,7 +1141,7 @@ let split_fun venv pos loc args =
             in
                List.rev args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
       concat_strings strings
 
@@ -1211,14 +1171,14 @@ let split_fun venv pos loc args =
  * \end{doc}
  *)
 let concat_fun venv pos loc args =
-   let pos = string_pos "concat" pos in
-      match args with
-         [sep; arg] ->
-            let sep = string_of_value venv pos sep in
-            let args = strings_of_value venv pos arg in
-               ValData (String.concat sep args)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "concat" pos in
+  match args with
+  | [sep; arg] ->
+    let sep = string_of_value venv pos sep in
+    let args = strings_of_value venv pos arg in
+    Omake_value_type.ValData (String.concat sep args)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Length of a list.
@@ -1237,13 +1197,13 @@ let concat_fun venv pos loc args =
  * \end{doc}
  *)
 let length_fun venv pos loc args =
-   let pos = string_pos "length" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-               ValInt (List.length args)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "length" pos in
+  match args with
+  | [arg] ->
+    let args = values_of_value venv pos arg in
+    Omake_value_type.ValInt (List.length args)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get the nth element of a list.
@@ -1287,10 +1247,10 @@ let nth_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i >= len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth: index is out of bounds", i)));
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringIntError ("nth: index is out of bounds", i)));
                List.nth args i
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let replace_nth_fun venv pos loc args =
    let pos = string_pos "replace-nth" pos in
@@ -1300,10 +1260,10 @@ let replace_nth_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i >= len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("replace-nth: index is out of bounds", i)));
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringIntError ("replace-nth: index is out of bounds", i)));
                concat_array (Lm_list_util.replace_nth i x args)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Get a subrange of a list.
@@ -1380,44 +1340,44 @@ let sub l off len =
    nth_hd [] (nth_tl l off) len
 
 let nth_hd_fun venv pos loc args =
-   let pos = string_pos "nth-hd" pos in
-      match args with
-         [i; arg] ->
-            let i = int_of_value venv pos i in
-            let args = values_of_value venv pos arg in
-            let len = List.length args in
-               if i < 0 || i > len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth-hd: index is out of bounds", i)));
-               ValArray (nth_hd [] args i)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "nth-hd" pos in
+  match args with
+  | [i; arg] ->
+    let i = int_of_value venv pos i in
+    let args = values_of_value venv pos arg in
+    let len = List.length args in
+    if i < 0 || i > len then
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringIntError ("nth-hd: index is out of bounds", i)));
+    Omake_value_type.ValArray (nth_hd [] args i)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let nth_tl_fun venv pos loc args =
-   let pos = string_pos "nth-tl" pos in
-      match args with
-         [i; arg] ->
-            let i = int_of_value venv pos i in
-            let args = values_of_value venv pos arg in
-            let len = List.length args in
-               if i < 0 || i > len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth-tl: index is out of bounds", i)));
-               ValArray (nth_tl args i)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "nth-tl" pos in
+  match args with
+  | [i; arg] ->
+    let i = int_of_value venv pos i in
+    let args = values_of_value venv pos arg in
+    let len = List.length args in
+    if i < 0 || i > len then
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringIntError ("nth-tl: index is out of bounds", i)));
+    Omake_value_type.ValArray (nth_tl args i)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let subrange_fun venv pos loc args =
-   let pos = string_pos "subrange" pos in
-      match args with
-         [off; len; arg] ->
-            let off = int_of_value venv pos off in
-            let len = int_of_value venv pos len in
-            let args = values_of_value venv pos arg in
-            let alen = List.length args in
-               if off < 0 || len < 0 || off + len > alen then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("one or more indexes are out of bounds", off + len)));
-               ValArray (sub args off len)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  let pos = string_pos "subrange" pos in
+  match args with
+  | [off; len; arg] ->
+    let off = int_of_value venv pos off in
+    let len = int_of_value venv pos len in
+    let args = values_of_value venv pos arg in
+    let alen = List.length args in
+    if off < 0 || len < 0 || off + len > alen then
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringIntError ("one or more indexes are out of bounds", off + len)));
+     Omake_value_type.ValArray (sub args off len)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (*
  * Reverse a list.
@@ -1435,13 +1395,13 @@ let subrange_fun venv pos loc args =
  * \end{doc}
  *)
 let rev_fun venv pos loc args =
-   let pos = string_pos "rev" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-               ValArray (List.rev args)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "rev" pos in
+  match args with
+  | [arg] ->
+    let args = values_of_value venv pos arg in
+     Omake_value_type.ValArray (List.rev args)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1478,14 +1438,14 @@ let rev_fun venv pos loc args =
  * \end{doc}
  *)
 let string venv pos loc args =
-   let pos = string_pos "string" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let s = String.concat " " args in
-               ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "string" pos in
+  match args with
+  | [arg] ->
+    let args = strings_of_value venv pos arg in
+    let s = String.concat " " args in
+    Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1502,19 +1462,18 @@ let string venv pos loc args =
  * \end{doc}
  *)
 let string_length venv pos loc args =
-   let pos = string_pos "string-length" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let len =
-               if args = [] then
-                  0
-               else
-                  List.fold_left (fun i s -> i + 1 + String.length s) (-1) args
-            in
-               ValInt len
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "string-length" pos in
+  match args with
+  | [arg] ->
+    let args = strings_of_value venv pos arg in
+    let len =
+      if args = [] then
+        0
+      else
+        List.fold_left (fun i s -> i + 1 + String.length s) (-1) args in
+    Omake_value_type.ValInt len
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1661,19 +1620,19 @@ let id_single_escaped s =
          copy_string id_is_escape id_add_quote esc_length src_length s
 
 let any_escaped escaped venv pos loc args =
-   let pos = string_pos "string-escaped" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let args =
-               List.map (fun s ->
-                     try ValData (escaped s) with
-                        Failure _ ->
-                           raise (OmakeException (loc_pos loc pos, StringStringError ("illegal string argument", s)))) args
-            in
-               ValArray args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "string-escaped" pos in
+  match args with
+  |[arg] ->
+    let args = strings_of_value venv pos arg in
+    let args =
+      List.map (fun s ->
+        try Omake_value_type.ValData (escaped s) with
+          Failure _ ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal string argument", s)))) args
+    in
+    Omake_value_type.ValArray args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let string_escaped = any_escaped single_escaped
 let ocaml_escaped  = any_escaped String.escaped
@@ -1746,14 +1705,14 @@ let encode_uri = any_escaped Lm_string_util.encode_hex_name
  * \end{doc}
  *)
 let quote venv pos loc args =
-   let pos = string_pos "quote" pos in
-      match args with
-         [arg] ->
-            let argv = strings_of_value venv pos arg in
-            let s = Lm_string_util.quote_argv argv in
-               ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "quote" pos in
+  match args with
+  | [arg] ->
+    let argv = strings_of_value venv pos arg in
+    let s = Lm_string_util.quote_argv argv in
+    Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1770,14 +1729,14 @@ let quote venv pos loc args =
  * \end{doc}
  *)
 let quote_argv venv pos loc args =
-   let pos = string_pos "quote-argv" pos in
-      match args with
-         [arg] ->
-            let argv = strings_of_value venv pos arg in
-            let s = Lm_string_util.concat_argv argv in
-               ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "quote-argv" pos in
+  match args with
+  | [arg] ->
+    let argv = strings_of_value venv pos arg in
+    let s = Lm_string_util.concat_argv argv in
+    Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1796,15 +1755,15 @@ let quote_argv venv pos loc args =
  * \end{doc}
  *)
 let html_string venv pos loc args =
-   let pos = string_pos "html-string" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let s = String.concat " " args in
-            let s = Lm_string_util.html_escaped_nonwhite s in
-               ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "html-string" pos in
+  match args with
+  | [arg] ->
+    let args = strings_of_value venv pos arg in
+    let s = String.concat " " args in
+    let s = Lm_string_util.html_escaped_nonwhite s in
+    Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Add a suffix.
@@ -1826,14 +1785,14 @@ let html_string venv pos loc args =
  * \end{doc}
  *)
 let addsuffix venv pos loc args =
-   let pos = string_pos "addsuffix" pos in
-      match args with
-         [suffix; arg] ->
-            let args = values_of_value venv pos arg in
-            let args = List.map (fun v -> ValSequence [v; suffix]) args in
-               ValArray args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "addsuffix" pos in
+  match args with
+  | [suffix; arg] ->
+    let args = values_of_value venv pos arg in
+    let args = List.map (fun v ->  Omake_value_type.ValSequence [v; suffix]) args in
+    Omake_value_type.ValArray args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Add a suffix.
@@ -1856,14 +1815,14 @@ let addsuffix venv pos loc args =
  * \end{doc}
  *)
 let mapsuffix venv pos loc args =
-   let pos = string_pos "mapsuffixe" pos in
-      match args with
-         [suffix; arg] ->
-            let args = values_of_value venv pos arg in
-            let args = List.map (fun v -> ValArray [v; suffix]) args in
-               ValArray args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "mapsuffixe" pos in
+  match args with
+  | [suffix; arg] ->
+    let args = values_of_value venv pos arg in
+    let args = List.map (fun v ->  Omake_value_type.ValArray [v; suffix]) args in
+    Omake_value_type.ValArray args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Add all suffixes.
@@ -1895,24 +1854,25 @@ let addsuffixes venv pos loc args =
       match args with
          [suffix; arg] ->
             let suffixes = strings_of_value venv pos suffix in
-            let suffixes = List.map (fun s -> ValString s) suffixes in
+            let suffixes = List.map (fun s ->  Omake_value_type.ValString s) suffixes in
             let args = values_of_value venv pos arg in
-            let args = List.map (fun suffix -> List.map (fun s -> ValSequence [s; suffix]) args) suffixes in
-               ValArray (List.flatten args)
+            let args = List.map (fun suffix -> List.map (fun s ->  Omake_value_type.ValSequence [s; suffix]) args) suffixes in
+                Omake_value_type.ValArray (List.flatten args)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let addprefixes venv pos loc args =
    let pos = string_pos "addprefixes" pos in
       match args with
          [prefixes; arg] -> 
             let prefixes = strings_of_value venv pos prefixes in
-            let prefixes = List.map (fun s -> ValString s) prefixes in
+            let prefixes = List.map (fun s ->  Omake_value_type.ValString s) prefixes in
             let args = values_of_value venv pos arg in
-            let args = List.map (fun prefix -> List.map (fun s -> ValSequence [prefix; s]) args) prefixes in
-               ValArray (List.flatten args)
+            let args = List.map (fun prefix -> 
+                List.map (fun s ->  Omake_value_type.ValSequence [prefix; s]) args) prefixes in
+            Omake_value_type.ValArray (List.flatten args)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -1944,7 +1904,7 @@ let removeprefix venv pos loc args =
             in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Remove suffixes.
@@ -1985,7 +1945,7 @@ let removesuffix venv pos loc args =
             in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
 (*
  * Replace suffixes.
@@ -2018,7 +1978,7 @@ let replacesuffixes venv pos loc args =
             let len2 = List.length new_suffixes in
             let _ =
                if len1 <> len2 then
-                  raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
             in
             let table =
                List.fold_left2 StringTable.add StringTable.empty old_suffixes new_suffixes
@@ -2035,7 +1995,7 @@ let replacesuffixes venv pos loc args =
             in
                concat_strings files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (*
  * Add a prefix.
@@ -2061,10 +2021,10 @@ let addprefix venv pos loc args =
       match args with
          [prefix; arg] ->
             let args = values_of_value venv pos arg in
-            let args = List.map (fun v -> ValSequence [prefix; v]) args in
-               ValArray args
+            let args = List.map (fun v ->  Omake_value_type.ValSequence [prefix; v]) args in
+             Omake_value_type.ValArray args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Add a prefix.
@@ -2087,14 +2047,14 @@ let addprefix venv pos loc args =
  * \end{doc}
  *)
 let mapprefix venv pos loc args =
-   let pos = string_pos "mapprefix" pos in
-      match args with
-         [prefix; arg] ->
-            let args = values_of_value venv pos arg in
-            let args = List.map (fun v -> ValArray [prefix; v]) args in
-               ValArray args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "mapprefix" pos in
+  match args with
+  | [prefix; arg] ->
+    let args = values_of_value venv pos arg in
+    let args = List.map (fun v ->  Omake_value_type.ValArray [prefix; v]) args in
+    Omake_value_type.ValArray args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Add both prefix and suffix.
@@ -2116,14 +2076,14 @@ let mapprefix venv pos loc args =
  * \end{doc}
  *)
 let add_wrapper venv pos loc args =
-   let pos = string_pos "add-wrapper" pos in
-      match args with
-         [prefix; suffix; arg] ->
-            let args = values_of_value venv pos arg in
-            let args = List.map (fun s -> ValSequence [prefix; s; suffix]) args in
-               ValArray args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  let pos = string_pos "add-wrapper" pos in
+  match args with
+  |[prefix; suffix; arg] ->
+    let args = values_of_value venv pos arg in
+    let args = List.map (fun s ->  Omake_value_type.ValSequence [prefix; s; suffix]) args in
+     Omake_value_type.ValArray args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (*
  * Eliminate duplicates.
@@ -2142,15 +2102,15 @@ let add_wrapper venv pos loc args =
  * \end{doc}
  *)
 let set venv pos loc args =
-   let pos = string_pos "set" pos in
-      match args with
-         [files] ->
-            let files = strings_of_value venv pos files in
-            let files = List.fold_left LexStringSet.add LexStringSet.empty files in
-            let files = LexStringSet.fold (fun strings s -> ValString s :: strings) [] files in
-               ValArray (List.rev files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "set" pos in
+  match args with
+  |[files] ->
+    let files = strings_of_value venv pos files in
+    let files = List.fold_left LexStringSet.add LexStringSet.empty files in
+    let files = LexStringSet.fold (fun strings s ->  Omake_value_type.ValString s :: strings) [] files in
+    Omake_value_type.ValArray (List.rev files)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Set membership.
@@ -2176,9 +2136,9 @@ let mem venv pos loc args =
          [s; set] ->
             let s = Lm_string_util.trim (string_of_value venv pos s) in
             let set = strings_of_value venv pos set in
-               val_of_bool (List.mem s set)
+               Omake_builtin_util.val_of_bool (List.mem s set)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Set intersection.
@@ -2203,23 +2163,23 @@ let mem venv pos loc args =
  * \end{doc}
  *)
 let intersection venv pos loc args =
-   let pos = string_pos "intersection" pos in
-   let rec intersect l = function
+  let pos = string_pos "intersection" pos in
+  let rec intersect l = function
       h :: t ->
-         if List.mem h l then
-            h :: intersect l t
-         else
-            intersect l t
+      if List.mem h l then
+        h :: intersect l t
+      else
+        intersect l t
     | [] -> []
-   in
-      match args with
-         [files1; files2] ->
-            let files1 = strings_of_value venv pos files1 in
-            let files2 = strings_of_value venv pos files2 in
-            let files = intersect files1 files2 in
-               ValArray (List.map (fun s -> ValString s) files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  in
+  match args with
+  | [files1; files2] ->
+    let files1 = strings_of_value venv pos files1 in
+    let files2 = strings_of_value venv pos files2 in
+    let files = intersect files1 files2 in
+    Omake_value_type.ValArray (List.map (fun s ->  Omake_value_type.ValString s) files)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -2251,9 +2211,9 @@ let intersects venv pos loc args =
          [files1; files2] ->
             let files1 = strings_of_value venv pos files1 in
             let files2 = strings_of_value venv pos files2 in
-               val_of_bool (intersects files1 files2)
+               Omake_builtin_util.val_of_bool (intersects files1 files2)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Set subtraction.
@@ -2279,23 +2239,23 @@ let intersects venv pos loc args =
  * \end{doc}
  *)
 let set_diff venv pos loc args =
-   let pos = string_pos "set_diff" pos in
-   let rec diff l = function
+  let pos = string_pos "set_diff" pos in
+  let rec diff l = function
       h :: t ->
-         if List.mem h l then
-            diff l t
-         else
-            h :: diff l t
+      if List.mem h l then
+        diff l t
+      else
+        h :: diff l t
     | [] -> []
-   in
-      match args with
-         [files1; files2] ->
-            let files1 = strings_of_value venv pos files1 in
-            let files2 = strings_of_value venv pos files2 in
-            let files = diff files2 files1 in
-               ValArray (List.map (fun s -> ValString s) files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  in
+  match args with
+  | [files1; files2] ->
+    let files1 = strings_of_value venv pos files1 in
+    let files2 = strings_of_value venv pos files2 in
+    let files = diff files2 files1 in
+    Omake_value_type.ValArray (List.map (fun s ->  Omake_value_type.ValString s) files)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Include all files that do not match the pattern.
@@ -2332,14 +2292,14 @@ let compile_patterns venv _ pos patterns =
       f patterns
 
 let filter venv pos loc args =
-   let pos = string_pos "filter" pos in
-      match args with
-         [patterns; arg] ->
-            let args = strings_of_value venv pos arg in
-            let args = List.filter (compile_patterns venv loc pos patterns) args in
-               ValArray (List.map (fun s -> ValString s) args)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "filter" pos in
+  match args with
+  | [patterns; arg] ->
+    let args = strings_of_value venv pos arg in
+    let args = List.filter (compile_patterns venv loc pos patterns) args in
+    Omake_value_type.ValArray (List.map (fun s ->  Omake_value_type.ValString s) args)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Include all files that do not match the pattern.
@@ -2367,9 +2327,9 @@ let filter_out venv pos loc args =
             let args = strings_of_value venv pos arg in
             let f = compile_patterns venv loc pos patterns in
             let args = List.filter (fun s -> not (f s)) args in
-               ValArray (List.map (fun s -> ValString s) args)
+            Omake_value_type.ValArray (List.map (fun s ->  Omake_value_type.ValString s) args)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Capitalize some words.
@@ -2395,7 +2355,7 @@ let capitalize venv pos loc args =
             let args = List.map String.capitalize args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Uncapitalize some words.
@@ -2422,7 +2382,7 @@ let uncapitalize venv pos loc args =
             let args = List.map String.uncapitalize args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Capitalize some words.
@@ -2448,7 +2408,7 @@ let uppercase venv pos loc args =
             let args = List.map String.uppercase args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Uncapitalize some words.
@@ -2475,7 +2435,7 @@ let lowercase venv pos loc args =
             let args = List.map String.lowercase args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -2504,7 +2464,7 @@ let system venv pos loc args kargs =
          [arg], [] ->
             eval_shell_exp venv pos loc arg
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Shell command.
@@ -2539,7 +2499,7 @@ let shell_aux venv pos loc args =
          [arg] ->
             eval_shell_output venv pos loc arg
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let shell venv pos loc args =
    let s = shell_aux venv pos loc args in
@@ -2547,40 +2507,39 @@ let shell venv pos loc args =
       concat_array args
 
 let shella venv pos loc args =
-   let s = shell_aux venv pos loc args in
-   let len = String.length s in
-   let buf = Buffer.create 32 in
-   let flush lines =
-      let s = Buffer.contents buf in
-         Buffer.clear buf;
-         if s = "" then
-            lines
-         else
-            ValString s :: lines
-   in
-   let rec collect lines i =
-      if i = len then
-         flush lines
-      else
-         match s.[i] with
-            '\r'
-          | '\n' ->
-               collect (flush lines) (succ i)
-          | c ->
-               Buffer.add_char buf c;
-               collect lines (succ i)
-   in
-      ValArray (List.rev (collect [] 0))
+  let s = shell_aux venv pos loc args in
+  let len = String.length s in
+  let buf = Buffer.create 32 in
+  let flush lines =
+    let s = Buffer.contents buf in
+    Buffer.clear buf;
+    if s = "" then
+      lines
+    else
+      Omake_value_type.ValString s :: lines
+  in
+  let rec collect lines i =
+    if i = len then
+      flush lines
+    else
+      match s.[i] with
+        '\r'
+      | '\n' ->
+        collect (flush lines) (succ i)
+      | c ->
+        Buffer.add_char buf c;
+        collect lines (succ i) in
+   Omake_value_type.ValArray (List.rev (collect [] 0))
 
 let shell_code venv pos loc args =
    let pos = string_pos "shell-code" pos in
-   let venv = venv_add_var venv abort_on_command_error_var val_false in
+   let venv = venv_add_var venv abort_on_command_error_var Omake_builtin_util.val_false in
    let _, result =
       match args with
          [arg] ->
             eval_shell_exp venv pos loc arg
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
       match result with
          ValInt _ ->
@@ -2615,26 +2574,26 @@ let shell_code venv pos loc args =
  * \end{doc}
  *)
 let export venv pos loc args kargs =
-   let pos = string_pos "export" pos in
-      match args, kargs with
-         [ValOther (ValEnv (hand, export))], [] ->
-            let venv_new = venv_find_environment venv pos hand in
-            let venv = add_exports venv venv_new pos export in
-               venv, ValNone
-       | [vars], [] ->
-            let exports =
-               List.map (function
-                  ".PHONY" -> ExportPhonies
-                | ".RULE" -> ExportRules
-                | v -> ExportVar (VarGlobal (loc, Lm_symbol.add v))) (strings_of_value venv pos vars)
-            in
-            let hand = venv_add_environment venv in
-               venv, ValOther (ValEnv (hand, ExportList exports))
-       | [], [] ->
-            let hand = venv_add_environment venv in
-               venv, ValOther (ValEnv (hand, ExportAll))
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+  let pos = string_pos "export" pos in
+  match args, kargs with
+  | [ Omake_value_type.ValOther (ValEnv (hand, export))], [] ->
+    let venv_new = venv_find_environment venv pos hand in
+    let venv = add_exports venv venv_new pos export in
+    venv, Omake_value_type.ValNone
+  | [vars], [] ->
+    let exports =
+      List.map (function
+        ".PHONY" -> ExportPhonies
+      | ".RULE" -> ExportRules
+      | v -> ExportVar (VarGlobal (loc, Lm_symbol.add v))) (strings_of_value venv pos vars)
+    in
+    let hand = venv_add_environment venv in
+    venv, ValOther (ValEnv (hand, ExportList exports))
+  | [], [] ->
+    let hand = venv_add_environment venv in
+    venv, ValOther (ValEnv (hand, ExportAll))
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 
 (*
  * Loop.
@@ -2735,16 +2694,16 @@ let while_fun venv pos loc args kargs =
                 ValCases cases ->
                    cases, arg
               | _ ->
-                   raise (OmakeException (pos, StringError "malformed while expression")))
+                   raise (Omake_value_type.OmakeException (pos, StringError "malformed while expression")))
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
    let venv =
       try while_loop venv pos loc cases arg with
          Break (_, venv) ->
             venv
    in
-      venv, ValNone
+      venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2783,163 +2742,153 @@ let break venv _ loc _ =
 let () = Random.self_init ()
 
 let random _ _ _ _ =
-   ValInt (Random.bits ())
+   Omake_value_type.ValInt (Random.bits ())
 
 let random_init venv pos loc args =
-   let pos = string_pos "random-init" pos in
-      match args with
-         [arg] ->
-            let i = int_of_value venv pos arg in
-               Random.init i;
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "random-init" pos in
+  match args with
+  | [arg] ->
+    let i = int_of_value venv pos arg in
+    Random.init i;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * Register.
- *)
+*)
 let () =
-   let builtin_vars =
-      let user =
-         try Unix.getlogin () with
-            Unix.Unix_error _
-          | Not_found ->
-               "nobody"
-      in
-         ["OS",             (fun _ -> ValData Sys.os_type);
-          "OSTYPE",         (fun _ -> ValData Sys.os_type);
-          "SYSNAME",        (fun _ -> ValData Lm_uname.sysname);
-          "NODENAME",       (fun _ -> ValData Lm_uname.nodename);
-          "OS_VERSION",     (fun _ -> ValData Lm_uname.version);
-          "OS_RELEASE",     (fun _ -> ValData Lm_uname.release);
-          "MACHINE",        (fun _ -> ValData Lm_uname.machine);
-          "HOST",           (fun _ -> ValData Lm_uname.nodename);
-          "OMAKE_VERSION",  (fun _ -> ValData Omake_magic.version);
-          "USER",           (fun _ -> ValData user);
-          "PID",            (fun _ -> ValInt (Unix.getpid ()));
-          "HOME",           (fun venv -> ValDir (venv_intern_dir venv home_dir));
-          "VERBOSE",        (fun venv -> val_of_bool (Omake_options.opt_verbose (venv_options venv)));
+  let builtin_vars =
+    let user =
+      try Unix.getlogin () with
+      | Unix.Unix_error _
+      | Not_found -> "nobody" in
+    ["OS",             (fun _ -> Omake_value_type.ValData Sys.os_type);
+     "OSTYPE",         (fun _ -> ValData Sys.os_type);
+     "SYSNAME",        (fun _ -> ValData Lm_uname.sysname);
+     "NODENAME",       (fun _ -> ValData Lm_uname.nodename);
+     "OS_VERSION",     (fun _ -> ValData Lm_uname.version);
+     "OS_RELEASE",     (fun _ -> ValData Lm_uname.release);
+     "MACHINE",        (fun _ -> ValData Lm_uname.machine);
+     "HOST",           (fun _ -> ValData Lm_uname.nodename);
+     "OMAKE_VERSION",  (fun _ -> ValData Omake_magic.version);
+     "USER",           (fun _ -> ValData user);
+     "PID",            (fun _ -> ValInt (Unix.getpid ()));
+     "HOME",           (fun venv -> ValDir (venv_intern_dir venv home_dir));
+     "VERBOSE",        (fun venv -> Omake_builtin_util.val_of_bool (Omake_options.opt_verbose (venv_options venv)));
 
-          (* ZZZ: Used to be defined in Common.om *)
-          "SCANNER_MODE",               (fun _ -> ValData "enabled");
-          "ABORT_ON_COMMAND_ERROR",     (fun _ -> val_true);
+     (* ZZZ: Used to be defined in Common.om *)
+     "SCANNER_MODE",               (fun _ -> ValData "enabled");
+     "ABORT_ON_COMMAND_ERROR",     (fun _ -> Omake_builtin_util.val_true);
 
-          (* ZZZ: needs documentation *)
-          "ALLOW_EMPTY_SUBDIRS",        (fun _ -> val_false);
-          "CREATE_SUBDIRS",             (fun _ -> val_false);
-          "EXIT_ON_UNCAUGHT_EXCEPTION", (fun _ -> val_false);
-          "AUTO_REHASH",                (fun _ -> val_false);
-         ]
-   in
-   let builtin_funs =
-      [true,  "addprefix",             addprefix,           ArityExact 2;
-       true,  "mapprefix",             mapprefix,           ArityExact 2;
-       true,  "addprefixes",           addprefixes,         ArityExact 2;
-       true,  "removeprefix",          removeprefix,        ArityExact 2;
+     (* ZZZ: needs documentation *)
+     "ALLOW_EMPTY_SUBDIRS",        (fun _ -> Omake_builtin_util.val_false);
+     "CREATE_SUBDIRS",             (fun _ -> Omake_builtin_util.val_false);
+     "EXIT_ON_UNCAUGHT_EXCEPTION", (fun _ -> Omake_builtin_util.val_false);
+     "AUTO_REHASH",                (fun _ -> Omake_builtin_util.val_false);
+    ]
+  in
+  let builtin_funs =
+    [true,  "addprefix",             addprefix,           ArityExact 2;
+     true,  "mapprefix",             mapprefix,           ArityExact 2;
+     true,  "addprefixes",           addprefixes,         ArityExact 2;
+     true,  "removeprefix",          removeprefix,        ArityExact 2;
 
-       true,  "addsuffix",             addsuffix,           ArityExact 2;
-       true,  "mapsuffix",             mapsuffix,           ArityExact 2;
-       true,  "addsuffixes",           addsuffixes,         ArityExact 2;
-       true,  "removesuffix",          removesuffix,        ArityRange (1, 2);
-       true,  "replacesuffixes",       replacesuffixes,     ArityExact 3;
+     true,  "addsuffix",             addsuffix,           ArityExact 2;
+     true,  "mapsuffix",             mapsuffix,           ArityExact 2;
+     true,  "addsuffixes",           addsuffixes,         ArityExact 2;
+     true,  "removesuffix",          removesuffix,        ArityRange (1, 2);
+     true,  "replacesuffixes",       replacesuffixes,     ArityExact 3;
 
-       (* String operations *)
-       true,  "string",                string,              ArityExact 1;
-       true,  "string-escaped",        string_escaped,      ArityExact 1;
-       true,  "string-length",         string_length,       ArityExact 1;
-       true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
-       true,  "c-escaped",             c_escaped,           ArityExact 1;
-       true,  "sql-escaped",           sql_escaped,         ArityExact 1;
-       true,  "id-escaped",            id_escaped,          ArityExact 1;
-       true,  "html-escaped",          html_escaped,        ArityExact 1;
-       true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
-       true,  "hexify",                hexify,              ArityExact 1;
-       true,  "unhexify",              unhexify,            ArityExact 1;
-       true,  "decode-uri",            decode_uri,          ArityExact 1;
-       true,  "encode-uri",            encode_uri,          ArityExact 1;
-       true,  "uri-escaped",           encode_uri,          ArityExact 1;
-       true,  "quote",                 quote,               ArityExact 1;
-       true,  "quote-argv",            quote_argv,          ArityExact 1;
-       true,  "html-string",           html_string,         ArityExact 1;
-       true,  "add-wrapper",           add_wrapper,         ArityExact 3;
-       true,  "capitalize",            capitalize,          ArityExact 1;
-       true,  "uncapitalize",          uncapitalize,        ArityExact 1;
-       true,  "lowercase",             lowercase,           ArityExact 1;
-       true,  "uppercase",             uppercase,           ArityExact 1;
+     (* String operations *)
+     true,  "string",                string,              ArityExact 1;
+     true,  "string-escaped",        string_escaped,      ArityExact 1;
+     true,  "string-length",         string_length,       ArityExact 1;
+     true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
+     true,  "c-escaped",             c_escaped,           ArityExact 1;
+     true,  "sql-escaped",           sql_escaped,         ArityExact 1;
+     true,  "id-escaped",            id_escaped,          ArityExact 1;
+     true,  "html-escaped",          html_escaped,        ArityExact 1;
+     true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
+     true,  "hexify",                hexify,              ArityExact 1;
+     true,  "unhexify",              unhexify,            ArityExact 1;
+     true,  "decode-uri",            decode_uri,          ArityExact 1;
+     true,  "encode-uri",            encode_uri,          ArityExact 1;
+     true,  "uri-escaped",           encode_uri,          ArityExact 1;
+     true,  "quote",                 quote,               ArityExact 1;
+     true,  "quote-argv",            quote_argv,          ArityExact 1;
+     true,  "html-string",           html_string,         ArityExact 1;
+     true,  "add-wrapper",           add_wrapper,         ArityExact 3;
+     true,  "capitalize",            capitalize,          ArityExact 1;
+     true,  "uncapitalize",          uncapitalize,        ArityExact 1;
+     true,  "lowercase",             lowercase,           ArityExact 1;
+     true,  "uppercase",             uppercase,           ArityExact 1;
 
-       (* System operations *)
-       true,  "getenv",                getenv,              ArityRange (1, 2);
-       true,  "defined-env",           defined_env,         ArityExact 1;
-       true,  "exit",                  exit_fun,            ArityRange (0, 1);
-       true,  "exit-parent",           exit_parent_fun,     ArityRange (0, 1);
-       true,  "raise",                 raise_fun,           ArityExact 1;
-       true,  "get-registry",          get_registry,        ArityRange (3, 4);
+     (* System operations *)
+     true,  "getenv",                getenv,              ArityRange (1, 2);
+     true,  "defined-env",           defined_env,         ArityExact 1;
+     true,  "exit",                  exit_fun,            ArityRange (0, 1);
+     true,  "exit-parent",           exit_parent_fun,     ArityRange (0, 1);
+     true,  "raise",                 raise_fun,           ArityExact 1;
+     true,  "get-registry",          get_registry,        ArityRange (3, 4);
 
-       (* Normal variables *)
-       true,  "getvar",                getvar,              ArityExact 1;
+     (* Normal variables *)
+     true,  "getvar",                getvar,              ArityExact 1;
 
-       (* Logic *)
-       true,  "not",                   not_fun,             ArityExact 1;
-       false, "or",                    or_fun,              ArityAny;
-       false, "and",                   and_fun,             ArityAny;
-       true,  "equal",                 equal,               ArityExact 2;
-       true,  "if",                    if_fun,              ArityRange (2, 3);
-       true,  "defined",               defined,             ArityExact 1;
+     (* Logic *)
+     true,  "not",                   not_fun,             ArityExact 1;
+     false, "or",                    or_fun,              ArityAny;
+     false, "and",                   and_fun,             ArityAny;
+     true,  "equal",                 equal,               ArityExact 2;
+     true,  "if",                    if_fun,              ArityRange (2, 3);
+     true,  "defined",               defined,             ArityExact 1;
 
-       (* List operations *)
-       true,  "array",                 array_fun,           ArityAny;
-       true,  "split",                 split_fun,           ArityRange (1, 2);
-       true,  "concat",                concat_fun,          ArityExact 2;
-       true,  "filter",                filter,              ArityExact 2;
-       true,  "filter-out",            filter_out,          ArityExact 2;
-       true,  "nth",                   nth_fun,             ArityExact 2;
-       true,  "nth-hd",                nth_hd_fun,          ArityExact 2;
-       true,  "nth-tl",                nth_tl_fun,          ArityExact 2;
-       true,  "replace-nth",           replace_nth_fun,     ArityExact 3;
-       true,  "subrange",              subrange_fun,        ArityExact 3;
-       true,  "length",                length_fun,          ArityExact 1;
-       true,  "rev",                   rev_fun,             ArityExact 1;
+     (* List operations *)
+     true,  "array",                 array_fun,           ArityAny;
+     true,  "split",                 split_fun,           ArityRange (1, 2);
+     true,  "concat",                concat_fun,          ArityExact 2;
+     true,  "filter",                filter,              ArityExact 2;
+     true,  "filter-out",            filter_out,          ArityExact 2;
+     true,  "nth",                   nth_fun,             ArityExact 2;
+     true,  "nth-hd",                nth_hd_fun,          ArityExact 2;
+     true,  "nth-tl",                nth_tl_fun,          ArityExact 2;
+     true,  "replace-nth",           replace_nth_fun,     ArityExact 3;
+     true,  "subrange",              subrange_fun,        ArityExact 3;
+     true,  "length",                length_fun,          ArityExact 1;
+     true,  "rev",                   rev_fun,             ArityExact 1;
 
-       (* Set operations *)
-       true,  "set",                   set,                 ArityExact 1;
-       true,  "mem",                   mem,                 ArityExact 2;
-       true,  "intersection",          intersection,        ArityExact 2;
-       true,  "intersects",            intersects,          ArityExact 2;
-       true,  "set-diff",              set_diff,            ArityExact 2;
+     (* Set operations *)
+     true,  "set",                   set,                 ArityExact 1;
+     true,  "mem",                   mem,                 ArityExact 2;
+     true,  "intersection",          intersection,        ArityExact 2;
+     true,  "intersects",            intersects,          ArityExact 2;
+     true,  "set-diff",              set_diff,            ArityExact 2;
 
-       (* Shell command *)
-       true,  "shell",                 shell,               ArityExact 1;
-       true,  "shella",                shella,              ArityExact 1;
-       true,  "shell-code",            shell_code,          ArityExact 1;
+     (* Shell command *)
+     true,  "shell",                 shell,               ArityExact 1;
+     true,  "shella",                shella,              ArityExact 1;
+     true,  "shell-code",            shell_code,          ArityExact 1;
 
-       true,  "break",                 break,               ArityExact 0;
+     true,  "break",                 break,               ArityExact 0;
 
-       true,  "random",                random,              ArityExact 0;
-       true,  "random-init",           random_init,         ArityExact 1]
-   in
-   let builtin_kfuns =
-      [true,  "setenv",                setenv,              ArityExact 2;
-       true,  "unsetenv",              unsetenv,            ArityExact 1;
-       true,  "setvar",                setvar,              ArityExact 2;
-       false, "switch",                switch_fun,          ArityAny;
-       false, "match",                 match_fun,           ArityAny;
-       false, "while",                 while_fun,           ArityExact 2;
-       false, "try",                   try_fun,             ArityExact 2;
-       true,  "export",                export,              ArityExact 0;
-       true,  "system",                system,              ArityExact 1;
-     ]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_vars = builtin_vars;
-                           builtin_funs = builtin_funs;
-                           builtin_kfuns = builtin_kfuns
-      }
-   in
-      register_builtin builtin_info
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+     true,  "random",                random,              ArityExact 0;
+     true,  "random-init",           random_init,         ArityExact 1]
+  in
+  let builtin_kfuns =
+    [true,  "setenv",                setenv,              ArityExact 2;
+     true,  "unsetenv",              unsetenv,            ArityExact 1;
+     true,  "setvar",                setvar,              ArityExact 2;
+     false, "switch",                switch_fun,          ArityAny;
+     false, "match",                 match_fun,           ArityAny;
+     false, "while",                 while_fun,           ArityExact 2;
+     false, "try",                   try_fun,             ArityExact 2;
+     true,  "export",                export,              ArityExact 0;
+     true,  "system",                system,              ArityExact 1;
+    ]
+  in
+  let builtin_info =
+    { Omake_builtin_type.builtin_empty with builtin_vars = builtin_vars;
+      builtin_funs = builtin_funs;
+      builtin_kfuns = builtin_kfuns
+    } in
+  Omake_builtin.register_builtin builtin_info
