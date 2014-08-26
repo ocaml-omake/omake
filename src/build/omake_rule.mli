@@ -3,9 +3,7 @@
  *)
 
 
-(*
- * Debugging.
- *)
+(*  Debugging. *)
 val debug_active_rules : bool ref
 
 (*

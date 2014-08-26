@@ -1,33 +1,11 @@
 (*  Rule evaluation. *)
 
-open Omake_var
-
-open Omake_util
-open Omake_node
-open Omake_eval
-
-open Omake_state
-open! Omake_value
-open Omake_symbol
-open Omake_command
-
-open Omake_ir_print
-open Omake_node_sig
-open Omake_exec_type
-
-open Omake_shell_lex
-open Omake_cache_type
-open Omake_shell_type
-open Omake_value_type
-open Omake_value_print
-open Omake_ir_free_vars
-
 include Omake_pos.MakePos (struct let name = "Omake_rule" end);;
 
 
 type 'a result =
-   Success of 'a
- | Exception of exn
+  | Success of 'a
+  | Exception of exn
 
 (*
  * Debugging.
@@ -50,24 +28,26 @@ sig
    type resume
 
    (* Create a buffer *)
-   val create : Omake_env.venv -> Node.t -> value -> NodeSet.t -> NodeSet.t -> NodeSet.t -> NodeSet.t -> t
+   val create : 
+     Omake_env.venv -> Omake_node.Node.t -> 
+     Omake_value_type.value -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> t
 
    (* Projections *)
-   val target : t -> Node.t * value
+   val target : t -> Omake_node.Node.t * Omake_value_type.value
 
    (* Adding to the buffer *)
-   val add_command  : t -> command -> t
-   val add_locks    : t -> NodeSet.t -> t
-   val add_effects  : t -> NodeSet.t -> t
-   val add_scanners : t -> NodeSet.t -> t
-   val add_deps     : t -> NodeSet.t -> t
+   val add_command  : t -> Omake_value_type.command -> t
+   val add_locks    : t -> Omake_node.NodeSet.t -> t
+   val add_effects  : t -> Omake_node.NodeSet.t -> t
+   val add_scanners : t -> Omake_node.NodeSet.t -> t
+   val add_deps     : t -> Omake_node.NodeSet.t -> t
 
    (* Block operations *)
-   val enter  : t -> Omake_env.venv -> Node.t list -> value list -> resume * t
+   val enter  : t -> Omake_env.venv -> Omake_node.Node.t list -> Omake_value_type.value list -> resume * t
    val resume : t -> resume -> t
 
    (* Get the final info *)
-   val contents : t -> NodeSet.t * NodeSet.t * NodeSet.t * NodeSet.t * Omake_env.command_info list
+   val contents : t -> Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_env.command_info list
 end
 
 module Command : CommandSig =
@@ -76,24 +56,24 @@ struct
     * The command buffer.
     *)
    type t =
-      { buf_target   : Node.t;
-        buf_core     : value;
-        buf_locks    : NodeSet.t;
-        buf_effects  : NodeSet.t;
-        buf_deps     : NodeSet.t;
-        buf_scanners : NodeSet.t;
+      { buf_target   : Omake_node.Node.t;
+        buf_core     : Omake_value_type.value;
+        buf_locks    : Omake_node.NodeSet.t;
+        buf_effects  : Omake_node.NodeSet.t;
+        buf_deps     : Omake_node.NodeSet.t;
+        buf_scanners : Omake_node.NodeSet.t;
 
         (* The state that is being collected *)
         buf_env      : Omake_env.venv;
-        buf_sources  : Node.t list;
-        buf_values   : value list;
-        buf_commands : command list;
+        buf_sources  : Omake_node.Node.t list;
+        buf_values   : Omake_value_type.value list;
+        buf_commands : Omake_value_type.command list;
 
         (* The buffers that have already been collected *)
         buf_info     : Omake_env.command_info list
       }
 
-   type resume = Omake_env.venv * Node.t list * value list
+   type resume = Omake_env.venv * Omake_node.Node.t list * Omake_value_type.value list
 
    (*
     * Create a new command buffer.
@@ -130,16 +110,16 @@ struct
       { buf with buf_commands = command :: buf.buf_commands }
 
    let add_locks buf locks =
-      { buf with buf_locks = NodeSet.union buf.buf_locks locks }
+      { buf with buf_locks = Omake_node.NodeSet.union buf.buf_locks locks }
 
    let add_effects buf effects =
-      { buf with buf_effects = NodeSet.union buf.buf_effects effects }
+      { buf with buf_effects = Omake_node.NodeSet.union buf.buf_effects effects }
 
    let add_deps buf deps =
-      { buf with buf_deps = NodeSet.union buf.buf_deps deps }
+      { buf with buf_deps = Omake_node.NodeSet.union buf.buf_deps deps }
 
    let add_scanners buf scanners =
-      { buf with buf_scanners = NodeSet.union buf.buf_scanners scanners }
+      { buf with buf_scanners = Omake_node.NodeSet.union buf.buf_scanners scanners }
 
    (*
     * Start a new environment.
@@ -218,8 +198,8 @@ end
  * Find a rule in a list.
  *)
 let find_rule venv pos loc target names =
-   if not (List.exists (Node.equal target) names) then
-      raise (OmakeException (loc_exp_pos loc, StringNodeError ("computed rule does not match target", target)));
+   if not (List.exists (Omake_node.Node.equal target) names) then
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringNodeError ("computed rule does not match target", target)));
    Omake_env.venv_explicit_find venv pos target
 
 (*
@@ -227,9 +207,9 @@ let find_rule venv pos loc target names =
  *)
 let commands_are_computed commands =
    List.exists (fun {Omake_env. command_body = body ; _} ->
-         List.exists (fun command ->
+         List.exists (fun (command : Omake_value_type.command) ->
                match command with
-                  CommandSection _ ->
+               | CommandSection _ ->
                      true
                 | CommandValue _ ->
                      false) body) commands
@@ -237,93 +217,94 @@ let commands_are_computed commands =
 (*
  * Expand a single command.
  *)
-let rec expand_command venv pos loc buf command =
-   let pos = string_pos "expand_command" pos in
-      match command with
-         CommandValue _ ->
-            Command.add_command buf command
-       | CommandSection (arg, fv, el) ->
-            if Lm_debug.debug debug_active_rules then
-               Format.eprintf "@[<hv 3>section %a@ %a@]@." pp_print_value arg pp_print_exp_list el;
+let rec expand_command venv pos loc buf (command : Omake_value_type.command) =
+  let pos = string_pos "expand_command" pos in
+  match command with
+  | CommandValue _ ->
+    Command.add_command buf command
+  | CommandSection (arg, fv, el) ->
+    if Lm_debug.debug debug_active_rules then
+      Format.eprintf "@[<hv 3>section %a@ %a@]@." Omake_value_print.pp_print_value arg 
+        Omake_ir_print.pp_print_exp_list el;
 
-            (* The section should be either a rule or eval case *)
-            match Lm_string_util.trim (string_of_value venv pos arg) with
-               "" ->
-                  expand_eval_section venv pos loc buf "eval" fv el
-             | "eval" as s ->
-                  expand_eval_section venv pos loc buf s fv el
-             | "rule" ->
-                  expand_rule_section venv pos loc buf el
-             | s ->
-                  raise (OmakeException (loc_exp_pos loc, StringStringError ("invalid section argument, valid arguments are rule, eval", s)))
+    (* The section should be either a rule or eval case *)
+    match Lm_string_util.trim (Omake_eval.string_of_value venv pos arg) with
+      "" ->
+      expand_eval_section venv pos loc buf "eval" fv el
+    | "eval" as s ->
+      expand_eval_section venv pos loc buf s fv el
+    | "rule" ->
+      expand_rule_section venv pos loc buf el
+    | s ->
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringStringError ("invalid section argument, valid arguments are rule, eval", s)))
 
 and expand_commands venv pos loc buf commands =
-   match commands with
-      command :: commands ->
-         let buf = expand_command venv pos loc buf command in
-            expand_commands venv pos loc buf commands
-    | [] ->
-         buf
+  match commands with
+    command :: commands ->
+    let buf = expand_command venv pos loc buf command in
+    expand_commands venv pos loc buf commands
+  | [] ->
+    buf
 
 (*
  * This section computes a new rule for the target.
  *)
 and expand_rule_section venv pos loc buf e =
-   let pos = string_pos "expand_rule_section" pos in
-   let target, core = Command.target buf in
-   let venv = Omake_env.venv_explicit_target venv target in
-   let venv = Omake_env.venv_add_wild_match venv core in
-   let _, v = eval_sequence_exp venv pos e in
-      if Lm_debug.debug debug_active_rules then
-         Format.eprintf "@[<v 0>%a@ @[<hv 3>*** omake: rule body returned@ @[<hv 3>%a@]@]@]@." (**)
-            Lm_location.pp_print_location loc
-            pp_print_value v;
+  let pos = string_pos "expand_rule_section" pos in
+  let target, core = Command.target buf in
+  let venv = Omake_env.venv_explicit_target venv target in
+  let venv = Omake_env.venv_add_wild_match venv core in
+  let _, v = Omake_eval.eval_sequence_exp venv pos e in
+  if Lm_debug.debug debug_active_rules then
+    Format.eprintf "@[<v 0>%a@ @[<hv 3>*** omake: rule body returned@ @[<hv 3>%a@]@]@]@." (**)
+      Lm_location.pp_print_location loc
+      Omake_value_print.pp_print_value v;
 
-      match v with
-         ValRules erules ->
-            let erule = find_rule venv pos loc target erules in
-            let {Omake_env. rule_locks    = locks;
-                  rule_effects  = effects;
-                  rule_sources  = deps;
-                  rule_scanners = scanners;
-                  rule_commands = commands;
-                  _
-                } = erule
-            in
-            let buf = Command.add_locks buf locks in
-            let buf = Command.add_effects buf effects in
-            let buf = Command.add_deps buf deps in
-            let buf = Command.add_scanners buf scanners in
-               expand_command_info_list pos loc buf commands
-       | _ ->
-            Format.eprintf "@[<v 0>%a@ *** omake: section rule: did not compute a rule@]@." (**)
-               Lm_location.pp_print_location loc;
-            buf
+  match v with
+    ValRules erules ->
+    let erule = find_rule venv pos loc target erules in
+    let {Omake_env. rule_locks    = locks;
+          rule_effects  = effects;
+          rule_sources  = deps;
+          rule_scanners = scanners;
+          rule_commands = commands;
+          _
+        } = erule
+    in
+    let buf = Command.add_locks buf locks in
+    let buf = Command.add_effects buf effects in
+    let buf = Command.add_deps buf deps in
+    let buf = Command.add_scanners buf scanners in
+    expand_command_info_list pos loc buf commands
+  | _ ->
+    Format.eprintf "@[<v 0>%a@ *** omake: section rule: did not compute a rule@]@." (**)
+      Lm_location.pp_print_location loc;
+    buf
 
 (*
  * This section is to be evaluated when the rule is run.
  *)
 and expand_eval_section _ pos _ buf s fv e =
-   let _pos = string_pos "expand_eval_section" pos in
-      Command.add_command buf (CommandSection (ValString s, fv, e))
+  let _pos = string_pos "expand_eval_section" pos in
+  Command.add_command buf (CommandSection (ValString s, fv, e))
 
 (*
  * Expand a buf_info list.
  *)
 and expand_command_info pos loc buf command =
-   match command with {Omake_env. command_env = venv;
-         command_sources = sources;
-         command_values = values;
-         command_body = commands
-       } ->
-   let pos = string_pos "expand_buf_info" pos in
-   let resume, buf = Command.enter buf venv sources values in
-   let buf = expand_commands venv pos loc buf commands in
-      Command.resume buf resume
+  match command with {Omake_env. command_env = venv;
+                       command_sources = sources;
+                       command_values = values;
+                       command_body = commands
+                     } ->
+    let pos = string_pos "expand_buf_info" pos in
+    let resume, buf = Command.enter buf venv sources values in
+    let buf = expand_commands venv pos loc buf commands in
+    Command.resume buf resume
 
 and expand_command_info_list pos loc buf commands =
-   let pos = string_pos "expand_buf_info_list" pos in
-      List.fold_left (expand_command_info pos loc) buf commands
+  let pos = string_pos "expand_buf_info_list" pos in
+  List.fold_left (expand_command_info pos loc) buf commands
 
 (*
  * Expand a rule, so that the commands are a command list.
@@ -342,9 +323,9 @@ let expand_rule erule =
       _
     } ->
     if commands_are_computed commands then
-      let core =
+      let core : Omake_value_type.value =
         match core with
-          Some s ->
+        | Some s ->
           ValData s
         | None ->
           ValNode target
@@ -355,11 +336,11 @@ let expand_rule erule =
       let locks, effects, deps, scanners, commands = Command.contents buf in
       if Lm_debug.debug debug_active_rules then
         Format.eprintf "@[<v 3>expand_rule: %a@ @[<b 3>locks =%a@]@ @[<b 3>effects =%a@]@ @[<b 3>deps = %a@]@ @[<b 3>scanners = %a@]@]@." (**)
-          pp_print_node target
-          pp_print_node_set locks
-          pp_print_node_set effects
-          pp_print_node_set deps
-          pp_print_node_set scanners;
+          Omake_node.pp_print_node target
+          Omake_node.pp_print_node_set locks
+          Omake_node.pp_print_node_set effects
+          Omake_node.pp_print_node_set deps
+          Omake_node.pp_print_node_set scanners;
       { erule with rule_locks = locks;
         rule_effects = effects;
         rule_sources = deps;
@@ -443,10 +424,10 @@ let glob_options_of_string options s =
  *)
 let glob_arg venv _ _ options arg =
    let cwd = Omake_env.venv_dir venv in
-   let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [Omake_command_type.glob_string_of_arg options arg] in
+   let dirs, files = Lm_glob.glob options (Omake_node.Dir.fullname cwd) [Omake_command_type.glob_string_of_arg options arg] in
    let dirs = List.sort String.compare dirs in
    let files = List.sort String.compare files in
-   let dirs = List.map (fun dir -> Dir.chdir cwd dir) dirs in
+   let dirs = List.map (fun dir -> Omake_node.Dir.chdir cwd dir) dirs in
    let files = List.map (fun file -> Omake_env.venv_intern_cd venv PhonyProhibited cwd file) files in
       dirs, files
 
@@ -475,15 +456,15 @@ let glob_result_compare r1 r2 =
 
 let glob_rev_arg venv _ _ options arg argv =
    let cwd = Omake_env.venv_dir venv in
-   let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [Omake_command_type.glob_string_of_arg options arg] in
+   let dirs, files = Lm_glob.glob options (Omake_node.Dir.fullname cwd) [Omake_command_type.glob_string_of_arg options arg] in
    let args = List.fold_left (fun args s -> GFile s :: args) [] files in
    let args = List.fold_left (fun args s -> GDir s :: args) args dirs in
    let args = List.sort glob_result_compare args in
       List.fold_left (fun argv arg ->
             let v =
                match arg with
-                  GDir s -> ValDir (Dir.chdir cwd s)
-                | GFile s -> ValNode (Omake_env.venv_intern_cd venv PhonyProhibited cwd s)
+               | GDir s -> Omake_value_type.ValDir (Omake_node.Dir.chdir cwd s)
+               | GFile s -> ValNode (Omake_env.venv_intern_cd venv PhonyProhibited cwd s)
             in
                v :: argv) argv args
 
@@ -493,21 +474,21 @@ let glob_rev_arg venv _ _ options arg argv =
  * In this case, the actual command is a bit ambiguous, so users should be
  * careful when they do it.
  *)
-let glob_arg_exe venv pos loc options (arg : Omake_command_type.arg) : (simple_exe * Node.t list) =
+let glob_arg_exe venv pos loc options (arg : Omake_command_type.arg) : (Omake_shell_type.simple_exe * Omake_node.Node.t list) =
    if Omake_command_type.is_glob_arg options arg then
       match glob_arg venv pos loc options arg with
          [], exe :: args ->
             ExeNode exe, args
        | [], [] ->
-            raise (OmakeException (pos, StringError "null glob expansion"))
+            raise (Omake_value_type.OmakeException (pos, StringError "null glob expansion"))
        | dir :: _, _ ->
-            raise (OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
+            raise (Omake_value_type.OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
    else if Omake_command_type.is_quoted_arg arg then
       ExeQuote (Omake_command_type.simple_string_of_arg arg), []
    else
-      parse_command_string (Omake_command_type.simple_string_of_arg arg), []
+      Omake_shell_lex.parse_command_string (Omake_command_type.simple_string_of_arg arg), []
 
-let glob_exe venv pos loc options (exe : Omake_command_type.arg cmd_exe) : (simple_exe * Node.t list) =
+let glob_exe venv pos loc options (exe : Omake_command_type.arg Omake_shell_type.cmd_exe) : (Omake_shell_type.simple_exe * Omake_node.Node.t list) =
    match exe with
       CmdNode node ->
          ExeNode node, []
@@ -519,8 +500,8 @@ let glob_exe venv pos loc options (exe : Omake_command_type.arg cmd_exe) : (simp
  *)
 let glob_value_argv venv pos loc options argv =
    List.fold_left (fun argv v ->
-         if is_glob_value options v then
-            let arg = arg_of_values venv pos [v] in
+         if Omake_value.is_glob_value options v then
+            let arg = Omake_eval.arg_of_values venv pos [v] in
                glob_rev_arg venv pos loc options arg argv
          else
             v :: argv) [] (List.rev argv)
@@ -530,7 +511,7 @@ let glob_value_argv venv pos loc options argv =
  *)
 let glob_command_line venv _ _ options argv =
    let cwd = Omake_env.venv_dir venv in
-   let dir = Dir.fullname cwd in
+   let dir = Omake_node.Dir.fullname cwd in
    let argv = List.map (Omake_command_type.glob_string_of_arg options) argv in
       Lm_glob.glob_argv options dir argv
 
@@ -538,20 +519,20 @@ let glob_command_line venv _ _ options argv =
  * Glob an input or output file.
  *)
 let glob_channel venv pos loc options name =
-   match name with
-      RedirectNone
-    | RedirectNode _ as file ->
-         file
-    | RedirectArg name ->
-         match glob_arg venv pos loc options name with
-            [], [node] ->
-               RedirectNode node
-          | dir :: _, _ ->
-               raise (OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
-          | [], _ :: _ :: _ ->
-               raise (OmakeException (pos, StringStringError ("ambiguous redirect", Omake_command_type.simple_string_of_arg name)))
-          | [], [] ->
-               raise (OmakeException (pos, StringStringError ("null redirect", Omake_command_type.simple_string_of_arg name)))
+  match name with
+  | Omake_shell_type.RedirectNone
+  | RedirectNode _ as file ->
+    file
+  | RedirectArg name ->
+    match glob_arg venv pos loc options name with
+      [], [node] ->
+      RedirectNode node
+    | dir :: _, _ ->
+      raise (Omake_value_type.OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
+    | [], _ :: _ :: _ ->
+      raise (Omake_value_type.OmakeException (pos, StringStringError ("ambiguous redirect", Omake_command_type.simple_string_of_arg name)))
+    | [], [] ->
+      raise (Omake_value_type.OmakeException (pos, StringStringError ("null redirect", Omake_command_type.simple_string_of_arg name)))
 
 (*
  * Convert the environment strings.
@@ -564,76 +545,77 @@ let string_of_env env =
  * Alias expansion.
  *)
 let find_alias_exn shell_obj venv pos loc exe =
-   (* If this is an internal command, create the PipeApply *)
-   let name = Lm_symbol.add exe in
-   let v = Omake_env.venv_find_field_internal_exn shell_obj name in
-   let _, f = eval_fun venv pos v in
+  (* If this is an internal command, create the PipeApply *)
+  let name = Lm_symbol.add exe in
+  let v = Omake_env.venv_find_field_internal_exn shell_obj name in
+  let _, f = Omake_eval.eval_fun venv pos v in
 
-   (* Found the function, no exceptions now *)
-   let f venv_orig stdin stdout stderr env argv =
-      if !debug_eval || !debug_shell then
-         Format.eprintf "Running %s, stdin=%i, stdout=%i, stderr=%i@." exe (Obj.magic stdin) (Obj.magic stdout) (Obj.magic stderr);
-      let venv   = Omake_env.venv_fork venv_orig in
-      let venv   = List.fold_left (fun venv (v, s) -> Omake_env.venv_setenv venv v s) venv env in
-      let stdin_chan  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
-      let stdout_chan = Lm_channel.create "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stdout) in
-      let stderr_chan = Lm_channel.create "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stderr) in
-      let stdin  = Omake_env.venv_add_channel venv stdin_chan in
-      let stdout = Omake_env.venv_add_channel venv stdout_chan in
-      let stderr = Omake_env.venv_add_channel venv stderr_chan in
-      let venv   = Omake_env.venv_add_var venv stdin_var  (ValChannel (InChannel,  stdin)) in
-      let venv   = Omake_env.venv_add_var venv stdout_var (ValChannel (OutChannel, stdout)) in
-      let venv   = Omake_env.venv_add_var venv stderr_var (ValChannel (OutChannel, stderr)) in
-      let v      = ValArray argv in
-      let () =
-         if !debug_eval then
-            Format.eprintf "normalize_apply: evaluating internal function@."
-      in
-      let code, venv, value, reraise =
-         try
-            let venv, v = f venv pos loc [v] [] in
-            let code =
-               match v with
-                  ValOther (ValExitCode code) ->
-                     code
-                | _ ->
-                     0
-            in
-               code, venv, v, None
-         with
-            ExitException (_, code)
-          | ExitParentException (_, code) as exn ->
-               code, venv, ValNone, Some exn
-          | OmakeException _
-          | UncaughtException _ as exn ->
-               Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               Omake_state.exn_error_code, venv, ValNone, None
-          | Unix.Unix_error _
-          | Sys_error _
-          | Not_found
-          | Failure _ as exn ->
-               Format.eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
-               Omake_state.exn_error_code, venv, ValNone, None
-      in
+  (* Found the function, no exceptions now *)
+  let f venv_orig stdin stdout stderr env argv =
+    if !Omake_eval.debug_eval || !Omake_shell_type.debug_shell then
+      Format.eprintf "Running %s, stdin=%i, stdout=%i, stderr=%i@." exe (Obj.magic stdin) (Obj.magic stdout) (Obj.magic stderr);
+    let venv   = Omake_env.venv_fork venv_orig in
+    let venv   = List.fold_left (fun venv (v, s) -> Omake_env.venv_setenv venv v s) venv env in
+    let stdin_chan  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
+    let stdout_chan = Lm_channel.create "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stdout) in
+    let stderr_chan = Lm_channel.create "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stderr) in
+    let stdin  = Omake_env.venv_add_channel venv stdin_chan in
+    let stdout = Omake_env.venv_add_channel venv stdout_chan in
+    let stderr = Omake_env.venv_add_channel venv stderr_chan in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stdin_var  (ValChannel (InChannel,  stdin)) in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stdout_var (ValChannel (OutChannel, stdout)) in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stderr_var (ValChannel (OutChannel, stderr)) in
+    let v : Omake_value_type.value     = ValArray argv in
+    let () =
+      if !Omake_eval.debug_eval then
+        Format.eprintf "normalize_apply: evaluating internal function@."
+    in
+    let code, venv, value, reraise =
+      try
+        let venv, v = f venv pos loc [v] [] in
+        let code =
+          match v with
+          | ValOther (ValExitCode code) ->
+            code
+          | _ ->
+            0
+        in
+        code, venv, v, None
+      with
+      | Omake_value_type.ExitException (_, code)
+      | Omake_value_type.ExitParentException (_, code) as exn ->
+        code, venv, ValNone, Some exn
+      | Omake_value_type.OmakeException _
+      | Omake_value_type.UncaughtException _ as exn ->
+        Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+        Omake_state.exn_error_code, venv, ValNone, None
+      | Unix.Unix_error _
+      | Sys_error _
+      | Not_found
+      | Failure _ as exn ->
+        Format.eprintf "%a@." Omake_exn_print.pp_print_exn (Omake_value_type.UncaughtException (pos, exn));
+        Omake_state.exn_error_code, venv, ValNone, None
+    in
 
-      (*
+    (*
        * XXX: JYH: we should probably consider combining the unfork
        * with venv_unexport.  This is the only place where we actually
        * need the unexport.
        *)
-      let venv = Omake_env.venv_unfork venv venv_orig in
-         if !debug_eval then
-            Format.eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
-         Omake_env.venv_close_channel venv pos stdin;
-         Omake_env.venv_close_channel venv pos stdout;
-         Omake_env.venv_close_channel venv pos stderr;
-         match reraise with
-            Some exn ->
-               raise exn
-          | None ->
-               code, venv, value
-   in
-      name, f
+    let venv = Omake_env.venv_unfork venv venv_orig in
+    if !Omake_eval.debug_eval then
+      Format.eprintf "normalize_apply: internal function is done: %d, %a@." code 
+        Omake_value_print.pp_print_value value;
+    Omake_env.venv_close_channel venv pos stdin;
+    Omake_env.venv_close_channel venv pos stdout;
+    Omake_env.venv_close_channel venv pos stderr;
+    match reraise with
+      Some exn ->
+      raise exn
+    | None ->
+      code, venv, value
+  in
+  name, f
 
 let find_alias obj venv pos loc exe =
    try Some (find_alias_exn obj venv pos loc exe) with
@@ -642,8 +624,8 @@ let find_alias obj venv pos loc exe =
 
 let find_alias_of_env venv pos =
    try
-      let obj = Omake_env.venv_find_var_exn venv shell_object_var in
-         match eval_single_value venv pos obj with
+      let obj = Omake_env.venv_find_var_exn venv Omake_var.shell_object_var in
+         match Omake_eval.eval_single_value venv pos obj with
             ValObject obj ->
                find_alias obj
           | _ ->
@@ -659,22 +641,22 @@ let find_alias_of_env venv pos =
 (*
  * Get the target string if there is a single one.
  *)
-let target_of_value venv pos v =
-   match v with
-      ValNode node ->
-         TargetNode node
-    | _ ->
-         TargetString (string_of_value venv pos v)
+let target_of_value venv pos (v : Omake_value_type.value) =
+  match v with
+  | ValNode node ->
+    Omake_value_type.TargetNode node
+  | _ ->
+    TargetString (Omake_eval.string_of_value venv pos v)
 
 let targets_of_value venv pos v =
-   List.map (target_of_value venv pos) (values_of_value venv pos v)
+   List.map (target_of_value venv pos) (Omake_eval.values_of_value venv pos v)
 
-let pp_print_target buf target =
-   match target with
-      TargetNode node ->
-         Format.fprintf buf "TargetNode %a" pp_print_node node
-    | TargetString s ->
-         Format.fprintf buf "TargetString %s" s
+let pp_print_target buf (target : Omake_value_type.target) =
+  match target with
+  | TargetNode node ->
+    Format.fprintf buf "TargetNode %a" Omake_node.pp_print_node node
+  | TargetString s ->
+    Format.fprintf buf "TargetString %s" s
 
 let pp_print_targets buf targets =
    List.iter (fun target -> Format.fprintf buf " %a" pp_print_target target) targets
@@ -692,33 +674,33 @@ let add_sources sources kind sources' =
          (kind, source) :: sources) sources sources'
 
 let sources_of_options venv pos loc sources options =
-   let options = map_of_value venv pos options in
+   let options = Omake_value.map_of_value venv pos options in
    let effects, sources, scanners, values =
       Omake_env.venv_map_fold (fun (effects, sources, scanners, values) optname optval ->
-            let s = string_of_value venv pos optname in
+            let s = Omake_eval.string_of_value venv pos optname in
             let v = Lm_symbol.add s in
-               if Lm_symbol.eq v normal_sym then
+               if Lm_symbol.eq v Omake_symbol.normal_sym then
                   let files = targets_of_value venv pos optval in
-                     effects, add_sources sources NodeNormal files, scanners, values
-               else if Lm_symbol.eq v optional_sym then
+                     effects, add_sources sources Omake_node_sig.NodeNormal files, scanners, values
+               else if Lm_symbol.eq v Omake_symbol.optional_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeOptional files, scanners, values
-               else if Lm_symbol.eq v exists_sym then
+               else if Lm_symbol.eq v Omake_symbol.exists_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeExists files, scanners, values
-               else if Lm_symbol.eq v squash_sym then
+               else if Lm_symbol.eq v Omake_symbol.squash_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeSquashed files, scanners, values
-               else if Lm_symbol.eq v scanner_sym then
+               else if Lm_symbol.eq v Omake_symbol.scanner_sym then
                   let files = targets_of_value venv pos optval in
-                     effects, sources, add_sources scanners NodeScanner files, values
-               else if Lm_symbol.eq v effects_sym then
+                     effects, sources, add_sources scanners Omake_node_sig.NodeScanner files, values
+               else if Lm_symbol.eq v Omake_symbol.effects_sym then
                   let files = targets_of_value venv pos optval in
-                     add_sources effects NodeNormal files, sources, scanners, values
-               else if Lm_symbol.eq v values_sym then
+                     add_sources effects Omake_node_sig.NodeNormal files, sources, scanners, values
+               else if Lm_symbol.eq v Omake_symbol.values_sym then
                   effects, sources, scanners, optval :: values
                else
-                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown rule option", v)))) (**)
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown rule option", v)))) (**)
          ([], sources, [], []) options
    in
       List.rev effects, List.rev sources, List.rev scanners, List.rev values
@@ -726,30 +708,31 @@ let sources_of_options venv pos loc sources options =
 (*
  * Get the commands.
  *)
-let lazy_command venv pos (command : Omake_ir.exp) =
+let lazy_command venv pos (command : Omake_ir.exp) : Omake_value_type.command =
   match command with
   | SectionExp (_, s, el, _) ->
-    let fv = free_vars_exp_list el in
-    CommandSection (eval_string_exp venv pos s, fv, el)
+    let fv = Omake_ir_free_vars.free_vars_exp_list el in
+    CommandSection (Omake_eval.eval_string_exp venv pos s, fv, el)
   | ShellExp (loc, s) ->
     CommandValue (loc, Omake_env.venv_get_env venv, s)
   | _ ->
-    let fv = free_vars_exp command in
+    let fv = Omake_ir_free_vars.free_vars_exp command in
     CommandSection (ValData "eval", fv, [command])
 
 let lazy_commands venv pos commands =
-   match eval_value venv pos commands with
-      ValBody (el, export) ->
-         List.map (lazy_command venv pos) el, export
-    | _ ->
-         raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
+  match Omake_eval.eval_value venv pos commands with
+  | ValBody (el, export) ->
+    List.map (lazy_command venv pos) el, export
+  | _ ->
+    raise (Omake_value_type.OmakeFatalErr (pos, Omake_value_type.StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
-   match eval_value venv pos commands with
-      ValBody (el, _) ->
-         el
-    | _ ->
-         raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
+  match Omake_eval.eval_value venv pos commands with
+  | ValBody (el, _) ->
+    el
+  | _ ->
+    raise (Omake_value_type.OmakeFatalErr (pos, 
+          Omake_value_type.StringValueError ("unknown rule commands", commands)))
 
 (*
  * Evaluate a .STATIC rule.
@@ -759,8 +742,8 @@ let eval_memo_rule_exp venv pos loc multiple is_static key vars target source op
 
    (* First, evaluate the parts *)
    let sources = targets_of_value venv pos source in
-   let sources = add_sources [] NodeNormal sources in
-   let sources = (NodeNormal, TargetNode target) :: sources in
+   let sources = add_sources [] Omake_node_sig.NodeNormal sources in
+   let sources = (Omake_node_sig.NodeNormal, Omake_value_type.TargetNode target) :: sources in
    let effects, sources, scanners, values = sources_of_options venv pos loc sources options in
    let el = exp_list_of_commands venv pos body in
    let e : Omake_ir.exp = SequenceExp (loc, el) in
@@ -768,7 +751,7 @@ let eval_memo_rule_exp venv pos loc multiple is_static key vars target source op
    (* Reject some special flags *)
    let () =
       if effects <> [] || scanners <> [] then
-         raise (OmakeException (loc_exp_pos loc, SyntaxError ".STATIC rules cannot have effects or scanners"))
+         raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".STATIC rules cannot have effects or scanners"))
    in
 
    (* Add the rule *)
@@ -789,17 +772,17 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
   let targets  = targets_of_value venv pos target in
   let patterns = targets_of_value venv pos pattern in
   let sources  = targets_of_value venv pos source in
-  let sources  = add_sources [] NodeNormal sources in
+  let sources  = add_sources [] Omake_node_sig.NodeNormal sources in
   let effects, sources, scanners, values = sources_of_options venv pos loc sources options in
   let commands, export = lazy_commands venv pos body in
   let commands_are_nontrivial = commands <> [] in
   (* Process special rules *)
   match targets with
-    [TargetString ".SUBDIRS"] ->
+  | [TargetString ".SUBDIRS"] ->
     if effects <> [] || patterns <> [] || scanners <> [] || values <> [] then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".SUBDIRS rule cannot have patterns, effects, scanners, or values"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".SUBDIRS rule cannot have patterns, effects, scanners, or values"));
     let venv = eval_subdirs_rule venv loc sources (exp_list_of_commands venv pos body) export in
-    venv, ValNone
+    venv, Omake_value_type.ValNone
 
   | [TargetString ".PHONY"]  ->
     let targets, sources =
@@ -810,10 +793,9 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
     in
     let multiple =
       if multiple then
-        RuleMultiple
+        Omake_value_type.RuleMultiple
       else
-        RuleSingle
-    in
+        Omake_value_type.RuleSingle in
     let venv = Omake_env.venv_add_phony venv loc targets in
     if effects <> [] || sources <> [] || scanners <> [] || values <> [] || commands_are_nontrivial then
       let venv, rules = Omake_env.venv_add_rule venv pos loc multiple targets [TargetString "%"] effects sources scanners values commands in
@@ -830,16 +812,16 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
     in
     let multiple =
       if multiple then
-        RuleScannerMultiple
+        Omake_value_type.RuleScannerMultiple
       else
-        RuleScannerSingle
+        Omake_value_type.RuleScannerSingle
     in
     let venv, rules = Omake_env.venv_add_rule venv pos loc multiple targets [] effects sources scanners values commands in
     venv, ValRules rules
 
   | [TargetString ".INCLUDE"] ->
     if effects <> [] || scanners <> [] then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".INCLUDE cannot have effects or scanners"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".INCLUDE cannot have effects or scanners"));
     let targets, sources =
       if patterns = [] then
         List.map snd sources, []
@@ -851,9 +833,9 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
 
   | [TargetString ".ORDER"] ->
     if commands_are_nontrivial then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have build commands"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have build commands"));
     if effects <> [] || patterns <> [] || scanners <> [] || values <> [] then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have patterns, effects, scanners, or values"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have patterns, effects, scanners, or values"));
     let sources = List.map snd sources in
     let venv = Omake_env.venv_add_phony venv loc sources in
     let venv = Omake_env.venv_add_orders venv loc sources in
@@ -863,9 +845,9 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
   | [TargetString name] when Omake_env.venv_is_order venv name ->
     let name = Lm_symbol.add name in
     if commands_are_nontrivial then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have build commands"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have build commands"));
     if effects <> [] || scanners <> [] || values <> [] then
-      raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have effects, scanners, or values"));
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have effects, scanners, or values"));
     let venv = eval_ordering_rule venv pos loc name patterns sources in
     venv, ValNone
 
@@ -873,9 +855,9 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
     (* Normal rule *)
     let multiple =
       if multiple then
-        RuleMultiple
+        Omake_value_type.RuleMultiple
       else
-        RuleSingle
+        Omake_value_type.RuleSingle
     in
     let venv, rules = Omake_env.venv_add_rule venv pos loc multiple targets patterns effects sources scanners values commands in
     venv, ValRules rules
@@ -894,52 +876,53 @@ and eval_subdir venv loc (kind, dir) commands export =
   let cache = Omake_env.venv_cache venv in
   let dir = Omake_env.venv_intern_dir venv  (Omake_env.string_of_target venv dir) in
   let () =
-    if kind <> NodeNormal then
-      Format.eprintf "*** omake: .SUBDIRS kind %a not implemented@." pp_print_node_kind kind;
+    if kind <> Omake_node_sig.NodeNormal then
+      Format.eprintf "*** omake: .SUBDIRS kind %a not implemented@." 
+        Omake_node.pp_print_node_kind kind;
 
     (* Check that the directory exists *)
     if not (Omake_cache.exists_dir cache dir) then
       let create_flag =
-        try bool_of_value venv pos (Omake_env.venv_find_var_exn venv create_subdirs_var) with
+        try Omake_eval.bool_of_value venv pos (Omake_env.venv_find_var_exn venv Omake_var.create_subdirs_var) with
           Not_found ->
           false
       in
       if create_flag then
-        let name = Dir.fullname dir in
+        let name = Omake_node.Dir.fullname dir in
         try Lm_filename_util.mkdirhier name 0o777 with
           Unix.Unix_error _ ->
-          raise (OmakeException (pos, StringDirError ("can't create directory", dir)))
+          raise (Omake_value_type.OmakeException (pos, StringDirError ("can't create directory", dir)))
       else
-        raise (OmakeException (pos, StringDirError ("directory does not exist", dir)))
+        raise (Omake_value_type.OmakeException (pos, StringDirError ("directory does not exist", dir)))
   in
   let cwd = Omake_env.venv_dir venv in
   let venv_body = Omake_env.venv_chdir_dir venv loc dir in
-  let node = Omake_env.venv_intern venv_body PhonyProhibited makefile_name in
+  let node = Omake_env.venv_intern venv_body PhonyProhibited Omake_state.makefile_name in
   let venv_body, _ =
     (*
        * Ignore the file if the commands are listed explicity.
        * The OMakefile can always be included explicitly.
        *)
     if commands <> [] then
-      eval_sequence_exp venv_body pos commands
+      Omake_eval.eval_sequence_exp venv_body pos commands
 
     (* Otherwise, use the file if it exists *)
     else if Omake_cache.exists cache node then
       let venv_body = Omake_env.venv_add_file venv_body node in
-      let name = Node.fullname node in
+      let name = Omake_node.Node.fullname node in
       let loc = Lm_location.bogus_loc name in
-      let venv_body = include_file venv_body IncludeAll pos loc node in
+      let venv_body = Omake_eval.include_file venv_body IncludeAll pos loc node in
       venv_body, ValNone
 
     (* Otherwise, check if an empty file is acceptable *)
     else
       let allow_empty_subdirs =
-        try bool_of_value venv_body pos (Omake_env.venv_find_var_exn venv_body allow_empty_subdirs_var) with
+        try Omake_eval.bool_of_value venv_body pos (Omake_env.venv_find_var_exn venv_body Omake_var.allow_empty_subdirs_var) with
           Not_found ->
           false
       in
       if not allow_empty_subdirs then
-        raise (OmakeException (pos, StringNodeError ("file does not exist", node)));
+        raise (Omake_value_type.OmakeException (pos, StringNodeError ("file does not exist", node)));
       venv_body, ValNone
   in
 
@@ -953,7 +936,7 @@ and eval_subdir venv loc (kind, dir) commands export =
     Omake_env.add_exports venv venv_body pos export
   in
   let venv = Omake_env.venv_chdir_tmp venv cwd in
-  if Lm_debug.debug print_rules then
+  if Lm_debug.debug Omake_eval.print_rules then
     Format.eprintf "@[<hv 3>Rules:%a@]@." Omake_env.pp_print_explicit_rules venv;
   venv
 
@@ -967,7 +950,7 @@ and eval_include_rule venv pos loc sources deps values commands =
   let target =
     match sources with
       [source] -> Omake_env.venv_intern_target venv PhonyProhibited source
-    | _ -> raise (OmakeException (pos, StringError ".INCLUDE must have a single source"))
+    | _ -> raise (Omake_value_type.OmakeException (pos, StringError ".INCLUDE must have a single source"))
   in
   let venv = Omake_env.venv_add_file venv target in
   let deps = List.map (fun (_, dep) -> Omake_env.venv_intern_target venv PhonyOK dep) deps in
@@ -980,12 +963,12 @@ and eval_include_rule venv pos loc sources deps values commands =
       Omake_env.command_body = commands
     }
   in
-  let commands = eval_commands venv loc target NodeSet.empty [commands] in
+  let commands = eval_commands venv loc target Omake_node.NodeSet.empty [commands] in
   let commands_digest = Omake_command_digest.digest_of_commands pos commands in
 
   (* Ask the cache if this file is up-to-date *)
   let cache = Omake_env.venv_cache venv in
-  let deps = List.fold_left NodeSet.add NodeSet.empty deps in
+  let deps = List.fold_left Omake_node.NodeSet.add Omake_node.NodeSet.empty deps in
   let up_to_date = Omake_cache.up_to_date cache include_fun deps commands_digest in
   let () =
     (* Run the commands if there are deps, or if the file does not exist *)
@@ -994,19 +977,18 @@ and eval_include_rule venv pos loc sources deps values commands =
 
     (* Check that it exists *)
     if Omake_cache.force_stat cache target = None then
-      raise (OmakeException (pos, StringNodeError (".INCLUDE rule failed to build the target", target)));
+      raise (Omake_value_type.OmakeException (pos, StringNodeError (".INCLUDE rule failed to build the target", target)));
 
     (* Tell the cache we did the update *)
-    Omake_cache.add cache include_fun target (NodeSet.singleton target) deps commands_digest (MemoSuccess NodeTable.empty)
-  in
-  include_file venv IncludePervasives pos loc target
+    Omake_cache.add cache include_fun target (Omake_node.NodeSet.singleton target) deps commands_digest (MemoSuccess Omake_node.NodeTable.empty) in
+  Omake_eval.include_file venv IncludePervasives pos loc target
 
 (*
  * Evaluate the commands NOW.
  *)
 and exec_commands venv pos loc commands =
-  let stdout = channel_of_var venv pos loc stdout_var in
-  let stderr = channel_of_var venv pos loc stderr_var in
+  let stdout = Omake_value.channel_of_var venv pos loc Omake_var.stdout_var in
+  let stderr = Omake_value.channel_of_var venv pos loc Omake_var.stderr_var in
   let stdout = Lm_channel.descr stdout in
   let stderr = Lm_channel.descr stderr in
   List.iter (fun command ->
@@ -1014,13 +996,13 @@ and exec_commands venv pos loc commands =
     let status, _ = eval_shell_wait venv pos pid in
     let code =
       match status with
-        Unix.WEXITED i
+      | Unix.WEXITED i
       | Unix.WSIGNALED i
       | Unix.WSTOPPED i ->
         i
     in
     if code <> 0 then
-      raise (OmakeException (pos, StringIntError ("command exited with code", code)))) commands
+      raise (Omake_value_type.OmakeException (pos, StringIntError ("command exited with code", code)))) commands
 
 (*
  * Evaluate the command lines.
@@ -1059,55 +1041,55 @@ and eval_rule venv loc target sources sloppy_deps values commands =
   let target_name  = Omake_env.venv_nodename venv target in
   let root         = Lm_filename_util.root target_name in
   let root'        = Lm_filename_util.strip_suffixes target_name in
-  let venv         = Omake_env.venv_add_var venv star_var (ValData root) in
-  let venv         = Omake_env.venv_add_var venv gt_var   (ValData root') in
-  let venv         = Omake_env.venv_add_var venv at_var   (ValNode target) in
-  let source_all   = ValArray (List.map (fun v -> ValNode v) sources) in
+  let venv         = Omake_env.venv_add_var venv Omake_var.star_var (ValData root) in
+  let venv         = Omake_env.venv_add_var venv Omake_var.gt_var   (ValData root') in
+  let venv         = Omake_env.venv_add_var venv Omake_var.at_var   (ValNode target) in
+  let source_all : Omake_value_type.value   = ValArray (List.map (fun v -> Omake_value_type.ValNode v) sources) in
   let source_names = List.map (Omake_env.venv_nodename venv) sources in
   let source_set   = List.fold_left Lm_string_set.LexStringSet.add Lm_string_set.LexStringSet.empty source_names in
   let source_set   = Lm_string_set.LexStringSet.to_list source_set in
-  let source_set   = ValArray (List.map (fun s -> ValData s) source_set) in
-  let source =
+  let source_set   = Omake_value_type.ValArray (List.map (fun s -> Omake_value_type.ValData s) source_set) in
+  let source : Omake_value_type.value =
     match sources with
-      source :: _ -> ValNode source
+    | source :: _ -> ValNode source
     | [] -> ValNone
   in
-  let venv = Omake_env.venv_add_var venv plus_var source_all in
-  let venv = Omake_env.venv_add_var venv hat_var  source_set in
-  let venv = Omake_env.venv_add_var venv lt_var   source in
-  let sloppy_deps = List.map (fun v -> ValNode v) (NodeSet.to_list sloppy_deps) in
-  let venv = Omake_env.venv_add_var venv amp_var  (ValArray sloppy_deps) in
+  let venv = Omake_env.venv_add_var venv Omake_var.plus_var source_all in
+  let venv = Omake_env.venv_add_var venv Omake_var.hat_var  source_set in
+  let venv = Omake_env.venv_add_var venv Omake_var.lt_var   source in
+  let sloppy_deps = List.map (fun v ->Omake_value_type. ValNode v) (Omake_node.NodeSet.to_list sloppy_deps) in
+  let venv = Omake_env.venv_add_var venv Omake_var.amp_var  (ValArray sloppy_deps) in
   let options = Lm_glob.create_options (glob_options_of_env venv pos) in
   let find_alias = find_alias_of_env venv pos in
   let command_line (commands, fv) command =
     match (command : Omake_value_type.command) with
     | CommandSection (_, fv', e) ->
       let commands = ([], Omake_command_type.CommandEval e) :: commands in
-      let fv = free_vars_union fv fv' in
+      let fv = Omake_ir_free_vars.free_vars_union fv fv' in
       commands, fv
     | CommandValue (loc, env, s) ->
-      let v = ValStringExp (env, s) in
+      let v = Omake_value_type.ValStringExp (env, s) in
       let commands =
         try
-          let flags, pipe = pipe_of_value venv find_alias options pos loc v in
+          let flags, pipe = Omake_shell_lex.pipe_of_value venv find_alias options pos loc v in
           (flags, Omake_command_type.CommandPipe pipe) :: commands
         with
-          OmakeException (_, NullCommand) ->
+          Omake_value_type.OmakeException (_, NullCommand) ->
           commands
       in
       commands, fv
   in
-  let commands, fv = List.fold_left command_line ([], free_vars_empty) commands in
+  let commands, fv = List.fold_left command_line ([], Omake_ir_free_vars.free_vars_empty) commands in
   let commands = List.rev commands in
   let values =
     Omake_ir.VarInfoSet.fold (fun values v ->
-      ValMaybeApply (loc, v) :: values) values (free_vars_set fv)
+      Omake_value_type.ValMaybeApply (loc, v) :: values) values (Omake_ir_free_vars.free_vars_set fv)
   in
   let values =
     List.fold_left (fun values v ->
-      List.rev_append (values_of_value venv pos v) values) [] values
+      List.rev_append (Omake_eval.values_of_value venv pos v) values) [] values
   in
-  let values = List.map (eval_prim_value venv pos) values in
+  let values = List.map (Omake_eval.eval_prim_value venv pos) values in
   let commands =
     if values = [] then
       commands
@@ -1115,7 +1097,7 @@ and eval_rule venv loc target sources sloppy_deps values commands =
       ([], CommandValues values) :: commands
   in
   let dir = Omake_env.venv_dir venv in
-  parse_commands venv dir target loc commands
+  Omake_command.parse_commands venv dir target loc commands
 
 (*
  * Add an ordering constraint.
@@ -1137,8 +1119,8 @@ and glob_options_of_env venv pos =
   let options = [] in
   let options =
     try
-      let s = Omake_env.venv_find_var_exn venv glob_options_var in
-      let s = string_of_value venv pos s in
+      let s = Omake_env.venv_find_var_exn venv Omake_var.glob_options_var in
+      let s = Omake_eval.string_of_value venv pos s in
       glob_options_of_string options s
     with
       Not_found ->
@@ -1146,17 +1128,16 @@ and glob_options_of_env venv pos =
   in
   let options : Lm_glob.glob_option list =
     try
-      let ignore = Omake_env.venv_find_var_exn venv glob_ignore_var in
-      let ignore = strings_of_value venv pos ignore in
+      let ignore = Omake_env.venv_find_var_exn venv Omake_var.glob_ignore_var in
+      let ignore = Omake_eval.strings_of_value venv pos ignore in
       GlobIgnore ignore :: options
     with
-      Not_found ->
-      options
+      Not_found -> options
   in
   let options : Lm_glob.glob_option list =
     try
-      let allow = Omake_env.venv_find_var_exn venv glob_allow_var in
-      let allow = strings_of_value venv pos allow in
+      let allow = Omake_env.venv_find_var_exn venv Omake_var.glob_allow_var in
+      let allow = Omake_eval.strings_of_value venv pos allow in
       GlobAllow allow :: options
     with
       Not_found ->
@@ -1173,13 +1154,13 @@ and compile_glob_options venv pos =
 and eval_path venv pos =
   let pos = string_pos "eval_path" pos in
   try
-    let path = Omake_env.venv_find_var_exn venv path_var in
+    let path = Omake_env.venv_find_var_exn venv Omake_var.path_var in
     let options = Omake_env.venv_options venv in
     let venv' = if Omake_options.opt_absname options then venv else Omake_env.venv_with_options venv 
           ( Omake_options.set_absname_opt options true) in
-    let path = strings_of_value venv' pos path in
-    let path = String.concat pathsep path in
-    Omake_env.venv_setenv venv path_sym path
+    let path = Omake_eval.strings_of_value venv' pos path in
+    let path = String.concat Omake_util.pathsep path in
+    Omake_env.venv_setenv venv Omake_symbol.path_sym path
   with
     Not_found ->
     venv
@@ -1192,11 +1173,11 @@ and eval_shell_exp venv pos loc e =
   let venv   = eval_path venv pos in
   let find_alias = find_alias_of_env venv pos in
   let options = compile_glob_options venv pos in
-  let _, pipe = pipe_of_value venv find_alias options pos loc e in
+  let _, pipe = Omake_shell_lex.pipe_of_value venv find_alias options pos loc e in
   let pipe   = normalize_pipe venv pos pipe in
-  let stdin  = channel_of_var venv pos loc stdin_var in
-  let stdout = channel_of_var venv pos loc stdout_var in
-  let stderr = channel_of_var venv pos loc stderr_var in
+  let stdin  = Omake_value.channel_of_var venv pos loc Omake_var.stdin_var in
+  let stdout = Omake_value.channel_of_var venv pos loc Omake_var.stdout_var in
+  let stderr = Omake_value.channel_of_var venv pos loc Omake_var.stderr_var in
   let stdin  = Lm_channel.descr stdin in
   let stdout = Lm_channel.descr stdout in
   let stderr = Lm_channel.descr stderr in
@@ -1214,7 +1195,7 @@ and eval_shell_exp venv pos loc e =
 
   (* Check exit code *)
   let exit_on_error =
-    try bool_of_value venv pos (Omake_env.venv_find_var_exn venv abort_on_command_error_var) with
+    try Omake_eval.bool_of_value venv pos (Omake_env.venv_find_var_exn venv Omake_var.abort_on_command_error_var) with
       Not_found ->
       false
   in
@@ -1223,7 +1204,7 @@ and eval_shell_exp venv pos loc e =
       let print_error buf =
         Format.fprintf buf "@[<hv 3>command terminated with code %d:@ %a@]@." code Omake_env.pp_print_string_pipe pipe
       in
-      raise (OmakeException (loc_pos loc pos, LazyError print_error))
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, LazyError print_error))
   in
   venv, result
 
@@ -1236,7 +1217,7 @@ and eval_shell_output venv pos loc e =
   let fd = Lm_unix_util.openfile tmpname [Unix.O_RDWR; Unix.O_CREAT; Unix.O_TRUNC] 0o600 in
   let channel = Lm_channel.create tmpname Lm_channel.PipeChannel Lm_channel.OutChannel false (Some fd) in
   let channel = Omake_env.venv_add_channel venv channel in
-  let venv = Omake_env.venv_add_var venv stdout_var (ValChannel (OutChannel, channel)) in
+  let venv = Omake_env.venv_add_var venv Omake_var.stdout_var (ValChannel (OutChannel, channel)) in
   let result =
     try
       let _ = eval_shell_exp venv pos loc e in
@@ -1259,7 +1240,7 @@ and eval_shell_output venv pos loc e =
 (*
  * Construct a shell.
  *)
-and eval_shell venv pos =
+and eval_shell venv pos : _ Omake_exec_type.shell =
   let pos = string_pos "eval_shell" pos in
   let venv = eval_path venv pos in
   { shell_eval           = eval_shell_internal;
@@ -1290,11 +1271,11 @@ and eval_shell_internal stdout stderr (command : Omake_env.arg_command_line) =
     | CommandPipe pipe ->
       let pipe = normalize_pipe venv pos pipe in
       let pid =
-        if !debug_eval then
+        if !Omake_eval.debug_eval then
           Format.eprintf "eval_shell_internal: creating job@.";
         Omake_shell_job.create_process venv pipe Unix.stdin stdout stderr
       in
-      if !debug_eval then
+      if !Omake_eval.debug_eval then
         Format.eprintf "eval_shell_internal: created job@.";
       pid
 
@@ -1303,7 +1284,7 @@ and eval_shell_internal stdout stderr (command : Omake_env.arg_command_line) =
  *)
 and eval_command venv stdout stderr pos loc e =
   let f stdin stdout stderr =
-    if !debug_eval || !debug_shell then
+    if !Omake_eval.debug_eval || !Omake_shell_type.debug_shell then
       Format.eprintf "eval_command: evaluating internal function: stderr = %d@." (Lm_unix_util.int_of_fd stderr);
     let venv   = Omake_env.venv_fork venv in
     let stdin  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
@@ -1312,12 +1293,12 @@ and eval_command venv stdout stderr pos loc e =
     let stdin  = Omake_env.venv_add_channel venv stdin in
     let stdout = Omake_env.venv_add_channel venv stdout in
     let stderr = Omake_env.venv_add_channel venv stderr in
-    let venv   = Omake_env.venv_add_var venv stdin_var  (ValChannel (InChannel,  stdin)) in
-    let venv   = Omake_env.venv_add_var venv stdout_var (ValChannel (OutChannel, stdout)) in
-    let venv   = Omake_env.venv_add_var venv stderr_var (ValChannel (OutChannel, stderr)) in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stdin_var  (ValChannel (InChannel,  stdin)) in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stdout_var (ValChannel (OutChannel, stdout)) in
+    let venv   = Omake_env.venv_add_var venv Omake_var.stderr_var (ValChannel (OutChannel, stderr)) in
     let code =
       try
-        (match snd (eval_sequence_exp venv pos e) with
+        (match snd (Omake_eval.eval_sequence_exp venv pos e) with
           ValRules _ ->
           Format.eprintf "@[<hv 3>*** omake warning:@ %a@ Rule value discarded.@]@." (**)
             pp_print_pos (loc_pos loc pos)
@@ -1325,28 +1306,29 @@ and eval_command venv stdout stderr pos loc e =
           ());
         0
       with
-        ExitException (_, code) ->
+      | Omake_value_type.ExitException (_, code) ->
         code
-      | OmakeException _
-      | UncaughtException _ as exn ->
+      | Omake_value_type.OmakeException _
+      | Omake_value_type.UncaughtException _ as exn ->
         Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
         Omake_state.exn_error_code
-      | ExitParentException _
+      | Omake_value_type.ExitParentException _
       | Unix.Unix_error _
       | Sys_error _
       | Not_found
       | Failure _ as exn ->
-        Format.eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
+        Format.eprintf "%a@." Omake_exn_print.pp_print_exn 
+          (Omake_value_type.UncaughtException (pos, exn));
         Omake_state.exn_error_code
     in
-    if !debug_eval then
+    if !Omake_eval.debug_eval then
       Format.eprintf "eval_command: internal function is done: %d@." code;
     Omake_env.venv_close_channel venv pos stdin;
     Omake_env.venv_close_channel venv pos stdout;
     Omake_env.venv_close_channel venv pos stderr;
     code
   in
-  if !debug_eval then
+  if !Omake_eval.debug_eval then
     Format.eprintf "eval_command: creating thread, stderr = %d@." (Lm_unix_util.int_of_fd stderr);
   Omake_shell_job.create_thread venv f Unix.stdin stdout stderr
 
@@ -1388,18 +1370,17 @@ and normalize_pipe_options venv pos squash options (pipe : Omake_env.arg_pipe) :
  * Normalize an alias.
  *)
 and normalize_apply venv pos loc options apply =
-  let { apply_env    = env;
-        apply_args   = argv;
-        apply_stdin  = stdin;
-        apply_stdout = stdout;
-        _
-      } = apply
-  in
-  { apply with apply_env = string_of_env env;
-    apply_args = glob_value_argv venv pos loc options argv;
-    apply_stdin = glob_channel venv pos loc options stdin;
-    apply_stdout = glob_channel venv pos loc options stdout
-  }
+  match apply with {Omake_shell_type. apply_env    = env;
+                     apply_args   = argv;
+                     apply_stdin  = stdin;
+                     apply_stdout = stdout;
+                     _
+                   } -> 
+    { apply with apply_env = string_of_env env;
+      apply_args = glob_value_argv venv pos loc options argv;
+      apply_stdin = glob_channel venv pos loc options stdin;
+      apply_stdout = glob_channel venv pos loc options stdout
+    }
 
 (*
  * Normalize a command.
@@ -1407,30 +1388,29 @@ and normalize_apply venv pos loc options apply =
  *)
 and normalize_command venv pos loc options command =
   let pos = string_pos "normalize_command" pos in
-  let { cmd_env    = env;
-        cmd_exe    = exe;
-        cmd_argv   = argv;
-        cmd_stdin  = stdin;
-        cmd_stdout = stdout;
-        _
-      } = command
-  in
-  let exe, args = glob_exe venv pos loc options exe in
-  let argv = glob_command_line venv pos loc options argv in
-  let argv =
-    match args with
-      [] ->
-      argv
-    | _ ->
-      List.fold_left (fun argv node ->
-          Omake_env.venv_nodename venv node :: argv) argv (List.rev args)
-  in
-  { command with cmd_env = string_of_env env;
-    cmd_exe = exe;
-    cmd_argv = argv;
-    cmd_stdin = glob_channel venv pos loc options stdin;
-    cmd_stdout = glob_channel venv pos loc options stdout
-  }
+  match command with { Omake_shell_type. cmd_env    = env;
+                       cmd_exe    = exe;
+                       cmd_argv   = argv;
+                       cmd_stdin  = stdin;
+                       cmd_stdout = stdout;
+                       _
+                     } -> 
+    let exe, args = glob_exe venv pos loc options exe in
+    let argv = glob_command_line venv pos loc options argv in
+    let argv =
+      match args with
+        [] ->
+        argv
+      | _ ->
+        List.fold_left (fun argv node ->
+            Omake_env.venv_nodename venv node :: argv) argv (List.rev args)
+    in
+    { command with cmd_env = string_of_env env;
+      cmd_exe = exe;
+      cmd_argv = argv;
+      cmd_stdin = glob_channel venv pos loc options stdin;
+      cmd_stdout = glob_channel venv pos loc options stdout
+    }
 
 (*
  * Normalize a group.
@@ -1438,17 +1418,13 @@ and normalize_command venv pos loc options command =
  *)
 and normalize_group venv pos loc options group =
   let pos = string_pos "normalize_group" pos in
-  let { group_stdin  = stdin;
-        group_stdout = stdout;
-        group_pipe = pipe;
-        _
-      } = group
-  in
-  let group =
-    { group with group_stdin  = glob_channel venv pos loc options stdin;
-      group_stdout = glob_channel venv pos loc options stdout;
-      group_pipe   = normalize_pipe_options venv pos false options pipe
-    }
-  in
-  PipeGroup (loc, group)
+  match group with  { group_stdin  = stdin;
+                      group_stdout = stdout;
+                      group_pipe = pipe;
+                      _
+                    } -> 
+    PipeGroup (loc, { group with group_stdin  = glob_channel venv pos loc options stdin;
+                      group_stdout = glob_channel venv pos loc options stdout;
+                      group_pipe   = normalize_pipe_options venv pos false options pipe
+                    })
 
