@@ -4,12 +4,6 @@
  * \end{doc}
  *)
 
-
-
-
-
-
-(* open Omake_ir *)
 open! Omake_value
 open Omake_builtin
 open Omake_builtin_util
