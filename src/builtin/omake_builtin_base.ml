@@ -7,12 +7,6 @@
  * \cutname{omake-base.html}
  * \end{doc}
  *)
-open! Lm_printf
-open Lm_string_set
-open Omake_ir
-open Omake_env
-open Omake_var
-open Omake_eval
 
 include Omake_pos.MakePos (struct let name = "Omake_builtin_base" end)
 
@@ -414,13 +408,13 @@ let match_fun =
     let lex =
       try Omake_lexer.lexer_of_string s1 with
         Failure err ->
-        let msg = sprintf "Malformed regular expression '%s'" s1 in
+        let msg = Format.sprintf "Malformed regular expression '%s'" s1 in
         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
     in
     let channel = Lm_channel.of_string s2 in
     match Omake_lexer.Lexer.search lex channel with
     | Some (_, _, _, matched, args) ->
-      Some (venv_add_match venv matched args)
+      Some (Omake_env.venv_add_match venv matched args)
     | None ->
       None
   in
@@ -475,7 +469,7 @@ let match_fun =
  * Temporary type for evaluating try blocks.
  *)
 type try_exp =
-  |  TrySuccessExp of ( (venv * Omake_value_type.value) )
+  |  TrySuccessExp of  (Omake_env.venv * Omake_value_type.value) 
   | TryFailureExp of Omake_value_type.pos * Omake_value_type.obj * exn
 
 (*
@@ -484,17 +478,17 @@ type try_exp =
  *)
 let object_of_omake_exception venv pos exp =
    let pos =
-      pp_print_pos stdstr pos;
-      flush_stdstr ()
+      pp_print_pos Lm_printf.stdstr pos;
+      Lm_printf.flush_stdstr ()
    in
    let exp =
-      Omake_pos.pp_print_exn stdstr exp;
-      flush_stdstr ()
+      Omake_pos.pp_print_exn Lm_printf.stdstr exp;
+      Lm_printf.flush_stdstr ()
    in
-   let obj = venv_find_object_or_empty venv runtime_exception_var in
-   let obj = venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in
-   let obj = venv_add_field_internal obj Omake_symbol.message_sym (ValString exp) in
-   let obj = venv_add_class obj Omake_symbol.runtime_exception_sym in
+   let obj = Omake_env.venv_find_object_or_empty venv Omake_var.runtime_exception_var in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.message_sym (ValString exp) in
+   let obj = Omake_env.venv_add_class obj Omake_symbol.runtime_exception_sym in
       obj
 
 (*
@@ -503,13 +497,13 @@ let object_of_omake_exception venv pos exp =
  *)
 let object_of_uncaught_exception venv pos exn =
    let pos =
-      pp_print_pos stdstr pos;
-      flush_stdstr ()
+      pp_print_pos Lm_printf.stdstr pos;
+      Lm_printf.flush_stdstr ()
    in
-   let obj = venv_find_object_or_empty venv runtime_exception_var in
-   let obj = venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in
-   let obj = venv_add_field_internal obj Omake_symbol.message_sym (ValString (Printexc.to_string exn)) in
-   let obj = venv_add_class obj Omake_symbol.runtime_exception_sym in
+   let obj = Omake_env.venv_find_object_or_empty venv Omake_var.runtime_exception_var in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.message_sym (ValString (Printexc.to_string exn)) in
+   let obj = Omake_env.venv_add_class obj Omake_symbol.runtime_exception_sym in
       obj
 
 (*
@@ -518,7 +512,7 @@ let object_of_uncaught_exception venv pos exn =
 let rec eval_finally_case venv pos result cases =
    match cases with
    | (v, _, e, export) :: _ when Lm_symbol.eq v Omake_symbol.finally_sym ->
-            eval_sequence_export venv pos result e export
+            Omake_eval.eval_sequence_export venv pos result e export
     | _ :: cases ->
          eval_finally_case venv pos result cases
     | [] ->
@@ -534,7 +528,7 @@ let rec eval_catch_rest venv pos obj result cases =
       (v, s, e, export) :: cases when Lm_symbol.eq v Omake_symbol.when_sym ->
          let b = Omake_eval.bool_of_value venv pos s in
             if b then
-               let venv, result = eval_sequence_export venv pos result e export in
+               let venv, result = Omake_eval.eval_sequence_export venv pos result e export in
                   eval_catch_rest venv pos obj result cases
             else
                eval_exception venv pos obj cases
@@ -542,7 +536,7 @@ let rec eval_catch_rest venv pos obj result cases =
          Some (venv, result)
 
 and eval_catch_case venv pos v obj e cases export =
-   let venv = venv_add_var venv v (ValObject obj) in
+   let venv = Omake_env.venv_add_var venv v (ValObject obj) in
    let venv, result = Omake_eval.eval_sequence_export_exp venv pos e export in
       eval_catch_rest venv pos obj result cases
 
@@ -557,9 +551,9 @@ and eval_exception venv pos obj cases =
             eval_exception venv pos obj cases
          else if Lm_symbol.eq v Omake_symbol.finally_sym then
             None
-         else if Lm_symbol.eq v Omake_symbol.default_sym || venv_instanceof obj v then
+         else if Lm_symbol.eq v Omake_symbol.default_sym || Omake_env.venv_instanceof obj v then
             (* FIXME: BUG: JYH: this binding occurence should be fixed *)
-            let v = VarThis (loc_of_pos pos, Lm_symbol.add (Omake_eval.string_of_value venv pos s)) in
+            let v = Omake_ir.VarThis (loc_of_pos pos, Lm_symbol.add (Omake_eval.string_of_value venv pos s)) in
                eval_catch_case venv pos v obj e cases export
          else
             eval_exception venv pos obj cases
@@ -596,7 +590,7 @@ let try_fun venv pos loc args kargs =
        | Omake_value_type.RaiseException (pos, obj) as exn ->
             TryFailureExp (pos, obj, exn)
        | Omake_value_type.Return _
-       | Break _ as exn ->
+       | Omake_env.Break _ as exn ->
             TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
    in
    let e =
@@ -767,17 +761,17 @@ let defined venv pos loc args =
  * \end{doc}
  *)
 let defined_env venv pos loc args =
-   let pos = string_pos "defined-env" pos in
-      match args with
-         [arg] ->
-            let args = Omake_eval.strings_of_value venv pos arg in
-            let b =
-               List.for_all (fun s ->
-                     venv_defined_env venv (Lm_symbol.add s)) args
-            in
-               Omake_builtin_util.val_of_bool b
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "defined-env" pos in
+  match args with
+  | [arg] ->
+    let args = Omake_eval.strings_of_value venv pos arg in
+    let b =
+      List.for_all (fun s ->
+        Omake_env.venv_defined_env venv (Lm_symbol.add s)) args
+    in
+    Omake_builtin_util.val_of_bool b
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get a variable from the environment.
@@ -827,11 +821,11 @@ let getenv venv pos loc (args : Omake_value_type.value list) : Omake_value_type.
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
   in
   let s = Omake_eval.string_of_value venv pos arg in
-  try ValString (venv_getenv venv (Lm_symbol.add s)) with
+  try ValString (Omake_env.venv_getenv venv (Lm_symbol.add s)) with
     Not_found ->
     match def with
     | Some def ->
-      eval_body_value venv pos def
+      Omake_eval.eval_body_value venv pos def
     | None ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("undefined environment variable", s)))
 
@@ -857,7 +851,7 @@ let setenv venv pos loc args kargs =
   | [arg1; arg2], [] ->
     let v = Omake_eval.string_of_value venv pos arg1 in
     let s = Omake_eval.string_of_value venv pos arg2 in
-    let venv = venv_setenv venv (Lm_symbol.add v) s in
+    let venv = Omake_env.venv_setenv venv (Lm_symbol.add v) s in
     venv, Omake_value_type.ValData s
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -884,7 +878,7 @@ let unsetenv venv pos loc args kargs =
     let vars = Omake_eval.strings_of_value venv pos arg in
     let venv =
       List.fold_left (fun venv v ->
-        venv_unsetenv venv (Lm_symbol.add v)) venv vars
+        Omake_env.venv_unsetenv venv (Lm_symbol.add v)) venv vars
     in
     venv, Omake_value_type.ValNone
   | _ ->
@@ -965,8 +959,8 @@ let get_registry venv pos loc (args : Omake_value_type.value list) : Omake_value
   try ValString (Lm_unix_util.registry_find hkey_code key field) with
     Not_found ->
     match def with
-      Some def ->
-      eval_body_value venv pos def
+    | Some def ->
+      Omake_eval.eval_body_value venv pos def
     | None ->
       let s = Printf.sprintf "%s\\%s\\%s" hkey key field in
       raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("key not found", s)))
@@ -1974,13 +1968,13 @@ let replacesuffixes venv pos loc args =
         raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
     in
     let table =
-      List.fold_left2 StringTable.add StringTable.empty old_suffixes new_suffixes
+      List.fold_left2 Lm_string_set.StringTable.add Lm_string_set.StringTable.empty old_suffixes new_suffixes
     in
     let files =
       List.map (fun file ->
         let root, old_suffix = Lm_filename_util.split file in
         try
-          let new_suffix = StringTable.find table old_suffix in
+          let new_suffix = Lm_string_set.StringTable.find table old_suffix in
           root ^ new_suffix
         with
           Not_found ->
@@ -2099,8 +2093,10 @@ let set venv pos loc args : Omake_value_type.value =
   match args with
   | [files] ->
     let files = Omake_eval.strings_of_value venv pos files in
-    let files = List.fold_left LexStringSet.add LexStringSet.empty files in
-    let files = LexStringSet.fold (fun strings s -> Omake_value_type.ValString s :: strings) [] files in
+    let files = List.fold_left Lm_string_set.LexStringSet.add Lm_string_set.LexStringSet.empty files in
+    let files = 
+      Lm_string_set.LexStringSet.fold
+        (fun strings s -> Omake_value_type.ValString s :: strings) [] files in
     ValArray (List.rev files)
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2527,7 +2523,7 @@ let shella venv pos loc args : Omake_value_type.value =
 
 let shell_code venv pos loc args =
   let pos = string_pos "shell-code" pos in
-  let venv = venv_add_var venv abort_on_command_error_var Omake_builtin_util.val_false in
+  let venv = Omake_env.venv_add_var venv Omake_var.abort_on_command_error_var Omake_builtin_util.val_false in
   let _, result =
     match args with
       [arg] ->
@@ -2571,20 +2567,20 @@ let export venv pos loc (args : Omake_value_type.value list) kargs =
   let pos = string_pos "export" pos in
   match args, kargs with
   |[ValOther (ValEnv (hand, export))], [] ->
-    let venv_new = venv_find_environment venv pos hand in
-    let venv = add_exports venv venv_new pos export in
+    let venv_new = Omake_env.venv_find_environment venv pos hand in
+    let venv = Omake_env.add_exports venv venv_new pos export in
     venv, Omake_value_type.ValNone
   | [vars], [] ->
-    let exports =
+    let exports : Omake_ir.export_item list =
       List.map (function
-        ".PHONY" -> ExportPhonies
+        ".PHONY" -> Omake_ir.ExportPhonies
       | ".RULE" -> ExportRules
       | v -> ExportVar (VarGlobal (loc, Lm_symbol.add v))) (Omake_eval.strings_of_value venv pos vars)
     in
-    let hand = venv_add_environment venv in
+    let hand = Omake_env.venv_add_environment venv in
     venv, ValOther (ValEnv (hand, ExportList exports))
   | [], [] ->
-    let hand = venv_add_environment venv in
+    let hand = Omake_env.venv_add_environment venv in
     venv, ValOther (ValEnv (hand, ExportAll))
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
@@ -2666,7 +2662,7 @@ let rec eval_while_cases venv pos loc orig_cases arg cases =
    match cases with
       (v, pattern, e, _) :: cases ->
          if Lm_symbol.eq v Omake_symbol.case_sym && Omake_eval.bool_of_value venv pos pattern || Lm_symbol.eq v Omake_symbol.default_sym then
-            let venv, _ = eval_sequence_exp venv pos e in
+            let venv, _ = Omake_eval.eval_sequence_exp venv pos e in
                while_loop venv pos loc orig_cases arg
          else
             eval_while_cases venv pos loc orig_cases arg cases
@@ -2694,7 +2690,7 @@ let while_fun venv pos loc args kargs =
    in
    let venv =
       try while_loop venv pos loc cases arg with
-         Break (_, venv) ->
+         Omake_env.Break (_, venv) ->
             venv
    in
       venv, Omake_value_type.ValNone
@@ -2712,7 +2708,7 @@ let while_fun venv pos loc args kargs =
  * \end{doc}
  *)
 let break venv _ loc _ =
-   raise (Break (loc, venv))
+   raise (Omake_env.Break (loc, venv))
 
 (*
  * \begin{doc}
@@ -2769,8 +2765,12 @@ let () =
      "OMAKE_VERSION",  (fun _ -> ValData Omake_magic.version);
      "USER",           (fun _ -> ValData user);
      "PID",            (fun _ -> ValInt (Unix.getpid ()));
-     "HOME",           (fun venv -> ValDir (venv_intern_dir venv Omake_state.home_dir));
-     "VERBOSE",        (fun venv -> Omake_builtin_util.val_of_bool (Omake_options.opt_verbose (venv_options venv)));
+     "HOME",           (fun venv -> ValDir (Omake_env.venv_intern_dir venv Omake_state.home_dir));
+     "VERBOSE",        
+     (fun venv ->
+       Omake_builtin_util.val_of_bool
+         (Omake_options.opt_verbose
+            (Omake_env.venv_options venv)));
 
      (* ZZZ: Used to be defined in Common.om *)
      "SCANNER_MODE",               (fun _ -> ValData "enabled");
@@ -2784,7 +2784,7 @@ let () =
     ]
   in
   let builtin_funs =
-    [true,  "addprefix",             addprefix,           ArityExact 2;
+    [true,  "addprefix",             addprefix,           Omake_ir.ArityExact 2;
      true,  "mapprefix",             mapprefix,           ArityExact 2;
      true,  "addprefixes",           addprefixes,         ArityExact 2;
      true,  "removeprefix",          removeprefix,        ArityExact 2;
@@ -2870,7 +2870,7 @@ let () =
      true,  "random-init",           random_init,         ArityExact 1]
   in
   let builtin_kfuns =
-    [true,  "setenv",                setenv,              ArityExact 2;
+    [true,  "setenv",                setenv,              Omake_ir.ArityExact 2;
      true,  "unsetenv",              unsetenv,            ArityExact 1;
      true,  "setvar",                setvar,              ArityExact 2;
      false, "switch",                switch_fun,          ArityAny;

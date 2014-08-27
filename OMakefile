@@ -7,7 +7,8 @@
 # Turn it off when release
 # BYTE_ENABLED=true
 # NATIVE_ENABLED=false
-OCAMLFLAGS += -w -3-40
+OCAMLCFLAGS += -w -3-40-48
+OCAMLOPTFLAGS += -w -3-40-48
 ###################################
 
 open build/C
