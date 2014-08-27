@@ -17,7 +17,7 @@ open! Lm_printf
 open Omake_ir
 open Omake_env
 open Omake_var
-open Omake_pos
+
 
 open Omake_node
 open Omake_rule
@@ -33,8 +33,8 @@ open Omake_builtin_type
 open Omake_cache_type
 open Omake_value_type
 
-module Pos = MakePos (struct let name = "Omake_builtin_file" end)
-open Pos
+include Omake_pos.MakePos (struct let name = "Omake_builtin_file" end)
+
 
 (*
  * Utilities.
@@ -99,7 +99,7 @@ let file venv pos loc args =
             let values = List.map (node_value_of_value venv pos) values in
                concat_array values
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let dir venv pos loc args =
    let pos = string_pos "dir" pos in
@@ -109,7 +109,7 @@ let dir venv pos loc args =
             let values = List.map (dir_value_of_value venv pos) values in
                concat_array values
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -126,7 +126,7 @@ let dir venv pos loc args =
  * the temporary directory.
  * \end{doc}
  *)
-let tmpfile venv pos loc args =
+let tmpfile venv pos loc args : Omake_value_type.value =
    let pos = string_pos "tmpfile" pos in
    let prefix, suffix =
       match args with
@@ -135,7 +135,7 @@ let tmpfile venv pos loc args =
        | [prefix; suffix] ->
             string_of_value venv pos prefix, string_of_value venv pos suffix
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
    in
       ValNode (venv_intern venv PhonyProhibited (Filename.temp_file prefix suffix))
 
@@ -190,7 +190,7 @@ let ind venv pos loc args =
             let strings = strings_of_value venv pos arg in
                concat_strings strings
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Strip the directory.
@@ -218,7 +218,7 @@ let basename venv pos loc args =
             let args = List.map Filename.basename args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -251,7 +251,7 @@ let dirname venv pos loc args =
             let args = List.map Filename.dirname args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -279,7 +279,7 @@ let rootname venv pos loc args =
             let args = List.map Lm_filename_util.root args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get the directory.
@@ -298,25 +298,25 @@ let rootname venv pos loc args =
  * to the directories \verb+dir1/dir2 /etc /+.
  * \end{doc}
  *)
-let dirof venv pos loc args =
-   let pos = string_pos "dirof" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-            let dirs =
-               List.map (fun v ->
-                     let v = node_value_of_value venv pos v in
-                        match v with
-                           ValNode node ->
-                              ValDir (Node.dir node)
-                         | ValDir _ ->
-                              v
-                         | _ ->
-                              raise (Invalid_argument "dirof")) values
-            in
-               concat_array dirs
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+let dirof venv pos loc args : Omake_value_type.value =
+  let pos = string_pos "dirof" pos in
+  match args with
+    [arg] ->
+    let values = values_of_value venv pos arg in
+    let dirs =
+      List.map (fun v ->
+        let v = node_value_of_value venv pos v in
+        match v with
+        | ValNode node ->
+          Omake_value_type.ValDir (Node.dir node)
+        | ValDir _ ->
+          v
+        | _ ->
+          raise (Invalid_argument "dirof")) values
+    in
+    Omake_value.concat_array dirs
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -332,26 +332,26 @@ let dirof venv pos loc args =
  * \end{doc}
  *)
 let fullname venv pos loc args =
-   let pos = string_pos "fullname" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-            let strings =
-               List.map (fun v ->
-                     let s =
-                        match node_value_of_value venv pos v with
-                           ValDir dir ->
-                              Dir.fullname dir
-                         | ValNode node ->
-                              Node.fullname node
-                         | v ->
-                              raise (OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
-                     in
-                        ValString s) values
-            in
-               concat_array strings
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "fullname" pos in
+  match args with
+    [arg] ->
+    let values = values_of_value venv pos arg in
+    let strings =
+      List.map (fun v ->
+        let s =
+          match node_value_of_value venv pos v with
+            ValDir dir ->
+            Dir.fullname dir
+          | ValNode node ->
+            Node.fullname node
+          | v ->
+            raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
+        in
+        Omake_value_type.ValString s) values
+    in
+    concat_array strings
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -367,26 +367,26 @@ let fullname venv pos loc args =
  * \end{doc}
  *)
 let absname venv pos loc args =
-   let pos = string_pos "absname" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-            let strings =
-               List.map (fun v ->
-                     let s =
-                        match node_value_of_value venv pos v with
-                           ValDir dir ->
-                              Dir.absname dir
-                         | ValNode node ->
-                              Node.absname node
-                         | v ->
-                              raise (OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
-                     in
-                        ValString s) values
-            in
-               concat_array strings
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "absname" pos in
+  match args with
+  | [arg] ->
+    let values = values_of_value venv pos arg in
+    let strings =
+      List.map (fun v ->
+        let s =
+          match node_value_of_value venv pos v with
+          | ValDir dir ->
+            Dir.absname dir
+          | ValNode node ->
+            Node.absname node
+          | v ->
+            raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
+        in
+        Omake_value_type.ValString s) values
+    in
+    concat_array strings
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -406,19 +406,19 @@ let absname venv pos loc args =
  * \end{doc}
  *)
 let homename venv pos loc args =
-   let pos = string_pos "rootname" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let args = List.map (node_value_of_value venv pos) args in
-            let venv = venv_chdir_tmp venv Dir.root in
-            let args =
-               List.map (fun v ->
-                     ValString (tilde_collapse (string_of_value venv pos v))) args
-            in
-               concat_array args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "rootname" pos in
+  match args with
+  | [arg] ->
+    let args = values_of_value venv pos arg in
+    let args = List.map (node_value_of_value venv pos) args in
+    let venv = venv_chdir_tmp venv Dir.root in
+    let args =
+      List.map (fun v ->
+        Omake_value_type.ValString (tilde_collapse (string_of_value venv pos v))) args
+    in
+    concat_array args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -446,7 +446,7 @@ let suffix venv pos loc args =
             let args = List.map Lm_filename_util.suffix args in
                concat_strings args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Search the PATH.
@@ -467,23 +467,23 @@ let suffix venv pos loc args =
  * \end{doc}
  *)
 let which venv pos loc args =
-   let pos = string_pos "which" pos in
-      match args with
-         [arg] ->
-            let path = venv_find_var venv pos loc path_var in
-            let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
-            let cache = venv_cache venv in
-            let path = Omake_cache.ls_exe_path cache path in
-            let args = strings_of_value venv pos arg in
-            let args =
-               List.map (fun s ->
-                     try ValNode (Omake_cache.exe_find cache path s) with
-                        Not_found ->
-                           raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
-            in
-               concat_array args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "which" pos in
+  match args with
+  |[arg] ->
+    let path = venv_find_var venv pos loc path_var in
+    let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
+    let cache = venv_cache venv in
+    let path = Omake_cache.ls_exe_path cache path in
+    let args = strings_of_value venv pos arg in
+    let args =
+      List.map (fun s ->
+        try Omake_value_type.ValNode (Omake_cache.exe_find cache path s) with
+          Not_found ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
+    in
+    concat_array args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -503,44 +503,45 @@ let which venv pos loc args =
  * \end{doc}
  *)
 let where venv pos loc args =
-   let pos = string_pos "where" pos in
-      match args with
-         [arg] ->
-            (match strings_of_value venv pos arg with
-                [arg] ->
-                   let path = venv_find_var venv pos loc path_var in
-                   let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
-                   let cache = venv_cache venv in
-                   let path = Omake_cache.ls_exe_path cache path in
-                   let res = Omake_cache.exe_find_all cache path arg in
-                   let res = List.map (fun v -> ValNode v) res in
-                   let res =
-                      try
-                         let obj = venv_find_var_exn venv shell_object_var in
-                            match eval_single_value venv pos obj with
-                               ValObject obj ->
-                                  let v = venv_find_field_internal_exn obj (Lm_symbol.add arg) in
-                                  let kind =
-                                     match eval_value venv pos v with
-                                        ValPrim _ ->
-                                           "Shell object method (a built-in function)"
-                                      | ValFun _ ->
-                                           "Shell object method (an omake function)"
-                                      | _ ->
-                                           "Shell object method"
-                                  in
-                                     ValData (arg ^ " is a " ^ kind) :: res
-                             | _ ->
-                                  res
-                      with
-                         Not_found ->
-                            res
-                   in
-                      concat_array res
-              | args ->
-                   raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args))))
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "where" pos in
+  match args with
+  | [arg] ->
+    begin match strings_of_value venv pos arg with
+      [arg] ->
+      let path = venv_find_var venv pos loc path_var in
+      let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
+      let cache = venv_cache venv in
+      let path = Omake_cache.ls_exe_path cache path in
+      let res = Omake_cache.exe_find_all cache path arg in
+      let res = List.map (fun v -> Omake_value_type.ValNode v) res in
+      let res =
+        try
+          let obj = venv_find_var_exn venv shell_object_var in
+          match eval_single_value venv pos obj with
+          | ValObject obj ->
+            let v = venv_find_field_internal_exn obj (Lm_symbol.add arg) in
+            let kind =
+              match eval_value venv pos v with
+                ValPrim _ ->
+                "Shell object method (a built-in function)"
+              | ValFun _ ->
+                "Shell object method (an omake function)"
+              | _ ->
+                "Shell object method"
+            in
+            Omake_value_type.ValData (arg ^ " is a " ^ kind) :: res
+          | _ ->
+            res
+        with
+          Not_found ->
+          res
+      in
+      Omake_value.concat_array res
+    | args ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+    end
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -554,9 +555,9 @@ let where venv pos loc args =
  * \end{doc}
  *)
 let rehash venv _ _ _ =
-   let cache = venv_cache venv in
-      Omake_cache.rehash cache;
-      ValNone
+  let cache = venv_cache venv in
+  Omake_cache.rehash cache;
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -585,7 +586,7 @@ let exists_in_path venv pos loc args =
             in
                val_of_bool test
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -610,32 +611,32 @@ let exists_in_path venv pos loc args =
  * \end{doc}
  *)
 let digest_aux fail venv pos loc args =
-   let pos = string_pos "digest" pos in
-      match args with
-         [arg] ->
-            let cache = venv_cache venv in
-            let values = values_of_value venv pos arg in
-            let values =
-               List.map (fun v ->
-                     match node_value_of_value venv pos v with
-                        ValNode node ->
-                           (match Omake_cache.stat cache node with
-                               Some digest ->
-                                  ValData (Lm_string_util.hexify digest)
-                             | None ->
-                                  if fail then
-                                     raise (OmakeException (loc_pos loc pos, StringNodeError ("file does not exist", node)))
-                                  else
-                                     val_false)
-                      | _ ->
-                           if fail then
-                              raise (OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
-                           else
-                              val_false) values
-            in
-               concat_array values
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "digest" pos in
+  match args with
+    [arg] ->
+    let cache = venv_cache venv in
+    let values = values_of_value venv pos arg in
+    let values =
+      List.map (fun v ->
+        match node_value_of_value venv pos v with
+          ValNode node ->
+          (match Omake_cache.stat cache node with
+            Some digest ->
+            Omake_value_type.ValData (Lm_string_util.hexify digest)
+          | None ->
+            if fail then
+              raise (Omake_value_type.OmakeException (loc_pos loc pos, StringNodeError ("file does not exist", node)))
+            else
+              val_false)
+        | _ ->
+          if fail then
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
+          else
+            val_false) values
+    in
+    concat_array values
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let digest = digest_aux true
 let digest_optional = digest_aux false
@@ -644,15 +645,15 @@ let digest_optional = digest_aux false
  * A simple string.
  *)
 let digest_string venv pos _ args =
-   let pos = string_pos "digest_string" pos in
-   let s =
-      match args with
-         [arg] ->
-            string_of_value venv pos arg
-       | _ ->
-            raise (OmakeException (pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-      ValData (Digest.string s)
+  let pos = string_pos "digest_string" pos in
+  let s =
+    match args with
+    | [arg] ->
+      Omake_value.string_of_value venv pos arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  Omake_value_type.ValData (Digest.string s)
 
 (*
  * \begin{doc}
@@ -675,39 +676,39 @@ let digest_string venv pos _ args =
  * \end{doc}
  *)
 let search_path_aux fail venv pos loc args =
-   let pos = string_pos "search-path" pos in
-      match args with
-         [dirs; arg] ->
-            (* List the path *)
-            let cache = venv_cache venv in
-            let path = values_of_value venv pos dirs in
-            let path = Omake_eval.path_of_values venv pos path "." in
-            let listing = Omake_cache.ls_path cache path in
+  let pos = string_pos "search-path" pos in
+  match args with
+  | [dirs; arg] ->
+    (* List the path *)
+    let cache = venv_cache venv in
+    let path = values_of_value venv pos dirs in
+    let path = Omake_eval.path_of_values venv pos path "." in
+    let listing = Omake_cache.ls_path cache path in
 
-            (* Find each file *)
-            let files = strings_of_value venv pos arg in
-            let files =
-               List.fold_left (fun files s ->
-                     let s = Filename.basename s in
-                        try
-                           let file =
-                              match Omake_cache.listing_find cache listing s with
-                                 DirEntry dir ->
-                                    ValDir dir
-                               | NodeEntry node ->
-                                    ValNode node
-                           in
-                              file :: files
-                        with
-                           Not_found ->
-                              if fail then
-                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
-                              else
-                                 files) [] files
-            in
-               concat_array (List.rev files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+    (* Find each file *)
+    let files = strings_of_value venv pos arg in
+    let files =
+      List.fold_left (fun files s ->
+        let s = Filename.basename s in
+        try
+          let file =
+            match Omake_cache.listing_find cache listing s with
+            | DirEntry dir ->
+              Omake_value_type.ValDir dir
+            | NodeEntry node ->
+              ValNode node
+          in
+          file :: files
+        with
+          Not_found ->
+          if fail then
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
+          else
+            files) [] files
+    in
+    concat_array (List.rev files)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let find_in_path = search_path_aux true
 let find_in_path_optional = search_path_aux false
@@ -733,43 +734,43 @@ let find_in_path_optional = search_path_aux false
  * \end{doc}
  *)
 let digest_path_aux fail venv pos loc args =
-   let pos = string_pos "digest-path" pos in
-      match args with
-         [dirs; arg] ->
-            (* List the path *)
-            let cache = venv_cache venv in
-            let path = values_of_value venv pos dirs in
-            let path = Omake_eval.path_of_values venv pos path "." in
-            let listing = Omake_cache.ls_path cache path in
+  let pos = string_pos "digest-path" pos in
+  match args with
+  | [dirs; arg] ->
+    (* List the path *)
+    let cache = venv_cache venv in
+    let path = values_of_value venv pos dirs in
+    let path = Omake_eval.path_of_values venv pos path "." in
+    let listing = Omake_cache.ls_path cache path in
 
-            (* Find each file *)
-            let files = strings_of_value venv pos arg in
-            let files =
-               List.fold_left (fun files s ->
-                     let s = Filename.basename s in
-                        try
-                           let file =
-                              match Omake_cache.listing_find cache listing s with
-                                 DirEntry dir ->
-                                    ValArray [ValDir dir; ValData "directory"]
-                               | NodeEntry node ->
-                                    match Omake_cache.stat cache node with
-                                       Some digest ->
-                                          ValArray [ValNode node; ValData (Lm_string_util.hexify digest)]
-                                     | None ->
-                                          raise Not_found
-                           in
-                              file :: files
-                        with
-                           Not_found ->
-                              if fail then
-                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
-                              else
-                                 files) [] files
-            in
-               concat_array (List.rev files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+    (* Find each file *)
+    let files = strings_of_value venv pos arg in
+    let files =
+      List.fold_left (fun files s ->
+        let s = Filename.basename s in
+        try
+          let file =
+            match Omake_cache.listing_find cache listing s with
+            | DirEntry dir ->
+              Omake_value_type.ValArray [ValDir dir; ValData "directory"]
+            | NodeEntry node ->
+              match Omake_cache.stat cache node with
+                Some digest ->
+                ValArray [ValNode node; ValData (Lm_string_util.hexify digest)]
+              | None ->
+                raise Not_found
+          in
+          file :: files
+        with
+          Not_found ->
+          if fail then
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
+          else
+            files) [] files
+    in
+    concat_array (List.rev files)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let digest_in_path = digest_path_aux true
 let digest_in_path_optional = digest_path_aux false
@@ -807,7 +808,7 @@ let node_exists node_exists venv pos loc args =
             in
                val_of_bool b
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -824,15 +825,15 @@ let node_exists node_exists venv pos loc args =
  * \end{doc}
  *)
 let stat_reset venv pos loc args =
-   let pos = string_pos "stat-reset" pos in
-      match args with
-         [arg] ->
-            let cache = venv_cache venv in
-            let args = values_of_value venv pos arg in
-               List.iter (fun arg -> Omake_cache.reset cache (file_of_value venv pos arg)) args;
-               ValSequence []
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "stat-reset" pos in
+  match args with
+  | [arg] ->
+    let cache = venv_cache venv in
+    let args = values_of_value venv pos arg in
+    List.iter (fun arg -> Omake_cache.reset cache (file_of_value venv pos arg)) args;
+    Omake_value_type.ValSequence []
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Filter out the files that don't exist.
@@ -911,17 +912,17 @@ let stat_reset venv pos loc args =
  * \end{doc}
  *)
 let filter_nodes node_exists venv pos loc args =
-   let pos = string_pos "filter-exists" pos in
-      match args with
-         [arg] ->
-            let cache = venv_cache venv in
-            let args  = values_of_value venv pos arg in
-            let nodes = List.map (file_of_value venv pos) args in
-            let nodes = List.filter (node_exists cache venv pos) nodes in
-            let nodes = List.map (fun v -> ValNode v) nodes in
-               ValArray nodes
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "filter-exists" pos in
+  match args with
+  | [arg] ->
+    let cache = venv_cache venv in
+    let args  = values_of_value venv pos arg in
+    let nodes = List.map (file_of_value venv pos) args in
+    let nodes = List.filter (node_exists cache venv pos) nodes in
+    let nodes = List.map (fun v -> Omake_value_type.ValNode v) nodes in
+    Omake_value_type.ValArray nodes
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let file_exists venv pos loc args =
    node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
@@ -934,18 +935,18 @@ let filter_exists venv pos loc args =
 
 (* Catch UnbuildableException *)
 let target_is_buildable cache venv pos node =
-   try
-      target_is_buildable cache venv pos node
-   with
-      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
-         false
+  try
+    target_is_buildable cache venv pos node
+  with
+    Omake_value_type.RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+    false
 
 let target_is_buildable_proper cache venv pos node =
-   try
-      target_is_buildable_proper cache venv pos node
-   with
-      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
-         false
+  try
+    target_is_buildable_proper cache venv pos node
+  with
+    Omake_value_type.RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+    false
 
 let target_exists venv pos loc args =
    node_exists target_is_buildable venv pos loc args
@@ -1023,36 +1024,36 @@ let search_target_path_aux search venv pos loc args =
             let files = List.fold_left (search venv cache pos loc path) [] files in
                concat_array (List.rev files)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let rec search_target_in_path_aux fail venv cache pos loc path files name =
-   match path with
-      dir :: path ->
-         let node = venv_intern_cd venv PhonyOK dir name in
-            if target_is_buildable cache venv pos node then
-               ValNode node :: files
-            else
-               search_target_in_path_aux fail venv cache pos loc path files name
-    | [] ->
-         if fail then
-            raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
-         else
-            files
+  match path with
+  | dir :: path ->
+    let node = venv_intern_cd venv PhonyOK dir name in
+    if target_is_buildable cache venv pos node then
+      Omake_value_type.ValNode node :: files
+    else
+      search_target_in_path_aux fail venv cache pos loc path files name
+  | [] ->
+    if fail then
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
+    else
+      files
 
 let rec search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2 =
-   match path with
-      dir :: path ->
-         let node1 = venv_intern_cd venv PhonyProhibited dir name1 in
-            if target_is_buildable cache venv pos node1 then
-               ValNode node1 :: files
-            else
-               let node2 = venv_intern_cd venv PhonyProhibited dir name2 in
-                  if target_is_buildable cache venv pos node2 then
-                     ValNode node2 :: files
-                  else
-                     search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2
-    | [] ->
-         files
+  match path with
+  | dir :: path ->
+    let node1 = venv_intern_cd venv PhonyProhibited dir name1 in
+    if target_is_buildable cache venv pos node1 then
+      Omake_value_type.ValNode node1 :: files
+    else
+      let node2 = venv_intern_cd venv PhonyProhibited dir name2 in
+      if target_is_buildable cache venv pos node2 then
+        ValNode node2 :: files
+      else
+        search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2
+  | [] ->
+    files
 
 let search_ocaml_target_in_path_aux venv cache pos loc path files name =
    search_ocaml_target_in_path_aux venv cache pos loc path files (String.uncapitalize name) (String.capitalize name)
@@ -1146,17 +1147,17 @@ let sort_aux sorter venv pos loc args =
             let name = Lm_symbol.add (string_of_value venv pos name) in
                name, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
    let env = get_env pos loc in
       sorter env venv pos name nodes
 
 let sort venv pos loc args =
-   let sorter env venv pos name nodes =
-      let nodes = Omake_build_util.sort env venv pos name nodes in
-         ValSequence (sequence_map (fun node -> ValNode node) nodes)
-   in
-      sort_aux sorter venv pos loc args
+  let sorter env venv pos name nodes =
+    let nodes = Omake_build_util.sort env venv pos name nodes in
+    Omake_value_type.ValSequence (sequence_map (fun node -> Omake_value_type.ValNode node) nodes)
+  in
+  sort_aux sorter venv pos loc args
 
 (*
  * \begin{doc}
@@ -1176,15 +1177,15 @@ let sort venv pos loc args =
  * \end{doc}
  *)
 let check_sort venv pos loc args =
-   let sorter env venv pos name nodes =
-      Omake_build_util.check_sort env venv pos name nodes;
-      ValSequence (sequence_map (fun node -> ValNode node) nodes)
-   in
-      sort_aux sorter venv pos loc args
+  let sorter env venv pos name nodes =
+    Omake_build_util.check_sort env venv pos name nodes;
+    Omake_value_type.ValSequence (sequence_map (fun node -> ValNode node) nodes)
+  in
+  sort_aux sorter venv pos loc args
 
 (************************************************************************
  * Listings.
- *)
+*)
 
 (*
  * Comparisons for forting.
@@ -1197,18 +1198,18 @@ let compare_dir_node dir1 node =
       else
          cmp
 
-let compare_val_nodes node1 node2 =
-   match node1, node2 with
-      ValDir dir, ValNode node ->
-         compare_dir_node dir node
-    | ValNode node, ValDir dir ->
-         -(compare_dir_node dir node)
-    | ValDir dir1, ValDir dir2 ->
-         Dir.compare dir1 dir2
-    | ValNode node1, ValNode node2 ->
-         Node.compare node1 node2
-    | _ ->
-         0
+let compare_val_nodes (node1 : Omake_value_type.value)  (node2 : Omake_value_type.value) =
+  match node1, node2 with
+  | ValDir dir, ValNode node ->
+    compare_dir_node dir node
+  | ValNode node, ValDir dir ->
+    -(compare_dir_node dir node)
+  | ValDir dir1, ValDir dir2 ->
+    Dir.compare dir1 dir2
+  | ValNode node1, ValNode node2 ->
+    Node.compare node1 node2
+  | _ ->
+    0
 
 let sort_val_nodes nodes =
    List.sort compare_val_nodes nodes
@@ -1361,29 +1362,29 @@ let sort_val_nodes nodes =
  * \end{doc}
  *)
 let glob venv pos loc args =
-   let pos = string_pos "glob" pos in
-   let option, arg =
-      match args with
-         [arg] ->
-            ValString "", arg
-       | [option; arg] ->
-            option, arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-   in
-   let options = glob_options_of_env venv pos in
-   let option = string_of_value venv pos option in
-   let options = glob_options_of_string options option in
-   let options = Lm_glob.create_options options in
-   let dirs = strings_of_value venv pos arg in
-   let root = Dir.cwd () in
-   let cwd = venv_dir venv in
-   let cwd_name = Dir.name root cwd in
-   let dirs, names = glob options cwd_name dirs in
-   let dirs = List.map (fun dir -> ValDir (Dir.chdir cwd dir)) dirs in
-   let nodes = List.map (fun name -> ValNode (venv_intern venv PhonyProhibited name)) names in
-   let nodes = dirs @ nodes in
-      ValArray (sort_val_nodes nodes)
+  let pos = string_pos "glob" pos in
+  let option, arg =
+    match args with
+    | [arg] ->
+      Omake_value_type.ValString "", arg
+    | [option; arg] ->
+      option, arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  in
+  let options = glob_options_of_env venv pos in
+  let option = string_of_value venv pos option in
+  let options = glob_options_of_string options option in
+  let options = Lm_glob.create_options options in
+  let dirs = strings_of_value venv pos arg in
+  let root = Dir.cwd () in
+  let cwd = venv_dir venv in
+  let cwd_name = Dir.name root cwd in
+  let dirs, names = glob options cwd_name dirs in
+  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir cwd dir)) dirs in
+  let nodes = List.map (fun name -> Omake_value_type.ValNode (venv_intern venv PhonyProhibited name)) names in
+  let nodes = dirs @ nodes in
+  Omake_value_type.ValArray (sort_val_nodes nodes)
 
 (*
  * ls function.
@@ -1434,32 +1435,32 @@ let ls_fun_of_string s =
       search 0
 
 let ls venv pos loc args =
-   let pos = string_pos "ls" pos in
-   let option, arg =
-      match args with
-         [arg] ->
-            ValString "", arg
-       | [option; arg] ->
-            option, arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-   in
-   let option = string_of_value venv pos option in
-   let ls_fun  = ls_fun_of_string option in
-   let options = glob_options_of_env venv pos in
-   let options = glob_options_of_string options option in
-   let options = Lm_glob.create_options options in
-   let dirs = strings_of_value venv pos arg in
-   let root = Dir.cwd () in
-   let cwd  = Dir.name root (venv_dir venv) in
-   let dirs, files1 = Lm_glob.glob options cwd dirs in
-   let dirs = List.map (relative_filename_concat cwd) dirs in
-   let files1 = List.map (relative_filename_concat cwd) files1 in
-   let dirs, files2 = ls_fun options "" dirs in
-   let dirs  = List.map (fun dir -> ValDir (Dir.chdir root dir)) dirs in
-   let nodes = List.map (fun name -> ValNode (venv_intern_cd venv PhonyProhibited root name)) (files1 @ files2) in
-   let nodes = dirs @ nodes in
-      ValArray (sort_val_nodes nodes)
+  let pos = string_pos "ls" pos in
+  let option, arg =
+    match args with
+    | [arg] ->
+      Omake_value_type.ValString "", arg
+    | [option; arg] ->
+      option, arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  in
+  let option = string_of_value venv pos option in
+  let ls_fun  = ls_fun_of_string option in
+  let options = glob_options_of_env venv pos in
+  let options = glob_options_of_string options option in
+  let options = Lm_glob.create_options options in
+  let dirs = strings_of_value venv pos arg in
+  let root = Dir.cwd () in
+  let cwd  = Dir.name root (venv_dir venv) in
+  let dirs, files1 = Lm_glob.glob options cwd dirs in
+  let dirs = List.map (relative_filename_concat cwd) dirs in
+  let files1 = List.map (relative_filename_concat cwd) files1 in
+  let dirs, files2 = ls_fun options "" dirs in
+  let dirs  = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir root dir)) dirs in
+  let nodes = List.map (fun name -> Omake_value_type.ValNode (venv_intern_cd venv PhonyProhibited root name)) (files1 @ files2) in
+  let nodes = dirs @ nodes in
+  Omake_value_type.ValArray (sort_val_nodes nodes)
 
 (*
  * The builtin function.
@@ -1486,31 +1487,31 @@ let ls venv pos loc args =
  * \end{description}
  * \end{doc}
  *)
-let subdirs venv pos loc args =
-   let pos = string_pos "subdirs" pos in
-   let option, arg =
-      match args with
-         [arg] ->
-            ValString "", arg
-       | [options; arg] ->
-            options, arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-   let options = glob_options_of_env venv pos in
-   let options = glob_options_of_string options (string_of_value venv pos option) in
-   let options = Lm_glob.create_options options in
-   let dirs = strings_of_value venv pos arg in
-   let root = Dir.cwd () in
-   let cwd = Dir.name root (venv_dir venv) in
-   let dirs = List.map (relative_filename_concat cwd) dirs in
-   let dirs = subdirs_of_dirs options "" dirs in
-   let dirs = List.map (fun dir -> ValDir (Dir.chdir root dir)) dirs in
-      ValArray dirs
+let subdirs venv pos loc args : Omake_value_type.value =
+  let pos = string_pos "subdirs" pos in
+  let option, arg =
+    match args with
+    | [arg] ->
+      Omake_value_type.ValString "", arg
+    | [options; arg] ->
+      options, arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  let options = glob_options_of_env venv pos in
+  let options = glob_options_of_string options (string_of_value venv pos option) in
+  let options = Lm_glob.create_options options in
+  let dirs = strings_of_value venv pos arg in
+  let root = Dir.cwd () in
+  let cwd = Dir.name root (venv_dir venv) in
+  let dirs = List.map (relative_filename_concat cwd) dirs in
+  let dirs = subdirs_of_dirs options "" dirs in
+  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir root dir)) dirs in
+  ValArray dirs
 
 (************************************************************************
  * Argument parsing.
- *)
+*)
 
 (*
  * Modes can be specified in two forms:
@@ -1700,13 +1701,13 @@ let mkdir venv pos loc args =
        | [nodes] ->
             mkdir_default_info, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
    in
    let argv = Array.of_list ("mkdir" :: strings_of_value venv pos nodes) in
    let info =
       try Lm_arg.fold_argv argv mkdir_spec info mkdir_default mkdir_usage with
          Failure s ->
-            raise (OmakeException (loc_pos loc pos, StringError s))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
    let mode = info.mkdir_mode in
    let mkdir =
@@ -1834,7 +1835,7 @@ let stat_aux stat_fun venv pos loc args =
             in
                concat_array stats
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let stat = stat_aux Unix.LargeFile.stat
 
@@ -1894,7 +1895,7 @@ let unlink_aux rm_fun venv pos loc args =
             in
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let unlink = unlink_aux Unix.unlink
 
@@ -1999,12 +2000,12 @@ let rm_command rm_fun venv pos loc args =
          [arg] ->
             Array.of_list ("rm" :: strings_of_value venv pos arg)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let info =
       try Lm_arg.fold_argv argv rm_spec rm_default_info rm_default rm_usage with
          Failure s ->
-            raise (OmakeException (loc_pos loc pos, StringError s))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
    let nodes = List.map (venv_intern venv PhonyProhibited) info.rm_files in
    let files = List.map Node.fullname nodes in
@@ -2075,7 +2076,7 @@ let rename venv pos loc args =
             in
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Command-line versions.
@@ -2168,12 +2169,12 @@ let mv_aux mv venv pos loc args =
          [args] ->
             Array.of_list ("mv" :: strings_of_value venv pos args)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let info =
       try Lm_arg.fold_argv argv mv_spec mv_default_info mv_default mv_usage with
          Failure s ->
-            raise (OmakeException (loc_pos loc pos, StringError s))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
    let files =
       List.map (fun name ->
@@ -2182,7 +2183,7 @@ let mv_aux mv venv pos loc args =
    let files, dir =
       match files with
          [] ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
        | _ ->
             split_last [] files
    in
@@ -2196,7 +2197,7 @@ let mv_aux mv venv pos loc args =
                [file] ->
                   mv info file dir
              | _ ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("destination directory does not exist", dir)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("destination directory does not exist", dir)))
       with
          Unix.Unix_error _ as exn ->
             raise (UncaughtException (pos, exn))
@@ -2310,7 +2311,7 @@ let link venv pos loc args =
             in
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -2356,7 +2357,7 @@ let symlink venv pos loc args =
             in
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let symlink_raw venv pos loc args =
    let pos = string_pos "symlink-raw" pos in
@@ -2372,7 +2373,7 @@ let symlink_raw venv pos loc args =
             in
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -2407,7 +2408,7 @@ let readlink venv pos loc args =
             in
                concat_array args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let readlink_raw venv pos loc args =
    let pos = string_pos "readlink-raw" pos in
@@ -2427,7 +2428,7 @@ let readlink_raw venv pos loc args =
             in
                concat_array args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * Permissions.
@@ -2546,13 +2547,13 @@ let chmod venv pos loc args =
        | [nodes] ->
             chmod_default_info, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
    in
    let argv = Array.of_list ("chmod" :: strings_of_value venv pos nodes) in
    let info =
       try Lm_arg.fold_argv argv chmod_spec info chmod_default chmod_usage with
          Failure s ->
-            raise (OmakeException (loc_pos loc pos, StringError s))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
    let info, files =
       if info.chmod_mode <> ChmodNone then
@@ -2563,7 +2564,7 @@ let chmod venv pos loc args =
                let info = { info with chmod_mode = ChmodString mode } in
                   info, rest
           | [] ->
-               raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+               raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let files =
       List.map (fun name ->
@@ -2606,7 +2607,7 @@ let chown venv pos loc args =
        | [uid; gid; nodes] ->
             uid, Some gid, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
    in
    let uid = int_of_value venv pos uid in
    let gid =
@@ -2650,7 +2651,7 @@ let utimes venv pos loc args =
          [atime; mtime; nodes] ->
             atime, mtime, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
    in
    let atime = float_of_value venv pos atime in
    let mtime = float_of_value venv pos mtime in
@@ -2686,7 +2687,7 @@ let truncate venv pos loc args =
          [len; nodes] ->
             len, nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
    let len = int_of_value venv pos len in
    let nodes = values_of_value venv pos nodes in
@@ -2727,7 +2728,7 @@ let umask venv pos loc args =
             in
                ValInt mask
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -2782,7 +2783,7 @@ let vmount_flags pos loc s =
              | ' ' ->
                   local_flags, mount_flags
              | c ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal vmount option", String.make 1 c)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal vmount option", String.make 1 c)))
          in
             collect local_flags mount_flags (succ i)
    in
@@ -2812,7 +2813,7 @@ let vmount venv pos loc args kargs =
        | [flags; src; dst], [] ->
             string_of_value venv pos flags, src, dst
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
    in
    let local_flags, mount_flags = vmount_flags pos loc flags in
    let src = dir_of_value venv pos src in
@@ -2845,7 +2846,7 @@ let add_project_directories venv pos loc args =
                      venv_add_explicit_dir venv (dir_of_value venv pos v)) values;
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -2870,7 +2871,7 @@ let remove_project_directories venv pos loc args =
                      venv_remove_explicit_dir venv (dir_of_value venv pos v)) values;
                ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * Tables.
