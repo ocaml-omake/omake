@@ -8,30 +8,6 @@
  * \end{doc}
  *
  *)
-open Lm_arg
-open Lm_glob
-open! Lm_printf
-
-
-
-open Omake_ir
-open Omake_env
-open Omake_var
-
-
-open Omake_node
-open Omake_rule
-open! Omake_value
-open Omake_target
-open Omake_symbol
-open Omake_builtin
-open Omake_node_sig
-
-open Omake_builtin_util
-open Omake_builtin_type
-
-open Omake_cache_type
-open Omake_value_type
 
 include Omake_pos.MakePos (struct let name = "Omake_builtin_file" end)
 
@@ -95,9 +71,9 @@ let file venv pos loc args =
    let pos = string_pos "file" pos in
       match args with
          [arg] ->
-            let values = values_of_value venv pos arg in
-            let values = List.map (node_value_of_value venv pos) values in
-               concat_array values
+            let values = Omake_value.values_of_value venv pos arg in
+            let values = List.map (Omake_value.node_value_of_value venv pos) values in
+               Omake_value.concat_array values
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -105,9 +81,9 @@ let dir venv pos loc args =
    let pos = string_pos "dir" pos in
       match args with
          [arg] ->
-            let values = values_of_value venv pos arg in
-            let values = List.map (dir_value_of_value venv pos) values in
-               concat_array values
+            let values = Omake_value.values_of_value venv pos arg in
+            let values = List.map (Omake_value.dir_value_of_value venv pos) values in
+               Omake_value.concat_array values
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -127,17 +103,17 @@ let dir venv pos loc args =
  * \end{doc}
  *)
 let tmpfile venv pos loc args : Omake_value_type.value =
-   let pos = string_pos "tmpfile" pos in
-   let prefix, suffix =
-      match args with
-         [prefix] ->
-            string_of_value venv pos prefix, ".omake"
-       | [prefix; suffix] ->
-            string_of_value venv pos prefix, string_of_value venv pos suffix
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
-   in
-      ValNode (venv_intern venv PhonyProhibited (Filename.temp_file prefix suffix))
+  let pos = string_pos "tmpfile" pos in
+  let prefix, suffix =
+    match args with
+    | [prefix] ->
+      Omake_value.string_of_value venv pos prefix, ".omake"
+    | [prefix; suffix] ->
+      Omake_value.string_of_value venv pos prefix, Omake_value.string_of_value venv pos suffix
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+  in
+  ValNode (Omake_env.venv_intern venv PhonyProhibited (Filename.temp_file prefix suffix))
 
 (*
  * Display something from a different directory.
@@ -170,10 +146,10 @@ let tmpfile venv pos loc args : Omake_value_type.value =
  * \end{doc}
  *)
 let ind venv pos loc args =
-   let pos = string_pos "ind" pos in
-      match args with
-         [dir; arg] ->
-            (*
+  let pos = string_pos "ind" pos in
+  match args with
+  | [dir; arg] ->
+    (*
              * BUG: JYH: evaluate the arguments early, so that commands
              * like the following work.
              *
@@ -184,13 +160,13 @@ let ind venv pos loc args =
              * work because expressions in rules bodies are evaluated
              * lazily, and the $(file $<) needs to be evaluated early.
              *)
-            let arg = concat_array (values_of_value venv pos arg) in
-            let dir = dir_of_value venv pos dir in
-            let venv = venv_chdir_tmp venv dir in
-            let strings = strings_of_value venv pos arg in
-               concat_strings strings
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+    let arg = Omake_value.concat_array (Omake_value.values_of_value venv pos arg) in
+    let dir = Omake_value.dir_of_value venv pos dir in
+    let venv = Omake_env.venv_chdir_tmp venv dir in
+    let strings = Omake_value.strings_of_value venv pos arg in
+    Omake_value.concat_strings strings
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Strip the directory.
@@ -214,9 +190,9 @@ let basename venv pos loc args =
    let pos = string_pos "basename" pos in
       match args with
          [arg] ->
-            let args = strings_of_value venv pos arg in
+            let args = Omake_value.strings_of_value venv pos arg in
             let args = List.map Filename.basename args in
-               concat_strings args
+               Omake_value.concat_strings args
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -244,14 +220,14 @@ let basename venv pos loc args =
  * \end{doc}
  *)
 let dirname venv pos loc args =
-   let pos = string_pos "dirname" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let args = List.map Filename.dirname args in
-               concat_strings args
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "dirname" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.strings_of_value venv pos arg in
+    let args = List.map Filename.dirname args in
+    Omake_value.concat_strings args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -272,14 +248,14 @@ let dirname venv pos loc args =
  * \end{doc}
  *)
 let rootname venv pos loc args =
-   let pos = string_pos "rootname" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let args = List.map Lm_filename_util.root args in
-               concat_strings args
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "rootname" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.strings_of_value venv pos arg in
+    let args = List.map Lm_filename_util.root args in
+    Omake_value.concat_strings args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get the directory.
@@ -302,13 +278,13 @@ let dirof venv pos loc args : Omake_value_type.value =
   let pos = string_pos "dirof" pos in
   match args with
     [arg] ->
-    let values = values_of_value venv pos arg in
+    let values = Omake_value.values_of_value venv pos arg in
     let dirs =
       List.map (fun v ->
-        let v = node_value_of_value venv pos v in
+        let v = Omake_value.node_value_of_value venv pos v in
         match v with
         | ValNode node ->
-          Omake_value_type.ValDir (Node.dir node)
+          Omake_value_type.ValDir (Omake_node.Node.dir node)
         | ValDir _ ->
           v
         | _ ->
@@ -335,21 +311,21 @@ let fullname venv pos loc args =
   let pos = string_pos "fullname" pos in
   match args with
     [arg] ->
-    let values = values_of_value venv pos arg in
+    let values = Omake_value.values_of_value venv pos arg in
     let strings =
       List.map (fun v ->
         let s =
-          match node_value_of_value venv pos v with
-            ValDir dir ->
-            Dir.fullname dir
+          match Omake_value.node_value_of_value venv pos v with
+          | ValDir dir ->
+            Omake_node.Dir.fullname dir
           | ValNode node ->
-            Node.fullname node
+            Omake_node.Node.fullname node
           | v ->
             raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
         in
         Omake_value_type.ValString s) values
     in
-    concat_array strings
+    Omake_value.concat_array strings
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -370,21 +346,21 @@ let absname venv pos loc args =
   let pos = string_pos "absname" pos in
   match args with
   | [arg] ->
-    let values = values_of_value venv pos arg in
+    let values = Omake_value.values_of_value venv pos arg in
     let strings =
       List.map (fun v ->
         let s =
-          match node_value_of_value venv pos v with
+          match Omake_value.node_value_of_value venv pos v with
           | ValDir dir ->
-            Dir.absname dir
+            Omake_node.Dir.absname dir
           | ValNode node ->
-            Node.absname node
+            Omake_node.Node.absname node
           | v ->
             raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
         in
         Omake_value_type.ValString s) values
     in
-    concat_array strings
+    Omake_value.concat_array strings
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -409,14 +385,14 @@ let homename venv pos loc args =
   let pos = string_pos "rootname" pos in
   match args with
   | [arg] ->
-    let args = values_of_value venv pos arg in
-    let args = List.map (node_value_of_value venv pos) args in
-    let venv = venv_chdir_tmp venv Dir.root in
+    let args = Omake_value.values_of_value venv pos arg in
+    let args = List.map (Omake_value.node_value_of_value venv pos) args in
+    let venv = Omake_env.venv_chdir_tmp venv Omake_node.Dir.root in
     let args =
       List.map (fun v ->
-        Omake_value_type.ValString (tilde_collapse (string_of_value venv pos v))) args
+        Omake_value_type.ValString (Lm_glob.tilde_collapse (Omake_value.string_of_value venv pos v))) args
     in
-    concat_array args
+    Omake_value.concat_array args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -439,14 +415,14 @@ let homename venv pos loc args =
  * \end{doc}
  *)
 let suffix venv pos loc args =
-   let pos = string_pos "suffix" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let args = List.map Lm_filename_util.suffix args in
-               concat_strings args
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "suffix" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.strings_of_value venv pos arg in
+    let args = List.map Lm_filename_util.suffix args in
+    Omake_value.concat_strings args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Search the PATH.
@@ -470,18 +446,18 @@ let which venv pos loc args =
   let pos = string_pos "which" pos in
   match args with
   |[arg] ->
-    let path = venv_find_var venv pos loc path_var in
-    let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
-    let cache = venv_cache venv in
+    let path = Omake_env.venv_find_var venv pos loc Omake_var.path_var in
+    let path = Omake_eval.path_of_values venv pos (Omake_value.values_of_value venv pos path) "." in
+    let cache = Omake_env.venv_cache venv in
     let path = Omake_cache.ls_exe_path cache path in
-    let args = strings_of_value venv pos arg in
+    let args = Omake_value.strings_of_value venv pos arg in
     let args =
       List.map (fun s ->
         try Omake_value_type.ValNode (Omake_cache.exe_find cache path s) with
           Not_found ->
           raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
     in
-    concat_array args
+    Omake_value.concat_array args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -506,23 +482,23 @@ let where venv pos loc args =
   let pos = string_pos "where" pos in
   match args with
   | [arg] ->
-    begin match strings_of_value venv pos arg with
+    begin match Omake_value.strings_of_value venv pos arg with
       [arg] ->
-      let path = venv_find_var venv pos loc path_var in
-      let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
-      let cache = venv_cache venv in
+      let path = Omake_env.venv_find_var venv pos loc Omake_var.path_var in
+      let path = Omake_eval.path_of_values venv pos (Omake_value.values_of_value venv pos path) "." in
+      let cache = Omake_env.venv_cache venv in
       let path = Omake_cache.ls_exe_path cache path in
       let res = Omake_cache.exe_find_all cache path arg in
       let res = List.map (fun v -> Omake_value_type.ValNode v) res in
       let res =
         try
-          let obj = venv_find_var_exn venv shell_object_var in
-          match eval_single_value venv pos obj with
+          let obj = Omake_env.venv_find_var_exn venv Omake_var.shell_object_var in
+          match Omake_value.eval_single_value venv pos obj with
           | ValObject obj ->
-            let v = venv_find_field_internal_exn obj (Lm_symbol.add arg) in
+            let v = Omake_env.venv_find_field_internal_exn obj (Lm_symbol.add arg) in
             let kind =
-              match eval_value venv pos v with
-                ValPrim _ ->
+              match Omake_value.eval_value venv pos v with
+              | ValPrim _ ->
                 "Shell object method (a built-in function)"
               | ValFun _ ->
                 "Shell object method (an omake function)"
@@ -555,7 +531,7 @@ let where venv pos loc args =
  * \end{doc}
  *)
 let rehash venv _ _ _ =
-  let cache = venv_cache venv in
+  let cache = Omake_env.venv_cache venv in
   Omake_cache.rehash cache;
   Omake_value_type.ValNone
 
@@ -573,20 +549,19 @@ let rehash venv _ _ _ =
  * \end{doc}
  *)
 let exists_in_path venv pos loc args =
-   let pos = string_pos "exists-in-path" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let test =
-               List.for_all (fun s ->
-                     try ignore (Lm_filename_util.which s); true with
-                        Failure _
-                      | Not_found ->
-                           false) args
-            in
-               val_of_bool test
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "exists-in-path" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.strings_of_value venv pos arg in
+    let test =
+      List.for_all (fun s ->
+        try ignore (Lm_filename_util.which s); true with
+          Failure _
+        | Not_found ->
+          false) args in
+    Omake_builtin_util.val_of_bool test
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -614,11 +589,11 @@ let digest_aux fail venv pos loc args =
   let pos = string_pos "digest" pos in
   match args with
     [arg] ->
-    let cache = venv_cache venv in
-    let values = values_of_value venv pos arg in
+    let cache = Omake_env.venv_cache venv in
+    let values = Omake_value.values_of_value venv pos arg in
     let values =
       List.map (fun v ->
-        match node_value_of_value venv pos v with
+        match Omake_value.node_value_of_value venv pos v with
           ValNode node ->
           (match Omake_cache.stat cache node with
             Some digest ->
@@ -627,14 +602,14 @@ let digest_aux fail venv pos loc args =
             if fail then
               raise (Omake_value_type.OmakeException (loc_pos loc pos, StringNodeError ("file does not exist", node)))
             else
-              val_false)
+              Omake_builtin_util.val_false)
         | _ ->
           if fail then
             raise (Omake_value_type.OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
           else
-            val_false) values
+            Omake_builtin_util.val_false) values
     in
-    concat_array values
+    Omake_value.concat_array values
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -680,13 +655,13 @@ let search_path_aux fail venv pos loc args =
   match args with
   | [dirs; arg] ->
     (* List the path *)
-    let cache = venv_cache venv in
-    let path = values_of_value venv pos dirs in
+    let cache = Omake_env.venv_cache venv in
+    let path = Omake_value.values_of_value venv pos dirs in
     let path = Omake_eval.path_of_values venv pos path "." in
     let listing = Omake_cache.ls_path cache path in
 
     (* Find each file *)
-    let files = strings_of_value venv pos arg in
+    let files = Omake_value.strings_of_value venv pos arg in
     let files =
       List.fold_left (fun files s ->
         let s = Filename.basename s in
@@ -706,7 +681,7 @@ let search_path_aux fail venv pos loc args =
           else
             files) [] files
     in
-    concat_array (List.rev files)
+    Omake_value.concat_array (List.rev files)
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -738,13 +713,13 @@ let digest_path_aux fail venv pos loc args =
   match args with
   | [dirs; arg] ->
     (* List the path *)
-    let cache = venv_cache venv in
-    let path = values_of_value venv pos dirs in
+    let cache = Omake_env.venv_cache venv in
+    let path = Omake_value.values_of_value venv pos dirs in
     let path = Omake_eval.path_of_values venv pos path "." in
     let listing = Omake_cache.ls_path cache path in
 
     (* Find each file *)
-    let files = strings_of_value venv pos arg in
+    let files = Omake_value.strings_of_value venv pos arg in
     let files =
       List.fold_left (fun files s ->
         let s = Filename.basename s in
@@ -768,7 +743,7 @@ let digest_path_aux fail venv pos loc args =
           else
             files) [] files
     in
-    concat_array (List.rev files)
+    Omake_value.concat_array (List.rev files)
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -797,18 +772,18 @@ let digest_in_path_optional = digest_path_aux false
  * \end{doc}
  *)
 let node_exists node_exists venv pos loc args =
-   let pos = string_pos "file-exists" pos in
-      match args with
-         [arg] ->
-            let cache = venv_cache venv in
-            let args = values_of_value venv pos arg in
-            let b =
-               List.for_all (fun arg ->
-                     node_exists cache venv pos (file_of_value venv pos arg)) args
-            in
-               val_of_bool b
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "file-exists" pos in
+  match args with
+    [arg] ->
+    let cache = Omake_env.venv_cache venv in
+    let args = Omake_value.values_of_value venv pos arg in
+    let b =
+      List.for_all (fun arg ->
+        node_exists cache venv pos (Omake_value.file_of_value venv pos arg)) args
+    in
+    Omake_builtin_util.val_of_bool b
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -828,9 +803,9 @@ let stat_reset venv pos loc args =
   let pos = string_pos "stat-reset" pos in
   match args with
   | [arg] ->
-    let cache = venv_cache venv in
-    let args = values_of_value venv pos arg in
-    List.iter (fun arg -> Omake_cache.reset cache (file_of_value venv pos arg)) args;
+    let cache = Omake_env.venv_cache venv in
+    let args = Omake_value.values_of_value venv pos arg in
+    List.iter (fun arg -> Omake_cache.reset cache (Omake_value.file_of_value venv pos arg)) args;
     Omake_value_type.ValSequence []
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -915,9 +890,9 @@ let filter_nodes node_exists venv pos loc args =
   let pos = string_pos "filter-exists" pos in
   match args with
   | [arg] ->
-    let cache = venv_cache venv in
-    let args  = values_of_value venv pos arg in
-    let nodes = List.map (file_of_value venv pos) args in
+    let cache = Omake_env.venv_cache venv in
+    let args  = Omake_value.values_of_value venv pos arg in
+    let nodes = List.map (Omake_value.file_of_value venv pos) args in
     let nodes = List.filter (node_exists cache venv pos) nodes in
     let nodes = List.map (fun v -> Omake_value_type.ValNode v) nodes in
     Omake_value_type.ValArray nodes
@@ -936,16 +911,16 @@ let filter_exists venv pos loc args =
 (* Catch UnbuildableException *)
 let target_is_buildable cache venv pos node =
   try
-    target_is_buildable cache venv pos node
+    Omake_target.target_is_buildable cache venv pos node
   with
-    Omake_value_type.RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+    Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
     false
 
 let target_is_buildable_proper cache venv pos node =
   try
-    target_is_buildable_proper cache venv pos node
+    Omake_target.target_is_buildable_proper cache venv pos node
   with
-    Omake_value_type.RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+    Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
     false
 
 let target_exists venv pos loc args =
@@ -1014,22 +989,22 @@ let search_target_path_aux search venv pos loc args =
       match args with
          [dirs; arg] ->
             (* List the path *)
-            let path = values_of_value venv pos dirs in
+            let path = Omake_value.values_of_value venv pos dirs in
             let path = Omake_eval.path_of_values venv pos path "." in
             let path = List.rev (List.fold_left (fun path (_, entry) -> List.rev_append entry path) [] path) in
-            let cache = venv_cache venv in
+            let cache = Omake_env.venv_cache venv in
 
             (* Find each file *)
-            let files = strings_of_value venv pos arg in
+            let files = Omake_value.strings_of_value venv pos arg in
             let files = List.fold_left (search venv cache pos loc path) [] files in
-               concat_array (List.rev files)
+               Omake_value.concat_array (List.rev files)
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let rec search_target_in_path_aux fail venv cache pos loc path files name =
   match path with
   | dir :: path ->
-    let node = venv_intern_cd venv PhonyOK dir name in
+    let node = Omake_env.venv_intern_cd venv PhonyOK dir name in
     if target_is_buildable cache venv pos node then
       Omake_value_type.ValNode node :: files
     else
@@ -1043,11 +1018,11 @@ let rec search_target_in_path_aux fail venv cache pos loc path files name =
 let rec search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2 =
   match path with
   | dir :: path ->
-    let node1 = venv_intern_cd venv PhonyProhibited dir name1 in
+    let node1 = Omake_env.venv_intern_cd venv PhonyProhibited dir name1 in
     if target_is_buildable cache venv pos node1 then
       Omake_value_type.ValNode node1 :: files
     else
-      let node2 = venv_intern_cd venv PhonyProhibited dir name2 in
+      let node2 = Omake_env.venv_intern_cd venv PhonyProhibited dir name2 in
       if target_is_buildable cache venv pos node2 then
         ValNode node2 :: files
       else
@@ -1142,20 +1117,21 @@ let sort_aux sorter venv pos loc args =
    let name, nodes =
       match args with
          [name; arg] ->
-            let values = values_of_value venv pos arg in
-            let nodes = List.map (file_of_value venv pos) values in
-            let name = Lm_symbol.add (string_of_value venv pos name) in
+            let values = Omake_value.values_of_value venv pos arg in
+            let nodes = List.map (Omake_value.file_of_value venv pos) values in
+            let name = Lm_symbol.add (Omake_value.string_of_value venv pos name) in
                name, nodes
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
-   let env = get_env pos loc in
+   let env = Omake_builtin_util.get_env pos loc in
       sorter env venv pos name nodes
 
 let sort venv pos loc args =
   let sorter env venv pos name nodes =
     let nodes = Omake_build_util.sort env venv pos name nodes in
-    Omake_value_type.ValSequence (sequence_map (fun node -> Omake_value_type.ValNode node) nodes)
+    Omake_value_type.ValSequence 
+      (Omake_builtin_util.sequence_map (fun node -> Omake_value_type.ValNode node) nodes)
   in
   sort_aux sorter venv pos loc args
 
@@ -1179,7 +1155,8 @@ let sort venv pos loc args =
 let check_sort venv pos loc args =
   let sorter env venv pos name nodes =
     Omake_build_util.check_sort env venv pos name nodes;
-    Omake_value_type.ValSequence (sequence_map (fun node -> ValNode node) nodes)
+    Omake_value_type.ValSequence 
+      (Omake_builtin_util.sequence_map (fun node -> ValNode node) nodes)
   in
   sort_aux sorter venv pos loc args
 
@@ -1191,8 +1168,8 @@ let check_sort venv pos loc args =
  * Comparisons for forting.
  *)
 let compare_dir_node dir1 node =
-   let dir2 = Node.dir node in
-   let cmp = Dir.compare dir1 dir2 in
+   let dir2 = Omake_node.Node.dir node in
+   let cmp = Omake_node.Dir.compare dir1 dir2 in
       if cmp = 0 then
          -1
       else
@@ -1205,9 +1182,9 @@ let compare_val_nodes (node1 : Omake_value_type.value)  (node2 : Omake_value_typ
   | ValNode node, ValDir dir ->
     -(compare_dir_node dir node)
   | ValDir dir1, ValDir dir2 ->
-    Dir.compare dir1 dir2
+    Omake_node.Dir.compare dir1 dir2
   | ValNode node1, ValNode node2 ->
-    Node.compare node1 node2
+    Omake_node.Node.compare node1 node2
   | _ ->
     0
 
@@ -1372,17 +1349,17 @@ let glob venv pos loc args =
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
   in
-  let options = glob_options_of_env venv pos in
-  let option = string_of_value venv pos option in
-  let options = glob_options_of_string options option in
+  let options = Omake_rule.glob_options_of_env venv pos in
+  let option = Omake_value.string_of_value venv pos option in
+  let options = Omake_rule.glob_options_of_string options option in
   let options = Lm_glob.create_options options in
-  let dirs = strings_of_value venv pos arg in
-  let root = Dir.cwd () in
-  let cwd = venv_dir venv in
-  let cwd_name = Dir.name root cwd in
-  let dirs, names = glob options cwd_name dirs in
-  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir cwd dir)) dirs in
-  let nodes = List.map (fun name -> Omake_value_type.ValNode (venv_intern venv PhonyProhibited name)) names in
+  let dirs = Omake_value.strings_of_value venv pos arg in
+  let root = Omake_node.Dir.cwd () in
+  let cwd = Omake_env.venv_dir venv in
+  let cwd_name = Omake_node.Dir.name root cwd in
+  let dirs, names = Lm_glob.glob options cwd_name dirs in
+  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Omake_node.Dir.chdir cwd dir)) dirs in
+  let nodes = List.map (fun name -> Omake_value_type.ValNode (Omake_env.venv_intern venv PhonyProhibited name)) names in
   let nodes = dirs @ nodes in
   Omake_value_type.ValArray (sort_val_nodes nodes)
 
@@ -1423,16 +1400,15 @@ let relative_filename_concat dir file =
       file
 
 let ls_fun_of_string s =
-   let len = String.length s in
-   let rec search i =
-      if i = len then
-         list_dirs
-      else
-         match s.[i] with
-            'R' -> list_dirs_rec
-          | _ -> search (succ i)
-   in
-      search 0
+  let len = String.length s in
+  let rec search i =
+    if i = len then
+      Lm_glob.list_dirs
+    else
+      match s.[i] with
+      | 'R' -> Lm_glob.list_dirs_rec
+      | _ -> search (i + 1)  in
+  search 0
 
 let ls venv pos loc args =
   let pos = string_pos "ls" pos in
@@ -1445,20 +1421,20 @@ let ls venv pos loc args =
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
   in
-  let option = string_of_value venv pos option in
+  let option = Omake_value.string_of_value venv pos option in
   let ls_fun  = ls_fun_of_string option in
-  let options = glob_options_of_env venv pos in
-  let options = glob_options_of_string options option in
+  let options = Omake_rule.glob_options_of_env venv pos in
+  let options = Omake_rule.glob_options_of_string options option in
   let options = Lm_glob.create_options options in
-  let dirs = strings_of_value venv pos arg in
-  let root = Dir.cwd () in
-  let cwd  = Dir.name root (venv_dir venv) in
+  let dirs = Omake_value.strings_of_value venv pos arg in
+  let root = Omake_node.Dir.cwd () in
+  let cwd  = Omake_node.Dir.name root (Omake_env.venv_dir venv) in
   let dirs, files1 = Lm_glob.glob options cwd dirs in
   let dirs = List.map (relative_filename_concat cwd) dirs in
   let files1 = List.map (relative_filename_concat cwd) files1 in
   let dirs, files2 = ls_fun options "" dirs in
-  let dirs  = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir root dir)) dirs in
-  let nodes = List.map (fun name -> Omake_value_type.ValNode (venv_intern_cd venv PhonyProhibited root name)) (files1 @ files2) in
+  let dirs  = List.map (fun dir -> Omake_value_type.ValDir (Omake_node.Dir.chdir root dir)) dirs in
+  let nodes = List.map (fun name -> Omake_value_type.ValNode (Omake_env.venv_intern_cd venv PhonyProhibited root name)) (files1 @ files2) in
   let nodes = dirs @ nodes in
   Omake_value_type.ValArray (sort_val_nodes nodes)
 
@@ -1498,15 +1474,15 @@ let subdirs venv pos loc args : Omake_value_type.value =
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
   in
-  let options = glob_options_of_env venv pos in
-  let options = glob_options_of_string options (string_of_value venv pos option) in
+  let options = Omake_rule.glob_options_of_env venv pos in
+  let options = Omake_rule.glob_options_of_string options (Omake_value.string_of_value venv pos option) in
   let options = Lm_glob.create_options options in
-  let dirs = strings_of_value venv pos arg in
-  let root = Dir.cwd () in
-  let cwd = Dir.name root (venv_dir venv) in
+  let dirs = Omake_value.strings_of_value venv pos arg in
+  let root = Omake_node.Dir.cwd () in
+  let cwd = Omake_node.Dir.name root (Omake_env.venv_dir venv) in
   let dirs = List.map (relative_filename_concat cwd) dirs in
-  let dirs = subdirs_of_dirs options "" dirs in
-  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Dir.chdir root dir)) dirs in
+  let dirs = Lm_glob.subdirs_of_dirs options "" dirs in
+  let dirs = List.map (fun dir -> Omake_value_type.ValDir (Omake_node.Dir.chdir root dir)) dirs in
   ValArray dirs
 
 (************************************************************************
@@ -1677,10 +1653,10 @@ let mkdir_spec =
    Lm_arg.MultiLetterOptions, (**)
       ["options", (**)
           ["-m", (**)
-              StringFold (fun info s -> { info with mkdir_mode = mode_of_string info.mkdir_mode s }),
+              Lm_arg.StringFold (fun info s -> { info with mkdir_mode = mode_of_string info.mkdir_mode s }),
               "set permission mode";
            "-p", (**)
-              UnitFold (fun info -> { info with mkdir_parents = true }),
+              Lm_arg.UnitFold (fun info -> { info with mkdir_parents = true }),
               "make parents as needed";
            "--", (**)
               RestFold (fun info s -> { info with mkdir_files = s :: info.mkdir_files }),
@@ -1692,44 +1668,44 @@ let mkdir_default info s =
 let mkdir_usage = "Create a directory"
 
 let mkdir venv pos loc args =
-   let pos = string_pos "mkdir" pos in
-   let info, nodes =
-      match args with
-         [mode; nodes] ->
-            let info = { mkdir_default_info with mkdir_mode = int_of_value venv pos mode } in
-               info, nodes
-       | [nodes] ->
-            mkdir_default_info, nodes
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
-   in
-   let argv = Array.of_list ("mkdir" :: strings_of_value venv pos nodes) in
-   let info =
-      try Lm_arg.fold_argv argv mkdir_spec info mkdir_default mkdir_usage with
-         Failure s ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
-   in
-   let mode = info.mkdir_mode in
-   let mkdir =
-      if info.mkdir_parents then
-         Lm_filename_util.mkdirhier
-      else
-         Unix.mkdir
-   in
-   let () =
-      try
-         List.iter (fun s ->
-               let name = Dir.fullname (venv_intern_dir venv s) in
-                  mkdir name mode) info.mkdir_files
-      with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "mkdir" pos in
+  let info, nodes =
+    match args with
+      [mode; nodes] ->
+      let info = { mkdir_default_info with mkdir_mode = Omake_value.int_of_value venv pos mode } in
+      info, nodes
+    | [nodes] ->
+      mkdir_default_info, nodes
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+  in
+  let argv = Array.of_list ("mkdir" :: Omake_value.strings_of_value venv pos nodes) in
+  let info =
+    try Lm_arg.fold_argv argv mkdir_spec info mkdir_default mkdir_usage with
+      Failure s ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
+  in
+  let mode = info.mkdir_mode in
+  let mkdir =
+    if info.mkdir_parents then
+      Lm_filename_util.mkdirhier
+    else
+      Unix.mkdir
+  in
+  let () =
+    try
+      List.iter (fun s ->
+        let name = Omake_node.Dir.fullname (Omake_env.venv_intern_dir venv s) in
+        mkdir name mode) info.mkdir_files
+    with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValNone
 
 (************************************************************************
  * Stat.
- *)
+*)
 
 (*
  * \begin{doc}
@@ -1788,13 +1764,13 @@ let mkdir venv pos loc args =
 let max_file_size = Int64.of_int max_int
 let clip_size i =
    if i > max_file_size then
-      ValData (Int64.to_string i)
+      Omake_value_type.ValData (Int64.to_string i)
    else
-      ValInt (Int64.to_int i)
+      Omake_value_type.ValInt (Int64.to_int i)
 
 let create_stat_obj obj stat =
-   let obj = venv_add_field_internal obj st_dev_sym (ValInt stat.Unix.LargeFile.st_dev) in
-   let obj = venv_add_field_internal obj st_ino_sym (ValInt stat.Unix.LargeFile.st_ino) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_dev_sym (ValInt stat.Unix.LargeFile.st_dev) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_ino_sym (ValInt stat.Unix.LargeFile.st_ino) in
    let kind =
       match stat.Unix.LargeFile.st_kind with
          Unix.S_REG -> "REG"
@@ -1805,37 +1781,37 @@ let create_stat_obj obj stat =
        | Unix.S_FIFO -> "FIFO"
        | Unix.S_SOCK -> "SOCK"
    in
-   let obj = venv_add_field_internal obj st_kind_sym (ValString kind) in
-   let obj = venv_add_field_internal obj st_perm_sym (ValInt stat.Unix.LargeFile.st_perm) in
-   let obj = venv_add_field_internal obj st_nlink_sym (ValInt stat.Unix.LargeFile.st_nlink) in
-   let obj = venv_add_field_internal obj st_uid_sym   (ValInt stat.Unix.LargeFile.st_uid) in
-   let obj = venv_add_field_internal obj st_gid_sym   (ValInt stat.Unix.LargeFile.st_gid) in
-   let obj = venv_add_field_internal obj st_rdev_sym  (ValInt stat.Unix.LargeFile.st_rdev) in
-   let obj = venv_add_field_internal obj st_size_sym  (clip_size stat.Unix.LargeFile.st_size) in
-   let obj = venv_add_field_internal obj st_atime_sym (ValFloat stat.Unix.LargeFile.st_atime) in
-   let obj = venv_add_field_internal obj st_mtime_sym (ValFloat stat.Unix.LargeFile.st_mtime) in
-   let obj = venv_add_field_internal obj st_ctime_sym (ValFloat stat.Unix.LargeFile.st_ctime) in
-      ValObject obj
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_kind_sym (ValString kind) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_perm_sym (ValInt stat.st_perm) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_nlink_sym (ValInt stat.st_nlink) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_uid_sym   (ValInt stat.st_uid) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_gid_sym   (ValInt stat.st_gid) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_rdev_sym  (ValInt stat.st_rdev) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_size_sym  (clip_size stat.st_size) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_atime_sym (ValFloat stat.st_atime) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_mtime_sym (ValFloat stat.st_mtime) in
+   let obj = Omake_env.venv_add_field_internal obj Omake_symbol.st_ctime_sym (ValFloat stat.st_ctime) in
+   Omake_value_type.ValObject obj
 
 let stat_aux stat_fun venv pos loc args =
-   let pos = string_pos "stat" pos in
-   let obj = venv_find_object_or_empty venv stat_object_var in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let stats =
-               List.map (fun arg ->
-                     let file = filename_of_value venv pos arg in
-                     let stat =
-                        try stat_fun file with
-                           Unix.Unix_error _ as exn ->
-                              raise (UncaughtException (pos, exn))
-                     in
-                        create_stat_obj obj stat) args
-            in
-               concat_array stats
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "stat" pos in
+  let obj = Omake_env.venv_find_object_or_empty venv Omake_var.stat_object_var in
+  match args with
+    [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let stats =
+      List.map (fun arg ->
+        let file = Omake_value.filename_of_value venv pos arg in
+        let stat =
+          try stat_fun file with
+            Unix.Unix_error _ as exn ->
+            raise (Omake_value_type.UncaughtException (pos, exn))
+        in
+        create_stat_obj obj stat) args
+    in
+    Omake_value.concat_array stats
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let stat = stat_aux Unix.LargeFile.stat
 
@@ -1877,25 +1853,25 @@ let lstat =
  * \end{doc}
  *)
 let unlink_aux rm_fun venv pos loc args =
-   let pos = string_pos "unlink" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let cache = venv_cache venv in
-            let () =
-               try
-                  List.iter (fun arg ->
-                        let name = filename_of_value venv pos arg in
-                        let node = venv_intern_cd venv PhonyProhibited (Dir.cwd ()) name in
-                           rm_fun name;
-                           ignore (Omake_cache.reset cache node)) args
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "unlink" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let cache = Omake_env.venv_cache venv in
+    let () =
+      try
+        List.iter (fun arg ->
+          let name = Omake_value.filename_of_value venv pos arg in
+          let node = Omake_env.venv_intern_cd venv PhonyProhibited (Omake_node.Dir.cwd ()) name in
+          rm_fun name;
+          ignore (Omake_cache.reset cache node)) args
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let unlink = unlink_aux Unix.unlink
 
@@ -1922,7 +1898,7 @@ let rm_spec =
    Lm_arg.MultiLetterOptions, (**)
       ["options", (**)
           ["-f", (**)
-              UnitFold (fun info -> { info with rm_force = true }),
+              Lm_arg.UnitFold (fun info -> { info with rm_force = true }),
               "force removal, never prompt";
            "-i", (**)
               UnitFold (fun info -> { info with rm_interactive = true }),
@@ -1960,7 +1936,7 @@ let rm_aux unlink info filename =
       let rm_flag =
          if info.rm_interactive then
             begin
-               printf "Remove %s? " filename;
+               Lm_printf.printf "Remove %s? " filename;
                flush stdout;
                match String.lowercase (Lm_string_util.trim (input_line stdin)) with
                   "y" | "yes" ->
@@ -1974,7 +1950,7 @@ let rm_aux unlink info filename =
          if rm_flag then
             begin
                if info.rm_verbose then
-                  printf "Removing %s@." filename;
+                  Lm_printf.printf "Removing %s@." filename;
                unlink filename
             end
 
@@ -1998,7 +1974,7 @@ let rm_command rm_fun venv pos loc args =
    let argv =
       match args with
          [arg] ->
-            Array.of_list ("rm" :: strings_of_value venv pos arg)
+            Array.of_list ("rm" :: Omake_value.strings_of_value venv pos arg)
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
@@ -2007,9 +1983,9 @@ let rm_command rm_fun venv pos loc args =
          Failure s ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
-   let nodes = List.map (venv_intern venv PhonyProhibited) info.rm_files in
-   let files = List.map Node.fullname nodes in
-   let cache = venv_cache venv in
+   let nodes = List.map (Omake_env.venv_intern venv PhonyProhibited) info.rm_files in
+   let files = List.map Omake_node.Node.fullname nodes in
+   let cache = Omake_env.venv_cache venv in
    let () =
       List.iter (fun node ->
             Omake_cache.reset cache node) nodes;
@@ -2021,9 +1997,9 @@ let rm_command rm_fun venv pos loc args =
             List.iter (rm_aux rm_fun info) files
       with
          Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
+            raise (Omake_value_type.UncaughtException (pos, exn))
    in
-      ValNone
+      Omake_value_type.ValNone
 
 let rmdir = rm_command Unix.rmdir
 let rm = rm_command Unix.unlink
@@ -2064,19 +2040,19 @@ let rm = rm_command Unix.unlink
  * \end{doc}
  *)
 let rename venv pos loc args =
-   let pos = string_pos "rename" pos in
-      match args with
-         [node1; node2] ->
-            let name1 = filename_of_value venv pos node1 in
-            let name2 = filename_of_value venv pos node2 in
-            let () =
-               try Unix.rename name1 name2 with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "rename" pos in
+  match args with
+    [node1; node2] ->
+    let name1 = Omake_value.filename_of_value venv pos node1 in
+    let name2 = Omake_value.filename_of_value venv pos node2 in
+    let () =
+      try Unix.rename name1 name2 with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Command-line versions.
@@ -2112,7 +2088,7 @@ let mv_spec =
    Lm_arg.MultiLetterOptions, (**)
       ["options", (**)
           ["-f", (**)
-              UnitFold (fun info -> { info with mv_force = true }),
+              Lm_arg.UnitFold (fun info -> { info with mv_force = true }),
               "force removal, never prompt";
            "-i", (**)
               UnitFold (fun info -> { info with mv_interactive = true }),
@@ -2124,7 +2100,7 @@ let mv_spec =
               UnitFold (fun info -> { info with mv_recursive = true }),
               "copy contents recursively";
            "-m", (**)
-              StringFold (fun info s -> { info with mv_mode = s }),
+              Lm_arg.StringFold (fun info s -> { info with mv_mode = s }),
               "specify the permissions of the copied file";
            "--", (**)
               RestFold (fun info s -> { info with mv_files = s :: info.mv_files }),
@@ -2145,7 +2121,7 @@ let mv_prompt info file1 file2 =
       let flag =
          if info.mv_interactive && Sys.file_exists file2 then
             begin
-               printf "Remove %s? @?" file2;
+               Lm_printf.printf "Remove %s? @?" file2;
                match String.lowercase (Lm_string_util.trim (input_line stdin)) with
                   "y" | "yes" ->
                      true
@@ -2156,53 +2132,53 @@ let mv_prompt info file1 file2 =
             true
       in
          if flag && info.mv_verbose then
-            printf "Copying %s to %s@." file1 file2;
+            Lm_printf.printf "Copying %s to %s@." file1 file2;
          flag
 
 (*
  * The main function.
  *)
 let mv_aux mv venv pos loc args =
-   let pos = string_pos "mv" pos in
-   let argv =
-      match args with
-         [args] ->
-            Array.of_list ("mv" :: strings_of_value venv pos args)
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-   let info =
-      try Lm_arg.fold_argv argv mv_spec mv_default_info mv_default mv_usage with
-         Failure s ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
-   in
-   let files =
-      List.map (fun name ->
-            Dir.fullname (venv_intern_dir venv name)) (List.rev info.mv_files)
-   in
-   let files, dir =
-      match files with
-         [] ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
-       | _ ->
-            split_last [] files
-   in
-   let () =
-      try
-         if is_dir dir then
-            List.iter (fun file ->
-                  mv info file (Filename.concat dir (Filename.basename file))) files
-         else
-            match files with
-               [file] ->
-                  mv info file dir
-             | _ ->
-                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("destination directory does not exist", dir)))
-      with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "mv" pos in
+  let argv =
+    match args with
+    | [args] ->
+      Array.of_list ("mv" :: Omake_value.strings_of_value venv pos args)
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  let info =
+    try Lm_arg.fold_argv argv mv_spec mv_default_info mv_default mv_usage with
+      Failure s ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
+  in
+  let files =
+    List.map (fun name ->
+      Omake_node.Dir.fullname (Omake_env.venv_intern_dir venv name)) (List.rev info.mv_files)
+  in
+  let files, dir =
+    match files with
+      [] ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
+    | _ ->
+      split_last [] files
+  in
+  let () =
+    try
+      if is_dir dir then
+        List.iter (fun file ->
+          mv info file (Filename.concat dir (Filename.basename file))) files
+      else
+        match files with
+          [file] ->
+          mv info file dir
+        | _ ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("destination directory does not exist", dir)))
+    with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValNone
 
 (*
  * Recursive copy.
@@ -2299,19 +2275,19 @@ let mv = mv_aux mv_file
  * \end{doc}
  *)
 let link venv pos loc args =
-   let pos = string_pos "link" pos in
-      match args with
-         [src; dst] ->
-            let src = filename_of_value venv pos src in
-            let dst = filename_of_value venv pos dst in
-            let () =
-               try Unix.link src dst with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "link" pos in
+  match args with
+    [src; dst] ->
+    let src = Omake_value.filename_of_value venv pos src in
+    let dst = Omake_value.filename_of_value venv pos dst in
+    let () =
+      try Unix.link src dst with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -2343,37 +2319,37 @@ let link venv pos loc args =
  * \end{doc}
  *)
 let symlink venv pos loc args =
-   let pos = string_pos "symlink" pos in
-      match args with
-         [src; dst] ->
-            let dst = file_of_value venv pos dst in
-            let src = file_of_value venv pos src in
-            let src = Node.name (Node.dir dst) src in
-            let dst = Node.fullname dst in
-            let () =
-               try Unix.symlink src dst with
-                  (Unix.Unix_error _ | Invalid_argument _) as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "symlink" pos in
+  match args with
+  | [src; dst] ->
+    let dst = Omake_value.file_of_value venv pos dst in
+    let src = Omake_value.file_of_value venv pos src in
+    let src = Omake_node.Node.name (Omake_node.Node.dir dst) src in
+    let dst = Omake_node.Node.fullname dst in
+    let () =
+      try Unix.symlink src dst with
+        (Unix.Unix_error _ | Invalid_argument _) as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let symlink_raw venv pos loc args =
-   let pos = string_pos "symlink-raw" pos in
-      match args with
-         [src; dst] ->
-            let dst = file_of_value venv pos dst in
-            let src = string_of_value venv pos src in
-            let dst = Node.fullname dst in
-            let () =
-               try Unix.symlink src dst with
-                  (Unix.Unix_error _ | Invalid_argument _) as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "symlink-raw" pos in
+  match args with
+  | [src; dst] ->
+    let dst = Omake_value.file_of_value venv pos dst in
+    let src = Omake_value.string_of_value venv pos src in
+    let dst = Omake_node.Node.fullname dst in
+    let () =
+      try Unix.symlink src dst with
+        (Unix.Unix_error _ | Invalid_argument _) as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -2390,49 +2366,49 @@ let symlink_raw venv pos loc args =
  * \end{doc}
  *)
 let readlink venv pos loc args =
-   let pos = string_pos "readlink" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let args =
-               try
-                  List.map (fun arg ->
-                        let node = file_of_value venv pos arg in
-                        let dir = Node.dir node in
-                        let name = Node.fullname node in
-                        let name = Unix.readlink name in
-                           ValNode (venv_intern_cd venv PhonyProhibited dir name)) args
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               concat_array args
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "readlink" pos in
+  match args with
+  | [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let args =
+      try
+        List.map (fun arg ->
+          let node = Omake_value.file_of_value venv pos arg in
+          let dir = Omake_node.Node.dir node in
+          let name = Omake_node.Node.fullname node in
+          let name = Unix.readlink name in
+          Omake_value_type.ValNode (Omake_env.venv_intern_cd venv PhonyProhibited dir name)) args
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value.concat_array args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let readlink_raw venv pos loc args =
-   let pos = string_pos "readlink-raw" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let args =
-               try
-                  List.map (fun arg ->
-                        let node = file_of_value venv pos arg in
-                        let name = Node.fullname node in
-                        let name = Unix.readlink name in
-                           ValData name) args
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               concat_array args
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "readlink-raw" pos in
+  match args with
+    [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let args =
+      try
+        List.map (fun arg ->
+          let node = Omake_value.file_of_value venv pos arg in
+          let name = Omake_node.Node.fullname node in
+          let name = Unix.readlink name in
+          Omake_value_type.ValData name) args
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value.concat_array args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * Permissions.
- *)
+*)
 
 (*
  * \begin{doc}
@@ -2479,7 +2455,7 @@ let chmod_spec =
    Lm_arg.MultiLetterOptions, (**)
       ["options", (**)
           ["-m", (**)
-              StringFold (fun info s -> { info with chmod_mode = ChmodString s }),
+              Lm_arg.StringFold (fun info s -> { info with chmod_mode = ChmodString s }),
               "set permission mode";
            "-r", (**)
               UnitFold (fun info -> { info with chmod_rec = true }),
@@ -2504,7 +2480,7 @@ let chmod_usage = "Change file permissions"
  *)
 let chmod info filename =
    if info.chmod_verbose then
-      printf "Changing permissions on %s@." filename;
+      Lm_printf.printf "Changing permissions on %s@." filename;
    let mode = (Unix.LargeFile.stat filename).Unix.LargeFile.st_perm in
    let mode = mode_of_chmod mode info.chmod_mode in
    if info.chmod_force then
@@ -2528,55 +2504,55 @@ let rec chmod_rec info filename =
  * The command-line version.
  *)
 let chmod venv pos loc args =
-   let pos = string_pos "chmod" pos in
-   let info, nodes =
-      match args with
-         [mode; nodes] ->
-            let mode =
-               match mode with
-                  ValInt mode ->
-                     ChmodInt mode
-                | _ ->
-                     let s = string_of_value venv pos mode in
-                        try ChmodInt (int_of_string s) with
-                           Failure _ ->
-                              ChmodString s
-            in
-            let info = { chmod_default_info with chmod_mode = mode } in
-               info, nodes
-       | [nodes] ->
-            chmod_default_info, nodes
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
-   in
-   let argv = Array.of_list ("chmod" :: strings_of_value venv pos nodes) in
-   let info =
-      try Lm_arg.fold_argv argv chmod_spec info chmod_default chmod_usage with
-         Failure s ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
-   in
-   let info, files =
-      if info.chmod_mode <> ChmodNone then
-         info, info.chmod_files
-      else
-         match List.rev info.chmod_files with
-            mode :: rest ->
-               let info = { info with chmod_mode = ChmodString mode } in
-                  info, rest
-          | [] ->
-               raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-   let files =
-      List.map (fun name ->
-            Dir.fullname (venv_intern_dir venv name)) files
-   in
-   let () =
-      if info.chmod_rec then
-         List.iter (chmod_rec info) files
-      else
-         List.iter (chmod info) files
-   in
-      ValNone
+  let pos = string_pos "chmod" pos in
+  let info, nodes =
+    match args with
+      [mode; nodes] ->
+      let mode =
+        match mode with
+        |Omake_value_type.ValInt mode ->
+          ChmodInt mode
+        | _ ->
+          let s = Omake_value.string_of_value venv pos mode in
+          try ChmodInt (int_of_string s) with
+            Failure _ ->
+            ChmodString s
+      in
+      let info = { chmod_default_info with chmod_mode = mode } in
+      info, nodes
+    | [nodes] ->
+      chmod_default_info, nodes
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+  in
+  let argv = Array.of_list ("chmod" :: Omake_value.strings_of_value venv pos nodes) in
+  let info =
+    try Lm_arg.fold_argv argv chmod_spec info chmod_default chmod_usage with
+      Failure s ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
+  in
+  let info, files =
+    if info.chmod_mode <> ChmodNone then
+      info, info.chmod_files
+    else
+      match List.rev info.chmod_files with
+        mode :: rest ->
+        let info = { info with chmod_mode = ChmodString mode } in
+        info, rest
+      | [] ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  let files =
+    List.map (fun name ->
+      Omake_node.Dir.fullname (Omake_env.venv_intern_dir venv name)) files
+  in
+  let () =
+    if info.chmod_rec then
+      List.iter (chmod_rec info) files
+    else
+      List.iter (chmod info) files
+  in
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2599,34 +2575,33 @@ let chmod venv pos loc args =
  * \end{doc}
  *)
 let chown venv pos loc args =
-   let pos = string_pos "chown" pos in
-   let uid, gid, nodes =
-      match args with
-         [uid; nodes] ->
-            uid, None, nodes
-       | [uid; gid; nodes] ->
-            uid, Some gid, nodes
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
-   in
-   let uid = int_of_value venv pos uid in
-   let gid =
-      match gid with
-         Some gid ->
-            int_of_value venv pos gid
-       | None ->
-            -1
-   in
-   let nodes = values_of_value venv pos nodes in
-   let () =
-      try
-         List.iter (fun node ->
-               Unix.chown (filename_of_value venv pos node) uid gid) nodes
-      with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "chown" pos in
+  let uid, gid, nodes =
+    match args with
+      [uid; nodes] ->
+      uid, None, nodes
+    | [uid; gid; nodes] ->
+      uid, Some gid, nodes
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+  in
+  let uid = Omake_value.int_of_value venv pos uid in
+  let gid =
+    match gid with
+      Some gid ->
+      Omake_value.int_of_value venv pos gid
+    | None ->
+      -1
+  in
+  let nodes = Omake_value.values_of_value venv pos nodes in
+  let () =
+    try
+      List.iter (fun node ->
+        Unix.chown (Omake_value.filename_of_value venv pos node) uid gid) nodes
+    with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))  in
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2645,26 +2620,25 @@ let chown venv pos loc args =
  * \end{doc}
  *)
 let utimes venv pos loc args =
-   let pos = string_pos "utimes" pos in
-   let atime, mtime, nodes =
-      match args with
-         [atime; mtime; nodes] ->
-            atime, mtime, nodes
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
-   in
-   let atime = float_of_value venv pos atime in
-   let mtime = float_of_value venv pos mtime in
-   let nodes = values_of_value venv pos nodes in
-   let () =
-      try
-         List.iter (fun node ->
-               Unix.utimes (filename_of_value venv pos node) atime mtime) nodes
-      with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "utimes" pos in
+  let atime, mtime, nodes =
+    match args with
+    | [atime; mtime; nodes] ->
+      atime, mtime, nodes
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  in
+  let atime = Omake_value.float_of_value venv pos atime in
+  let mtime = Omake_value.float_of_value venv pos mtime in
+  let nodes = Omake_value.values_of_value venv pos nodes in
+  let () =
+    try
+      List.iter (fun node ->
+        Unix.utimes (Omake_value.filename_of_value venv pos node) atime mtime) nodes
+    with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn)) in
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2681,25 +2655,25 @@ let utimes venv pos loc args =
  * \end{doc}
  *)
 let truncate venv pos loc args =
-   let pos = string_pos "truncate" pos in
-   let len, nodes =
-      match args with
-         [len; nodes] ->
-            len, nodes
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-   in
-   let len = int_of_value venv pos len in
-   let nodes = values_of_value venv pos nodes in
-   let () =
-      try
-         List.iter (fun node ->
-               Unix.truncate (filename_of_value venv pos node) len) nodes
-      with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "truncate" pos in
+  let len, nodes =
+    match args with
+      [len; nodes] ->
+      len, nodes
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  in
+  let len = Omake_value.int_of_value venv pos len in
+  let nodes = Omake_value.values_of_value venv pos nodes in
+  let () =
+    try
+      List.iter (fun node ->
+        Unix.truncate (Omake_value.filename_of_value venv pos node) len) nodes
+    with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2717,18 +2691,18 @@ let truncate venv pos loc args =
  * \end{doc}
  *)
 let umask venv pos loc args =
-   let pos = string_pos "umask" pos in
-      match args with
-         [arg] ->
-            let mode = int_of_value venv pos arg in
-            let mask =
-               try Unix.umask mode with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValInt mask
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "umask" pos in
+  match args with
+  | [arg] ->
+    let mode = Omake_value.int_of_value venv pos arg in
+    let mask =
+      try Unix.umask mode with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValInt mask
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -2765,29 +2739,29 @@ type vmount_flags =
    MountForce
 
 let vmount_flags pos loc s =
-   let pos = string_pos "vmount_flags" pos in
-   let len = String.length s in
-   let rec collect local_flags mount_flags i =
-      if i = len then
-         local_flags, mount_flags
-      else
-         let local_flags, mount_flags =
-            match s.[i] with
-               'l' ->
-                  local_flags, MountLink :: mount_flags
-             | 'c' ->
-                  local_flags, MountCopy :: mount_flags
-             | 'f' ->
-                  MountForce :: local_flags, mount_flags
-             | '-'
-             | ' ' ->
-                  local_flags, mount_flags
-             | c ->
-                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal vmount option", String.make 1 c)))
-         in
-            collect local_flags mount_flags (succ i)
-   in
-      collect [] [] 0
+  let pos = string_pos "vmount_flags" pos in
+  let len = String.length s in
+  let rec collect local_flags mount_flags i =
+    if i = len then
+      local_flags, mount_flags
+    else
+      let local_flags, mount_flags =
+        match s.[i] with
+        | 'l' ->
+          local_flags, Omake_node_sig.MountLink :: mount_flags
+        | 'c' ->
+          local_flags, MountCopy :: mount_flags
+        | 'f' ->
+          MountForce :: local_flags, mount_flags
+        | '-'
+        | ' ' ->
+          local_flags, mount_flags
+        | c ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal vmount option", String.make 1 c)))
+      in
+      collect local_flags mount_flags (succ i)
+  in
+  collect [] [] 0
 
 (*
  * Refer to all the files in the source directory, so that
@@ -2795,11 +2769,11 @@ let vmount_flags pos loc s =
  *)
 let vmount_touch_files venv pos src dst =
    let _pos = string_pos "vmount_touch_files" pos in
-   let src_name = Dir.fullname src in
-   let dst_name = Dir.name src dst in
+   let src_name = Omake_node.Dir.fullname src in
+   let dst_name = Omake_node.Dir.name src dst in
    let options = Lm_glob.create_options [GlobIgnore [dst_name]] in
-   let _, files = list_dirs_rec options src_name ["."] in
-      List.iter (fun name -> ignore (venv_intern_cd venv PhonyProhibited dst name)) files
+   let _, files = Lm_glob.list_dirs_rec options src_name ["."] in
+      List.iter (fun name -> ignore (Omake_env.venv_intern_cd venv PhonyProhibited dst name)) files
 
 (*
  * Add the mount.
@@ -2811,17 +2785,17 @@ let vmount venv pos loc args kargs =
          [src; dst], [] ->
             "", src, dst
        | [flags; src; dst], [] ->
-            string_of_value venv pos flags, src, dst
+            Omake_value.string_of_value venv pos flags, src, dst
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
    in
    let local_flags, mount_flags = vmount_flags pos loc flags in
-   let src = dir_of_value venv pos src in
-   let dst = dir_of_value venv pos dst in
-   let venv = venv_mount venv mount_flags src dst in
+   let src = Omake_value.dir_of_value venv pos src in
+   let dst = Omake_value.dir_of_value venv pos dst in
+   let venv = Omake_env.venv_mount venv mount_flags src dst in
       if List.mem MountForce local_flags then
          vmount_touch_files venv pos src dst;
-      venv, ValNone
+      venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -2838,15 +2812,15 @@ let vmount venv pos loc args kargs =
  * \end{doc}
  *)
 let add_project_directories venv pos loc args =
-   let pos = string_pos "add-project-directories" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-               List.iter (fun v ->
-                     venv_add_explicit_dir venv (dir_of_value venv pos v)) values;
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "add-project-directories" pos in
+  match args with
+  | [arg] ->
+    let values = Omake_value.values_of_value venv pos arg in
+    List.iter (fun v ->
+      Omake_env.venv_add_explicit_dir venv (Omake_value.dir_of_value venv pos v)) values;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -2863,103 +2837,95 @@ let add_project_directories venv pos loc args =
  * \end{doc}
  *)
 let remove_project_directories venv pos loc args =
-   let pos = string_pos "add-project-directories" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-               List.iter (fun v ->
-                     venv_remove_explicit_dir venv (dir_of_value venv pos v)) values;
-               ValNone
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "add-project-directories" pos in
+  match args with
+  | [arg] ->
+    let values = Omake_value.values_of_value venv pos arg in
+    List.iter (fun v ->
+      Omake_env.venv_remove_explicit_dir venv (Omake_value.dir_of_value venv pos v)) values;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * Tables.
- *)
+*)
 
 let () =
-   let builtin_funs =
-      [true, "file-sort",               sort,                     ArityExact 2;
-       true, "file-check-sort",         check_sort,               ArityExact 2;
-       true, "ls",                      ls,                       ArityRange (1, 2);
-       true, "glob",                    glob,                     ArityRange (1, 2);
-       true, "subdirs",                 subdirs,                  ArityRange (1, 2);
-       true, "basename",                basename,                 ArityExact 1;
-       true, "dirname",                 dirname,                  ArityExact 1;
-       true, "homename",                homename,                 ArityExact 1;
-       true, "rootname",                rootname,                 ArityExact 1;
-       true, "fullname",                fullname,                 ArityExact 1;
-       true, "absname",                 absname,                  ArityExact 1;
-       true, "suffix",                  suffix,                   ArityExact 1;
-       true, "tmpfile",                 tmpfile,                  ArityRange (1, 2);
-       true, "file",                    file,                     ArityExact 1;
-       true, "dir",                     dir,                      ArityExact 1;
-       true, "which",                   which,                    ArityExact 1;
-       true, "where",                   where,                    ArityExact 1;
-       true, "exists-in-path",          exists_in_path,           ArityExact 1;
-       true, "in",                      ind,                      ArityExact 2;
-       true, "dirof",                   dirof,                    ArityExact 1;
-       true, "stat-reset",              stat_reset,               ArityExact 1;
-       true, "file-exists",             file_exists,              ArityExact 1;
-       true, "filter-exists",           filter_exists,            ArityExact 1;
-       true, "target-exists",           target_exists,            ArityExact 1;
-       true, "filter-targets",          filter_targets,           ArityExact 1;
-       true, "target-is-proper",        target_is_proper,         ArityExact 1;
-       true, "filter-proper-targets",   filter_proper_targets,    ArityExact 1;
-       true, "stat",                    stat,                     ArityExact 1;
-       true, "lstat",                   lstat,                    ArityExact 1;
-       true, "unlink",                  unlink,                   ArityExact 1;
-       true, "rename",                  rename,                   ArityExact 2;
-       true, "readlink",                readlink,                 ArityExact 1;
-       true, "readlink-raw",            readlink_raw,             ArityExact 1;
-       true, "truncate",                truncate,                 ArityExact 2;
+  let builtin_funs =
+    [true, "file-sort",               sort,                     Omake_ir.ArityExact 2;
+     true, "file-check-sort",         check_sort,               ArityExact 2;
+     true, "ls",                      ls,                       ArityRange (1, 2);
+     true, "glob",                    glob,                     ArityRange (1, 2);
+     true, "subdirs",                 subdirs,                  ArityRange (1, 2);
+     true, "basename",                basename,                 ArityExact 1;
+     true, "dirname",                 dirname,                  ArityExact 1;
+     true, "homename",                homename,                 ArityExact 1;
+     true, "rootname",                rootname,                 ArityExact 1;
+     true, "fullname",                fullname,                 ArityExact 1;
+     true, "absname",                 absname,                  ArityExact 1;
+     true, "suffix",                  suffix,                   ArityExact 1;
+     true, "tmpfile",                 tmpfile,                  ArityRange (1, 2);
+     true, "file",                    file,                     ArityExact 1;
+     true, "dir",                     dir,                      ArityExact 1;
+     true, "which",                   which,                    ArityExact 1;
+     true, "where",                   where,                    ArityExact 1;
+     true, "exists-in-path",          exists_in_path,           ArityExact 1;
+     true, "in",                      ind,                      ArityExact 2;
+     true, "dirof",                   dirof,                    ArityExact 1;
+     true, "stat-reset",              stat_reset,               ArityExact 1;
+     true, "file-exists",             file_exists,              ArityExact 1;
+     true, "filter-exists",           filter_exists,            ArityExact 1;
+     true, "target-exists",           target_exists,            ArityExact 1;
+     true, "filter-targets",          filter_targets,           ArityExact 1;
+     true, "target-is-proper",        target_is_proper,         ArityExact 1;
+     true, "filter-proper-targets",   filter_proper_targets,    ArityExact 1;
+     true, "stat",                    stat,                     ArityExact 1;
+     true, "lstat",                   lstat,                    ArityExact 1;
+     true, "unlink",                  unlink,                   ArityExact 1;
+     true, "rename",                  rename,                   ArityExact 2;
+     true, "readlink",                readlink,                 ArityExact 1;
+     true, "readlink-raw",            readlink_raw,             ArityExact 1;
+     true, "truncate",                truncate,                 ArityExact 2;
 
-       true, "mkdir",                   mkdir,                    ArityRange (1, 2);
-       true, "rmdir",                   rmdir,                    ArityExact 1;
-       true, "rm",                      rm,                       ArityExact 1;
-       true, "mv",                      mv,                       ArityExact 1;
-       true, "cp",                      cp,                       ArityExact 1;
-       true, "link",                    link,                     ArityExact 2;
-       true, "symlink",                 symlink,                  ArityExact 2;
-       true, "symlink-raw",             symlink_raw,              ArityExact 2;
-       true, "chmod",                   chmod,                    ArityExact 2;
-       true, "chown",                   chown,                    ArityRange (2, 3);
-       true, "utimes",                  utimes,                   ArityExact 3;
-       true, "umask",                   umask,                    ArityExact 1;
-       true, "digest-string",           digest_string,            ArityExact 1;
-       true, "digest",                  digest,                   ArityExact 1;
-       true, "digest-optional",         digest_optional,          ArityExact 1;
-       true, "find-in-path",            find_in_path,             ArityExact 2;
-       true, "find-in-path-optional",   find_in_path_optional,    ArityExact 2;
-       true, "digest-in-path",          digest_in_path,           ArityExact 2;
-       true, "digest-in-path-optional", digest_in_path_optional,  ArityExact 2;
-       true, "rehash",                  rehash,                   ArityExact 0;
-       true, "find-targets-in-path",     find_targets_in_path,      ArityExact 2;
-       true, "find-targets-in-path-optional", find_targets_in_path_optional, ArityExact 2;
-       true, "find-ocaml-targets-in-path-optional", find_ocaml_targets_in_path_optional, ArityExact 2;
+     true, "mkdir",                   mkdir,                    ArityRange (1, 2);
+     true, "rmdir",                   rmdir,                    ArityExact 1;
+     true, "rm",                      rm,                       ArityExact 1;
+     true, "mv",                      mv,                       ArityExact 1;
+     true, "cp",                      cp,                       ArityExact 1;
+     true, "link",                    link,                     ArityExact 2;
+     true, "symlink",                 symlink,                  ArityExact 2;
+     true, "symlink-raw",             symlink_raw,              ArityExact 2;
+     true, "chmod",                   chmod,                    ArityExact 2;
+     true, "chown",                   chown,                    ArityRange (2, 3);
+     true, "utimes",                  utimes,                   ArityExact 3;
+     true, "umask",                   umask,                    ArityExact 1;
+     true, "digest-string",           digest_string,            ArityExact 1;
+     true, "digest",                  digest,                   ArityExact 1;
+     true, "digest-optional",         digest_optional,          ArityExact 1;
+     true, "find-in-path",            find_in_path,             ArityExact 2;
+     true, "find-in-path-optional",   find_in_path_optional,    ArityExact 2;
+     true, "digest-in-path",          digest_in_path,           ArityExact 2;
+     true, "digest-in-path-optional", digest_in_path_optional,  ArityExact 2;
+     true, "rehash",                  rehash,                   ArityExact 0;
+     true, "find-targets-in-path",     find_targets_in_path,      ArityExact 2;
+     true, "find-targets-in-path-optional", find_targets_in_path_optional, ArityExact 2;
+     true, "find-ocaml-targets-in-path-optional", find_ocaml_targets_in_path_optional, ArityExact 2;
 
-       true, "add-project-directories", add_project_directories,  ArityExact 1;
-       true, "remove-project-directories", remove_project_directories,  ArityExact 1]
-   in
-   let builtin_kfuns =
-      [true, "vmount",                  vmount,                   ArityRange (2, 3);
-      ]
-   in
-   let pervasives_objects =
-      ["Tm";
-      ]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs;
-                           builtin_kfuns = builtin_kfuns;
-                           pervasives_objects = pervasives_objects
-      }
-   in
-      register_builtin builtin_info
+     true, "add-project-directories", add_project_directories,  ArityExact 1;
+     true, "remove-project-directories", remove_project_directories,  ArityExact 1] in
+  let builtin_kfuns =
+    [true, "vmount",                  vmount,                   Omake_ir.ArityRange (2, 3);
+    ]
+  in
+  let pervasives_objects =
+    ["Tm";]
+  in
+  let builtin_info =
+    {Omake_builtin_type.builtin_empty with builtin_funs = builtin_funs;
+      builtin_kfuns = builtin_kfuns;
+      pervasives_objects = pervasives_objects
+    }
+  in
+  Omake_builtin.register_builtin builtin_info
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
