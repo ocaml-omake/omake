@@ -1,40 +1,6 @@
-(*
- * Miscellaneous system functions.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004-2007 Mojave Group, Caltech and HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Authors: Jason Hickey @email{jyh@cs.caltech.edu}
- *          Erick Tryzelaar @email{erickt@dslextreme.com}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
- *)
-
-
-
 open Omake_ir
 open Omake_env
-open Omake_pos
+
 open Omake_var
 
 open Omake_eval
@@ -45,8 +11,8 @@ open Omake_builtin_type
 open Omake_builtin_util
 open Omake_value_type
 
-module Pos = MakePos (struct let name = "Omake_builtin_sys" end);;
-open Pos
+include Omake_pos.MakePos (struct let name = "Omake_builtin_sys" end);;
+
 
 (************************************************************************
  * Passwd database access.

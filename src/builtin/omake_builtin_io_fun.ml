@@ -82,66 +82,18 @@
  * \end{itemize}
  * \end{doc}
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004-2010 Mojave Group, California Institute of Technology, and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
- * @end[license]
  *)
-open Lm_debug
-open Lm_printf
-open Lm_parser
 
-open Lm_symbol
 
-open Omake_ir
-open Omake_env
-open Omake_var
-open Omake_pos
-open Omake_eval
+include Omake_pos.MakePos (struct let name = "Omake_builtin_io_fun" end)
 
-open! Omake_value
-open Omake_lexer
-open Omake_parser
-
-open Omake_symbol
-open Omake_builtin
-open Omake_value_type
-open Omake_value_print
-open Omake_builtin_util
-open Omake_builtin_type
-
-module Pos = MakePos (struct let name = "Omake_builtin_io_fun" end)
-open Pos
 
 let debug_parsing =
-   create_debug (**)
-      { debug_name = "parsing";
-        debug_description = "Debug parsing operations";
-        debug_value = false
-      }
+  Lm_debug.create_debug (**)
+    { debug_name = "parsing";
+      debug_description = "Debug parsing operations";
+      debug_value = false
+    }
 
 (*
  * Concatenate files into a string.
@@ -159,36 +111,36 @@ let debug_parsing =
  * \end{doc}
  *)
 let cat venv pos loc args =
-   let pos = string_pos "cat" pos in
-      match args with
-         [arg] ->
-            let names = values_of_value venv pos arg in
-            let buf = Buffer.create 1024 in
-               List.iter (fun name ->
-                     try
-                        let inp, close_flag = in_channel_of_any_value venv pos name in
-                        let inx = venv_find_channel venv pos inp in
-                        let rec copy () =
-                           let c = Lm_channel.input_char inx in
-                              Buffer.add_char buf c;
-                              copy ()
-                        in
-                        let () =
-                           try copy () with
-                              End_of_file ->
-                                 ()
-                        in
-                           if close_flag then
-                              venv_close_channel venv pos inp
-                     with
-                        Sys_error _ ->
-                           let print_error buf =
-                              fprintf buf "unable to open file: %a" pp_print_value name
-                           in
-                              raise (OmakeException (loc_pos loc pos, LazyError print_error))) names;
-               ValString (Buffer.contents buf)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "cat" pos in
+  match args with
+    [arg] ->
+    let names = Omake_value.values_of_value venv pos arg in
+    let buf = Buffer.create 1024 in
+    List.iter (fun name ->
+      try
+        let inp, close_flag = Omake_value.in_channel_of_any_value venv pos name in
+        let inx = Omake_env.venv_find_channel venv pos inp in
+        let rec copy () =
+          let c = Lm_channel.input_char inx in
+          Buffer.add_char buf c;
+          copy ()
+        in
+        let () =
+          try copy () with
+            End_of_file ->
+            ()
+        in
+        if close_flag then
+          Omake_env.venv_close_channel venv pos inp
+      with
+        Sys_error _ ->
+        let print_error buf =
+          Format.fprintf buf "unable to open file: %a" Omake_value_print.pp_print_value name
+        in
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, LazyError print_error))) names;
+    Omake_value_type.ValString (Buffer.contents buf)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Grep takes some flags.
@@ -251,98 +203,98 @@ let grep_flags pos loc s =
              | 'h' ->
                   GrepNoPrint
              | c ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal grep option", String.make 1 c)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal grep option", String.make 1 c)))
          in
             collect (flag::flags) (succ i)
    in
       collect [] 0
 
 let grep venv pos loc args =
-   let pos = string_pos "grep" pos in
-   let outx = channel_of_var venv pos loc stdout_var in
-   let flags, pattern, files =
-      match args with
-         [pattern] ->
-            ValNone, pattern, ValNone
-       | [pattern; files] ->
-            ValNone, pattern, files
-       | [flags; pattern; files] ->
-            flags, pattern, files
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
-   in
-   let flags = grep_flags pos loc (string_of_value venv pos flags) in
-   let pattern = string_of_value venv pos pattern in
-   let pattern =
-      try lexer_of_string pattern
-      with Failure err ->
-         let msg = sprintf "Mailformed regular expression '%s'" pattern in
-            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-   in
-   let files = values_of_value venv pos files in
-   let flags, files =
-      match files with
-         [] ->
-            flags, [venv_find_var venv pos loc stdin_var]
-       | [_] ->
-            flags, files
-       | _::_::_ ->
-            (if List.mem GrepNoPrint flags then flags else GrepPrint :: flags), files
-   in
-   let verbose = not (List.mem GrepQuiet flags) in
-   let print = List.mem GrepPrint flags in
-   let matches = not (List.mem GrepNoMatch flags) in
+  let pos = string_pos "grep" pos in
+  let outx = Omake_value.channel_of_var venv pos loc  Omake_var.stdout_var in
+  let flags, pattern, files =
+    match args with
+      [pattern] ->
+      Omake_value_type.ValNone, pattern, Omake_value_type.ValNone
+    | [pattern; files] ->
+      ValNone, pattern, files
+    | [flags; pattern; files] ->
+      flags, pattern, files
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
+  in
+  let flags = grep_flags pos loc (Omake_value.string_of_value venv pos flags) in
+  let pattern = Omake_value.string_of_value venv pos pattern in
+  let pattern =
+    try Omake_lexer.lexer_of_string pattern
+    with Failure err ->
+      let msg = Lm_printf.sprintf "Mailformed regular expression '%s'" pattern in
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+  in
+  let files = Omake_value.values_of_value venv pos files in
+  let flags, files =
+    match files with
+      [] ->
+      flags, [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
+    | [_] ->
+      flags, files
+    | _::_::_ ->
+      (if List.mem GrepNoPrint flags then flags else GrepPrint :: flags), files
+  in
+  let verbose = not (List.mem GrepQuiet flags) in
+  let print = List.mem GrepPrint flags in
+  let matches = not (List.mem GrepNoMatch flags) in
 
-   (* Grep against a single line *)
-   let grep_line file found line =
-      let b = ((lexer_matches pattern line) == matches) in
-         if b && verbose then
-            begin
-               if print then
-                  begin
-                     Lm_channel.output_string outx file;
-                     Lm_channel.output_char outx ':'
-                  end;
-               Lm_channel.output_string outx line;
-               Lm_channel.output_char outx '\n'
-            end;
-         found || b
-   in
+  (* Grep against a single line *)
+  let grep_line file found line =
+    let b = (Omake_lexer.lexer_matches pattern line == matches) in
+    if b && verbose then
+      begin
+        if print then
+          begin
+            Lm_channel.output_string outx file;
+            Lm_channel.output_char outx ':'
+          end;
+        Lm_channel.output_string outx line;
+        Lm_channel.output_char outx '\n'
+      end;
+    found || b
+  in
 
-   (* Open the file *)
-   let grep_file found s =
-      let filename = string_of_value venv pos s in
-      let inp, close_flag = in_channel_of_any_value venv pos s in
-      let inx = venv_find_channel venv pos inp in
-      let rec search found =
-         let text =
-            try Some (Lm_channel.input_line inx) with
-               End_of_file ->
-                  None
-         in
-            match text with
-               Some line' ->
-                  search (grep_line filename found line')
-             | None ->
-                  found
+  (* Open the file *)
+  let grep_file found s =
+    let filename = Omake_value.string_of_value venv pos s in
+    let inp, close_flag = Omake_value.in_channel_of_any_value venv pos s in
+    let inx = Omake_env.venv_find_channel venv pos inp in
+    let rec search found =
+      let text =
+        try Some (Lm_channel.input_line inx) with
+          End_of_file ->
+          None
       in
-      let found = search found in
-         if close_flag then
-            venv_close_channel venv pos inp;
-         found
-   in
-   let b = List.fold_left grep_file false files in
-      Lm_channel.flush outx;
-      val_of_bool b
+      match text with
+        Some line' ->
+        search (grep_line filename found line')
+      | None ->
+        found
+    in
+    let found = search found in
+    if close_flag then
+      Omake_env.venv_close_channel venv pos inp;
+    found
+  in
+  let b = List.fold_left grep_file false files in
+  Lm_channel.flush outx;
+  Omake_builtin_util.val_of_bool b
 
 let builtin_grep venv pos loc args =
    let pos = string_pos "builtin-grep" pos in
    let args =
       match args with
          [arg] ->
-            values_of_value venv pos arg
+            Omake_value.values_of_value venv pos arg
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
 
    (* Eat options *)
@@ -350,7 +302,7 @@ let builtin_grep venv pos loc args =
       let rec collect flags args =
          match args with
             arg :: args ->
-               (match string_of_value venv pos arg with
+               (match Omake_value.string_of_value venv pos arg with
                    "-q" ->
                       collect ("q" ^ flags) args
                  | "-n" ->
@@ -362,7 +314,7 @@ let builtin_grep venv pos loc args =
                  | pattern ->
                       flags, pattern, args)
           | [] ->
-               raise (OmakeException (loc_pos loc pos, StringError "no pattern specified"))
+               raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "no pattern specified"))
       in
          collect "" args
    in
@@ -489,134 +441,135 @@ let scan_options _ pos loc options s =
              | 'x' ->
                   poption, RewriteHex
              | _ ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
          in
             collect options (succ i)
    in
       collect options 0
 
 let scan_options venv pos loc options =
-   List.fold_left (scan_options venv pos loc) (ParseWords, RewriteNone) (strings_of_value venv pos options)
+   List.fold_left (scan_options venv pos loc) (ParseWords, RewriteNone) 
+    (Omake_value.strings_of_value venv pos options)
 
 (*
  * The arguments.
  *)
-let scan_args venv pos loc args =
+let scan_args venv pos loc (args : Omake_value_type.value list) =
    let pos = string_pos "scan_args" pos in
    let cases, options, files =
       match args with
-         [ValCases cases] ->
-            cases, ValNone, venv_find_var venv pos loc stdin_var
+      | [ValCases cases] ->
+            cases, Omake_value_type.ValNone, Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
        | [ValCases cases; files] ->
             cases, ValNone, files
        | [ValCases cases; options; files] ->
             cases, options, files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let poptions, roptions = scan_options venv pos loc options in
-      cases, poptions, roptions, values_of_value venv pos files
+      cases, poptions, roptions, Omake_value.values_of_value venv pos files
 
 (*
  * Awk the value.
  *)
 let scan venv pos loc args _ =
-   let pos = string_pos "scan" pos in
-   let cases, token_mode, rewrite_mode, files = scan_args venv pos loc args in
+  let pos = string_pos "scan" pos in
+  let cases, token_mode, rewrite_mode, files = scan_args venv pos loc args in
 
-   (* Get lexers for all the cases *)
-   let cases, def =
-      List.fold_left (fun (cases, def) (v, test, body, export) ->
-            if Lm_symbol.eq v case_sym then
-               let s = string_of_value venv pos test in
-               let cases =
-                  SymbolTable.filter_add cases (Lm_symbol.add s) (fun b ->
-                        match b with
-                           Some _ ->
-                              raise (OmakeException (loc_pos loc pos, StringVarError ("duplicate case", v)))
-                         | None ->
-                              body, export)
-               in
-                  cases, def
-            else if Lm_symbol.eq v default_sym then
-               match def with
-                  Some _ ->
-                     raise (OmakeException (loc_pos loc pos, StringError "duplicate default case"))
-                | None ->
-                     cases, Some (body, export)
-            else
-               raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (SymbolTable.empty, None) cases
-   in
+  (* Get lexers for all the cases *)
+  let cases, def =
+    List.fold_left (fun (cases, def) (v, test, body, export) ->
+      if Lm_symbol.eq v Omake_symbol.case_sym then
+        let s = Omake_value.string_of_value venv pos test in
+        let cases =
+          Lm_symbol.SymbolTable.filter_add cases (Lm_symbol.add s) (fun b ->
+            match b with
+              Some _ ->
+              raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("duplicate case", v)))
+            | None ->
+              body, export)
+        in
+        cases, def
+      else if Lm_symbol.eq v Omake_symbol.default_sym then
+        match def with
+          Some _ ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "duplicate default case"))
+        | None ->
+          cases, Some (body, export)
+      else
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (Lm_symbol.SymbolTable.empty, None) cases
+  in
 
-   (* Split a line into words *)
-   let collect_words_argv line =
-      let words =
-         match token_mode with
-            ParseArgs ->
-               Lm_string_util.parse_args line
-          | ParseWords ->
-               strings_of_value venv pos (ValString line)
+  (* Split a line into words *)
+  let collect_words_argv line =
+    let words =
+      match token_mode with
+        ParseArgs ->
+        Lm_string_util.parse_args line
+      | ParseWords ->
+        Omake_value.strings_of_value venv pos (ValString line)
+    in
+    match rewrite_mode with
+      RewriteHex ->
+      List.map Lm_string_util.decode_hex_name words
+    | RewriteNone ->
+      words
+  in
+
+  (* Select a case and run it *)
+  let eval_case venv words =
+    let body =
+      match words with
+        command :: _ ->
+        (try Some (Lm_symbol.SymbolTable.find cases (Lm_symbol.add command)) with
+          Not_found ->
+          def)
+      | [] ->
+        def
+    in
+    match body with
+      Some (body, export) ->
+      let venv_new, _ = Omake_eval.eval_sequence_exp venv pos body in
+      Omake_env.add_exports venv venv_new pos export
+    | None ->
+      venv
+  in
+
+  (* Read the file a line at a time *)
+  let rec line_loop venv inx =
+    let text =
+      try Some (Lm_channel.input_line inx) with
+        End_of_file ->
+        None
+    in
+    match text with
+      Some line ->
+      let words = collect_words_argv line in
+      let venv = Omake_env.venv_add_match venv line words in
+      let venv = eval_case venv words in
+      line_loop venv inx
+    | None ->
+      venv
+  in
+  let rec file_loop venv args =
+    match args with
+      arg :: args ->
+      let inp, close_in = Omake_value.in_channel_of_any_value venv pos arg in
+      let inx = Omake_env.venv_find_channel venv pos inp in
+      let venv =
+        try line_loop venv inx with
+          exn when close_in ->
+          Omake_env.venv_close_channel venv pos inp;
+          raise exn
       in
-         match rewrite_mode with
-            RewriteHex ->
-               List.map Lm_string_util.decode_hex_name words
-          | RewriteNone ->
-               words
-   in
-
-   (* Select a case and run it *)
-   let eval_case venv words =
-      let body =
-         match words with
-            command :: _ ->
-               (try Some (SymbolTable.find cases (Lm_symbol.add command)) with
-                   Not_found ->
-                      def)
-          | [] ->
-               def
-      in
-         match body with
-            Some (body, export) ->
-               let venv_new, _ = eval_sequence_exp venv pos body in
-                  add_exports venv venv_new pos export
-          | None ->
-               venv
-   in
-
-   (* Read the file a line at a time *)
-   let rec line_loop venv inx =
-      let text =
-         try Some (Lm_channel.input_line inx) with
-            End_of_file ->
-               None
-      in
-         match text with
-            Some line ->
-               let words = collect_words_argv line in
-               let venv = venv_add_match venv line words in
-               let venv = eval_case venv words in
-                  line_loop venv inx
-          | None ->
-               venv
-   in
-   let rec file_loop venv args =
-      match args with
-         arg :: args ->
-            let inp, close_in = in_channel_of_any_value venv pos arg in
-            let inx = venv_find_channel venv pos inp in
-            let venv =
-               try line_loop venv inx with
-                  exn when close_in ->
-                     venv_close_channel venv pos inp;
-                     raise exn
-               in
-               if close_in then
-                  venv_close_channel venv pos inp;
-               file_loop venv args
-       | [] ->
-            venv
-   in
-      file_loop venv files, ValNone
+      if close_in then
+        Omake_env.venv_close_channel venv pos inp;
+      file_loop venv args
+    | [] ->
+      venv
+  in
+  file_loop venv files, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -725,8 +678,8 @@ let scan venv pos loc args _ =
 let rec awk_eval_cases venv pos loc break line cases =
    match cases with
       (None, body, export) :: cases ->
-         let venv_new, _ = eval_sequence_exp venv pos body in
-         let venv = add_exports venv venv_new pos export in
+         let venv_new, _ = Omake_eval.eval_sequence_exp venv pos body in
+         let venv = Omake_env.add_exports venv venv_new pos export in
             if break then
                venv
             else
@@ -734,11 +687,11 @@ let rec awk_eval_cases venv pos loc break line cases =
     | (Some lex, body, export) :: cases ->
          let channel = Lm_channel.of_string line in
          let venv, stop =
-            match Lexer.search lex channel with
+            match Omake_lexer.Lexer.search lex channel with
                Some (_, _, _, _, args) ->
-                  let venv_new = venv_add_match_args venv args in
-                  let venv_new, _ = eval_sequence_exp venv_new pos body in
-                  let venv = add_exports venv venv_new pos export in
+                  let venv_new = Omake_env.venv_add_match_args venv args in
+                  let venv_new, _ = Omake_eval.eval_sequence_exp venv_new pos body in
+                  let venv = Omake_env.add_exports venv venv_new pos export in
                      venv, break
              | None ->
                   venv, false
@@ -753,27 +706,27 @@ let rec awk_eval_cases venv pos loc break line cases =
 (*
  * The arguments.
  *)
-let awk_args venv pos loc args =
+let awk_args venv pos loc (args : Omake_value_type.value list) =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases] ->
-            cases, [venv_find_var venv pos loc stdin_var]
+            cases, [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
        | [ValCases cases; files] ->
-            cases, values_of_value venv pos files
+            cases, Omake_value.values_of_value venv pos files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
-let awk_option_args venv pos loc args =
+let awk_option_args venv pos loc (args : Omake_value_type.value list) =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases] ->
-            cases, "", [venv_find_var venv pos loc stdin_var]
+            cases, "", [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
        | [ValCases cases; files] ->
-            cases, "", values_of_value venv pos files
+            cases, "", Omake_value.values_of_value venv pos files
        | [ValCases cases; options; files] ->
-            cases, string_of_value venv pos options, values_of_value venv pos files
+            cases, Omake_value.string_of_value venv pos options, Omake_value.values_of_value venv pos files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
 
 type awk_flag =
    AwkBreak
@@ -789,7 +742,7 @@ let awk_flags pos loc s =
                'b' ->
                   AwkBreak
              | c ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal awk option", String.make 1 c)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal awk option", String.make 1 c)))
          in
             collect (flag :: flags) (succ i)
    in
@@ -799,105 +752,105 @@ let awk_flags pos loc s =
  * Awk the value.
  *)
 let awk venv pos loc args _ =
-   let pos = string_pos "awk" pos in
-   let cases, flags, files = awk_option_args venv pos loc args in
-   let flags = awk_flags pos loc flags in
-   let break = List.mem AwkBreak flags in
+  let pos = string_pos "awk" pos in
+  let cases, flags, files = awk_option_args venv pos loc args in
+  let flags = awk_flags pos loc flags in
+  let break = List.mem AwkBreak flags in
 
-   (* Separator expressions *)
-   let rs =
-      try string_of_value venv pos (venv_find_var_exn venv rs_var) with
-         Not_found ->
-            "\r|\n|\r\n"
-   in
-   let fs =
-      try string_of_value venv pos (venv_find_var_exn venv fs_var) with
-         Not_found ->
-            "[ \t]+"
-   in
-   let rs_lex =
-      try lexer_of_string rs with
-         Failure err ->
-            let msg = sprintf "Malformed regular expression '%s'" rs in
-               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-   in
-   let fs_lex =
-      try lexer_of_string fs with
-         Failure err ->
-            let msg = sprintf "Malformed regular expression '%s'" fs in
-               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-   in
+  (* Separator expressions *)
+  let rs =
+    try Omake_value.string_of_value venv pos (Omake_env.venv_find_var_exn venv Omake_var.rs_var) with
+      Not_found ->
+      "\r|\n|\r\n"
+  in
+  let fs =
+    try Omake_value.string_of_value venv pos (Omake_env.venv_find_var_exn venv Omake_var.fs_var) with
+      Not_found ->
+      "[ \t]+"
+  in
+  let rs_lex =
+    try Omake_lexer.lexer_of_string rs with
+      Failure err ->
+      let msg = Lm_printf.sprintf "Malformed regular expression '%s'" rs in
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+  in
+  let fs_lex =
+    try Omake_lexer.lexer_of_string fs with
+      Failure err ->
+      let msg = Lm_printf.sprintf "Malformed regular expression '%s'" fs in
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+  in
 
-   (* Get lexers for all the cases *)
-   let cases =
-      List.map (fun (v, test, body, export) ->
-            if Lm_symbol.eq v case_sym then
-               let s = string_of_value venv pos test in
-               let _, lex =
-                  try Lexer.add_clause Lexer.empty v s with
-                     Failure err ->
-                        let msg = sprintf "Malformed regular expression '%s'" s in
-                           raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-               in
-                  Some lex, body, export
-            else if Lm_symbol.eq v default_sym then
-               None, body, export
-            else
-               raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) cases
-   in
+  (* Get lexers for all the cases *)
+  let cases =
+    List.map (fun (v, test, body, export) ->
+      if Lm_symbol.eq v Omake_symbol.case_sym then
+        let s = Omake_value.string_of_value venv pos test in
+        let _, lex =
+          try Omake_lexer.Lexer.add_clause Omake_lexer.Lexer.empty v s with
+            Failure err ->
+            let msg = Lm_printf.sprintf "Malformed regular expression '%s'" s in
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+        in
+        Some lex, body, export
+      else if Lm_symbol.eq v Omake_symbol.default_sym then
+        None, body, export
+      else
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) cases
+  in
 
-   (* Split a line into words *)
-   let collect_words line =
-      let channel = Lm_channel.of_string line in
-      let rec collect words =
-         match Lexer.searchto fs_lex channel with
-            Lexer.LexEOF ->
-               List.rev words
-          | Lexer.LexSkipped (_, skipped)
-          | Lexer.LexMatched (_, _, skipped, _, _) ->
-               collect (skipped :: words)
+  (* Split a line into words *)
+  let collect_words line =
+    let channel = Lm_channel.of_string line in
+    let rec collect words =
+      match Omake_lexer.Lexer.searchto fs_lex channel with
+        Omake_lexer.Lexer.LexEOF ->
+        List.rev words
+      | Omake_lexer.Lexer.LexSkipped (_, skipped)
+      | Omake_lexer.Lexer.LexMatched (_, _, skipped, _, _) ->
+        collect (skipped :: words)
+    in
+    collect []
+  in
+
+  (* Read the file a line at a time *)
+  let rec line_loop venv inx lineno =
+    match Omake_lexer.Lexer.searchto rs_lex inx with
+      Omake_lexer.Lexer.LexEOF ->
+      venv
+    | Omake_lexer.Lexer.LexSkipped (_, line)
+    | Omake_lexer.Lexer.LexMatched (_, _, line, _, _) ->
+      (* Split into words *)
+      let words = collect_words line in
+      let venv = Omake_env.venv_add_match venv line words in
+      let venv = Omake_env.venv_add_var venv Omake_var.fnr_var (ValInt lineno) in
+      let venv = awk_eval_cases venv pos loc break line cases in
+      line_loop venv inx (lineno + 1)
+  in
+  let rec file_loop venv args =
+    match args with
+      arg :: args ->
+      let inp, close_in = Omake_value.in_channel_of_any_value venv pos arg in
+      let inx = Omake_env.venv_find_channel venv pos inp in
+      let venv = Omake_env.venv_add_var venv Omake_var.filename_var (ValData (Lm_channel.name inx)) in
+      let venv =
+        try line_loop venv inx 1 with
+          exn when close_in ->
+          Omake_env.venv_close_channel venv pos inp;
+          raise exn
       in
-         collect []
-   in
-
-   (* Read the file a line at a time *)
-   let rec line_loop venv inx lineno =
-      match Lexer.searchto rs_lex inx with
-         Lexer.LexEOF ->
-            venv
-       | Lexer.LexSkipped (_, line)
-       | Lexer.LexMatched (_, _, line, _, _) ->
-            (* Split into words *)
-            let words = collect_words line in
-            let venv = venv_add_match venv line words in
-            let venv = venv_add_var venv fnr_var (ValInt lineno) in
-            let venv = awk_eval_cases venv pos loc break line cases in
-               line_loop venv inx (lineno + 1)
-   in
-   let rec file_loop venv args =
-      match args with
-         arg :: args ->
-            let inp, close_in = in_channel_of_any_value venv pos arg in
-            let inx = venv_find_channel venv pos inp in
-            let venv = venv_add_var venv filename_var (ValData (Lm_channel.name inx)) in
-            let venv =
-               try line_loop venv inx 1 with
-                  exn when close_in ->
-                     venv_close_channel venv pos inp;
-                     raise exn
-            in
-               if close_in then
-                  venv_close_channel venv pos inp;
-               file_loop venv args
-       | [] ->
-            venv
-   in
-   let venv =
-      try file_loop venv files with
-         Break (_, venv) ->
-            venv
-   in
-      venv, ValNone
+      if close_in then
+        Omake_env.venv_close_channel venv pos inp;
+      file_loop venv args
+    | [] ->
+      venv
+  in
+  let venv =
+    try file_loop venv files with
+      Omake_env.Break (_, venv) ->
+      venv
+  in
+  venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -965,7 +918,7 @@ let subst_options _ pos loc options s =
                'g' ->
                   subst_global_opt
              | _ ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal option", s)))
          in
             collect (options lor flag) (succ i)
    in
@@ -975,16 +928,16 @@ let subst_options _ pos loc options s =
  * Sed function performs a substitution line-by-line.
  *)
 let rec subst_eval_case venv pos loc buf channel lex options body =
-   match Lexer.searchto lex channel with
-      Lexer.LexEOF ->
+   match Omake_lexer.Lexer.searchto lex channel with
+      Omake_lexer.Lexer.LexEOF ->
          ()
-    | Lexer.LexSkipped (_, skipped) ->
+    | Omake_lexer.Lexer.LexSkipped (_, skipped) ->
          Buffer.add_string buf skipped
-    | Lexer.LexMatched (_, _, skipped, matched, args) ->
-         let venv' = venv_add_match venv matched args in
-         let _, result = eval_sequence_exp venv' pos body in
+    | Omake_lexer.Lexer.LexMatched (_, _, skipped, matched, args) ->
+         let venv' = Omake_env.venv_add_match venv matched args in
+         let _, result = Omake_eval.eval_sequence_exp venv' pos body in
             Buffer.add_string buf skipped;
-            Buffer.add_string buf (string_of_value venv pos result);
+            Buffer.add_string buf (Omake_value.string_of_value venv pos result);
             if (options land subst_global_opt) <> 0 then
                subst_eval_case venv pos loc buf channel lex options body
             else
@@ -1001,63 +954,63 @@ let subst_eval_line venv pos loc line cases =
 let fsubst venv pos loc args _ =
    let pos = string_pos "fsubst" pos in
    let cases, files = awk_args venv pos loc args in
-   let outp = prim_channel_of_var venv pos loc stdout_var in
-   let outx = venv_find_channel venv pos outp in
+   let outp = Omake_value.prim_channel_of_var venv pos loc Omake_var.stdout_var in
+   let outx = Omake_env.venv_find_channel venv pos outp in
 
    (* Record separator *)
    let rs =
-      try string_of_value venv pos (venv_find_var_exn venv rs_var) with
+      try Omake_value.string_of_value venv pos (Omake_env.venv_find_var_exn venv Omake_var.rs_var) with
          Not_found ->
             "\r|\n|\r\n"
    in
    let rs_lex =
-      try lexer_of_string rs with
+      try Omake_lexer.lexer_of_string rs with
          Failure err ->
-            let msg = sprintf "Malformed regular expression '%s'" rs in
-               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+            let msg = Lm_printf.sprintf "Malformed regular expression '%s'" rs in
+               raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
    in
 
    (* Get lexers for all the cases *)
    let cases =
       List.map (fun (v, test, body, _) ->
-            let args = values_of_value venv pos test in
+            let args = Omake_value.values_of_value venv pos test in
             let pattern, options =
                match args with
                   pattern :: options ->
-                     string_of_value venv pos pattern, options
+                     Omake_value.string_of_value venv pos pattern, options
                 | [] ->
                      "", []
             in
             let pattern, options =
-               if Lm_symbol.eq v case_sym then
+               if Lm_symbol.eq v Omake_symbol.case_sym then
                   pattern, options
-               else if Lm_symbol.eq v default_sym then
+               else if Lm_symbol.eq v Omake_symbol.default_sym then
                   ".*", []
                else
-                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
             in
             let options =
                List.fold_left (fun options arg ->
-                     subst_options venv pos loc options (string_of_value venv pos arg)) 0 options
+                     subst_options venv pos loc options (Omake_value.string_of_value venv pos arg)) 0 options
             in
             let _, lex =
-               try Lexer.add_clause Lexer.empty v pattern with
+               try Omake_lexer.Lexer.add_clause Omake_lexer.Lexer.empty v pattern with
                   Failure err ->
-                     let msg = sprintf "Malformed regular expression '%s'" pattern in
-                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+                     let msg = Lm_printf.sprintf "Malformed regular expression '%s'" pattern in
+                        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
             in
                lex, options, body) cases
    in
 
    (* Read the file a line at a time *)
    let rec line_loop inx =
-      match Lexer.searchto rs_lex inx with
-         Lexer.LexEOF ->
+      match Omake_lexer.Lexer.searchto rs_lex inx with
+         Omake_lexer.Lexer.LexEOF ->
             ()
-       | Lexer.LexSkipped (_, line) ->
+       | Omake_lexer.Lexer.LexSkipped (_, line) ->
             let line = subst_eval_line venv pos loc line cases in
                Lm_channel.output_string outx line
-       | Lexer.LexMatched (_, _, line, term, _) ->
+       | Omake_lexer.Lexer.LexMatched (_, _, line, term, _) ->
             let line = subst_eval_line venv pos loc line cases in
                Lm_channel.output_string outx line;
                Lm_channel.output_string outx term;
@@ -1066,27 +1019,27 @@ let fsubst venv pos loc args _ =
    let rec file_loop files =
       match files with
          file :: files ->
-            let inp, close_in = in_channel_of_any_value venv pos file in
-            let inx = venv_find_channel venv pos inp in
+            let inp, close_in = Omake_value.in_channel_of_any_value venv pos file in
+            let inx = Omake_env.venv_find_channel venv pos inp in
             let () =
                try line_loop inx with
                   exn when close_in ->
-                     venv_close_channel venv pos inp;
+                     Omake_env.venv_close_channel venv pos inp;
                      raise exn
             in
                if close_in then
-                  venv_close_channel venv pos inp;
+                  Omake_env.venv_close_channel venv pos inp;
                file_loop files
        | [] ->
             ()
    in
    let venv =
       try file_loop files; venv with
-         Break (_, venv) ->
+         Omake_env.Break (_, venv) ->
             venv
    in
       Lm_channel.flush outx;
-      venv, ValNone
+      venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -1144,83 +1097,83 @@ let lex venv pos loc args _ =
    let cases, files = awk_args venv pos loc args in
 
    (* Add a clause for EOF *)
-   let _, lex = Lexer.add_clause Lexer.empty eof_sym "\\'" in
+   let _, lex = Omake_lexer.Lexer.add_clause Omake_lexer.Lexer.empty eof_sym "\\'" in
 
    (* Get lexers for all the cases *)
    let lex, cases, _ =
       List.fold_left (fun (lex, cases, index) (v, test, body, export) ->
-            let args = values_of_value venv pos test in
+            let args = Omake_value.values_of_value venv pos test in
             let pattern =
                match args with
                   pattern :: _ ->
-                     string_of_value venv pos pattern
+                     Omake_value.string_of_value venv pos pattern
                 | [] ->
                      ""
             in
             let pattern =
-               if Lm_symbol.eq v case_sym then
+               if Lm_symbol.eq v Omake_symbol.case_sym then
                   pattern
-               else if Lm_symbol.eq v default_sym then
+               else if Lm_symbol.eq v Omake_symbol.default_sym then
                   "."
                else
-                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
+                  raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
             in
                let action_sym = Lm_symbol.make "action" index in
                let _, lex =
-                  try Lexer.add_clause lex action_sym pattern with
+                  try Omake_lexer.Lexer.add_clause lex action_sym pattern with
                      Failure err ->
-                        let msg = sprintf "Malformed regular expression '%s'" pattern in
-                           raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+                        let msg = Lm_printf.sprintf "Malformed regular expression '%s'" pattern in
+                           raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                in
-               let cases = SymbolTable.add cases action_sym (body, export) in
-                  lex, cases, succ index) (lex, SymbolTable.empty, 0) cases
+               let cases = Lm_symbol.SymbolTable.add cases action_sym (body, export) in
+                  lex, cases, succ index) (lex, Lm_symbol.SymbolTable.empty, 0) cases
    in
 
    (* Process the files *)
    let rec input_loop venv inx =
-      let action_sym, lexeme_loc, lexeme, args = Lexer.lex lex inx in
+      let action_sym, lexeme_loc, lexeme, args = Omake_lexer.Lexer.lex lex inx in
          if Lm_symbol.eq action_sym eof_sym then
             venv
          else
-            let venv_new = venv_add_match venv lexeme args in
-            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
+            let venv_new = Omake_env.venv_add_match venv lexeme args in
+            let venv_new = Omake_env.venv_add_var venv_new Omake_var.parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let body, export =
-               try SymbolTable.find cases action_sym with
+               try Lm_symbol.SymbolTable.find cases action_sym with
                   Not_found ->
                      raise (Invalid_argument "lex")
             in
-            let venv_new, _ = eval_sequence_exp venv_new pos body in
-            let venv = add_exports venv venv_new pos export in
+            let venv_new, _ = Omake_eval.eval_sequence_exp venv_new pos body in
+            let venv = Omake_env.add_exports venv venv_new pos export in
                input_loop venv inx
    in
    let rec file_loop venv files =
       match files with
          file :: files ->
-            let inp, close_in = in_channel_of_any_value venv pos file in
-            let inx = venv_find_channel venv pos inp in
+            let inp, close_in = Omake_value.in_channel_of_any_value venv pos file in
+            let inx = Omake_env.venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  (Break _ | Return _ ) as exn ->
+                  (Omake_env.Break _ | Omake_value_type.Return _ ) as exn ->
                      if close_in then
-                        venv_close_channel venv pos inp;
+                        Omake_env.venv_close_channel venv pos inp;
                      raise exn
                 | exn ->
                      if close_in then
-                        venv_close_channel venv pos inp;
-                     raise_uncaught_exception pos exn
+                        Omake_env.venv_close_channel venv pos inp;
+                     Omake_eval.raise_uncaught_exception pos exn
             in
                if close_in then
-                  venv_close_channel venv pos inp;
+                  Omake_env.venv_close_channel venv pos inp;
                file_loop venv files
        | [] ->
             venv
    in
    let venv =
       try file_loop venv files with
-         Break (_, venv) ->
+         Omake_env.Break (_, venv) ->
             venv
    in
-      venv, ValNone
+      venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -1263,113 +1216,113 @@ let lex venv pos loc args _ =
  * \end{doc}
  *)
 let lex_search venv pos loc args _ =
-   let pos = string_pos "lex-search" pos in
-   let cases, files = awk_args venv pos loc args in
+  let pos = string_pos "lex-search" pos in
+  let cases, files = awk_args venv pos loc args in
 
-   (* Get lexers for all the cases *)
-   let lex, cases, default, _ =
-      List.fold_left (fun (lex, cases, default, index) (v, test, body, export) ->
-            let args = values_of_value venv pos test in
-            let pattern =
-               match args with
-                  pattern :: _ ->
-                     string_of_value venv pos pattern
-                | [] ->
-                     ""
-            in
-               if Lm_symbol.eq v case_sym then
-                  let action_sym = Lm_symbol.make "action" index in
-                  let _, lex =
-                     try Lexer.add_clause lex action_sym pattern with
-                        Failure err ->
-                           let msg = sprintf "Malformed regular expression '%s'" pattern in
-                              raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-                  in
-                  let cases = SymbolTable.add cases action_sym (body, export) in
-                     lex, cases, default, succ index
-               else if Lm_symbol.eq v default_sym then
-                  lex, cases, Some (body, export), index
-               else
-                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (**)
-         (Lexer.empty, SymbolTable.empty, None, 0) cases
-   in
+  (* Get lexers for all the cases *)
+  let lex, cases, default, _ =
+    List.fold_left (fun (lex, cases, default, index) (v, test, body, export) ->
+      let args = Omake_value.values_of_value venv pos test in
+      let pattern =
+        match args with
+          pattern :: _ ->
+          Omake_value.string_of_value venv pos pattern
+        | [] ->
+          ""
+      in
+      if Lm_symbol.eq v Omake_symbol.case_sym then
+        let action_sym = Lm_symbol.make "action" index in
+        let _, lex =
+          try Omake_lexer.Lexer.add_clause lex action_sym pattern with
+            Failure err ->
+            let msg = Lm_printf.sprintf "Malformed regular expression '%s'" pattern in
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+        in
+        let cases = Lm_symbol.SymbolTable.add cases action_sym (body, export) in
+        lex, cases, default, succ index
+      else if Lm_symbol.eq v Omake_symbol.default_sym then
+        lex, cases, Some (body, export), index
+      else
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (**)
+      (Omake_lexer.Lexer.empty, Lm_symbol.SymbolTable.empty, None, 0) cases
+  in
 
-   (* What to do for skipped text *)
-   let skip venv lexeme_loc lexeme =
-      match lexeme, default with
-         "", _
-       | _, None ->
-            venv
-       | _, Some (body, export) ->
-            let venv_new = venv_add_match venv lexeme [] in
-            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
-            let venv_new, _ = eval_sequence_exp venv_new pos body in
-               add_exports venv venv_new pos export
-   in
+  (* What to do for skipped text *)
+  let skip venv lexeme_loc lexeme =
+    match lexeme, default with
+      "", _
+    | _, None ->
+      venv
+    | _, Some (body, export) ->
+      let venv_new = Omake_env.venv_add_match venv lexeme [] in
+      let venv_new = Omake_env.venv_add_var venv_new Omake_var.parse_loc_var (ValOther (ValLocation lexeme_loc)) in
+      let venv_new, _ = Omake_eval.eval_sequence_exp venv_new pos body in
+      Omake_env.add_exports venv venv_new pos export
+  in
 
-   (* Process the files *)
-   let rec input_loop venv inx =
-      match Lexer.searchto lex inx with
-         Lexer.LexEOF ->
-            venv
-       | Lexer.LexSkipped (_, lexeme) ->
-            skip venv loc lexeme
-       | Lexer.LexMatched (action_sym, lexeme_loc, skipped, lexeme, args) ->
-            (* Process skipped text *)
-            let venv = skip venv lexeme_loc skipped in
+  (* Process the files *)
+  let rec input_loop venv inx =
+    match Omake_lexer.Lexer.searchto lex inx with
+      Omake_lexer.Lexer.LexEOF ->
+      venv
+    | Omake_lexer.Lexer.LexSkipped (_, lexeme) ->
+      skip venv loc lexeme
+    | Omake_lexer.Lexer.LexMatched (action_sym, lexeme_loc, skipped, lexeme, args) ->
+      (* Process skipped text *)
+      let venv = skip venv lexeme_loc skipped in
 
-            (* Process the matched text *)
-            let venv_new = venv_add_match venv lexeme args in
-            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
-            let body, export =
-               try SymbolTable.find cases action_sym with
-                  Not_found ->
-                     raise (Invalid_argument "lex")
-            in
-            let venv_new, _ = eval_sequence_exp venv_new pos body in
-            let venv = add_exports venv venv_new pos export in
-               input_loop venv inx
-   in
+      (* Process the matched text *)
+      let venv_new = Omake_env.venv_add_match venv lexeme args in
+      let venv_new = Omake_env.venv_add_var venv_new Omake_var.parse_loc_var (ValOther (ValLocation lexeme_loc)) in
+      let body, export =
+        try Lm_symbol.SymbolTable.find cases action_sym with
+          Not_found ->
+          raise (Invalid_argument "lex")
+      in
+      let venv_new, _ = Omake_eval.eval_sequence_exp venv_new pos body in
+      let venv = Omake_env.add_exports venv venv_new pos export in
+      input_loop venv inx
+  in
 
-   (* Process each file *)
-   let rec file_loop venv files =
-      match files with
-         file :: files ->
-            let inp, close_in = in_channel_of_any_value venv pos file in
-            let inx = venv_find_channel venv pos inp in
-            let venv =
-               try input_loop venv inx with
-                  (Break _ | Return _) as exn ->
-                     if close_in then
-                        venv_close_channel venv pos inp;
-                     raise exn
-                | exn ->
-                     if close_in then
-                        venv_close_channel venv pos inp;
-                     raise_uncaught_exception pos exn
-            in
-               if close_in then
-                  venv_close_channel venv pos inp;
-               file_loop venv files
-       | [] ->
-            venv
-   in
-   let venv =
-      try file_loop venv files with
-         Break (_, venv) ->
-            venv
-   in
-      venv, ValNone
+  (* Process each file *)
+  let rec file_loop venv files =
+    match files with
+      file :: files ->
+      let inp, close_in = Omake_value.in_channel_of_any_value venv pos file in
+      let inx = Omake_env.venv_find_channel venv pos inp in
+      let venv =
+        try input_loop venv inx with
+          (Omake_env.Break _ | Omake_value_type.Return _) as exn ->
+          if close_in then
+            Omake_env.venv_close_channel venv pos inp;
+          raise exn
+        | exn ->
+          if close_in then
+            Omake_env.venv_close_channel venv pos inp;
+          Omake_eval.raise_uncaught_exception pos exn
+      in
+      if close_in then
+        Omake_env.venv_close_channel venv pos inp;
+      file_loop venv files
+    | [] ->
+      venv
+  in
+  let venv =
+    try file_loop venv files with
+      Omake_env.Break (_, venv) ->
+      venv
+  in
+  venv, Omake_value_type.ValNone
 
 (*
  * \begin{doc}
- * \obj{Lexer}
+ * \obj{Omake_lexer.Lexer}
  *
- * The \verb+Lexer+ object defines a facility for lexical analysis, similar to the
+ * The \verb+Omake_lexer.Lexer+ object defines a facility for lexical analysis, similar to the
  * \Cmd{lex}{1} and \Cmd{flex}{1} programs.
  *
  * In \Prog{omake}, lexical analyzers can be constructed dynamically by extending
- * the \verb+Lexer+ class.  A lexer definition consists of a set of directives specified
+ * the \verb+Omake_lexer.Lexer+ class.  A lexer definition consists of a set of directives specified
  * with method calls,  and set of clauses specified as rules.
  *
  * For example, consider the following lexer definition, which is intended
@@ -1378,7 +1331,7 @@ let lex_search venv pos loc args _ =
  *
  * \begin{verbatim}
  *    lexer1. =
- *       extends $(Lexer)
+ *       extends $(Omake_lexer.Lexer)
  *
  *       other: .
  *          eprintln(Illegal character: $* )
@@ -1409,7 +1362,7 @@ let lex_search venv pos loc args _ =
  *          Token.unit($(loc), eof)
  * \end{verbatim}
  *
- * This program defines an object \verb+lexer1+ the extends the \verb+Lexer+
+ * This program defines an object \verb+lexer1+ the extends the \verb+Omake_lexer.Lexer+
  * object, which defines lexing environment.
  *
  * The remainder of the definition consists of a set of clauses,
@@ -1449,11 +1402,11 @@ let lex_search venv pos loc args _ =
  * The \verb+Token.pair($(loc), name, value)+ constructs a token with the
  * given name and value.
  *
- * Lexer object operate on \verb+InChannel+ objects.
+ * Omake_lexer.Lexer object operate on \verb+InChannel+ objects.
  * The method \verb+lexer1.lex-channel(channel)+ reads the next
  * token from the channel argument.
  *
- * \subsection{Lexer matching}
+ * \subsection{Omake_lexer.Lexer matching}
  *
  * During lexical analysis, clauses are selected by longest match.
  * That is, the clause that matches the longest sequence of input
@@ -1474,7 +1427,7 @@ let lex_search venv pos loc args _ =
  *
  * \begin{verbatim}
  *    lex-comment. =
- *       extends $(Lexer)
+ *       extends $(Omake_lexer.Lexer)
  *
  *       level = 0
  *
@@ -1526,59 +1479,59 @@ let lex_search venv pos loc args _ =
 (*
  * Add a lexer clause.
  *)
-let lex_rule venv pos loc args kargs =
-   let pos = string_pos "lex-rule" pos in
-      match args, kargs with
-         [_; action; _; pattern; _; ValBody (body, export)], [] ->
-            let lexer = current_lexer venv pos in
-            let action_name = string_of_value venv pos action in
-            let action_sym = Lm_symbol.add action_name in
-            let pattern = string_of_value venv pos pattern in
-            let _, lexer =
-               try Lexer.add_clause lexer action_sym pattern with
-                  Failure err ->
-                     let msg = sprintf "Malformed regular expression '%s'" pattern in
-                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-            in
+let lex_rule venv pos loc (args : Omake_value_type.value list) kargs =
+  let pos = string_pos "lex-rule" pos in
+  match args, kargs with
+    [_; action; _; pattern; _; ValBody (body, export)], [] ->
+    let lexer = Omake_value.current_lexer venv pos in
+    let action_name = Omake_value.string_of_value venv pos action in
+    let action_sym = Lm_symbol.add action_name in
+    let pattern = Omake_value.string_of_value venv pos pattern in
+    let _, lexer =
+      try Omake_lexer.Lexer.add_clause lexer action_sym pattern with
+        Failure err ->
+        let msg = Lm_printf.sprintf "Malformed regular expression '%s'" pattern in
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+    in
 
-            (* Add the method *)
-            let action_var = VarThis (loc, action_sym) in
-            let venv = venv_add_var venv action_var (ValFun (venv_get_env venv, [], [], body, export)) in
-            let venv = venv_add_var venv builtin_field_var (ValOther (ValLexer lexer)) in
-               venv, ValNone
+    (* Add the method *)
+    let action_var = Omake_ir.VarThis (loc, action_sym) in
+    let venv = Omake_env.venv_add_var venv action_var (ValFun (Omake_env.venv_get_env venv, [], [], body, export)) in
+    let venv = Omake_env.venv_add_var venv Omake_var.builtin_field_var (ValOther (ValLexer lexer)) in
+    venv, Omake_value_type.ValNone
 
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
 
 (*
  * Perform the lexing.
  *)
 let lex_engine venv pos loc args kargs =
-   let pos = string_pos "lex" pos in
-      match args, kargs with
-         [arg], [] ->
-            let lexer = current_lexer venv pos in
-            let inp, close_flag = in_channel_of_any_value venv pos arg in
-            let inx = venv_find_channel venv pos inp in
-            let action, lexeme_loc, lexeme, args =
-               try Lexer.lex lexer inx with
-                  Failure _ as exn ->
-                     let loc = Lm_channel.loc inx in
-                     let pos = loc_pos loc pos in
-                        if close_flag then
-                           venv_close_channel venv pos inp;
-                        raise (UncaughtException (pos, exn))
-            in
-            let () =
-               if close_flag then
-                  venv_close_channel venv pos inp
-            in
-            let venv = venv_add_match venv lexeme args in
-            let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation lexeme_loc)) in
-            let action = venv_find_var venv pos loc (VarThis (loc, action)) in
-               eval_apply venv pos loc action [] []
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "lex" pos in
+  match args, kargs with
+    [arg], [] ->
+    let lexer = Omake_value.current_lexer venv pos in
+    let inp, close_flag = Omake_value.in_channel_of_any_value venv pos arg in
+    let inx = Omake_env.venv_find_channel venv pos inp in
+    let action, lexeme_loc, lexeme, args =
+      try Omake_lexer.Lexer.lex lexer inx with
+        Failure _ as exn ->
+        let loc = Lm_channel.loc inx in
+        let pos = loc_pos loc pos in
+        if close_flag then
+          Omake_env.venv_close_channel venv pos inp;
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let () =
+      if close_flag then
+        Omake_env.venv_close_channel venv pos inp
+    in
+    let venv = Omake_env.venv_add_match venv lexeme args in
+    let venv = Omake_env.venv_add_var venv Omake_var.parse_loc_var (ValOther (ValLocation lexeme_loc)) in
+    let action = Omake_env.venv_find_var venv pos loc (Omake_ir.VarThis (loc, action)) in
+    Omake_eval.eval_apply venv pos loc action [] []
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1740,72 +1693,70 @@ let lex_engine venv pos loc args kargs =
  * Add start symbols.
  *)
 let parse_start venv pos loc args kargs =
-   let pos = string_pos "parse-start" pos in
-   let parse = current_parser venv pos in
-   let args =
-      match args, kargs with
-         [arg], [] ->
-            strings_of_value venv pos arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-   let parse =
-      List.fold_left (fun parse s ->
-            Parser.add_start parse (Lm_symbol.add s)) parse args
-   in
-
-   (* Redefine the parser *)
-   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parse)) in
-      venv, ValNone
+  let pos = string_pos "parse-start" pos in
+  let parse = Omake_value.current_parser venv pos in
+  let args =
+    match args, kargs with
+      [arg], [] ->
+      Omake_value.strings_of_value venv pos arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  in
+  let parse =
+    List.fold_left (fun parse s ->
+      Omake_parser.Parser.add_start parse (Lm_symbol.add s)) parse args in
+  (* Redefine the parser *)
+  let venv = Omake_env.venv_add_var venv Omake_var.builtin_field_var (ValOther (ValParser parse)) in
+  venv, Omake_value_type.ValNone
 
 (*
  * Precedence operations.
  *)
 let parse_prec venv pos loc args kargs assoc =
-   let pos = string_pos "parse-prec" pos in
-   let this = venv_this venv in
-   let parse = current_parser venv pos in
-   let parse, level, args =
-      match args, kargs with
-         [before; args], [] ->
-            let current_prec = Lm_symbol.add (string_of_value venv pos before) in
-            let level =
-               try Parser.find_prec parse current_prec with
-                  Not_found ->
-                     raise (OmakeException (loc_pos loc pos, StringVarError ("no such precedence", current_prec)))
-            in
-            let parse, level = Parser.create_prec_lt parse level assoc in
-               parse, level, args
-       | [args], [] ->
-            let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field_internal this pos current_prec_sym)) in
-            let level =
-               try Parser.find_prec parse current_prec with
-                  Not_found ->
-                     raise (OmakeException (loc_pos loc pos, StringVarError ("current precedence is not found", current_prec)))
-            in
-            let parse, level = Parser.create_prec_gt parse level assoc in
-               parse, level, args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
-   in
-   let args = strings_of_value venv pos args in
-   let parse =
-      List.fold_left (fun parse s ->
-            Parser.add_prec parse level (Lm_symbol.add s)) parse args
-   in
+  let pos = string_pos "parse-prec" pos in
+  let this = Omake_env.venv_this venv in
+  let parse = Omake_value.current_parser venv pos in
+  let parse, level, args =
+    match args, kargs with
+      [before; args], [] ->
+      let current_prec = Lm_symbol.add (Omake_value.string_of_value venv pos before) in
+      let level =
+        try Omake_parser.Parser.find_prec parse current_prec with
+          Not_found ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("no such precedence", current_prec)))
+      in
+      let parse, level = Omake_parser.Parser.create_prec_lt parse level assoc in
+      parse, level, args
+    | [args], [] ->
+      let current_prec = Lm_symbol.add (Omake_value.string_of_value venv pos (Omake_env.venv_find_field_internal this pos Omake_symbol.current_prec_sym)) in
+      let level =
+        try Omake_parser.Parser.find_prec parse current_prec with
+          Not_found ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringVarError ("current precedence is not found", current_prec)))
+      in
+      let parse, level = Omake_parser.Parser.create_prec_gt parse level assoc in
+      parse, level, args
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+  in
+  let args = Omake_value.strings_of_value venv pos args in
+  let parse =
+    List.fold_left (fun parse s ->
+      Omake_parser.Parser.add_prec parse level (Lm_symbol.add s)) parse args
+  in
 
-   (* Reset the current precedence *)
-   let venv =
-      match args with
-         arg :: _ ->
-            venv_add_var venv current_prec_field_var (ValString arg)
-       | [] ->
-            venv
-   in
+  (* Reset the current precedence *)
+  let venv =
+    match args with
+      arg :: _ ->
+      Omake_env.venv_add_var venv Omake_var.current_prec_field_var (ValString arg)
+    | [] ->
+      venv
+  in
 
-   (* Redefine the parser *)
-   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parse)) in
-      venv, ValNone
+  (* Redefine the parser *)
+  let venv = Omake_env.venv_add_var venv Omake_var.builtin_field_var (ValOther (ValParser parse)) in
+  venv, Omake_value_type.ValNone
 
 let parse_left venv pos loc args kargs =
    let pos = string_pos "parse-left" pos in
@@ -1823,26 +1774,26 @@ let parse_nonassoc venv pos loc args kargs =
  * Build the parser.
  *)
 let parse_build venv pos loc args =
-   let pos = string_pos "parse-build" pos in
-      match args with
-         [arg] ->
-            let par = current_parser venv pos in
-            let debug = bool_of_value venv pos arg in
-               Parser.build par debug;
-               ValNone
-       | _ ->
-          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "parse-build" pos in
+  match args with
+    [arg] ->
+    let par = Omake_value.current_parser venv pos in
+    let debug = Omake_value.bool_of_value venv pos arg in
+    Omake_parser.Parser.build par debug;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Get the precedence option.
  *)
 let prec_option venv pos _ options =
-   venv_map_fold (fun _ optname optval ->
-         let s = string_of_value venv pos optname in
+   Omake_env.venv_map_fold (fun _ optname optval ->
+         let s = Omake_value.string_of_value venv pos optname in
             if s = ":prec:" then
-               Some (Lm_symbol.add (string_of_value venv pos optval))
+               Some (Lm_symbol.add (Omake_value.string_of_value venv pos optval))
             else
-               raise (OmakeException (pos, StringValueError ("illegal option", optname)))) None options
+               raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal option", optname)))) None options
 
 (*
  * Compute an action name that is not defined in the current object.
@@ -1850,139 +1801,132 @@ let prec_option venv pos _ options =
 let action_sym = Lm_symbol.add "action"
 
 let find_action_name venv loc =
-   Lm_symbol.new_name action_sym (fun v -> venv_defined venv (VarThis (loc, v)))
+   Lm_symbol.new_name action_sym (fun v -> Omake_env.venv_defined venv (Omake_ir.VarThis (loc, v)))
 
 (*
  * Add a parser clause.
  *)
-let parse_rule venv pos loc args kargs =
-   let pos = string_pos "parse-rule" pos in
-   let action, head, rhs, options, body, export =
-      match args, kargs with
-         [_; action; head; rhs; ValMap options; ValBody (body, export)], [] ->
-            let action = string_of_value venv pos action in
-            let head = string_of_value venv pos head in
-               if head = "" then   (* Action name was omitted *)
-                  find_action_name venv loc, Lm_symbol.add action, rhs, options, body, export
-               else
-                  Lm_symbol.add action, Lm_symbol.add head, rhs, options, body, export
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
-   in
-   let par = current_parser venv pos in
-   let rhs = List.map Lm_symbol.add (strings_of_value venv pos rhs) in
-   let pre = prec_option venv pos loc options in
-   let par = Parser.add_production par action head rhs pre in
+let parse_rule venv pos loc (args : Omake_value_type.value list) kargs =
+  let pos = string_pos "parse-rule" pos in
+  let action, head, rhs, options, body, export =
+    match args, kargs with
+      [_; action; head; rhs; ValMap options; ValBody (body, export)], [] ->
+      let action = Omake_value.string_of_value venv pos action in
+      let head = Omake_value.string_of_value venv pos head in
+      if head = "" then   (* Action name was omitted *)
+        find_action_name venv loc, Lm_symbol.add action, rhs, options, body, export
+      else
+        Lm_symbol.add action, Lm_symbol.add head, rhs, options, body, export
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
+  in
+  let par = Omake_value.current_parser venv pos in
+  let rhs = List.map Lm_symbol.add (Omake_value.strings_of_value venv pos rhs) in
+  let pre = prec_option venv pos loc options in
+  let par = Omake_parser.Parser.add_production par action head rhs pre in
 
-   (* Add the method if there is a body *)
-   let venv =
-      match body with
-         _ :: _ ->
-            let body =
-               LetVarExp (loc, VarThis (loc, val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
-            in
-               venv_add_var venv (VarThis (loc, action)) (ValFun (venv_get_env venv, [], [], body, export))
-       | [] ->
-            venv
-   in
+  (* Add the method if there is a body *)
+  let venv =
+    match body with
+      _ :: _ ->
+      let body : Omake_ir.exp list =
+        LetVarExp (loc, Omake_ir.VarThis (loc, Omake_symbol.val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
+      in
+      Omake_env.venv_add_var venv (Omake_ir.VarThis (loc, action)) (ValFun (Omake_env.venv_get_env venv, [], [], body, export))
+    | [] ->
+      venv
+  in
 
-   (* Add back the parser *)
-   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser par)) in
-      venv, ValNone
+  (* Add back the parser *)
+  let venv = Omake_env.venv_add_var venv Omake_var.builtin_field_var (ValOther (ValParser par)) in
+  venv, Omake_value_type.ValNone
 
 (*
  * Perform the lexing.
  *)
 let parse_engine venv pos loc args =
-   let pos = string_pos "parse-engine" pos in
-      match args with
-         [start] ->
-            let dfa = current_parser venv pos in
-            let start = Lm_symbol.add (string_of_value venv pos start) in
-            let lexer = venv_find_var venv pos loc lexer_field_var in
-            let lexer = eval_object venv pos lexer in
-            let parser_obj = venv_this venv in
-            let lex (venv, parser_obj, lexer) =
-               let lex = venv_find_field_internal lexer pos lex_sym in
-               let venv = venv_with_object venv lexer in
-               let venv, result = eval_apply venv pos loc lex [] [] in
-               let obj = eval_object venv pos result in
-                  try
-                     let lex_loc = venv_find_field_internal_exn obj loc_sym in
-                     let lex_loc = loc_of_value venv pos lex_loc in
-                     let name = venv_find_field_internal_exn obj name_sym in
-                     let name = Lm_symbol.add (string_of_value venv pos name) in
-                     let value = venv_find_field_internal_exn obj val_sym in
-                        name, lex_loc, (venv, parser_obj, lexer), value
-                  with
-                     Not_found ->
-                        let print_error buf =
-                           fprintf buf "@[<v 3>The lexer returned a malformed object.\
-@ @[<v 3>The result of a lexer action should be an object with at least 3 fields:\
-@ loc: the location of the token\
-@ name: the name of the token\
-@ val: the value of the token@]\
-@ %a@]" pp_print_value (ValObject obj)
-                        in
-                           raise (OmakeException (pos, LazyError print_error))
-            in
-            let eval (venv, parser_obj, lexer) action loc args =
-               let pos = loc_pos loc pos in
-               let venv = venv_add_match_values venv args in
-               let action = venv_find_field_internal parser_obj pos action in
-               let venv = venv_with_object venv parser_obj in
-               let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation loc)) in
-               let venv, result = eval_apply venv pos loc action [] [] in
-                  (venv, parser_obj, lexer), result
-            in
-            let _, value =
-               try Parser.parse dfa start lex eval (venv, parser_obj, lexer) with
-                  Failure _ as exn ->
-                     raise (UncaughtException (pos, exn))
-                | Lm_parser.ParseError (loc, s) ->
-                     raise (OmakeException (loc_pos loc pos, StringError s))
-            in
-               value
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "parse-engine" pos in
+  match args with
+    [start] ->
+    let dfa = Omake_value.current_parser venv pos in
+    let start = Lm_symbol.add (Omake_value.string_of_value venv pos start) in
+    let lexer = Omake_env.venv_find_var venv pos loc Omake_var.lexer_field_var in
+    let lexer = Omake_eval.eval_object venv pos lexer in
+    let parser_obj = Omake_env.venv_this venv in
+    let lex (venv, parser_obj, lexer) =
+      let lex = Omake_env.venv_find_field_internal lexer pos Omake_symbol.lex_sym in
+      let venv = Omake_env.venv_with_object venv lexer in
+      let venv, result = Omake_eval.eval_apply venv pos loc lex [] [] in
+      let obj = Omake_eval.eval_object venv pos result in
+      try
+        let lex_loc = Omake_env.venv_find_field_internal_exn obj Omake_symbol.loc_sym in
+        let lex_loc = Omake_value.loc_of_value venv pos lex_loc in
+        let name = Omake_env.venv_find_field_internal_exn obj Omake_symbol.name_sym in
+        let name = Lm_symbol.add (Omake_value.string_of_value venv pos name) in
+        let value = Omake_env.venv_find_field_internal_exn obj Omake_symbol.val_sym in
+        name, lex_loc, (venv, parser_obj, lexer), value
+      with
+        Not_found ->
+        let print_error buf =
+          Format.fprintf buf "@[<v 3>The lexer returned a malformed object.\
+                              @ @[<v 3>The result of a lexer action should be an object with at least 3 fields:\
+                              @ loc: the location of the token\
+                              @ name: the name of the token\
+                              @ val: the value of the token@]\
+                              @ %a@]" Omake_value_print.pp_print_value (ValObject obj)
+        in
+        raise (Omake_value_type.OmakeException (pos, LazyError print_error))
+    in
+    let eval (venv, parser_obj, lexer) action loc args =
+      let pos = loc_pos loc pos in
+      let venv = Omake_env.venv_add_match_values venv args in
+      let action = Omake_env.venv_find_field_internal parser_obj pos action in
+      let venv = Omake_env.venv_with_object venv parser_obj in
+      let venv = Omake_env.venv_add_var venv Omake_var.parse_loc_var (ValOther (ValLocation loc)) in
+      let venv, result = Omake_eval.eval_apply venv pos loc action [] [] in
+      (venv, parser_obj, lexer), result
+    in
+    let _, value =
+      try Omake_parser.Parser.parse dfa start lex eval (venv, parser_obj, lexer) with
+        Failure _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+      | Lm_parser.ParseError (loc, s) ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
+    in
+    value
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (************************************************************************
  * External interface.
- *)
+*)
 let () =
-   let builtin_funs =
-      [true, "grep",                  grep,                 ArityRange (1, 3);
-       true, "builtin-grep",          builtin_grep,         ArityExact 1;
-       true, "cat",                   cat,                  ArityExact 1;
-       true, "parse-engine",          parse_engine,         ArityExact 1;
-       true, "parse-build",           parse_build,          ArityExact 1;
-      ]
-   in
-   let builtin_kfuns =
-      [true, "lex-rule",              lex_rule,             ArityRange (3, 4);
-       true, "lex-engine",            lex_engine,           ArityExact 1;
-       true, "parse-rule",            parse_rule,           ArityRange (3, 5);
-       true, "parse-start",           parse_start,          ArityExact 1;
-       true, "parse-left",            parse_left,           ArityExact 1;
-       true, "parse-right",           parse_right,          ArityExact 1;
-       true, "parse-nonassoc",        parse_nonassoc,       ArityExact 1;
-       true, "scan",                  scan,                 ArityRange (1, 3);
-       true, "awk",                   awk,                  ArityExact 3;
-       true, "fsubst",                fsubst,               ArityExact 3;
-       true, "lex",                   lex,                  ArityExact 3;
-       true, "lex-search",            lex_search,           ArityExact 3;
-      ]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs;
-                           builtin_kfuns = builtin_kfuns
-      }
-   in
-      register_builtin builtin_info
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+  let builtin_funs =
+    [true, "grep",                  grep,                 Omake_ir.ArityRange (1, 3);
+     true, "builtin-grep",          builtin_grep,         ArityExact 1;
+     true, "cat",                   cat,                  ArityExact 1;
+     true, "parse-engine",          parse_engine,         ArityExact 1;
+     true, "parse-build",           parse_build,          ArityExact 1;
+    ]
+  in
+  let builtin_kfuns =
+    [true, "lex-rule",              lex_rule,             Omake_ir.ArityRange (3, 4);
+     true, "lex-engine",            lex_engine,           ArityExact 1;
+     true, "parse-rule",            parse_rule,           ArityRange (3, 5);
+     true, "parse-start",           parse_start,          ArityExact 1;
+     true, "parse-left",            parse_left,           ArityExact 1;
+     true, "parse-right",           parse_right,          ArityExact 1;
+     true, "parse-nonassoc",        parse_nonassoc,       ArityExact 1;
+     true, "scan",                  scan,                 ArityRange (1, 3);
+     true, "awk",                   awk,                  ArityExact 3;
+     true, "fsubst",                fsubst,               ArityExact 3;
+     true, "lex",                   lex,                  ArityExact 3;
+     true, "lex-search",            lex_search,           ArityExact 3;
+    ]
+  in
+  let builtin_info =
+    {Omake_builtin_type.builtin_empty with builtin_funs = builtin_funs;
+      builtin_kfuns = builtin_kfuns
+    }
+  in
+  Omake_builtin.register_builtin builtin_info

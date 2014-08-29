@@ -7,59 +7,10 @@
  * \cutname{omake-build.html}
  * \end{doc}
  *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
-open Lm_printf
 
+include Omake_pos.MakePos (struct let name = "Omake_builtin_rule" end)
 
-
-
-
-open Omake_ir
-open Omake_env
-open Omake_pos
-
-
-
-
-
-
-open! Omake_value
-
-
-open Omake_builtin
-open Omake_value_type
-open Omake_builtin_type
-open! Omake_builtin_util
-
-
-module Pos = MakePos (struct let name = "Omake_builtin_rule" end)
-open Pos
 
 (*
  * These targets are decribed in doc/src/omake-rules.tex
@@ -160,11 +111,11 @@ let set_options venv pos loc args _ =
    let pos = string_pos "OMakeFlags" pos in
       match args with
          [arg] ->
-            let argv = strings_of_value venv pos arg in
-            let venv = venv_set_options venv loc pos argv in
-               venv, ValNone
+            let argv = Omake_value.strings_of_value venv pos arg in
+            let venv = Omake_env.venv_set_options venv loc pos argv in
+               venv, Omake_value_type.ValNone
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Version checking.
@@ -235,42 +186,42 @@ let rec compare_versions v1 v2 =
          end
 
 let check_version venv pos loc args =
-   let pos = string_pos "check_version" pos in
-   let version = Omake_magic.version in
-   let check lowest highest =
-      if compare_versions version lowest < 0 then
-         raise (OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
-            fprintf out "@[<0>This version of OMake is too old,@ you need to upgrade to at least version@ %s;@ current OMake version is@ %s.@ You should be able to download the latest version of OMake from http://omake.metaprl.org/download.html@]" lowest version)));
-      match highest with
-         Some highest ->
-            if compare_versions version highest > 0 then
-               raise (OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
-                  fprintf out "@[<0>This version of OMake is too new or the given file is too old.@ This file accepts versions@ %s-%s;@ current OMake version is@ %s@]" lowest highest version)))
-       | None ->
-            ()
-   in
-      match args with
-         [lowest] ->
-            let lowest = Lm_string_util.trim (string_of_value venv pos lowest) in
-               check lowest None;
-               ValString version
-       | [lowest; highest] ->
-            let lowest = Lm_string_util.trim (string_of_value venv pos lowest) in
-            let highest = Lm_string_util.trim (string_of_value venv pos highest) in
-               check lowest (Some highest);
-               ValString version
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1,2), List.length args)))
+  let pos = string_pos "check_version" pos in
+  let version = Omake_magic.version in
+  let check lowest highest =
+    if compare_versions version lowest < 0 then
+      raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
+            Format.fprintf out "@[<0>This version of OMake is too old,@ you need to upgrade to at least version@ %s;@ current OMake version is@ %s.@ You should be able to download the latest version of OMake from http://omake.metaprl.org/download.html@]" lowest version)));
+    match highest with
+      Some highest ->
+      if compare_versions version highest > 0 then
+        raise (Omake_value_type.OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
+              Format.fprintf out "@[<0>This version of OMake is too new or the given file is too old.@ This file accepts versions@ %s-%s;@ current OMake version is@ %s@]" lowest highest version)))
+    | None ->
+      ()
+  in
+  match args with
+    [lowest] ->
+    let lowest = Lm_string_util.trim (Omake_value.string_of_value venv pos lowest) in
+    check lowest None;
+    Omake_value_type.ValString version
+  | [lowest; highest] ->
+    let lowest = Lm_string_util.trim (Omake_value.string_of_value venv pos lowest) in
+    let highest = Lm_string_util.trim (Omake_value.string_of_value venv pos highest) in
+    check lowest (Some highest);
+    ValString version
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1,2), List.length args)))
 
 let cmp_version venv pos loc args =
-   let pos = string_pos "cmp_version" pos in
-      match args with
-         [v1; v2] ->
-            let v1 = Lm_string_util.trim (string_of_value venv pos v1) in
-            let v2 = Lm_string_util.trim (string_of_value venv pos v2) in
-               ValInt (compare_versions v1 v2)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "cmp_version" pos in
+  match args with
+    [v1; v2] ->
+    let v1 = Lm_string_util.trim (Omake_value.string_of_value venv pos v1) in
+    let v2 = Lm_string_util.trim (Omake_value.string_of_value venv pos v2) in
+    Omake_value_type.ValInt (compare_versions v1 v2)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Add the command-line vars.
@@ -289,46 +240,37 @@ let cmp_version venv pos loc args =
  * \end{doc}
  *)
 let define_command_vars venv pos loc args kargs =
-   let pos = string_pos "DefineCommandVars" pos in
-      match args, kargs with
-         [], []
-       | [_], [] ->
-            venv_add_command_defs venv, ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+  let pos = string_pos "DefineCommandVars" pos in
+  match args, kargs with
+    [], []
+  | [_], [] ->
+    Omake_builtin.venv_add_command_defs venv, Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 
 (*
  * Table of built-in functions.
  *)
 let () =
-   let builtin_funs =
-      [true,  "OMakeVersion",          check_version,       ArityRange (1, 2);
-       true,  "cmp-versions",          cmp_version,         ArityExact 2;
-      ]
-   in
-   let builtin_kfuns =
-      [true,  "OMakeFlags",            set_options,         ArityExact 1;
-       true,  "DefineCommandVars",     define_command_vars, ArityRange (0, 1);
-      ]
-   in
-   let builtin_rules =
-      [true, [".PHONY"], phony_targets]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_funs  = builtin_funs;
-                           builtin_kfuns = builtin_kfuns;
-                           builtin_rules = builtin_rules;
-                           phony_targets = phony_targets
-      }
-   in
-      register_builtin builtin_info
+  let builtin_funs =
+    [true,  "OMakeVersion",          check_version,       Omake_ir.ArityRange (1, 2);
+     true,  "cmp-versions",          cmp_version,         ArityExact 2;
+    ]
+  in
+  let builtin_kfuns =
+    [true,  "OMakeFlags",            set_options,         Omake_ir.ArityExact 1;
+     true,  "DefineCommandVars",     define_command_vars, ArityRange (0, 1);
+    ]
+  in
+  let builtin_rules =
+    [true, [".PHONY"], phony_targets]
+  in
+  let builtin_info =
+    { Omake_builtin_type.builtin_empty with builtin_funs  = builtin_funs;
+      builtin_kfuns = builtin_kfuns;
+      builtin_rules = builtin_rules;
+      phony_targets = phony_targets
+    }
+  in
+  Omake_builtin.register_builtin builtin_info
 
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

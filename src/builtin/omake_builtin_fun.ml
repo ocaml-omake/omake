@@ -5,16 +5,6 @@
  * \section{First-class functions}
  * \end{doc}
  *)
-
-
-
-open Omake_ir
-open Omake_eval
-open! Omake_value
-open Omake_builtin
-open Omake_builtin_type
-open Omake_value_type
-
 include Omake_pos.MakePos (struct let name = "Omake_builtin_fun" end)
 
 
@@ -53,7 +43,7 @@ let fun_fun _ pos loc args =
          [arg] ->
             arg
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Function application.
@@ -99,9 +89,9 @@ let apply_fun venv pos loc args kargs =
          fun_val :: args ->
             fun_val, args
        | [] ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
    in
-      eval_partial_apply venv pos loc fun_val args kargs
+      Omake_eval.eval_partial_apply venv pos loc fun_val args kargs
 
 (*
  * Function application.
@@ -136,27 +126,27 @@ let applya_fun venv pos loc args kargs =
          [fun_val; args] ->
             fun_val, args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, 0)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, 0)))
    in
-   let args = values_of_value venv pos args in
-      eval_partial_apply venv pos loc fun_val args kargs
+   let args = Omake_value.values_of_value venv pos args in
+      Omake_eval.eval_partial_apply venv pos loc fun_val args kargs
 
 (************************************************************************
  * Tables.
  *)
 let () =
-   let builtin_funs =
-      [false, "fun",                  fun_fun,             ArityExact 1]
-   in
-   let builtin_kfuns =
-      [true,  "apply",                apply_fun,           ArityAny;
-       true,  "applya",               applya_fun,          ArityAny;
-      ]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs;
-                           builtin_kfuns = builtin_kfuns
-      }
-   in
-      register_builtin builtin_info
+  let builtin_funs =
+    [false, "fun",                  fun_fun,             Omake_ir.ArityExact 1]
+  in
+  let builtin_kfuns =
+    [true,  "apply",                apply_fun,           Omake_ir.ArityAny;
+     true,  "applya",               applya_fun,          ArityAny;
+    ]
+  in
+  let builtin_info =
+    {Omake_builtin_type.builtin_empty with builtin_funs = builtin_funs;
+      builtin_kfuns = builtin_kfuns
+    }
+  in
+  Omake_builtin.register_builtin builtin_info
 

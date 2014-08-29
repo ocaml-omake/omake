@@ -1,10 +1,5 @@
 (*  Predefined set of functions. *)
 
-
-(* open Omake_value_type *)
-
-
-
 include Omake_pos.MakePos (struct let name = "Omake_eval" end);;
 
 

@@ -5,19 +5,6 @@
  * \section{IO functions}
  * \end{doc}
  *)
-open Lm_printf
-open Lm_location
-open Omake_ir
-open Omake_env
-open Omake_var
-open Omake_eval
-open! Omake_value
-open Omake_printf
-open Omake_symbol
-open Omake_builtin
-open! Omake_value_type
-open Omake_value_print
-open Omake_builtin_type
 
 include Omake_pos.MakePos (struct let name = "Omake_builtin_io" end)
 
@@ -53,10 +40,10 @@ include Omake_pos.MakePos (struct let name = "Omake_builtin_io" end)
  * \end{doc}
  *)
 let builtin_vars =
-   ["nl",     (fun _ -> ValString "\n");
-    "stdin",  (fun _ -> ValChannel (InChannel,  venv_stdin));
-    "stdout", (fun _ -> ValChannel (OutChannel, venv_stdout));
-    "stderr", (fun _ -> ValChannel (OutChannel, venv_stderr))]
+   ["nl",     (fun _ -> Omake_value_type.ValString "\n");
+    "stdin",  (fun _ -> ValChannel (InChannel,  Omake_env.venv_stdin));
+    "stdout", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stdout));
+    "stderr", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stderr))]
 
 (*
  * \begin{doc}
@@ -74,12 +61,12 @@ let open_in_string venv pos loc args =
    let pos = string_pos "open-in-string" pos in
       match args with
          [arg] ->
-            let s = string_of_value venv pos arg in
+            let s = Omake_value.string_of_value venv pos arg in
             let fd = Lm_channel.of_string s in
-            let chan = venv_add_channel venv fd in
-               ValChannel (Lm_channel.InChannel, chan)
+            let chan = Omake_env.venv_add_channel venv fd in
+               Omake_value_type.ValChannel (Lm_channel.InChannel, chan)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -96,25 +83,25 @@ let open_in_string venv pos loc args =
  * \end{doc}
  *)
 let open_out_string venv pos loc args =
-   let pos = string_pos "open-in-string" pos in
-      match args with
-         [] ->
-            let fd = Lm_channel.create_string () in
-            let chan = venv_add_channel venv fd in
-               ValChannel (Lm_channel.OutChannel, chan)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
+  let pos = string_pos "open-in-string" pos in
+  match args with
+  | [] ->
+    let fd = Lm_channel.create_string () in
+    let chan = Omake_env.venv_add_channel venv fd in
+    Omake_value_type.ValChannel (Lm_channel.OutChannel, chan)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
 
 let out_contents venv pos loc args =
-   let pos = string_pos "out-contents" pos in
-      match args with
-         [fd] ->
-            let outp = prim_channel_of_value venv pos fd in
-            let outx = venv_find_channel venv pos outp in
-            let s = Lm_channel.to_string outx in
-               ValString s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "out-contents" pos in
+  match args with
+    [fd] ->
+    let outp = Omake_value.prim_channel_of_value venv pos fd in
+    let outx = Omake_env.venv_find_channel venv pos outp in
+    let s = Lm_channel.to_string outx in
+    Omake_value_type.ValString s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Open a file.
@@ -184,7 +171,7 @@ let fopen_mode pos loc s =
           | 'x' ->
                excl_mode
           | _ ->
-               raise (OmakeException (loc_pos loc pos, StringStringError ("illegal file mode", s)))
+               raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal file mode", s)))
          in
          let mode = mode lor bit in
             collect mode (succ i)
@@ -192,7 +179,7 @@ let fopen_mode pos loc s =
    let mode = collect 0 0 in
    let () =
       if (mode land text_mode) <> 0 && (mode land binary_mode) <> 0 then
-         raise (OmakeException (loc_pos loc pos, StringStringError ("can't specify both text and binary modes", s)))
+         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("can't specify both text and binary modes", s)))
    in
    let opt =
       if (mode land append_mode) <> 0 then
@@ -204,7 +191,7 @@ let fopen_mode pos loc s =
    in
    let kind, opt =
       if (mode land read_mode) <> 0 && (mode land write_mode) <> 0 then
-         InOutChannel, Unix.O_RDWR :: opt
+         Omake_value_type.InOutChannel, Unix.O_RDWR :: opt
       else if (mode land write_mode) <> 0 then
          OutChannel, Unix.O_WRONLY :: opt
       else
@@ -225,20 +212,20 @@ let fopen_mode pos loc s =
       kind, (mode land binary_mode) <> 0, opt
 
 let fopen venv pos loc args =
-   let pos = string_pos "fopen" pos in
-      match args with
-         [node; flags] ->
-            let name = filename_of_value venv pos node in
-            let kind, binary, flags = fopen_mode pos loc (string_of_value venv pos flags) in
-            let fd =
-               try Lm_unix_util.openfile name flags 0o666 with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (loc_pos loc pos, exn))
-            in
-            let chan = Lm_channel.create name Lm_channel.FileChannel kind binary (Some fd) in
-               ValChannel (kind, venv_add_channel venv chan)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "fopen" pos in
+  match args with
+  |[node; flags] ->
+    let name = Omake_value.filename_of_value venv pos node in
+    let kind, binary, flags = fopen_mode pos loc (Omake_value.string_of_value venv pos flags) in
+    let fd =
+      try Lm_unix_util.openfile name flags 0o666 with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (loc_pos loc pos, exn))
+    in
+    let chan = Lm_channel.create name Lm_channel.FileChannel kind binary (Some fd) in
+    Omake_value_type.ValChannel (kind, Omake_env.venv_add_channel venv chan)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * Closing file descriptors.
@@ -256,19 +243,19 @@ let fopen venv pos loc args =
  * \end{doc}
  *)
 let close venv pos loc args =
-   let pos = string_pos "close" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-               List.iter (fun arg ->
-                     match eval_prim_value venv pos arg with
-                        ValChannel (_, channel) ->
-                           venv_close_channel venv pos channel
-                      | arg ->
-                           raise (OmakeException (loc_pos loc pos, StringValueError ("not a file descriptor", arg)))) args;
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "close" pos in
+  match args with
+  |[arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    List.iter (fun arg ->
+      match Omake_value.eval_prim_value venv pos arg with
+      |   ValChannel (_, channel) ->
+        Omake_env.venv_close_channel venv pos channel
+      | arg ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringValueError ("not a file descriptor", arg)))) args;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -293,39 +280,39 @@ let read venv pos loc args =
    let pos = string_pos "read" pos in
       match args with
          [fd; amount] ->
-            let fd = channel_of_value venv pos fd in
-            let amount = int_of_value venv pos amount in
+            let fd = Omake_value.channel_of_value venv pos fd in
+            let amount = Omake_value.int_of_value venv pos amount in
             let s = String.make amount '\000' in
             let count =
                try Lm_channel.read fd s 0 amount with
                   Sys_error _
                 | Invalid_argument _ as exn ->
-                     raise (UncaughtException (pos, exn))
+                     raise (Omake_value_type.UncaughtException (pos, exn))
             in
                if count = amount then
-                  ValData s
+                  Omake_value_type.ValData s
                else if count = 0 then
-                  raise (UncaughtException (pos, End_of_file))
+                  raise (Omake_value_type.UncaughtException (pos, End_of_file))
                else
                   ValData (String.sub s 0 count)
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let input_line venv pos loc args =
-   let pos = string_pos "input-line" pos in
-      match args with
-         [fd] ->
-            let fd = channel_of_value venv pos fd in
-            let s =
-               try Lm_channel.input_line fd with
-                  Sys_error _
-                | End_of_file
-                | Invalid_argument _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-                  ValData s
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "input-line" pos in
+  match args with
+  |[fd] ->
+    let fd = Omake_value.channel_of_value venv pos fd in
+    let s =
+      try Lm_channel.input_line fd with
+        Sys_error _
+      | End_of_file
+      | Invalid_argument _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValData s
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -359,41 +346,41 @@ let input_line venv pos loc args =
  * \end{doc}
  *)
 let write venv pos loc args =
-   let pos = string_pos "read" pos in
-   let fd, buf, off, len =
-      match args with
-         [fd; buf] ->
-            fd, buf, None, None
-       | [fd; buf; len] ->
-            fd, buf, None, Some len
-       | [fd; buf; off; len] ->
-            fd, buf, Some off, Some len
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 4), List.length args)))
-   in
-   let fd = channel_of_value venv pos fd in
-   let buf = string_of_value venv pos buf in
-   let off =
-      match off with
-         Some off ->
-            int_of_value venv pos off
-       | None ->
-            0
-   in
-   let len =
-      match len with
-         Some len ->
-            int_of_value venv pos len
-       | None ->
-            String.length buf
-   in
-   let count =
-      try Lm_channel.write fd buf off len with
-         Sys_error _
-       | Invalid_argument _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValInt count
+  let pos = string_pos "read" pos in
+  let fd, buf, off, len =
+    match args with
+    | [fd; buf] ->
+      fd, buf, None, None
+    | [fd; buf; len] ->
+      fd, buf, None, Some len
+    | [fd; buf; off; len] ->
+      fd, buf, Some off, Some len
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 4), List.length args)))
+  in
+  let fd = Omake_value.channel_of_value venv pos fd in
+  let buf = Omake_value.string_of_value venv pos buf in
+  let off =
+    match off with
+      Some off ->
+      Omake_value.int_of_value venv pos off
+    | None ->
+      0
+  in
+  let len =
+    match len with
+      Some len ->
+      Omake_value.int_of_value venv pos len
+    | None ->
+      String.length buf
+  in
+  let count =
+    try Lm_channel.write fd buf off len with
+      Sys_error _
+    | Invalid_argument _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValInt count
 
 (*
  * \begin{doc}
@@ -421,30 +408,30 @@ let write venv pos loc args =
  * \end{doc}
  *)
 let lseek venv pos loc args =
-   let pos = string_pos "lseek" pos in
-      match args with
-         [fd; off; whence] ->
-            let fd = channel_of_value venv pos fd in
-            let off = int_of_value venv pos off in
-            let whence =
-               match String.uppercase (string_of_value venv pos whence) with
-                  "SET" | "SEEK_SET" ->
-                     Unix.SEEK_SET
-                | "CUR" | "CURRENT" | "SEEK_CUR" ->
-                     Unix.SEEK_CUR
-                | "END" | "SEEK_END" ->
-                     Unix.SEEK_END
-                | whence ->
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("illegal lseek parameter", whence)))
-            in
-            let off =
-               try Lm_channel.seek fd off whence with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValInt off
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  let pos = string_pos "lseek" pos in
+  match args with
+  | [fd; off; whence] ->
+    let fd = Omake_value.channel_of_value venv pos fd in
+    let off = Omake_value.int_of_value venv pos off in
+    let whence =
+      match String.uppercase (Omake_value.string_of_value venv pos whence) with
+        "SET" | "SEEK_SET" ->
+        Unix.SEEK_SET
+      | "CUR" | "CURRENT" | "SEEK_CUR" ->
+        Unix.SEEK_CUR
+      | "END" | "SEEK_END" ->
+        Unix.SEEK_END
+      | whence ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("illegal lseek parameter", whence)))
+    in
+    let off =
+      try Lm_channel.seek fd off whence with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValInt off
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (*
  * \begin{doc}
@@ -460,22 +447,22 @@ let lseek venv pos loc args =
  * \end{doc}
  *)
 let rewind venv pos loc args =
-   let pos = string_pos "rewind" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let () =
-               try
-                  List.iter (fun arg ->
-                        let fd = channel_of_value venv pos arg in
-                           ignore (Lm_channel.seek fd 0 Unix.SEEK_SET)) args
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "rewind" pos in
+  match args with
+  | [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let () =
+      try
+        List.iter (fun arg ->
+          let fd = Omake_value.channel_of_value venv pos arg in
+          ignore (Lm_channel.seek fd 0 Unix.SEEK_SET)) args
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -491,22 +478,22 @@ let rewind venv pos loc args =
  * \end{doc}
  *)
 let tell venv pos loc args =
-   let pos = string_pos "tell" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-            let args =
-               try
-                  List.map (fun arg ->
-                        let fd = channel_of_value venv pos arg in
-                           ValInt (Lm_channel.tell fd)) args
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               concat_array args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "tell" pos in
+  match args with
+  | [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    let args =
+      try
+        List.map (fun arg ->
+          let fd = Omake_value.channel_of_value venv pos arg in
+          Omake_value_type.ValInt (Lm_channel.tell fd)) args
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value.concat_array args
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Flush an output channel.
@@ -524,16 +511,16 @@ let tell venv pos loc args =
  * \end{doc}
  *)
 let flush venv pos loc args =
-   let pos = string_pos "flush" pos in
-      match args with
-         [arg] ->
-            let args = values_of_value venv pos arg in
-               List.iter (fun s ->
-                     let fd = channel_of_value venv pos s in
-                        Lm_channel.flush fd) args;
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "flush" pos in
+  match args with
+  | [arg] ->
+    let args = Omake_value.values_of_value venv pos arg in
+    List.iter (fun s ->
+      let fd = Omake_value.channel_of_value venv pos s in
+      Lm_channel.flush fd) args;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -548,13 +535,13 @@ let flush venv pos loc args =
  * \end{doc}
  *)
 let channel_name venv pos loc args =
-   let pos = string_pos "channel-name" pos in
-      match args with
-         [arg] ->
-            let fd = channel_of_value venv pos arg in
-               ValData (Lm_channel.name fd)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "channel-name" pos in
+  match args with
+  | [arg] ->
+    let fd = Omake_value.channel_of_value venv pos arg in
+    Omake_value_type.ValData (Lm_channel.name fd)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -571,23 +558,23 @@ let channel_name venv pos loc args =
  * \end{doc}
  *)
 let dup venv pos loc args =
-   let pos = string_pos "dup" pos in
-      match args with
-         [arg] ->
-            let channel = channel_of_value venv pos arg in
-            let name = Lm_channel.name channel in
-            let fd = Lm_channel.descr channel in
-            let _, kind, mode, binary = Lm_channel.info channel in
-            let fd =
-               try Unix.dup fd with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-            let chan = Lm_channel.create name kind mode binary (Some fd) in
-            let channel = venv_add_channel venv chan in
-               ValChannel (mode, channel)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "dup" pos in
+  match args with
+  | [arg] ->
+    let channel = Omake_value.channel_of_value venv pos arg in
+    let name = Lm_channel.name channel in
+    let fd = Lm_channel.descr channel in
+    let _, kind, mode, binary = Lm_channel.info channel in
+    let fd =
+      try Unix.dup fd with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let chan = Lm_channel.create name kind mode binary (Some fd) in
+    let channel = Omake_env.venv_add_channel venv chan in
+    Omake_value_type.ValChannel (mode, channel)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -605,21 +592,21 @@ let dup venv pos loc args =
  * \end{doc}
  *)
 let dup2 venv pos loc args =
-   let pos = string_pos "dup2" pos in
-      match args with
-         [arg1; arg2] ->
-            let channel1 = channel_of_value venv pos arg1 in
-            let channel2 = channel_of_value venv pos arg2 in
-            let fd1 = Lm_channel.descr channel1 in
-            let fd2 = Lm_channel.descr channel2 in
-            let () =
-               try Unix.dup2 fd1 fd2 with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "dup2" pos in
+  match args with
+  | [arg1; arg2] ->
+    let channel1 = Omake_value.channel_of_value venv pos arg1 in
+    let channel2 = Omake_value.channel_of_value venv pos arg2 in
+    let fd1 = Lm_channel.descr channel1 in
+    let fd2 = Lm_channel.descr channel2 in
+    let () =
+      try Unix.dup2 fd1 fd2 with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -637,29 +624,29 @@ let dup2 venv pos loc args =
  * \end{doc}
  *)
 let set_nonblock_mode venv pos loc args =
-   let pos = string_pos "set_nonblock_mode" pos in
-      match args with
-         [mode; channel] ->
-            let set_mode =
-               if bool_of_value venv pos mode then
-                  Unix.set_nonblock
-               else
-                  Unix.clear_nonblock
-            in
-            let channels = values_of_value venv pos channel in
-            let () =
-               try
-                  List.iter (fun channel ->
-                        let channel = channel_of_value venv pos channel in
-                        let fd = Lm_channel.descr channel in
-                           set_mode fd) channels
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "set_nonblock_mode" pos in
+  match args with
+    [mode; channel] ->
+    let set_mode =
+      if Omake_value.bool_of_value venv pos mode then
+        Unix.set_nonblock
+      else
+        Unix.clear_nonblock
+    in
+    let channels = Omake_value.values_of_value venv pos channel in
+    let () =
+      try
+        List.iter (fun channel ->
+          let channel = Omake_value.channel_of_value venv pos channel in
+          let fd = Lm_channel.descr channel in
+          set_mode fd) channels
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -678,29 +665,29 @@ let set_nonblock_mode venv pos loc args =
  * \end{doc}
  *)
 let set_close_on_exec_mode venv pos loc args =
-   let pos = string_pos "set-close-on-exec-mode" pos in
-      match args with
-         [mode; channel] ->
-            let set_mode =
-               if bool_of_value venv pos mode then
-                  Unix.set_close_on_exec
-               else
-                  Unix.clear_close_on_exec
-            in
-            let channels = values_of_value venv pos channel in
-            let () =
-               try
-                  List.iter (fun channel ->
-                        let channel = channel_of_value venv pos channel in
-                        let fd = Lm_channel.descr channel in
-                           set_mode fd) channels
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "set-close-on-exec-mode" pos in
+  match args with
+  | [mode; channel] ->
+    let set_mode =
+      if Omake_value.bool_of_value venv pos mode then
+        Unix.set_close_on_exec
+      else
+        Unix.clear_close_on_exec
+    in
+    let channels = Omake_value.values_of_value venv pos channel in
+    let () =
+      try
+        List.iter (fun channel ->
+          let channel = Omake_value.channel_of_value venv pos channel in
+          let fd = Lm_channel.descr channel in
+          set_mode fd) channels
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -718,24 +705,24 @@ let set_close_on_exec_mode venv pos loc args =
  * \end{doc}
  *)
 let pipe venv pos loc args =
-   let pos = string_pos "pipe" pos in
-      match args with
-         [] ->
-            let fd_read, fd_write =
-               try Unix.pipe () with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-            let read = Lm_channel.create "<readpipe>" Lm_channel.PipeChannel InChannel false (Some fd_read) in
-            let write = Lm_channel.create "<writepipe>" Lm_channel.PipeChannel OutChannel false (Some fd_write) in
-            let fd_read = ValChannel (InChannel, venv_add_channel venv read) in
-            let fd_write = ValChannel (OutChannel, venv_add_channel venv write) in
-            let obj = venv_find_object_or_empty venv pipe_object_var in
-            let obj = venv_add_field_internal obj read_sym fd_read in
-            let obj = venv_add_field_internal obj write_sym fd_write in
-               ValObject obj
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
+  let pos = string_pos "pipe" pos in
+  match args with
+    [] ->
+    let fd_read, fd_write =
+      try Unix.pipe () with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let read = Lm_channel.create "<readpipe>" Lm_channel.PipeChannel InChannel false (Some fd_read) in
+    let write = Lm_channel.create "<writepipe>" Lm_channel.PipeChannel OutChannel false (Some fd_write) in
+    let fd_read = Omake_value_type.ValChannel (InChannel, Omake_env.venv_add_channel venv read) in
+    let fd_write = Omake_value_type.ValChannel (OutChannel, Omake_env.venv_add_channel venv write) in
+    let obj = Omake_env.venv_find_object_or_empty venv Omake_var.pipe_object_var in
+    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.read_sym fd_read in
+    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.write_sym fd_write in
+    Omake_value_type.ValObject obj
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
 
 (*
  * \begin{doc}
@@ -751,22 +738,22 @@ let pipe venv pos loc args =
  * \end{doc}
  *)
 let mkfifo venv pos loc args =
-   let pos = string_pos "mkfifo" pos in
-      match args with
-         [mode; nodes] ->
-            let mode = int_of_value venv pos mode in
-            let nodes = values_of_value venv pos nodes in
-            let () =
-               try
-                  List.iter (fun node ->
-                        Unix.mkfifo (filename_of_value venv pos node) mode) nodes
-               with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "mkfifo" pos in
+  match args with
+  | [mode; nodes] ->
+    let mode = Omake_value.int_of_value venv pos mode in
+    let nodes = Omake_value.values_of_value venv pos nodes in
+    let () =
+      try
+        List.iter (fun node ->
+          Unix.mkfifo (Omake_value.filename_of_value venv pos node) mode) nodes
+      with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -797,38 +784,38 @@ let mkfifo venv pos loc args =
  * \end{doc}
  *)
 let select venv pos loc args =
-   let pos = string_pos "select" pos in
-      match args with
-         [rfd; wfd; efd; timeout] ->
-            let rfd = values_of_value venv pos rfd in
-            let wfd = values_of_value venv pos wfd in
-            let efd = values_of_value venv pos efd in
-            let rfd = List.map (channel_of_value venv pos) rfd in
-            let wfd = List.map (channel_of_value venv pos) wfd in
-            let efd = List.map (channel_of_value venv pos) efd in
-            let timeout = float_of_value venv pos timeout in
-            let rfd, wfd, efd =
-               try Lm_channel.select rfd wfd efd timeout with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-            let reintern_channel fdl =
-               List.map (fun fd ->
-                     let fd = venv_find_channel_by_channel venv pos fd in
-                     let channel = venv_find_channel venv pos fd in
-                     let _, _, mode, _ = Lm_channel.info channel in
-                        ValChannel (mode, fd)) fdl
-            in
-            let rfd = reintern_channel rfd in
-            let wfd = reintern_channel wfd in
-            let efd = reintern_channel efd in
-            let obj = venv_find_object_or_empty venv select_object_var in
-            let obj = venv_add_field_internal obj read_sym  (ValArray rfd) in
-            let obj = venv_add_field_internal obj write_sym (ValArray wfd) in
-            let obj = venv_add_field_internal obj error_sym (ValArray efd) in
-               ValObject obj
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 4, List.length args)))
+  let pos = string_pos "select" pos in
+  match args with
+  | [rfd; wfd; efd; timeout] ->
+    let rfd = Omake_value.values_of_value venv pos rfd in
+    let wfd = Omake_value.values_of_value venv pos wfd in
+    let efd = Omake_value.values_of_value venv pos efd in
+    let rfd = List.map (Omake_value.channel_of_value venv pos) rfd in
+    let wfd = List.map (Omake_value.channel_of_value venv pos) wfd in
+    let efd = List.map (Omake_value.channel_of_value venv pos) efd in
+    let timeout = Omake_value.float_of_value venv pos timeout in
+    let rfd, wfd, efd =
+      try Lm_channel.select rfd wfd efd timeout with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let reintern_channel fdl =
+      List.map (fun fd ->
+        let fd = Omake_env.venv_find_channel_by_channel venv pos fd in
+        let channel = Omake_env.venv_find_channel venv pos fd in
+        let _, _, mode, _ = Lm_channel.info channel in
+        Omake_value_type.ValChannel (mode, fd)) fdl
+    in
+    let rfd = reintern_channel rfd in
+    let wfd = reintern_channel wfd in
+    let efd = reintern_channel efd in
+    let obj = Omake_env.venv_find_object_or_empty venv Omake_var.select_object_var in
+    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.read_sym  (ValArray rfd) in
+    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.write_sym (ValArray wfd) in
+    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.error_sym (ValArray efd) in
+    Omake_value_type.ValObject obj
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 4, List.length args)))
 
 (*
  * \begin{doc}
@@ -858,46 +845,46 @@ let select venv pos loc args =
  * \end{doc}
  *)
 let lockf venv pos loc args =
-   let pos = string_pos "lockf" pos in
-      match args with
-         [channel; command; len] ->
-            let channel = channel_of_value venv pos channel in
-            let command = string_of_value venv pos command in
-            let len = int_of_value venv pos len in
-            let command =
-               match command with
-                  "F_ULOCK" -> Unix.F_ULOCK
-                | "F_LOCK"  -> Unix.F_LOCK
-                | "F_TLOCK" -> Unix.F_TLOCK
-                | "F_TEST"  -> Unix.F_TEST
-                | "F_RLOCK" -> Unix.F_RLOCK
-                | "F_TRLOCK" -> Unix.F_TRLOCK
-                | _ ->
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("lockf: illegal command", command)))
-            in
-            let fd = Lm_channel.descr channel in
-            let () =
-               try Unix.lockf fd command len with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  let pos = string_pos "lockf" pos in
+  match args with
+    [channel; command; len] ->
+    let channel = Omake_value.channel_of_value venv pos channel in
+    let command = Omake_value.string_of_value venv pos command in
+    let len = Omake_value.int_of_value venv pos len in
+    let command =
+      match command with
+      | "F_ULOCK" -> Unix.F_ULOCK
+      | "F_LOCK"  -> Unix.F_LOCK
+      | "F_TLOCK" -> Unix.F_TLOCK
+      | "F_TEST"  -> Unix.F_TEST
+      | "F_RLOCK" -> Unix.F_RLOCK
+      | "F_TRLOCK" -> Unix.F_TRLOCK
+      | _ ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("lockf: illegal command", command)))
+    in
+    let fd = Lm_channel.descr channel in
+    let () =
+      try Unix.lockf fd command len with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (************************************************************************
  * Databases.
- *)
+*)
 
 let addr_of_value venv pos arg =
-   let host = string_of_value venv pos arg in
+   let host = Omake_value.string_of_value venv pos arg in
       try Unix.inet_addr_of_string host with
          Failure _ ->
             let entry = Unix.gethostbyname host in
                entry.Unix.h_addr_list.(0)
 
 let proto_of_value venv pos arg =
-   let proto = string_of_value venv pos arg in
+   let proto = Omake_value.string_of_value venv pos arg in
       try Unix.getprotobynumber (int_of_string proto) with
          Failure _ ->
             Unix.getprotobyname proto
@@ -944,11 +931,11 @@ let gethostbyname venv pos loc args =
    let pos = string_pos "gethostbyname" pos in
       match args with
          [arg] ->
-            let args = values_of_value venv pos arg in
+            let args = Omake_value.values_of_value venv pos arg in
             let args =
                try
                   List.map (fun arg ->
-                        let host = string_of_value venv pos arg in
+                        let host = Omake_value.string_of_value venv pos arg in
                         let entry =
                            try
                               let addr = Unix.inet_addr_of_string host in
@@ -961,11 +948,11 @@ let gethostbyname venv pos loc args =
                with
                   Not_found
                 | Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
+                     raise (Omake_value_type.UncaughtException (pos, exn))
             in
-               concat_array args
+               Omake_value.concat_array args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -997,11 +984,11 @@ let getprotobyname venv pos loc args =
    let pos = string_pos "getprotobyname" pos in
       match args with
          [arg] ->
-            let args = values_of_value venv pos arg in
+            let args = Omake_value.values_of_value venv pos arg in
             let args =
                try
                   List.map (fun arg ->
-                        let proto = string_of_value venv pos arg in
+                        let proto = Omake_value.string_of_value venv pos arg in
                         let entry =
                            try Unix.getprotobynumber (int_of_string proto) with
                               Failure _ ->
@@ -1011,11 +998,11 @@ let getprotobyname venv pos loc args =
                with
                   Not_found
                 | Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
+                     raise (Omake_value_type.UncaughtException (pos, exn))
             in
-               concat_array args
+               Omake_value.concat_array args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1047,11 +1034,11 @@ let getprotobyname venv pos loc args =
    let pos = string_pos "getprotobyname" pos in
       match args with
          [arg] ->
-            let args = values_of_value venv pos arg in
+            let args = Omake_value.values_of_value venv pos arg in
             let args =
                try
                   List.map (fun arg ->
-                        let proto = string_of_value venv pos arg in
+                        let proto = Omake_value.string_of_value venv pos arg in
                         let entry =
                            try Unix.getservbyprt (int_of_string proto) with
                               Failure _ ->
@@ -1061,11 +1048,11 @@ let getprotobyname venv pos loc args =
                with
                   Not_found
                 | Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
+                     raise (Omake_value_type.UncaughtException (pos, exn))
             in
-               concat_array args
+               Omake_value.concat_array args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 *)
 
 (*
@@ -1104,55 +1091,55 @@ let getprotobyname venv pos loc args =
  * \end{doc}
  *)
 let socket venv pos loc args =
-   let pos = string_pos "socket" pos in
-      match args with
-         [domain; ty; proto] ->
-            let domain =
-               match String.uppercase (string_of_value venv pos domain) with
-                  "PF_UNIX"
-                | "UNIX" ->
-                     Unix.PF_UNIX
-                | "PF_INET"
-                | "INET"
-                | "IP" ->
-                     Unix.PF_INET
+  let pos = string_pos "socket" pos in
+  match args with
+  | [domain; ty; proto] ->
+    let domain =
+      match String.uppercase (Omake_value.string_of_value venv pos domain) with
+        "PF_UNIX"
+      | "UNIX" ->
+        Unix.PF_UNIX
+      | "PF_INET"
+      | "INET"
+      | "IP" ->
+        Unix.PF_INET
 
-                  (* If you are compiling with OCaml-3.07 or earlier, comment out these lines *)
-                | "PF_INET6"
-                | "INET6"
-                | "IP6" ->
-                     Unix.PF_INET6
-                | domain ->
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("bad domain", domain)))
-            in
-            let ty =
-               match String.uppercase (string_of_value venv pos ty) with
-                  "SOCK_STREAM"
-                | "STREAM" ->
-                     Unix.SOCK_STREAM
-                | "SOCK_DGRAM"
-                | "DGRAM" ->
-                     Unix.SOCK_DGRAM
-                | "SOCK_RAW"
-                | "RAW" ->
-                     Unix.SOCK_RAW
-                | "SOCK_SEQPACKET"
-                | "SEQPACKET" ->
-                     Unix.SOCK_SEQPACKET
-                | ty ->
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("bad type", ty)))
-            in
-            let proto = proto_of_value venv pos proto in
-            let socket =
-               try Unix.socket domain ty proto.Unix.p_proto with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-            let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
-            let channel = venv_add_channel venv channel in
-               ValChannel (InOutChannel, channel)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+      (* If you are compiling with OCaml-3.07 or earlier, comment out these lines *)
+      | "PF_INET6"
+      | "INET6"
+      | "IP6" ->
+        Unix.PF_INET6
+      | domain ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("bad domain", domain)))
+    in
+    let ty =
+      match String.uppercase (Omake_value.string_of_value venv pos ty) with
+        "SOCK_STREAM"
+      | "STREAM" ->
+        Unix.SOCK_STREAM
+      | "SOCK_DGRAM"
+      | "DGRAM" ->
+        Unix.SOCK_DGRAM
+      | "SOCK_RAW"
+      | "RAW" ->
+        Unix.SOCK_RAW
+      | "SOCK_SEQPACKET"
+      | "SEQPACKET" ->
+        Unix.SOCK_SEQPACKET
+      | ty ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("bad type", ty)))
+    in
+    let proto = proto_of_value venv pos proto in
+    let socket =
+      try Unix.socket domain ty proto.Unix.p_proto with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
+    let channel = Omake_env.venv_add_channel venv channel in
+    Omake_value_type.ValChannel (InOutChannel, channel)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
 
 (*
  * \begin{doc}
@@ -1179,29 +1166,29 @@ let socket venv pos loc args =
  * \end{doc}
  *)
 let bind venv pos loc args =
-   let pos = string_pos "bind" pos in
-   let socket, addr =
-      match args with
-         [socket; host; port] ->
-            let host = addr_of_value venv pos host in
-            let port = int_of_value venv pos port in
-            let addr = Unix.ADDR_INET (host, port) in
-               socket, addr
-       | [socket; name] ->
-            let name = filename_of_value venv pos name in
-            let addr = Unix.ADDR_UNIX name in
-               socket, addr
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
-   in
-   let socket = channel_of_value venv pos socket in
-   let socket = Lm_channel.descr socket in
-   let () =
-      try Unix.bind socket addr with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "bind" pos in
+  let socket, addr =
+    match args with
+      [socket; host; port] ->
+      let host = addr_of_value venv pos host in
+      let port = Omake_value.int_of_value venv pos port in
+      let addr = Unix.ADDR_INET (host, port) in
+      socket, addr
+    | [socket; name] ->
+      let name = Omake_value.filename_of_value venv pos name in
+      let addr = Unix.ADDR_UNIX name in
+      socket, addr
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+  in
+  let socket = Omake_value.channel_of_value venv pos socket in
+  let socket = Lm_channel.descr socket in
+  let () =
+    try Unix.bind socket addr with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValNone
 
 (*
  * \begin{doc}
@@ -1219,20 +1206,20 @@ let bind venv pos loc args =
  * \end{doc}
  *)
 let listen venv pos loc args =
-   let pos = string_pos "listen" pos in
-      match args with
-         [socket; requests] ->
-            let socket = channel_of_value venv pos socket in
-            let socket = Lm_channel.descr socket in
-            let requests = int_of_value venv pos requests in
-            let () =
-               try Unix.listen socket requests with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  let pos = string_pos "listen" pos in
+  match args with
+    [socket; requests] ->
+    let socket = Omake_value.channel_of_value venv pos socket in
+    let socket = Lm_channel.descr socket in
+    let requests = Omake_value.int_of_value venv pos requests in
+    let () =
+      try Unix.listen socket requests with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
  * \begin{doc}
@@ -1248,21 +1235,21 @@ let listen venv pos loc args =
  * \end{doc}
  *)
 let accept venv pos loc args =
-   let pos = string_pos "accept" pos in
-      match args with
-         [socket] ->
-            let socket = channel_of_value venv pos socket in
-            let socket = Lm_channel.descr socket in
-            let socket, _ =
-               try Unix.accept socket with
-                  Unix.Unix_error _ as exn ->
-                     raise (UncaughtException (pos, exn))
-            in
-            let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
-            let channel = venv_add_channel venv channel in
-               ValChannel (InOutChannel, channel)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "accept" pos in
+  match args with
+  | [socket] ->
+    let socket = Omake_value.channel_of_value venv pos socket in
+    let socket = Lm_channel.descr socket in
+    let socket, _ =
+      try Unix.accept socket with
+        Unix.Unix_error _ as exn ->
+        raise (Omake_value_type.UncaughtException (pos, exn))
+    in
+    let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
+    let channel = Omake_env.venv_add_channel venv channel in
+    Omake_value_type.ValChannel (InOutChannel, channel)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1291,33 +1278,33 @@ let accept venv pos loc args =
  * \end{doc}
  *)
 let connect venv pos loc args =
-   let pos = string_pos "connect" pos in
-   let socket, addr =
-      match args with
-         [socket; host; port] ->
-            let host = addr_of_value venv pos host in
-            let port = int_of_value venv pos port in
-            let addr = Unix.ADDR_INET (host, port) in
-               socket, addr
-       | [socket; name] ->
-            let name = filename_of_value venv pos name in
-            let addr = Unix.ADDR_UNIX name in
-               socket, addr
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
-   in
-   let socket = channel_of_value venv pos socket in
-   let socket = Lm_channel.descr socket in
-   let () =
-      try Unix.connect socket addr with
-         Unix.Unix_error _ as exn ->
-            raise (UncaughtException (pos, exn))
-   in
-      ValNone
+  let pos = string_pos "connect" pos in
+  let socket, addr =
+    match args with
+      [socket; host; port] ->
+      let host = addr_of_value venv pos host in
+      let port = Omake_value.int_of_value venv pos port in
+      let addr = Unix.ADDR_INET (host, port) in
+      socket, addr
+    | [socket; name] ->
+      let name = Omake_value.filename_of_value venv pos name in
+      let addr = Unix.ADDR_UNIX name in
+      socket, addr
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+  in
+  let socket = Omake_value.channel_of_value venv pos socket in
+  let socket = Lm_channel.descr socket in
+  let () =
+    try Unix.connect socket addr with
+      Unix.Unix_error _ as exn ->
+      raise (Omake_value_type.UncaughtException (pos, exn))
+  in
+  Omake_value_type.ValNone
 
 (************************************************************************
  * Buffered IO.
- *)
+*)
 
 (*
  * Get the next character.
@@ -1338,26 +1325,26 @@ let connect venv pos loc args =
  * \end{doc}
  *)
 let getc venv pos loc args =
-   let pos = string_pos "getc" pos in
-   let arg =
-      match args with
-         [] ->
-            venv_find_var venv pos loc stdin_var
-       | [arg] ->
-            arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
-   in
-   let inp, close_flag = in_channel_of_any_value venv pos arg in
-   let inx = venv_find_channel venv pos inp in
-   let s =
-      try String.make 1 (Lm_channel.input_char inx) with
-         End_of_file ->
-            "false"
-   in
-      if close_flag then
-         venv_close_channel venv pos inp;
-      ValData s
+  let pos = string_pos "getc" pos in
+  let arg =
+    match args with
+    |[] ->
+      Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
+    | [arg] ->
+      arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+  in
+  let inp, close_flag = Omake_value.in_channel_of_any_value venv pos arg in
+  let inx = Omake_env.venv_find_channel venv pos inp in
+  let s =
+    try String.make 1 (Lm_channel.input_char inx) with
+      End_of_file ->
+      "false"
+  in
+  if close_flag then
+    Omake_env.venv_close_channel venv pos inp;
+  Omake_value_type.ValData s
 
 
 (*
@@ -1379,26 +1366,26 @@ let getc venv pos loc args =
  * \end{doc}
  *)
 let gets venv pos loc args =
-   let pos = string_pos "gets" pos in
-   let arg =
-      match args with
-         [] ->
-            venv_find_var venv pos loc stdin_var
-       | [arg] ->
-            arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
-   in
-   let inp, close_flag = in_channel_of_any_value venv pos arg in
-   let inx = venv_find_channel venv pos inp in
-   let s =
-      try Lm_channel.input_line inx with
-         End_of_file ->
-            ""
-   in
-      if close_flag then
-         venv_close_channel venv pos inp;
-      ValString s
+  let pos = string_pos "gets" pos in
+  let arg =
+    match args with
+    |[] ->
+      Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
+    | [arg] ->
+      arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+  in
+  let inp, close_flag = Omake_value.in_channel_of_any_value venv pos arg in
+  let inx = Omake_env.venv_find_channel venv pos inp in
+  let s =
+    try Lm_channel.input_line inx with
+      End_of_file ->
+      ""
+  in
+  if close_flag then
+    Omake_env.venv_close_channel venv pos inp;
+  Omake_value_type.ValString s
 
 (*
  * Get the next line.
@@ -1420,26 +1407,26 @@ let gets venv pos loc args =
  * \end{doc}
  *)
 let fgets venv pos loc args =
-   let pos = string_pos "fgets" pos in
-   let arg =
-      match args with
-         [] ->
-            venv_find_var venv pos loc stdin_var
-       | [arg] ->
-            arg
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
-   in
-   let inp, close_flag = in_channel_of_any_value venv pos arg in
-   let inx = venv_find_channel venv pos inp in
-   let s =
-      try Lm_channel.input_entire_line inx with
-         End_of_file ->
-            ""
-   in
-      if close_flag then
-         venv_close_channel venv pos inp;
-      ValData s
+  let pos = string_pos "fgets" pos in
+  let arg =
+    match args with
+      [] ->
+      Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
+    | [arg] ->
+      arg
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+  in
+  let inp, close_flag = Omake_value.in_channel_of_any_value venv pos arg in
+  let inx = Omake_env.venv_find_channel venv pos inp in
+  let s =
+    try Lm_channel.input_entire_line inx with
+      End_of_file ->
+      ""
+  in
+  if close_flag then
+    Omake_env.venv_close_channel venv pos inp;
+  Omake_value_type.ValData s
 
 (*
  * \begin{doc}
@@ -1470,19 +1457,19 @@ let fgets venv pos loc args =
  * \end{doc}
  *)
 let print_aux venv pos loc nl args =
-   match args with
-      [fd; s] ->
-         let outp, close_flag = out_channel_of_any_value venv pos fd in
-         let outx = venv_find_channel venv pos outp in
-         let s = string_of_value venv pos s in
-            Lm_channel.output_string outx s;
-            Lm_channel.output_string outx nl;
-            Lm_channel.flush outx;
-            if close_flag then
-               venv_close_channel venv pos outp;
-            ValNone
-    | _ ->
-         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  match args with
+  | [fd; s] ->
+    let outp, close_flag = Omake_value.out_channel_of_any_value venv pos fd in
+    let outx = Omake_env.venv_find_channel venv pos outp in
+    let s = Omake_value.string_of_value venv pos s in
+    Lm_channel.output_string outx s;
+    Lm_channel.output_string outx nl;
+    Lm_channel.flush outx;
+    if close_flag then
+      Omake_env.venv_close_channel venv pos outp;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let fprint venv pos loc args =
    let pos = string_pos "fprint" pos in
@@ -1490,12 +1477,12 @@ let fprint venv pos loc args =
 
 let print venv pos loc args =
    let pos = string_pos "print" pos in
-   let stdout_fd = venv_find_var venv pos loc stdout_var in
+   let stdout_fd = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
       fprint venv pos loc (stdout_fd :: args)
 
 let eprint venv pos loc args =
    let pos = string_pos "eprint" pos in
-   let stderr_fd = venv_find_var venv pos loc stderr_var in
+   let stderr_fd = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
       fprint venv pos loc (stderr_fd :: args)
 
 let fprintln venv pos loc args =
@@ -1504,12 +1491,12 @@ let fprintln venv pos loc args =
 
 let println venv pos loc args =
    let pos = string_pos "println" pos in
-   let stdout_fd = venv_find_var venv pos loc stdout_var in
+   let stdout_fd = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
      fprintln venv pos loc (stdout_fd :: args)
 
 let eprintln venv pos loc args =
    let pos = string_pos "eprintln" pos in
-   let stderr_fd = venv_find_var venv pos loc stderr_var in
+   let stderr_fd = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
       fprintln venv pos loc (stderr_fd :: args)
 
 (*
@@ -1541,22 +1528,22 @@ let eprintln venv pos loc args =
  * \end{doc}
  *)
 let printv_aux venv pos loc nl args =
-   match args with
-      [fd; s] ->
-         let outp, close_flag = out_channel_of_any_value venv pos fd in
-         let outx = venv_find_channel venv pos outp in
-         let s =
-            pp_print_value stdstr s;
-            flush_stdstr ()
-         in
-            Lm_channel.output_string outx s;
-            Lm_channel.output_string outx nl;
-            Lm_channel.flush outx;
-            if close_flag then
-               venv_close_channel venv pos outp;
-            ValNone
-    | _ ->
-         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+  match args with
+    [fd; s] ->
+    let outp, close_flag = Omake_value.out_channel_of_any_value venv pos fd in
+    let outx = Omake_env.venv_find_channel venv pos outp in
+    let s =
+      Omake_value_print.pp_print_value Lm_printf.stdstr s;
+      Lm_printf.flush_stdstr ()
+    in
+    Lm_channel.output_string outx s;
+    Lm_channel.output_string outx nl;
+    Lm_channel.flush outx;
+    if close_flag then
+      Omake_env.venv_close_channel venv pos outp;
+    Omake_value_type.ValNone
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let fprintv venv pos loc args =
    let pos = string_pos "fprintv" pos in
@@ -1564,12 +1551,12 @@ let fprintv venv pos loc args =
 
 let printv venv pos loc args =
    let pos = string_pos "printv" pos in
-   let stdout_fd = venv_find_var venv pos loc stdout_var in
+   let stdout_fd = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
       fprintv venv pos loc (stdout_fd :: args)
 
 let eprintv venv pos loc args =
    let pos = string_pos "eprintv" pos in
-   let stderr_fd = venv_find_var venv pos loc stderr_var in
+   let stderr_fd = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
       fprintv venv pos loc (stderr_fd :: args)
 
 let fprintvln venv pos loc args =
@@ -1578,12 +1565,12 @@ let fprintvln venv pos loc args =
 
 let printvln venv pos loc args =
    let pos = string_pos "printvln" pos in
-   let stdout_fd = venv_find_var venv pos loc stdout_var in
+   let stdout_fd = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
      fprintvln venv pos loc (stdout_fd :: args)
 
 let eprintvln venv pos loc args =
    let pos = string_pos "eprintvln" pos in
-   let stderr_fd = venv_find_var venv pos loc stderr_var in
+   let stderr_fd = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
       fprintvln venv pos loc (stderr_fd :: args)
 
 (************************************************************************
@@ -1591,214 +1578,214 @@ let eprintvln venv pos loc args =
  *)
 module Args =
 struct
-   type t =
-      { print_venv    : venv;
-        print_pos     : pos;
-        print_loc     : loc;
-        print_fmt     : Format.formatter;
-        print_fd      : prim_channel;
-        print_channel : Lm_channel.t
-      }
+  type t =
+    { print_venv    : Omake_env.venv;
+      print_pos     : Omake_value_type.pos;
+      print_loc     : Lm_location.loc;
+      print_fmt     : Format.formatter;
+      print_fd      : Omake_value_type.prim_channel;
+      print_channel : Lm_channel.t
+    }
 
-   type value = Omake_value_type.value
+  type value = Omake_value_type.value
 
-   (*
+  (*
     * Create the buffers and channels.
     *)
-   let create_channel venv pos loc channel =
-      let fmt = Format.make_formatter (Lm_channel.output_buffer channel) (fun () -> Lm_channel.flush channel) in
-      let fd = venv_add_formatter_channel venv fmt in
-      let channel = venv_find_channel venv pos fd in
-         { print_venv    = venv;
-           print_pos     = pos;
-           print_loc     = loc;
-           print_fmt     = fmt;
-           print_fd      = fd;
-           print_channel = channel
-         }
+  let create_channel venv pos loc channel =
+    let fmt = Format.make_formatter (Lm_channel.output_buffer channel) (fun () -> Lm_channel.flush channel) in
+    let fd = Omake_env.venv_add_formatter_channel venv fmt in
+    let channel = Omake_env.venv_find_channel venv pos fd in
+    { print_venv    = venv;
+      print_pos     = pos;
+      print_loc     = loc;
+      print_fmt     = fmt;
+      print_fd      = fd;
+      print_channel = channel
+    }
 
-   let create_buffer venv pos loc buf =
-      let fmt = Format.formatter_of_buffer buf in
-      let fd = venv_add_formatter_channel venv fmt in
-      let channel = venv_find_channel venv pos fd in
-         { print_venv    = venv;
-           print_pos     = pos;
-           print_loc     = loc;
-           print_fmt     = fmt;
-           print_fd      = fd;
-           print_channel = channel
-         }
+  let create_buffer venv pos loc buf =
+    let fmt = Format.formatter_of_buffer buf in
+    let fd = Omake_env.venv_add_formatter_channel venv fmt in
+    let channel = Omake_env.venv_find_channel venv pos fd in
+    { print_venv    = venv;
+      print_pos     = pos;
+      print_loc     = loc;
+      print_fmt     = fmt;
+      print_fd      = fd;
+      print_channel = channel
+    }
 
-   (*
+  (*
     * When done, close the channels, and get the string.
     *)
-   let close info =
-      let { print_fd = fd;
-            print_venv = venv;
-            print_pos = pos;
-            print_fmt = fmt;
-            _
-          } = info
-      in
-         venv_close_channel venv pos fd;
-         Format.pp_print_flush fmt ()
+  let close info =
+    let { print_fd = fd;
+          print_venv = venv;
+          print_pos = pos;
+          print_fmt = fmt;
+          _
+        } = info
+    in
+    Omake_env.venv_close_channel venv pos fd;
+    Format.pp_print_flush fmt ()
 
-   (*
+  (*
     * The printers.
     *)
-   let print_char info c =
-      Lm_channel.output_char info.print_channel c
+  let print_char info c =
+    Lm_channel.output_char info.print_channel c
 
-   let print_string info s =
-      Lm_channel.output_string info.print_channel s
+  let print_string info s =
+    Lm_channel.output_string info.print_channel s
 
-   (*
+  (*
     * Formatter flushes the buffer.
     *)
-   let flush info =
-      Lm_channel.flush info.print_channel
+  let flush info =
+    Lm_channel.flush info.print_channel
 
-   let open_box info i =
-      flush info;
-      Format.pp_open_box info.print_fmt i
+  let open_box info i =
+    flush info;
+    Format.pp_open_box info.print_fmt i
 
-   let open_hbox info =
-      flush info;
-      Format.pp_open_hbox info.print_fmt ()
+  let open_hbox info =
+    flush info;
+    Format.pp_open_hbox info.print_fmt ()
 
-   let open_vbox info i =
-      flush info;
-      Format.pp_open_vbox info.print_fmt i
+  let open_vbox info i =
+    flush info;
+    Format.pp_open_vbox info.print_fmt i
 
-   let open_hvbox info i =
-      flush info;
-      Format.pp_open_hvbox info.print_fmt i
+  let open_hvbox info i =
+    flush info;
+    Format.pp_open_hvbox info.print_fmt i
 
-   let open_hovbox info i =
-      flush info;
-      Format.pp_open_hovbox info.print_fmt i
+  let open_hovbox info i =
+    flush info;
+    Format.pp_open_hovbox info.print_fmt i
 
-   let close_box info =
-      flush info;
-      Format.pp_close_box info.print_fmt ()
+  let close_box info =
+    flush info;
+    Format.pp_close_box info.print_fmt ()
 
-   let print_cut info =
-      flush info;
-      Format.pp_close_box info.print_fmt ()
+  let print_cut info =
+    flush info;
+    Format.pp_close_box info.print_fmt ()
 
-   let print_space info =
-      flush info;
-      Format.pp_print_space info.print_fmt ()
+  let print_space info =
+    flush info;
+    Format.pp_print_space info.print_fmt ()
 
-   let force_newline info =
-      flush info;
-      Format.pp_force_newline info.print_fmt ()
+  let force_newline info =
+    flush info;
+    Format.pp_force_newline info.print_fmt ()
 
-   let print_break info i j =
-      flush info;
-      Format.pp_print_break info.print_fmt i j
+  let print_break info i j =
+    flush info;
+    Format.pp_print_break info.print_fmt i j
 
-   let print_flush info =
-      flush info;
-      Format.pp_print_flush info.print_fmt ()
+  let print_flush info =
+    flush info;
+    Format.pp_print_flush info.print_fmt ()
 
-   let print_newline info =
-      flush info;
-      Format.pp_print_newline info.print_fmt ()
+  let print_newline info =
+    flush info;
+    Format.pp_print_newline info.print_fmt ()
 
-   (*
+  (*
     * Converters.
     *)
-   let bool_of_value info v =
-      let { print_venv = venv;
-            print_pos = pos;
-            _
-          } = info
-      in
-         bool_of_value venv pos v
+  let bool_of_value info v =
+    let { print_venv = venv;
+          print_pos = pos;
+          _
+        } = info
+    in
+    Omake_value.bool_of_value venv pos v
 
-   let char_of_value info v =
-      let { print_venv = venv;
-            print_pos = pos;
-            _
-          } = info
-      in
-      let s = string_of_value venv pos v in
-         if String.length s <> 1 then
-            raise (OmakeException (pos, StringStringError ("not a character", s)));
-         s.[0]
+  let char_of_value info v =
+    let { print_venv = venv;
+          print_pos = pos;
+          _
+        } = info
+    in
+    let s = Omake_value.string_of_value venv pos v in
+    if String.length s <> 1 then
+      raise (Omake_value_type.OmakeException (pos, StringStringError ("not a character", s)));
+    s.[0]
 
-   let int_of_value info v =
-      let { print_venv = venv;
-            print_pos = pos;
-            _
-          } = info
-      in
-         int_of_value venv pos v
+  let int_of_value info v =
+    let { print_venv = venv;
+          print_pos = pos;
+          _
+        } = info
+    in
+    Omake_value.int_of_value venv pos v
 
-   let float_of_value info v =
-      let { print_venv = venv;
-            print_pos = pos;
-            _
-          } = info
-      in
-         float_of_value venv pos v
+  let float_of_value info v =
+    let { print_venv = venv;
+          print_pos = pos;
+          _
+        } = info
+    in
+    Omake_value.float_of_value venv pos v
 
-   let string_of_value info v =
-      let { print_venv = venv;
-            print_pos = pos;
-            _
-          } = info
-      in
-         string_of_value venv pos v
+  let string_of_value info v =
+    let { print_venv = venv;
+          print_pos = pos;
+          _
+        } = info
+    in
+    Omake_value.string_of_value venv pos v
 
-   let print_value info v =
-      flush info;
-      pp_print_value (out_channel_of_formatter info.print_fmt) v
+  let print_value info v =
+    flush info;
+    Omake_value_print.pp_print_value (Lm_printf.out_channel_of_formatter info.print_fmt) v
 
-   (*
+  (*
     * Applications.
     *)
-   let apply1 info arg1 =
-      let { print_venv = venv;
-            print_pos = pos;
-            print_loc = loc;
-            print_fd = fd;
-            _
-          } = info
-      in
-         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd)] [])
+  let apply1 info arg1 =
+    let { print_venv = venv;
+          print_pos = pos;
+          print_loc = loc;
+          print_fd = fd;
+          _
+        } = info
+    in
+    ignore (Omake_eval.eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd)] [])
 
-   let apply2 info arg1 arg2 =
-      let { print_venv = venv;
-            print_pos = pos;
-            print_loc = loc;
-            print_fd = fd;
-            _
-          } = info
-      in
-         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd); arg2] [])
+  let apply2 info arg1 arg2 =
+    let { print_venv = venv;
+          print_pos = pos;
+          print_loc = loc;
+          print_fd = fd;
+          _
+        } = info
+    in
+    ignore (Omake_eval.eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd); arg2] [])
 
-   (*
+  (*
     * Catch too many arguments.
     *)
-   let exit info args =
-      match args with
-         [] ->
-            ValNone
-       | arg :: _ ->
-            let { 
-                  print_pos = pos;
-                  _
-                } = info
-            in
-               raise (OmakeException (pos, StringValueError ("too many arguments to printf", arg)))
+  let exit info args =
+    match args with
+      [] ->
+      Omake_value_type.ValNone
+    | arg :: _ ->
+      let { 
+        print_pos = pos;
+        _
+      } = info
+      in
+      raise (Omake_value_type.OmakeException (pos, StringValueError ("too many arguments to printf", arg)))
 end
 
-module Printf = MakePrintf (Args);;
+module Printf = Omake_printf.MakePrintf (Args);;
 
 let fprintf_aux venv pos loc channel fmt args =
-   let fmt = string_of_value venv pos fmt in
+   let fmt = Omake_value.string_of_value venv pos fmt in
    let buf = Args.create_channel venv pos loc channel in
    let result =
       try Printf.fprintf buf fmt args with
@@ -1813,48 +1800,48 @@ let printf_fun venv pos loc args =
    let pos = string_pos "printf" pos in
       match args with
          fmt :: args ->
-            let stdout = venv_find_var venv pos loc stdout_var in
-            let stdout = channel_of_value venv pos stdout in
+            let stdout = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
+            let stdout = Omake_value.channel_of_value venv pos stdout in
                fprintf_aux venv pos loc stdout fmt args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let eprintf_fun venv pos loc args =
    let pos = string_pos "eprintf" pos in
       match args with
          fmt :: args ->
-            let stderr = venv_find_var venv pos loc stderr_var in
-            let stderr = channel_of_value venv pos stderr in
+            let stderr = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
+            let stderr = Omake_value.channel_of_value venv pos stderr in
                fprintf_aux venv pos loc stderr fmt args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let fprintf_fun venv pos loc args =
    let pos = string_pos "fprintf" pos in
       match args with
          fd :: fmt :: args ->
-            let channel = channel_of_value venv pos fd in
+            let channel = Omake_value.channel_of_value venv pos fd in
                fprintf_aux venv pos loc channel fmt args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 let sprintf_fun venv pos loc args =
-   let pos = string_pos "sprintf" pos in
-      match args with
-         fmt :: args ->
-            let fmt = string_of_value venv pos fmt in
-            let buf = Buffer.create 100 in
-            let info = Args.create_buffer venv pos loc buf in
-            let _ =
-               try Printf.fprintf info fmt args with
-                  exn ->
-                     Args.close info;
-                     raise exn
-            in
-               Args.close info;
-               ValData (Buffer.contents buf)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  let pos = string_pos "sprintf" pos in
+  match args with
+  |fmt :: args ->
+    let fmt = Omake_value.string_of_value venv pos fmt in
+    let buf = Buffer.create 100 in
+    let info = Args.create_buffer venv pos loc buf in
+    let _ =
+      try Printf.fprintf info fmt args with
+        exn ->
+        Args.close info;
+        raise exn
+    in
+    Args.close info;
+    Omake_value_type.ValData (Buffer.contents buf)
+  | _ ->
+    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1872,33 +1859,33 @@ let sprintf_fun venv pos loc args =
  * \end{doc}
  *)
 let set_channel_line_fun venv pos loc args =
-   let pos = string_pos "set-channel-line" pos in
-   let chan, file, line =
-      match args with
-         [chan; file; line] ->
-            chan, file, line
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
-   in
-   let chan = channel_of_value venv pos chan in
-   let file = string_of_value venv pos file in
-   let line = int_of_value venv pos line in
-      Lm_channel.set_line chan file line;
-      ValNone
+  let pos = string_pos "set-channel-line" pos in
+  let chan, file, line =
+    match args with
+      [chan; file; line] ->
+      chan, file, line
+    | _ ->
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+  in
+  let chan = Omake_value.channel_of_value venv pos chan in
+  let file = Omake_value.string_of_value venv pos file in
+  let line = Omake_value.int_of_value venv pos line in
+  Lm_channel.set_line chan file line;
+  Omake_value_type.ValNone
 
 (************************************************************************
  * Tables.
- *)
+*)
 
 let () =
    let builtin_vars =
-      ["nl",     (fun _ -> ValString "\n");
-       "stdin",  (fun _ -> ValChannel (InChannel,  venv_stdin));
-       "stdout", (fun _ -> ValChannel (OutChannel, venv_stdout));
-       "stderr", (fun _ -> ValChannel (OutChannel, venv_stderr))]
+      ["nl",     (fun _ -> Omake_value_type.ValString "\n");
+       "stdin",  (fun _ -> ValChannel (InChannel,  Omake_env.venv_stdin));
+       "stdout", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stdout));
+       "stderr", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stderr))]
    in
    let builtin_funs =
-      [true, "open-in-string",        open_in_string,       ArityExact 1;
+      [true, "open-in-string",        open_in_string,       Omake_ir.ArityExact 1;
        true, "open-out-string",       open_out_string,      ArityExact 0;
        true, "out-contents",          out_contents,         ArityExact 1;
        true, "fopen",                 fopen,                ArityExact 2;
@@ -1946,11 +1933,11 @@ let () =
        true, "set-channel-line",      set_channel_line_fun, ArityExact 3]
    in
    let builtin_info =
-      { builtin_empty with builtin_vars = builtin_vars;
+      {Omake_builtin_type. builtin_empty with builtin_vars = builtin_vars;
                            builtin_funs = builtin_funs
       }
    in
-      register_builtin builtin_info
+      Omake_builtin.register_builtin builtin_info
 
 (*
  * -*-
