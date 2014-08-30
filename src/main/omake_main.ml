@@ -214,21 +214,16 @@ let main options =
   let () = Sys.catch_break true in
   let () =
     if Sys.os_type <> "Win32" then
-      Sys.set_signal Sys.sigpipe Sys.Signal_ignore
-  in
+      Sys.set_signal Sys.sigpipe Sys.Signal_ignore in
   let path = chroot () in
-  let path =
-    if Omake_options.opt_cd_root options then
-      "."
-    else
-      path
-  in
-  let targets =
-    match !targets with
-      [] -> [".DEFAULT"]
-    | l -> List.rev l
-  in
-  Omake_build.build options path targets;
+  Omake_build.build options 
+    (if Omake_options.opt_cd_root options then
+        "."
+      else
+        path)
+    (match !targets with
+    | [] -> [".DEFAULT"]
+    | l -> List.rev l)(* targets *);
   print_hash_stats ()
 
 (*
@@ -269,33 +264,32 @@ let _ =
     with
       Not_found
     | Lm_arg.UsageError ->
-        options
+      options
   in
   let options =
     try Lm_arg.fold spec options add_unknown header with
       Lm_arg.UsageError ->
-        exit 0
+      exit 0
     | Lm_arg.BogusArg (s) ->
-        Lm_arg.usage spec header;
-        Lm_printf.eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
-        exit 3
+      Lm_arg.usage spec header;
+      Lm_printf.eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
+      exit 3
   in
   Lm_thread_core.debug_mutex := !Lm_thread_pool.debug_thread;
   Lm_thread.debug_lock := !Lm_thread_pool.debug_thread;
   (* Run it *)
   match !server_flag with
-    Some cwd ->
-      main_remote cwd options
+  | Some cwd -> main_remote cwd options
   | None ->
-      if !shell_flag then
-        Omake_shell.shell options !command_string (List.rev !targets)
-      else if !install_flag then
-        if !install_subdirs then
-          Omake_install.install_subdirs !install_force
-        else
-          Omake_install.install_current !install_force
-      else if Omake_options.opt_allow_exceptions options then
-        main options
+    if !shell_flag then
+      Omake_shell.shell options !command_string (List.rev !targets)
+    else if !install_flag then
+      if !install_subdirs then
+        Omake_install.install_subdirs !install_force
       else
-        Omake_exn_print.catch main options
+        Omake_install.install_current !install_force
+    else if Omake_options.opt_allow_exceptions options then
+      main options
+    else
+      Omake_exn_print.catch main options
 

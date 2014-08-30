@@ -278,23 +278,23 @@ let omake_root buf name =
  * Main function.
  *)
 let main () =
-   Arg.parse spec anon usage;
-   let buf =
-      match !output_file with
-         Some name ->
-            open_out_bin name
-       | None ->
-            raise (Invalid_argument "use the -o option to specify an output file")
-   in
-      if !make_magic then
-         omake_magic buf
-      else
-         match !make_root with
-            Some name ->
-               omake_root buf name
-          | None ->
-               Arg.usage spec usage;
-               exit 2
+  Arg.parse spec anon usage;
+  let buf =
+    match !output_file with
+      Some name ->
+      open_out_bin name
+    | None ->
+      raise (Invalid_argument "use the -o option to specify an output file")
+  in
+  if !make_magic then
+    omake_magic buf
+  else
+    match !make_root with
+    | Some name ->
+      omake_root buf name
+    | None ->
+      Arg.usage spec usage;
+      exit 2
 
 let _ =
    Printexc.catch main ()

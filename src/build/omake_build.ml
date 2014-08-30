@@ -2933,10 +2933,8 @@ let rec notify_loop env options targets =
   print_stats env "done" start_time;
   notify_loop env options targets
 
-(*
- * Start the core build.
- *)
-let build_core (env : Omake_build_type.env) _ dir start_time options targets =
+(**  Start the core build. *)
+let build_core (env : Omake_build_type.env) dir start_time options targets =
   (* First, build all the included files *)
   let changed =
     if Omake_options.opt_dry_run options then
@@ -2973,28 +2971,20 @@ let build_core (env : Omake_build_type.env) _ dir start_time options targets =
       notify_loop env options targets;
   close env
 
-(*
- * Main builder.
- *)
+(**  Main builder. *)
 let rec build_time start_time venv_opt options dir_name targets =
   let env = load venv_opt options targets in
   let dir_name =
-    if Omake_options.opt_project options then
-      "."
-    else
-      dir_name
-  in
+    if Omake_options.opt_project options then "."
+    else dir_name  in
   let dir = Omake_node.Dir.chdir env.env_cwd dir_name in
 
   (* Monitor the full tree if polling *)
   let () =
     if Omake_options.opt_poll options then
-      let root = env.env_cwd in
-      try Omake_exec.Exec.monitor_tree env.env_exec root with
-        Failure _ ->
-        (* This is just an optimization anyway *)
-        ()
-  in
+      try Omake_exec.Exec.monitor_tree env.env_exec env.env_cwd with
+        Failure _ -> (* This is just an optimization anyway *)
+        () in
 
   (*
    * Check that this directory is actually a .SUBDIR.
@@ -3014,7 +3004,7 @@ let rec build_time start_time venv_opt options dir_name targets =
     save env;
     build_time start_time venv_opt options dir_name targets
   in
-  try build_core env dir_name dir start_time options targets with
+  try build_core env  dir start_time options targets with
     Restart reason ->
     restart reason
   | Sys.Break as exn ->
@@ -3046,6 +3036,5 @@ let build_fun venv targets =
     build_time (Unix.gettimeofday ()) (Some venv) options "." targets;
     true
   with
-    BuildExit _ ->
-    false
+    BuildExit _ -> false
 
