@@ -27,13 +27,13 @@ bootstrap: boot\Makefile.nt boot\Makefile.dep
 all: bootstrap .config
 	set OMAKEFLAGS=
 	set OMAKEPATH=lib
-	.\omake-boot --dotomake .omake --force-dotomake -j2 main src\main\osh.exe
-	src\main\omake --dotomake .omake --force-dotomake -j2 all
+	.\omake-boot --dotomake .omake --force-dotomake  main src\main\osh.exe
+	src\main\omake --dotomake .omake --force-dotomake  all
 
 install: all
 	set OMAKEFLAGS=
 	set OMAKEPATH=lib
-	.\omake-boot --dotomake .omake --force-dotomake -j2 install
+	.\omake-boot --dotomake .omake --force-dotomake  install
 
 aip-install: all
 	mkdir ..\omake-install
@@ -41,7 +41,7 @@ aip-install: all
 	set OMAKEPATH=lib
 	set BINDIR=../omake-install/bin
 	set LIBDIR=../omake-install/lib
-	.\omake-boot --dotomake .omake --force-dotomake -j2 install
+	.\omake-boot --dotomake .omake --force-dotomake  install
 
 boot\Makefile.nt: src\Makefile.nt
 	-mkdir boot
