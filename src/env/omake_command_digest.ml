@@ -5,53 +5,9 @@
  * This can be fairly expensive if the value is big.  The
  * current implementation is designed so that we can at least
  * compress the string a bit.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2005-2010 Mojave Group, California Insitute of Technology and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
  *)
-open Lm_printf
-open Lm_symbol
 
 
-
-
-open Omake_ir
-open Omake_env
-
-open Omake_node
-open Omake_shell_type
-open Omake_value_type
-open Omake_value_print
-open Omake_command_type
-
-(*
- * Codes.
- *)
 (* %%MAGICBEGIN%% *)
 type code =
    CodeApplyExp
@@ -210,7 +166,7 @@ end;;
  * Variable squashing.
  *)
 let squash_var buf v =
-   Hash.add_string buf (string_of_symbol v)
+   Hash.add_string buf (Lm_symbol.string_of_symbol v)
 
 let rec squash_vars buf vars =
    match vars with
@@ -224,13 +180,13 @@ let rec squash_vars buf vars =
          ()
 
 let squash_var_set buf vars =
-   SymbolSet.iter (fun v ->
+   Lm_symbol.SymbolSet.iter (fun v ->
          Hash.add_code buf CodeSpace;
          squash_var buf v) vars
 
 let squash_var_info buf v =
    match v with
-      VarPrivate (_, v) ->
+      Omake_ir.VarPrivate (_, v) ->
          Hash.add_code buf CodeVarPrivate;
          Hash.add_code buf CodeSpace;
          squash_var buf v
@@ -273,7 +229,7 @@ let squash_keyword_spec_list buf keywords =
  * File.
  *)
 let squash_node buf node =
-   Hash.add_string buf (Node.absname node)
+   Hash.add_string buf (Omake_node.Node.absname node)
 
 (*
  * String representations.
@@ -281,7 +237,7 @@ let squash_node buf node =
 let squash_var_scope buf scope =
    let code =
       match scope with
-         VarScopePrivate -> CodeVarScopePrivate
+         Omake_ir.VarScopePrivate -> CodeVarScopePrivate
        | VarScopeThis    -> CodeVarScopeThis
        | VarScopeVirtual -> CodeVarScopeVirtual
        | VarScopeGlobal  -> CodeVarScopeGlobal
@@ -291,7 +247,7 @@ let squash_var_scope buf scope =
 let squash_def_kind buf kind =
    let s =
       match kind with
-         VarDefNormal ->
+         Omake_ir.VarDefNormal ->
             CodeVarDefNormal
        | VarDefAppend ->
             CodeVarDefApply
@@ -332,7 +288,7 @@ let rec squash_string_exp pos buf e =
    Hash.add_code buf CodeBegin;
    begin
       match e with
-         NoneString _ ->
+         Omake_ir.NoneString _ ->
             Hash.add_code buf CodeNoneString
        | IntString (_, i) ->
             Hash.add_code buf CodeIntString;
@@ -497,7 +453,7 @@ and squash_exp pos buf e =
    Hash.add_code buf CodeBegin;
    begin
       match e with
-         LetVarExp (_, v, vl, def, s) ->
+         Omake_ir.LetVarExp (_, v, vl, def, s) ->
             Hash.add_code buf CodeLetVarExp;
             squash_var_info buf v;
             Hash.add_code buf CodeSpace;
@@ -647,214 +603,214 @@ and squash_if_cases pos buf cases =
  * Compute the digest of a value.
  *)
 let rec squash_value pos buf v =
-   Hash.add_code buf CodeBegin;
-   begin
-      match v with
-         ValNone ->
-            Hash.add_code buf CodeValNone;
-       | ValInt i ->
-            Hash.add_code buf CodeValInt;
-            Hash.add_int buf i
-       | ValFloat x ->
-            Hash.add_code buf CodeValFloat;
-            Hash.add_float buf x
-       | ValSequence vl ->
-            Hash.add_code buf CodeValSequence;
-            squash_values pos buf vl
-       | ValArray vl ->
-            Hash.add_code buf CodeValArray;
-            squash_values pos buf vl
-       | ValWhite s ->
-            Hash.add_code buf CodeValWhite;
-            Hash.add_string buf s
-       | ValString s ->
-            Hash.add_code buf CodeValString;
-            Hash.add_string buf s
-       | ValData s ->
-            Hash.add_code buf CodeValData;
-            Hash.add_string buf s
-       | ValQuote vl ->
-            Hash.add_code buf CodeValQuote;
-            squash_values pos buf vl
-       | ValQuoteString (c, vl) ->
-            Hash.add_code buf CodeValQuoteString;
-            Hash.add_char buf c;
-            squash_values pos buf vl
-       | ValMaybeApply (_, v) ->
-            Hash.add_code buf CodeValMaybeApply;
-            squash_var_info buf v
-       | ValFun (_, keywords, params, body, export) ->
-            Hash.add_code buf CodeValFun;
-            squash_keyword_param_values pos buf keywords;
-            Hash.add_code buf CodeSpace;
-            squash_params buf params;
-            Hash.add_code buf CodeArrow;
-            squash_exp_list pos buf body;
-            Hash.add_code buf CodeSpace;
-            squash_export_info buf export
-       | ValFunCurry (_, args, keywords, params, body, export, kargs) ->
-            Hash.add_code buf CodeValFunCurry;
-            squash_param_values pos buf args;
-            Hash.add_code buf CodeSpace;
-            squash_keyword_param_values pos buf keywords;
-            Hash.add_code buf CodeSpace;
-            squash_params buf params;
-            Hash.add_code buf CodeArrow;
-            squash_exp_list pos buf body;
-            Hash.add_code buf CodeSpace;
-            squash_export_info buf export;
-            squash_keyword_values pos buf kargs
-       | ValPrim (_, _, _, f) ->
-            Hash.add_code buf CodeValPrim;
-            squash_var buf (squash_prim_fun f)
-       | ValPrimCurry (_, _, f, args, kargs) ->
-            Hash.add_code buf CodeValPrimCurry;
-            squash_var buf (squash_prim_fun f);
-            Hash.add_code buf CodeSpace;
-            squash_values pos buf args;
-            squash_keyword_values pos buf kargs
-       | ValNode node ->
-            Hash.add_code buf CodeValNode;
-            Hash.add_string buf (Node.fullname node)
-       | ValDir dir ->
-            Hash.add_code buf CodeValDir;
-            Hash.add_string buf (Dir.fullname dir)
-       | ValStringExp (_, e) ->
-            Hash.add_code buf CodeValStringExp;
-            squash_string_exp pos buf e
-       | ValBody (e, export) ->
-            Hash.add_code buf CodeValBody;
-            squash_exp_list pos buf e;
-            Hash.add_code buf CodeSpace;
-            squash_export_info buf export
-       | ValObject obj ->
-            Hash.add_code buf CodeValObject;
-            squash_object pos buf obj
-       | ValMap obj ->
-            Hash.add_code buf CodeValMap;
-            squash_map pos buf obj
-       | ValCases cases ->
-            squash_cases pos buf cases
-       | ValVar (_, v) ->
-            Hash.add_code buf CodeValVar;
-            squash_var_info buf v;
-       | ValDelayed { contents = ValValue v } ->
-            squash_value pos buf v
-       | ValDelayed { contents = ValStaticApply (node, v) } ->
-            Hash.add_code buf CodeValStaticApply;
-            squash_value pos buf node;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v
-       | ValRules _
-       | ValChannel _
-       | ValClass _
-       | ValOther _ as v ->
-            let print_error buf =
-               fprintf buf "@[<v 3>Non digestable value:@ @[<hv 3>%a@]@ Contact the OMake team at omake@@metaprl.org if you think this should be supported@]@." pp_print_value v
-            in
-               raise (OmakeFatalErr (pos, LazyError print_error))
-   end;
-   Hash.add_code buf CodeEnd
+  Hash.add_code buf CodeBegin;
+  begin
+    match v with
+    |Omake_value_type.ValNone ->
+      Hash.add_code buf CodeValNone;
+    | ValInt i ->
+      Hash.add_code buf CodeValInt;
+      Hash.add_int buf i
+    | ValFloat x ->
+      Hash.add_code buf CodeValFloat;
+      Hash.add_float buf x
+    | ValSequence vl ->
+      Hash.add_code buf CodeValSequence;
+      squash_values pos buf vl
+    | ValArray vl ->
+      Hash.add_code buf CodeValArray;
+      squash_values pos buf vl
+    | ValWhite s ->
+      Hash.add_code buf CodeValWhite;
+      Hash.add_string buf s
+    | ValString s ->
+      Hash.add_code buf CodeValString;
+      Hash.add_string buf s
+    | ValData s ->
+      Hash.add_code buf CodeValData;
+      Hash.add_string buf s
+    | ValQuote vl ->
+      Hash.add_code buf CodeValQuote;
+      squash_values pos buf vl
+    | ValQuoteString (c, vl) ->
+      Hash.add_code buf CodeValQuoteString;
+      Hash.add_char buf c;
+      squash_values pos buf vl
+    | ValMaybeApply (_, v) ->
+      Hash.add_code buf CodeValMaybeApply;
+      squash_var_info buf v
+    | ValFun (_, keywords, params, body, export) ->
+      Hash.add_code buf CodeValFun;
+      squash_keyword_param_values pos buf keywords;
+      Hash.add_code buf CodeSpace;
+      squash_params buf params;
+      Hash.add_code buf CodeArrow;
+      squash_exp_list pos buf body;
+      Hash.add_code buf CodeSpace;
+      squash_export_info buf export
+    | ValFunCurry (_, args, keywords, params, body, export, kargs) ->
+      Hash.add_code buf CodeValFunCurry;
+      squash_param_values pos buf args;
+      Hash.add_code buf CodeSpace;
+      squash_keyword_param_values pos buf keywords;
+      Hash.add_code buf CodeSpace;
+      squash_params buf params;
+      Hash.add_code buf CodeArrow;
+      squash_exp_list pos buf body;
+      Hash.add_code buf CodeSpace;
+      squash_export_info buf export;
+      squash_keyword_values pos buf kargs
+    | ValPrim (_, _, _, f) ->
+      Hash.add_code buf CodeValPrim;
+      squash_var buf (Omake_env.squash_prim_fun f)
+    | ValPrimCurry (_, _, f, args, kargs) ->
+      Hash.add_code buf CodeValPrimCurry;
+      squash_var buf (Omake_env.squash_prim_fun f);
+      Hash.add_code buf CodeSpace;
+      squash_values pos buf args;
+      squash_keyword_values pos buf kargs
+    | ValNode node ->
+      Hash.add_code buf CodeValNode;
+      Hash.add_string buf (Omake_node.Node.fullname node)
+    | ValDir dir ->
+      Hash.add_code buf CodeValDir;
+      Hash.add_string buf (Omake_node.Dir.fullname dir)
+    | ValStringExp (_, e) ->
+      Hash.add_code buf CodeValStringExp;
+      squash_string_exp pos buf e
+    | ValBody (e, export) ->
+      Hash.add_code buf CodeValBody;
+      squash_exp_list pos buf e;
+      Hash.add_code buf CodeSpace;
+      squash_export_info buf export
+    | ValObject obj ->
+      Hash.add_code buf CodeValObject;
+      squash_object pos buf obj
+    | ValMap obj ->
+      Hash.add_code buf CodeValMap;
+      squash_map pos buf obj
+    | ValCases cases ->
+      squash_cases pos buf cases
+    | ValVar (_, v) ->
+      Hash.add_code buf CodeValVar;
+      squash_var_info buf v;
+    | ValDelayed { contents = ValValue v } ->
+      squash_value pos buf v
+    | ValDelayed { contents = ValStaticApply (node, v) } ->
+      Hash.add_code buf CodeValStaticApply;
+      squash_value pos buf node;
+      Hash.add_code buf CodeSpace;
+      squash_var buf v
+    | ValRules _
+    | ValChannel _
+    | ValClass _
+    | ValOther _ as v ->
+      let print_error buf =
+        Format.fprintf buf "@[<v 3>Non digestable value:@ @[<hv 3>%a@]@ Contact the OMake team at omake@@metaprl.org if you think this should be supported@]@." Omake_value_print.pp_print_value v
+      in
+      raise (Omake_value_type.OmakeFatalErr (pos, LazyError print_error))
+  end;
+  Hash.add_code buf CodeEnd
 
 and squash_opt_value pos buf = function
-   Some v ->
-      Hash.add_code buf CodeSome;
-      squash_value pos buf v
- | None ->
-      Hash.add_code buf CodeNone
+    Some v ->
+    Hash.add_code buf CodeSome;
+    squash_value pos buf v
+  | None ->
+    Hash.add_code buf CodeNone
 
 and squash_values pos buf vl =
-   match vl with
-      [v] ->
-         squash_value pos buf v
-    | v :: vl ->
-         squash_value pos buf v;
-         Hash.add_code buf CodeSpace;
-         squash_values pos buf vl
-    | [] ->
-         ()
+  match vl with
+    [v] ->
+    squash_value pos buf v
+  | v :: vl ->
+    squash_value pos buf v;
+    Hash.add_code buf CodeSpace;
+    squash_values pos buf vl
+  | [] ->
+    ()
 
 and squash_param_values pos buf kargs =
-   match kargs with
-      (v, arg) :: kargs ->
-         Hash.add_code buf CodeSpace;
-         squash_var_info buf v;
-         Hash.add_code buf CodeSpace;
-         squash_value pos buf arg;
-         squash_param_values pos buf kargs
-    | [] ->
-         ()
+  match kargs with
+    (v, arg) :: kargs ->
+    Hash.add_code buf CodeSpace;
+    squash_var_info buf v;
+    Hash.add_code buf CodeSpace;
+    squash_value pos buf arg;
+    squash_param_values pos buf kargs
+  | [] ->
+    ()
 
 and squash_keyword_values pos buf kargs =
-   match kargs with
-      (v, arg) :: kargs ->
-         Hash.add_code buf CodeSpace;
-         squash_var buf v;
-         Hash.add_code buf CodeSpace;
-         squash_value pos buf arg;
-         squash_keyword_values pos buf kargs
-    | [] ->
-         ()
+  match kargs with
+    (v, arg) :: kargs ->
+    Hash.add_code buf CodeSpace;
+    squash_var buf v;
+    Hash.add_code buf CodeSpace;
+    squash_value pos buf arg;
+    squash_keyword_values pos buf kargs
+  | [] ->
+    ()
 
 and squash_keyword_param_values pos buf kargs =
-   match kargs with
-      (v, v_info, opt_arg) :: kargs ->
-         Hash.add_code buf CodeSpace;
-         squash_var buf v;
-         Hash.add_code buf CodeSpace;
-         squash_var_info buf v_info;
-         Hash.add_code buf CodeSpace;
-         squash_opt_value pos buf opt_arg;
-         squash_keyword_param_values pos buf kargs
-    | [] ->
-         ()
+  match kargs with
+    (v, v_info, opt_arg) :: kargs ->
+    Hash.add_code buf CodeSpace;
+    squash_var buf v;
+    Hash.add_code buf CodeSpace;
+    squash_var_info buf v_info;
+    Hash.add_code buf CodeSpace;
+    squash_opt_value pos buf opt_arg;
+    squash_keyword_param_values pos buf kargs
+  | [] ->
+    ()
 
 and squash_object pos buf obj =
-   SymbolTable.iter (fun x v ->
-         Hash.add_code buf CodeBegin;
-         squash_var buf x;
-         Hash.add_code buf CodeArrow;
-         squash_value pos buf v;
-         Hash.add_code buf CodeEnd) (Omake_env.squash_object obj)
+  Lm_symbol.SymbolTable.iter (fun x v ->
+    Hash.add_code buf CodeBegin;
+    squash_var buf x;
+    Hash.add_code buf CodeArrow;
+    squash_value pos buf v;
+    Hash.add_code buf CodeEnd) (Omake_env.squash_object obj)
 
 and squash_map pos buf map =
-   venv_map_iter (fun x v ->
-         Hash.add_code buf CodeBegin;
-         squash_value pos buf x;
-         Hash.add_code buf CodeArrow;
-         squash_value pos buf v;
-         Hash.add_code buf CodeEnd) map
+  Omake_env.venv_map_iter (fun x v ->
+    Hash.add_code buf CodeBegin;
+    squash_value pos buf x;
+    Hash.add_code buf CodeArrow;
+    squash_value pos buf v;
+    Hash.add_code buf CodeEnd) map
 
 and squash_case pos buf (x, v1, _x2, export) =
-   Hash.add_code buf CodeCase;
-   squash_var buf x;
-   Hash.add_code buf CodeSpace;
-   squash_value pos buf v1;
-   Hash.add_code buf CodeSpace;
-   squash_value pos buf v1;
-   Hash.add_code buf CodeSpace;
-   squash_export_info buf export;
-   Hash.add_code buf CodeEnd
+  Hash.add_code buf CodeCase;
+  squash_var buf x;
+  Hash.add_code buf CodeSpace;
+  squash_value pos buf v1;
+  Hash.add_code buf CodeSpace;
+  squash_value pos buf v1;
+  Hash.add_code buf CodeSpace;
+  squash_export_info buf export;
+  Hash.add_code buf CodeEnd
 
 and squash_cases pos buf cases =
-   Hash.add_code buf CodeCases;
-   List.iter (squash_case pos buf) cases;
-   Hash.add_code buf CodeEnd
+  Hash.add_code buf CodeCases;
+  List.iter (squash_case pos buf) cases;
+  Hash.add_code buf CodeEnd
 
 (*
  * Commands.
  *)
 let squash_command_flag buf flag =
-   let code =
-      match flag with
-         QuietFlag ->
-            CodeQuietFlag
-       | AllowFailureFlag ->
-            CodeAllowFailureFlag
-       | AllowOutputFlag ->
-            CodeAllowOutputFlag
-   in
-      Hash.add_code buf code
+  let code =
+    match flag with
+    |Omake_command_type.QuietFlag ->
+      CodeQuietFlag
+    | AllowFailureFlag ->
+      CodeAllowFailureFlag
+    | AllowOutputFlag ->
+      CodeAllowOutputFlag
+  in
+  Hash.add_code buf code
 
 let squash_command_flags buf flags =
    Hash.add_code buf CodeCommandFlags;
@@ -862,13 +818,13 @@ let squash_command_flags buf flags =
    Hash.add_code buf CodeEnd
 
 let squash_arg_string buf arg =
-   match arg with
-      ArgString s ->
-         Hash.add_code buf CodeArgString;
-         Hash.add_string buf s
-    | ArgData s ->
-         Hash.add_code buf CodeArgData;
-         Hash.add_string buf s
+  match arg with
+  | Omake_command_type.ArgString s ->
+    Hash.add_code buf CodeArgString;
+    Hash.add_string buf s
+  | ArgData s ->
+    Hash.add_code buf CodeArgData;
+    Hash.add_string buf s
 
 let squash_arg buf arg =
    Hash.add_code buf CodeArg;
@@ -876,15 +832,15 @@ let squash_arg buf arg =
    Hash.add_code buf CodeEnd
 
 let squash_redirect buf chan =
-   match chan with
-      RedirectNode node ->
-         Hash.add_code buf CodeRedirectNode;
-         squash_node buf node
-    | RedirectArg arg ->
-         Hash.add_code buf CodeRedirectArg;
-         squash_arg buf arg
-    | RedirectNone ->
-         Hash.add_code buf CodeRedirectNone
+  match chan with
+  |Omake_shell_type.RedirectNode node ->
+    Hash.add_code buf CodeRedirectNode;
+    squash_node buf node
+  | RedirectArg arg ->
+    Hash.add_code buf CodeRedirectArg;
+    squash_arg buf arg
+  | RedirectNone ->
+    Hash.add_code buf CodeRedirectNone
 
 let squash_argv buf argv =
    Hash.add_code buf CodeArgv;
@@ -904,25 +860,25 @@ let squash_command_env buf env =
    Hash.add_code buf CodeEnd
 
 let squash_exe buf exe =
-   match exe with
-      CmdArg arg ->
-         Hash.add_code buf CodeCmdArg;
-         squash_arg buf arg
-    | CmdNode node ->
-         Hash.add_code buf CodeCmdNode;
-         squash_node buf node
+  match exe with
+  |Omake_shell_type.CmdArg arg ->
+    Hash.add_code buf CodeCmdArg;
+    squash_arg buf arg
+  | CmdNode node ->
+    Hash.add_code buf CodeCmdNode;
+    squash_node buf node
 
 let squash_pipe_op buf op =
-   let code =
-      match op with
-         PipeAnd -> CodePipeAnd
-       | PipeOr  -> CodePipeOr
-       | PipeSequence -> CodePipeSequence
-   in
-      Hash.add_code buf code
+  let code =
+    match op with
+    |Omake_shell_type.PipeAnd -> CodePipeAnd
+    | PipeOr  -> CodePipeOr
+    | PipeSequence -> CodePipeSequence
+  in
+  Hash.add_code buf code
 
-let squash_pipe_command _pos buf (info : arg_cmd) =
-   let { cmd_env   = env;
+let squash_pipe_command _pos buf (info : Omake_env.arg_cmd) =
+   let { Omake_shell_type.cmd_env   = env;
          cmd_exe   = exe;
          cmd_argv  = argv;
          cmd_stdin = stdin;
@@ -948,8 +904,8 @@ let squash_pipe_command _pos buf (info : arg_cmd) =
       Hash.add_bool buf append;
       Hash.add_code buf CodeEnd
 
-let squash_pipe_apply pos buf (info : arg_apply) =
-   let { apply_name = name;
+let squash_pipe_apply pos buf (info : Omake_env.arg_apply) =
+   let {Omake_shell_type.apply_name = name;
          apply_args = args;
          apply_stdin = stdin;
          apply_stdout = stdout;
@@ -972,7 +928,7 @@ let squash_pipe_apply pos buf (info : arg_apply) =
       Hash.add_bool buf append;
       Hash.add_code buf CodeEnd
 
-let rec squash_pipe pos buf (pipe : arg_pipe) =
+let rec squash_pipe pos buf (pipe : Omake_env.arg_pipe) =
    (match pipe with
        PipeApply (_, info) ->
           squash_pipe_apply pos buf info
@@ -996,7 +952,7 @@ let rec squash_pipe pos buf (pipe : arg_pipe) =
    Hash.add_code buf CodeEnd
 
 and squash_pipe_group pos buf info =
-   let { group_stdin = stdin;
+   let { Omake_shell_type.group_stdin = stdin;
          group_stdout = stdout;
          group_stderr = stderr;
          group_append = append;
@@ -1015,7 +971,7 @@ and squash_pipe_group pos buf info =
       squash_pipe pos buf pipe;
       Hash.add_code buf CodeEnd
 
-let squash_command_line pos buf (command : arg_command_inst) =
+let squash_command_line pos buf (command : Omake_env.arg_command_inst) =
    match command with
       CommandPipe argv ->
          Hash.add_code buf CodePipe;
@@ -1026,14 +982,14 @@ let squash_command_line pos buf (command : arg_command_inst) =
     | CommandValues values ->
          squash_values pos buf values
 
-let squash_command pos buf (command : arg_command_line) =
-   let { command_dir = dir;
+let squash_command pos buf (command : Omake_env.arg_command_line) =
+   let {Omake_command_type.command_dir = dir;
          command_inst = inst;
          _
        } = command
    in
       Hash.add_code buf CodeCommand;
-      Hash.add_string buf (Dir.fullname dir);
+      Hash.add_string buf (Omake_node.Dir.fullname dir);
       squash_command_line pos buf inst;
       Hash.add_code buf CodeEnd
 
@@ -1061,9 +1017,3 @@ let digest_of_commands pos commands =
          let () = squash_commands pos buf commands in
             Some (Hash.digest buf)
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

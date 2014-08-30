@@ -1,50 +1,17 @@
-/*
- * Parser for OMakefiles.
- *
- * ----------------------------------------------------------------
- *
- * Copyright (C) 2000-2007 Jason Hickey, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Author: Jason Hickey
- * jyh@cs.caltech.edu
- */
+
 %{
+include Omake_pos.MakePos (struct let name = "Omake_parse" end)
 
-open Lm_symbol
-open Lm_location
-
-open Omake_pos
-open Omake_ast
-open Omake_symbol
-open Omake_ast_util
-open Omake_value_type
-
-module Pos = MakePos (struct let name = "Omake_parse" end)
-open Pos;;
 
 (*
  * Define flags.
  *)
 let define_flag (s, loc) =
    match s with
-      "=" -> DefineNormal
+    |  "=" -> Omake_ast.DefineNormal
     | "+=" -> DefineAppend
     | _ ->
-       raise (OmakeException (loc_exp_pos loc, StringStringError ("undefined assignment operator", s)))
+       raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringStringError ("undefined assignment operator", s)))
 
 (*
  * Convert arguments to parameters.
@@ -54,20 +21,20 @@ let key_of_id s =
 
 let parse_id_param s loc =
    match s.[0] with
-      '?' -> OptionalParam (key_of_id s, NullExp loc, loc)
+      '?' -> Omake_ast.OptionalParam (key_of_id s, NullExp loc, loc)
     | '~' -> RequiredParam (key_of_id s, loc)
     | _   -> NormalParam (Lm_symbol.add s, loc)
 
 let param_of_arg arg =
    match arg with
-      IdArg (s, _, loc) ->
+   | Omake_ast.IdArg (s, _, loc) ->
         parse_id_param s loc
-    | NormalArg (KeyArg (v, e)) ->
-        OptionalParam (v, e, loc_of_exp e)
-    | NormalArg (ExpArg e) ->
-        raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("illegal function parameter", e)))
-    | NormalArg (ArrowArg (_, e)) ->
-        raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("illegal function argument", e)))
+   | NormalArg (KeyArg (v, e)) ->
+        OptionalParam (v, e, Omake_ast_util.loc_of_exp e)
+   | NormalArg (ExpArg e) ->
+        raise (Omake_value_type.OmakeException (loc_exp_pos (Omake_ast_util.loc_of_exp e), StringAstError ("illegal function parameter", e)))
+   | NormalArg (ArrowArg (_, e)) ->
+        raise (Omake_value_type.OmakeException (loc_exp_pos (Omake_ast_util.loc_of_exp e), StringAstError ("illegal function argument", e)))
 
 let get_fun_params args =
    List.map param_of_arg args
@@ -76,16 +43,16 @@ let get_fun_params args =
  * Remove the IdArg.
  *)
 let arg_of_parse_arg = function
-   IdArg (s, w, loc1) ->
-      let id = StringIdExp (s, loc1) in
+   | Omake_ast.IdArg (s, w, loc1) ->
+      let id = Omake_ast.StringIdExp (s, loc1) in
       let e =
          match w with
              Some (w, loc2) ->
-                SequenceExp ([id; StringWhiteExp (w, loc2)], loc1)
+                Omake_ast.SequenceExp ([id; StringWhiteExp (w, loc2)], loc1)
            | None ->
                 id
       in
-          ExpArg e
+          Omake_ast.ExpArg e
  | NormalArg arg ->
       arg
 
@@ -96,17 +63,16 @@ let args_of_parse_args = List.map arg_of_parse_arg
  *)
 let rec simplify e =
    match e with
-      SequenceExp ([e], _) ->
+   | Omake_ast.SequenceExp ([e], _) ->
          simplify e
-    | _ ->
-         e
+   | _ -> e
 
 let sequence_exp l loc =
    match l with
-      [e] ->
+   | [e] ->
          e
-    | _ ->
-         SequenceExp (l, loc)
+   | _ ->
+         Omake_ast.SequenceExp (l, loc)
 
 
 (*
@@ -137,9 +103,9 @@ let method_id_string idl =
 let rec method_id_rev_sequence loc items idl =
    match idl with
       [id] ->
-         (StringIdExp (id, loc)) :: items
+         (Omake_ast.StringIdExp (id, loc)) :: items
     | id :: idl ->
-         let items = StringOpExp (".", loc) :: StringIdExp (id, loc) :: items in
+         let items = Omake_ast.StringOpExp (".", loc) :: StringIdExp (id, loc) :: items in
             method_id_rev_sequence loc items idl
     | [] ->
          items
@@ -148,14 +114,14 @@ let method_id_sequence loc idl =
    List.rev (method_id_rev_sequence loc [] idl)
 
 let method_id_string_exp idl loc =
-   SequenceExp (method_id_sequence loc idl, loc)
+   Omake_ast.SequenceExp (method_id_sequence loc idl, loc)
 
 let method_id_prefix_string_exp idl loc =
    let idl = List.rev (method_id_rev_sequence loc [StringOpExp (".", loc)] idl) in
-      SequenceExp (idl, loc)
+   Omake_ast.SequenceExp (idl, loc)
 
 let var_quote (strategy, s, loc) =
-   KeyExp (strategy, s, loc), loc
+   Omake_ast.KeyExp (strategy, s, loc), loc
 
 (*
  * Convert to a body flag and text.
@@ -163,17 +129,17 @@ let var_quote (strategy, s, loc) =
 let get_optcolon_text opt loc =
    match opt with
       None ->
-         OptBody, NullExp loc
+         Omake_ast.OptBody, Omake_ast.NullExp loc
     | Some (body, arg) ->
          body, arg
 (*
  * A 3-place rule.
  *)
 let rule3 multiple (target, loc1) _ pattern source loc2 body =
-   let loc = union_loc loc1 loc2 in
+   let loc = Lm_location.union_loc loc1 loc2 in
       match pattern with
          Some (pattern, _) ->
-            RuleExp (multiple, target, pattern, source, body, loc)
+            Omake_ast.RuleExp (multiple, target, pattern, source, body, loc)
        | None ->
             RuleExp (multiple, target, NullExp loc2, source, body, loc)
 
@@ -269,14 +235,14 @@ shell_line:
         | TokKeyword TokWhite keyword_text_optcolon TokEol
           { let id, loc1 = $1 in
             let body, arg = get_optcolon_text $3 $4 in
-            let loc = union_loc loc1 $4 in
+            let loc = Lm_location.union_loc loc1 $4 in
                body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
         | TokKeyword opt_literal_colon TokEol
           { let id, loc1 = $1 in
             let body = $2 in
-            let loc = union_loc loc1 $3 in
-            let arg = NullExp loc in
+            let loc = Lm_location.union_loc loc1 $3 in
+            let arg = Omake_ast.NullExp loc in
                body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
 
@@ -284,16 +250,16 @@ shell_line:
         | TokKeyword opt_white TokLeftParen opt_args TokRightParen opt_colon TokEol
           { let id, loc1 = $1 in
             let body = $6 in
-            let loc = union_loc loc1 $7 in
+            let loc = Lm_location.union_loc loc1 $7 in
 	    let args = args_of_parse_args $4 in
-            let e = ApplyExp (CommandApply, Lm_symbol.add id, args, loc) in
+            let e = Omake_ast.ApplyExp (CommandApply, Lm_symbol.add id, args, loc) in
                body, e
           }
 
           /* Catch expression is special */
         | TokCatch opt_white TokId opt_white TokLeftParen opt_white TokId opt_white TokRightParen opt_colon TokEol
           { let _, loc1 = $1 in
-            let loc = union_loc loc1 $11 in
+            let loc = Lm_location.union_loc loc1 $11 in
             let name, _ = $3 in
             let v, _ = $7 in
                $10, CatchExp (Lm_symbol.add name, Lm_symbol.add v, [], loc)
@@ -302,7 +268,7 @@ shell_line:
           /* Class expression is special */
         | TokClass opt_id_list TokEol
           { let _, loc1 = $1 in
-            let loc = union_loc loc1 $3 in
+            let loc = Lm_location.union_loc loc1 $3 in
                NoBody, ClassExp (List.map Lm_symbol.add $2, loc)
           }
 
@@ -311,7 +277,7 @@ shell_line:
           { let id, loc1 = $1 in
             let loc2 = $4 in
             let id = method_id_intern id in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $2 in
                ColonBody, VarDefBodyExp (id, DefineString, add_flag, [], loc)
           }
@@ -321,7 +287,7 @@ shell_line:
           { let id, loc1 = $1 in
             let loc2 = $4 in
             let id = method_id_intern id in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $2 in
                ColonBody, ObjectDefExp (id, add_flag, [], loc)
           }
@@ -332,7 +298,7 @@ shell_line:
             let loc2 = $5 in
             let e = simplify $4 in
             let id = method_id_intern id in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $2 in
                NoBody, VarDefExp (id, DefineString, add_flag, e, loc)
           }
@@ -341,7 +307,7 @@ shell_line:
         | var_quote_opt_white TokEq opt_white TokEol
           { let _, id, loc1 = $1 in
             let loc2 = $4 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $2 in
                ColonBody, KeyDefBodyExp (id, DefineString, add_flag, [], loc)
           }
@@ -351,7 +317,7 @@ shell_line:
           { let _, id, loc1 = $1 in
             let loc2 = $5 in
             let e = simplify $4 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $2 in
                NoBody, KeyDefExp (id, DefineString, add_flag, e, loc)
           }
@@ -361,7 +327,7 @@ shell_line:
           { let id, loc1 = $1 in
             let loc2 = $6 in
             let id = method_id_intern id in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $4 in
                ArrayBody, VarDefBodyExp (id, DefineArray, add_flag, [], loc)
           }
@@ -371,7 +337,7 @@ shell_line:
           { let id, loc1 = $1 in
             let loc2 = $7 in
             let id = method_id_intern id in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let add_flag = define_flag $4 in
                NoBody, VarDefExp (id, DefineArray, add_flag, $6, loc)
           }
@@ -380,12 +346,12 @@ shell_line:
         | method_id_opt_white TokLeftParen opt_args TokRightParen opt_colon TokEol
           { let id, loc1 = $1 in
             let body = $5 in
-            let loc = union_loc loc1 $6 in
+            let loc = Lm_location.union_loc loc1 $6 in
             let args = args_of_parse_args $3 in
             let e =
                match id with
                   [id] ->
-                     ApplyExp (CommandApply, Lm_symbol.add id, args, loc)
+                     Omake_ast.ApplyExp (CommandApply, Lm_symbol.add id, args, loc)
                 | _ ->
                      MethodApplyExp (CommandApply, method_id_intern id, args, loc)
             in
@@ -396,13 +362,13 @@ shell_line:
         | method_id_opt_white TokLeftParen opt_args TokRightParen opt_colon TokArrow opt_white TokEol
           { let id, loc1 = $1 in
             let body = $5 in
-            let loc = union_loc loc1 $8 in
+            let loc = Lm_location.union_loc loc1 $8 in
             let params = get_fun_params $3 in
-            let arg = ArrowArg (params, StringOpExp ("...", loc)) in
+            let arg = Omake_ast.ArrowArg (params, StringOpExp ("...", loc)) in
             let e =
                match id with
                   [id] ->
-                     ApplyExp (CommandApply, Lm_symbol.add id, [arg], loc)
+                     Omake_ast.ApplyExp (CommandApply, Lm_symbol.add id, [arg], loc)
                 | _ ->
                      MethodApplyExp (CommandApply, method_id_intern id, [arg], loc)
             in
@@ -414,7 +380,7 @@ shell_line:
           { let id, loc1 = $1 in
             let id = method_id_intern id in
             let params = get_fun_params $3 in
-            let loc = union_loc loc1 $8 in
+            let loc = Lm_location.union_loc loc1 $8 in
                ColonBody, FunDefExp (id, params, [], loc)
           }
 
@@ -451,16 +417,16 @@ shell_line:
           { let super, loc1 = $1 in
             let name, _ = $4 in
             let body = $8 in
-            let loc = union_loc loc1 $9 in
+            let loc = Lm_location.union_loc loc1 $9 in
             let args = args_of_parse_args $6 in
             let e =
                match super, name with
                   [super], [name] ->
-                     SuperApplyExp (CommandApply, Lm_symbol.add super, Lm_symbol.add name, args, loc)
+                     Omake_ast.SuperApplyExp (CommandApply, Lm_symbol.add super, Lm_symbol.add name, args, loc)
                 | _, [_] ->
-                     raise (OmakeException (loc_exp_pos loc, StringStringError ("illegal super class", method_id_string super)))
+                     raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringStringError ("illegal super class", method_id_string super)))
                 | _ ->
-                     raise (OmakeException (loc_exp_pos loc, StringStringError ("illegal field name", method_id_string name)))
+                     raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringStringError ("illegal field name", method_id_string name)))
             in
                body, e
           }
@@ -507,7 +473,7 @@ dep:      /* 2-place rule dependency */
                   Some (e, _) -> e
                 | None -> NullExp loc2
             in
-            let loc = union_loc loc1 $4 in
+            let loc = Lm_location.union_loc loc1 $4 in
                target, source, loc
           }
         ;
@@ -520,10 +486,10 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
             let _, loc2 = $7 in
             let idl, _ = $5 in
             let args = args_of_parse_args $6 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                match idl with
                   [id] ->
-                     ApplyExp (strategy, Lm_symbol.add id, args, loc), loc
+                     Omake_ast.ApplyExp (strategy, Lm_symbol.add id, args, loc), loc
                 | _ ->
                      MethodApplyExp (strategy, method_id_intern idl, args, loc), loc
           }
@@ -533,7 +499,7 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
             let super, _ = $5 in
             let v, _ = $7 in
             let args = args_of_parse_args $8 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                SuperApplyExp (strategy, Lm_symbol.add super, Lm_symbol.add v, args, loc), loc
           }
         | TokVar
@@ -543,14 +509,15 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
         | TokBeginQuote rev_text TokEndQuote
           { let id1, loc1 = $1 in
             let id2, loc2 = $3 in
-            let loc = union_loc loc1 loc2 in
-            let el = StringOtherExp (id1, loc1) :: List.rev_append $2 [StringOtherExp (id2, loc2)] in
+            let loc = Lm_location.union_loc loc1 loc2 in
+            let el = Omake_ast.StringOtherExp (id1, loc1) :: List.rev_append $2 
+            [ Omake_ast.StringOtherExp (id2, loc2)] in
                QuoteExp (el, loc), loc
           }
         | TokBeginQuoteString rev_text TokEndQuoteString
           { let id, loc1 = $1 in
             let _, loc2 = $3 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                QuoteStringExp (id.[0], List.rev $2, loc), loc
           }
         | TokStringQuote
@@ -622,7 +589,7 @@ rev_method_name:
         | rev_method_name TokDot id
           { let idl, loc1 = $1 in
             let id, loc2 = $3 in
-               id :: idl, union_loc loc1 loc2
+               id :: idl, Lm_location.union_loc loc1 loc2
           }
         ;
 
@@ -691,7 +658,7 @@ rev_method_id_white:
           rev_method_id TokWhite
           { let id, loc1 = $1 in
             let s, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                id, s, loc
           }
         ;
@@ -700,7 +667,7 @@ rev_method_id_prefix_white:
           rev_method_id_prefix TokWhite
           { let id, loc1 = $1 in
             let s, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                id, s, loc
           }
         ;
@@ -713,7 +680,7 @@ rev_method_id:
         | rev_method_id_prefix id
           { let idl, loc1 = $1 in
             let id, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                id :: idl, loc
           }
         ;
@@ -722,25 +689,25 @@ rev_method_id_prefix:
           rev_method_id TokDot
           { let idl, loc1 = $1 in
             let _, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                idl, loc
           }
         | TokKeyword TokDot
           { let id, loc1 = $1 in
             let _, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                [id], loc
           }
         | TokClass TokDot
           { let id, loc1 = $1 in
             let _, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                [id], loc
           }
         | TokCatch TokDot
           { let id, loc1 = $1 in
             let _, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                [id], loc
           }
         ;
@@ -780,49 +747,49 @@ rev_other_target:
         | rev_method_id other_method_id
           { let idl, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let el = [e; method_id_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | rev_method_id_white other_method_id_white
           { let idl, s, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
-            let el = [e; StringWhiteExp (s, loc1); method_id_string_exp (List.rev idl) loc1] in
+            let loc = Lm_location.union_loc loc1 loc2 in
+            let el = [e; Omake_ast.StringWhiteExp (s, loc1); method_id_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | rev_method_id_prefix other_method_id_prefix
           { let idl, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let el = [e; method_id_prefix_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | rev_method_id_prefix_white other_method_id_prefix_white
           { let idl, s, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
-            let el = [e; StringWhiteExp (s, loc1); method_id_prefix_string_exp (List.rev idl) loc1] in
+            let loc = Lm_location.union_loc loc1 loc2 in
+            let el = [e; Omake_ast.StringWhiteExp (s, loc1); method_id_prefix_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | quote other_quote_id
           { let id, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let el = [id; e] in
                el, loc
           }
         | quote_white other_quote_id_white
           { let id, s, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
             let el = [id; StringWhiteExp (s, loc1); e] in
                el, loc
           }
         | rev_other_target target_next
           { let el, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                e :: el, loc
           }
         ;
@@ -834,16 +801,16 @@ source:
          target
          { match $1 with
               Some (e, _) ->
-                 SymbolTable.add SymbolTable.empty normal_sym e
+                 Lm_symbol.SymbolTable.add Lm_symbol.SymbolTable.empty Omake_symbol.normal_sym e
             | None ->
-                 SymbolTable.empty
+                 Lm_symbol.SymbolTable.empty
          }
        | source TokNamedColon target
          { let table = $1 in
            let name, _ = $2 in
               match $3 with
                  Some (e, _) ->
-                    SymbolTable.add table (Lm_symbol.add name) e
+                    Lm_symbol.SymbolTable.add table (Lm_symbol.add name) e
                | None ->
                     table
          }
@@ -856,16 +823,16 @@ source_nonapply:
          source_target
          { match $1 with
               Some (e, _) ->
-                 SymbolTable.add SymbolTable.empty normal_sym e
+                 Lm_symbol.SymbolTable.add Lm_symbol.SymbolTable.empty Omake_symbol.normal_sym e
             | None ->
-                 SymbolTable.empty
+                 Lm_symbol.SymbolTable.empty
          }
        | source_nonapply TokNamedColon target
          { let table = $1 in
            let name, _ = $2 in
               match $3 with
                  Some (e, _) ->
-                    SymbolTable.add table (Lm_symbol.add name) e
+                    Lm_symbol.SymbolTable.add table (Lm_symbol.add name) e
                | None ->
                     table
          }
@@ -926,7 +893,7 @@ rev_target:
         | rev_target target_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: l, union_loc loc1 loc2
+               e :: l, Lm_location.union_loc loc1 loc2
           }
         ;
 
@@ -956,19 +923,19 @@ rev_keyword_text:
         | rev_keyword_text white
           { let code, final, prefix, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                code, e :: final, prefix, loc
           }
         | rev_keyword_text target_start
           { let _, final, prefix, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                OptBody, [], e :: (final @ prefix), loc
           }
         | rev_keyword_text colon
           { let _, final, prefix, loc1 = $1 in
             let e, loc2 = $2 in
-            let loc = union_loc loc1 loc2 in
+            let loc = Lm_location.union_loc loc1 loc2 in
                ColonBody, [e], final @ prefix, loc
           }
         ;
@@ -991,7 +958,7 @@ rev_text_nonempty:
         | rev_text_nonempty text_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: l, union_loc loc1 loc2
+               e :: l, Lm_location.union_loc loc1 loc2
           }
         ;
 /*
@@ -1095,27 +1062,27 @@ rev_any_arg:
         | rev_any_arg paren_arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: l, union_loc loc1 loc2
+               e :: l, Lm_location.union_loc loc1 loc2
           }
         ;
 
 rev_normal_arg:
           arg_key paren_arg_next_noneq
           { let (id, loc0), w, loc1 = $1 in
-            let id = StringIdExp (id, loc0) in
+            let id = Omake_ast.StringIdExp (id, loc0) in
             let e, loc2 = $2 in
             let el =
                match w with
                   Some (w, loc0) ->
-                     [e; StringWhiteExp (w, loc0); id]
+                     [e; Omake_ast.StringWhiteExp (w, loc0); id]
                 | None ->
                      [e; id]
             in
-               el, union_loc loc1 loc2
+               el, Lm_location.union_loc loc1 loc2
           }
         | arg_id paren_arg_any_start
           { let (id, loc0), w, loc1 = $1 in
-            let id = StringIdExp (id, loc0) in
+            let id = Omake_ast.StringIdExp (id, loc0) in
             let e, loc2 = $2 in
             let el =
                match w with
@@ -1124,7 +1091,7 @@ rev_normal_arg:
                 | None ->
                      [e; id]
             in
-               el, union_loc loc1 loc2
+               el, Lm_location.union_loc loc1 loc2
           }
         | paren_arg_start
           { let e, loc = $1 in
@@ -1133,7 +1100,7 @@ rev_normal_arg:
         | rev_normal_arg paren_arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: l, union_loc loc1 loc2
+               e :: l, Lm_location.union_loc loc1 loc2
           }
         ;
 
@@ -1170,8 +1137,8 @@ paren_arg:
           { let s1, loc1 = $1 in
             let sl = $2 in
             let s3, loc3 = $3 in
-            let loc = union_loc loc1 loc3 in
-            let el = StringOpExp (s1, loc1) :: (List.rev (StringOpExp (s3, loc3) :: sl)) in
+            let loc = Lm_location.union_loc loc1 loc3 in
+            let el = Omake_ast.StringOpExp (s1, loc1) :: (List.rev (Omake_ast.StringOpExp (s3, loc3) :: sl)) in
                SequenceExp (el, loc), loc
           }
 	;

@@ -1,9 +1,3 @@
-open Omake_value_type
-
-
-
-
-
 (*
  * Debugging.
  *)
@@ -308,16 +302,16 @@ val venv_apply_prim_fun  : Omake_value_type.prim_fun -> prim_fun_data
 (*
  * Channels.
  *)
-val venv_stdin            : prim_channel
-val venv_stdout           : prim_channel
-val venv_stderr           : prim_channel
+val venv_stdin            : Omake_value_type.prim_channel
+val venv_stdout           : Omake_value_type.prim_channel
+val venv_stderr           : Omake_value_type.prim_channel
 
-val venv_add_channel      : venv -> Lm_channel.t -> prim_channel
-val venv_close_channel    : venv -> Omake_value_type.pos -> prim_channel -> unit
-val venv_find_channel     : venv -> Omake_value_type.pos -> prim_channel -> Lm_channel.t
-val venv_find_channel_by_channel  : venv -> Omake_value_type.pos -> Lm_channel.t -> prim_channel
-val venv_find_channel_by_id       : venv -> Omake_value_type.pos -> int -> prim_channel
-val venv_add_formatter_channel    : venv -> Format.formatter -> prim_channel
+val venv_add_channel      : venv -> Lm_channel.t -> Omake_value_type.prim_channel
+val venv_close_channel    : venv -> Omake_value_type.pos -> Omake_value_type.prim_channel -> unit
+val venv_find_channel     : venv -> Omake_value_type.pos -> Omake_value_type.prim_channel -> Lm_channel.t
+val venv_find_channel_by_channel  : venv -> Omake_value_type.pos -> Lm_channel.t -> Omake_value_type.prim_channel
+val venv_find_channel_by_id       : venv -> Omake_value_type.pos -> int -> Omake_value_type.prim_channel
+val venv_add_formatter_channel    : venv -> Format.formatter -> Omake_value_type.prim_channel
 
 (*
  * Objects.
@@ -337,8 +331,8 @@ val venv_current_objects : venv -> Omake_value_type.pos -> Omake_ir.var_info -> 
 val venv_add_class       : Omake_value_type.obj -> Lm_symbol.symbol -> Omake_value_type.obj
 val venv_instanceof      : Omake_value_type.obj -> Lm_symbol.symbol -> bool
 
-val venv_find_field_path_exn  : venv -> path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> path * Omake_value_type.value
-val venv_find_field_path      : venv -> path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> path * Omake_value_type.value
+val venv_find_field_path_exn  : venv -> Omake_value_type.path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.path * Omake_value_type.value
+val venv_find_field_path      : venv -> Omake_value_type.path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.path * Omake_value_type.value
 val venv_find_field_exn       : venv -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.value
 val venv_find_field           : venv -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.value
 val venv_add_field            : venv -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.value -> venv * Omake_value_type.obj
@@ -362,15 +356,15 @@ val venv_add_object_file      : venv -> Omake_node.Node.t -> Omake_value_type.ob
 (*
  * Maps.
  *)
-val venv_map_empty       : map
-val venv_map_add         : map -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value -> map
-val venv_map_remove      : map -> Omake_value_type.pos -> Omake_value_type.value -> map
-val venv_map_find        : map -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value
-val venv_map_mem         : map -> Omake_value_type.pos -> Omake_value_type.value -> bool
-val venv_map_iter        : (Omake_value_type.value -> Omake_value_type.value -> unit) -> map -> unit
-val venv_map_map         : (Omake_value_type.value -> Omake_value_type.value -> Omake_value_type.value) -> map -> map
-val venv_map_fold        : ('a -> Omake_value_type.value -> Omake_value_type.value -> 'a) -> 'a -> map -> 'a
-val venv_map_length      : map -> int
+val venv_map_empty       : Omake_value_type.map
+val venv_map_add         : Omake_value_type.map -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value -> Omake_value_type.map
+val venv_map_remove      : Omake_value_type.map -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.map
+val venv_map_find        : Omake_value_type.map -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value
+val venv_map_mem         : Omake_value_type.map -> Omake_value_type.pos -> Omake_value_type.value -> bool
+val venv_map_iter        : (Omake_value_type.value -> Omake_value_type.value -> unit) -> Omake_value_type.map -> unit
+val venv_map_map         : (Omake_value_type.value -> Omake_value_type.value -> Omake_value_type.value) -> Omake_value_type.map -> Omake_value_type.map
+val venv_map_fold        : ('a -> Omake_value_type.value -> Omake_value_type.value -> 'a) -> 'a -> Omake_value_type.map -> 'a
+val venv_map_length      : Omake_value_type.map -> int
 
 (*
  * Get a list of all the files that were read.
@@ -403,9 +397,9 @@ val venv_get_ordering_deps : venv -> ordering_info -> Omake_node.NodeSet.t -> Om
  * Update the environment with a result.
  *)
 val add_exports      : venv -> venv -> Omake_value_type.pos -> Omake_ir.export -> venv
-val add_path_exports : venv -> venv -> venv -> Omake_value_type.pos -> path -> Omake_ir.export -> venv
-val hoist_path       : venv -> path -> Omake_value_type.obj -> venv
-val hoist_this       : venv -> venv -> path -> venv
+val add_path_exports : venv -> venv -> venv -> Omake_value_type.pos -> Omake_value_type.path -> Omake_ir.export -> venv
+val hoist_path       : venv -> Omake_value_type.path -> Omake_value_type.obj -> venv
+val hoist_this       : venv -> venv -> Omake_value_type.path -> venv
 
 (*
  * Cached buildable flags.

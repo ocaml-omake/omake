@@ -3,51 +3,15 @@
  * This is a little difficult because indentation is
  * significant, and we want it to work in interactive mode
  * too.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Jason Hickey, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURLOCE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
 
 {
-open Lm_printf
 
-open Lm_debug
-open Lm_symbol
-open Lm_location
+include Omake_pos.MakePos (struct let name = "Omake_ast_lex" end)
 
-open Omake_ast
-open Omake_pos
-open Omake_ast_util
-open Omake_ast_parse
-open Omake_ast_print
-open! Omake_exn_print
-open Omake_value_type
-
-module Pos = MakePos (struct let name = "Omake_ast_lex" end)
-open Pos
 
 let debug_lex =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "debug-ast-lex";
         debug_description = "Print tokens as they are scanned";
         debug_value = false
@@ -101,10 +65,10 @@ type info =
  *)
 type session =
    { (* The current location *)
-     current_file            : symbol;
+     current_file            : Lm_symbol.symbol;
      mutable current_line    : int;
      mutable current_off     : int;
-     mutable current_loc     : loc;
+     mutable current_loc     : Lm_location.loc;
 
      (* The current input buffer *)
      mutable current_buffer  : string;
@@ -118,7 +82,7 @@ type session =
      (* The current lexbuf *)
      mutable current_lexbuf  : Lexing.lexbuf;
      mutable current_lexmode : lexmode;
-     mutable current_token   : token;
+     mutable current_token   : Omake_ast_parse.token;
 
      (* The current mode *)
      mutable current_mode    : mode;
@@ -132,66 +96,66 @@ type session =
  * the token list in omake_gen_parse.ml!!!
  *)
 let pp_print_token buf = function
-    TokEof _ ->
-       pp_print_string buf "<eof>"
+    Omake_ast_parse.TokEof _ ->
+       Lm_printf.pp_print_string buf "<eof>"
   | TokEol _ ->
-       pp_print_string buf "<eol>"
+       Lm_printf.pp_print_string buf "<eol>"
   | TokWhite (s, _) ->
-       fprintf buf "whitespace: \"%s\"" s
+       Format.fprintf buf "whitespace: \"%s\"" s
   | TokLeftParen (s, _) ->
-       fprintf buf "left parenthesis: %s" s
+       Format.fprintf buf "left parenthesis: %s" s
   | TokRightParen (s, _) ->
-       fprintf buf "right parenthesis: %s" s
+       Format.fprintf buf "right parenthesis: %s" s
   | TokArrow (s, _) ->
-       fprintf buf "arrow: %s" s
+       Format.fprintf buf "arrow: %s" s
   | TokComma (s, _) ->
-       fprintf buf "comma: %s" s
+       Format.fprintf buf "comma: %s" s
   | TokColon (s, _) ->
-       fprintf buf "colon: %s" s
+       Format.fprintf buf "colon: %s" s
   | TokDoubleColon (s, _) ->
-       fprintf buf "doublecolon: %s" s
+       Format.fprintf buf "doublecolon: %s" s
   | TokNamedColon (s, _) ->
-       fprintf buf "named colon: %s" s
+       Format.fprintf buf "named colon: %s" s
   | TokDollar (s, strategy, _) ->
-       fprintf buf "dollar: %s%a" s pp_print_strategy strategy
+       Format.fprintf buf "dollar: %s%a" s Omake_ast_print.pp_print_strategy strategy
   | TokEq (s, _) ->
-       fprintf buf "equals: %s" s
+       Format.fprintf buf "equals: %s" s
   | TokArray (s, _) ->
-       fprintf buf "array: %s" s
+       Format.fprintf buf "array: %s" s
   | TokDot (s, _) ->
-       fprintf buf "dot: %s" s
+       Format.fprintf buf "dot: %s" s
   | TokId (s, _) ->
-       fprintf buf "id: %s" s
+       Format.fprintf buf "id: %s" s
   | TokInt (s, _) ->
-       fprintf buf "int: %s" s
+       Format.fprintf buf "int: %s" s
   | TokFloat (s, _) ->
-       fprintf buf "float: %s" s
+       Format.fprintf buf "float: %s" s
   | TokKey (s, _) ->
-       fprintf buf "key: %s" s
+       Format.fprintf buf "key: %s" s
   | TokKeyword (s, _) ->
-       fprintf buf "keyword: %s" s
+       Format.fprintf buf "keyword: %s" s
   | TokCatch (s, _) ->
-       fprintf buf "catch: %s" s
+       Format.fprintf buf "catch: %s" s
   | TokClass (s, _) ->
-       fprintf buf "class: %s" s
+       Format.fprintf buf "class: %s" s
   | TokVar (_, s, _) ->
-       fprintf buf "var: %s" s
+       Format.fprintf buf "var: %s" s
   | TokOp (s, _) ->
-       fprintf buf "op: %s" s
+       Format.fprintf buf "op: %s" s
   | TokString (s, _) ->
-       fprintf buf "string: \"%s\"" (String.escaped s)
+       Format.fprintf buf "string: \"%s\"" (String.escaped s)
   | TokBeginQuote (s, _) ->
-       fprintf buf "begin-quote: %s" s
+       Format.fprintf buf "begin-quote: %s" s
   | TokEndQuote (s, _) ->
-       fprintf buf "end-quote: %s" s
+       Format.fprintf buf "end-quote: %s" s
   | TokBeginQuoteString (s, _) ->
-       fprintf buf "begin-quote-string: %s" s
+       Format.fprintf buf "begin-quote-string: %s" s
   | TokEndQuoteString (s, _) ->
-       fprintf buf "end-quote-string: %s" s
+       Format.fprintf buf "end-quote-string: %s" s
   | TokStringQuote (s, _) ->
-       fprintf buf "quote: %s" s
+       Format.fprintf buf "quote: %s" s
   | TokVarQuote (_, s, _) ->
-       fprintf buf "key: %s" s
+       Format.fprintf buf "key: %s" s
 
 (*
  * Set state.
@@ -236,7 +200,7 @@ let set_next_line state lexbuf =
    let line = succ line in
       state.current_line  <- line;
       state.current_off   <- Lexing.lexeme_start lexbuf;
-      state.current_loc   <- create_loc file line 0 line 0
+      state.current_loc   <- Lm_location.create_loc file line 0 line 0
 
 (*
  * Save the state.
@@ -333,7 +297,7 @@ let lexeme_loc state lexbuf =
    in
    let schar = Lexing.lexeme_start lexbuf - off in
    let echar = Lexing.lexeme_end lexbuf - off in
-   let loc = create_loc file line schar line echar in
+   let loc = Lm_location.create_loc file line schar line echar in
       state.current_loc <- loc;
       loc
 
@@ -344,13 +308,13 @@ let parse_error state =
    let lexbuf = state.current_lexbuf in
    let loc = lexeme_loc state lexbuf in
    let print_error buf =
-      fprintf buf "unexpected token: %a" pp_print_token state.current_token
+      Format.fprintf buf "unexpected token: %a" pp_print_token state.current_token
    in
-      raise (OmakeException (loc_exp_pos loc, LazyError print_error))
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, LazyError print_error))
 
 let syntax_error state s lexbuf =
    let loc = lexeme_loc state lexbuf in
-      raise (OmakeException (loc_exp_pos loc, SyntaxError s))
+      raise (Omake_value_type.OmakeException (loc_exp_pos loc, SyntaxError s))
 
 (*
  * Get the string in the lexbuf.
@@ -412,7 +376,7 @@ let lexeme_name state lexbuf =
        | "do"
        | "set"
        | "program-syntax" ->
-             TokKeyword (id, loc)
+             Omake_ast_parse.TokKeyword (id, loc)
        | "catch" ->
              TokCatch (id, loc)
        | "class" ->
@@ -422,7 +386,7 @@ let lexeme_name state lexbuf =
 
 let lexeme_key state lexbuf =
     let id, loc = lexeme_string state lexbuf in
-       TokKey (id, loc)
+    Omake_ast_parse.TokKey (id, loc)
 
 (*
  * Get the escaped char.
@@ -435,14 +399,14 @@ let lexeme_esc state lexbuf =
  * Single character variable.
  *)
 let lexeme_var state lexbuf =
-   let s, loc = lexeme_string state lexbuf in
-   let strategy, s =
-      match s.[1] with
-         '`' -> LazyApply, String.sub s 2 1
-       | ',' -> EagerApply, String.sub s 2 1
-       | _ -> NormalApply, String.sub s 1 1
-   in
-      TokVar (strategy, s, loc)
+  let s, loc = lexeme_string state lexbuf in
+  let strategy, s =
+    match s.[1] with
+    | '`' -> Omake_ast.LazyApply, String.sub s 2 1
+    | ',' -> EagerApply, String.sub s 2 1
+    | _ -> NormalApply, String.sub s 1 1
+  in
+  Omake_ast_parse.TokVar (strategy, s, loc)
 
 (*
  * Dollar sequence.
@@ -453,7 +417,7 @@ let lexeme_dollar_pipe state lexbuf =
    let strategy, off =
       if len >= 2 then
          match s.[1] with
-            '`'  -> LazyApply, 2
+            '`'  -> Omake_ast.LazyApply, 2
           | ','  -> EagerApply, 2
           | '|'  -> NormalApply, 1
           | _    -> syntax_error state ("illegal character: " ^ s) lexbuf
@@ -468,7 +432,7 @@ let lexeme_dollar state lexbuf =
    let len = String.length s in
       if len >= 2 then
          match s.[1] with
-            '`'  -> TokDollar (s, LazyApply, loc)
+            '`'  -> Omake_ast_parse.TokDollar (s, LazyApply, loc)
           | ','  -> TokDollar (s, EagerApply, loc)
           | '$'  -> TokString ("$", loc)
           | _    -> syntax_error state ("illegal character: " ^ s) lexbuf
@@ -480,45 +444,45 @@ let lexeme_dollar state lexbuf =
  * Keep track of paren nesting.
  *)
 let lexeme_char state lexbuf =
-   let s, loc = lexeme_string state lexbuf in
-      match s.[0] with
-         '$' ->
-           TokDollar (s, NormalApply, loc)
-       | ':' ->
-           TokColon (s, loc)
-       | ',' ->
-           TokComma (s, loc)
-       | '=' ->
-           TokEq (s, loc)
-       | '.' ->
-           TokDot (s, loc)
-       | '%' ->
-           TokVar (NormalApply, s, loc)
-       | '(' ->
-           push_paren state;
-           TokLeftParen (s, loc)
-       | ')' ->
-           pop_paren state;
-           TokRightParen (s, loc)
-       | _   ->
-           TokOp (s, loc)
+  let s, loc = lexeme_string state lexbuf in
+  match s.[0] with
+    '$' ->
+    Omake_ast_parse.TokDollar (s, NormalApply, loc)
+  | ':' ->
+    TokColon (s, loc)
+  | ',' ->
+    TokComma (s, loc)
+  | '=' ->
+    TokEq (s, loc)
+  | '.' ->
+    TokDot (s, loc)
+  | '%' ->
+    TokVar (NormalApply, s, loc)
+  | '(' ->
+    push_paren state;
+    TokLeftParen (s, loc)
+  | ')' ->
+    pop_paren state;
+    TokRightParen (s, loc)
+  | _   ->
+    TokOp (s, loc)
 
 (*
  * Special string.
  *)
 let lexeme_special_string state lexbuf =
-   let s, loc = lexeme_string state lexbuf in
-      match s with
-         "=>" ->
-            TokArrow (s, loc)
-       | "::" ->
-            TokDoubleColon (s, loc)
-       | "+=" ->
-            TokEq (s, loc)
-       | "[]" ->
-            TokArray (s, loc)
-       | _ ->
-            TokOp (s, loc)
+  let s, loc = lexeme_string state lexbuf in
+  match s with
+    "=>" ->
+    Omake_ast_parse.TokArrow (s, loc)
+  | "::" ->
+    TokDoubleColon (s, loc)
+  | "+=" ->
+    TokEq (s, loc)
+  | "[]" ->
+    TokArray (s, loc)
+  | _ ->
+    TokOp (s, loc)
 
 (*
  * Count the indentation in a string of characters.
@@ -559,7 +523,7 @@ let lexeme_pos lexbuf =
          _
        } = pos2
    in
-   let loc = create_loc (Lm_symbol.add file) line1 (cnum1 - bol1) line2 (cnum2 - bol2) in
+   let loc = Lm_location.create_loc (Lm_symbol.add file) line1 (cnum1 - bol1) line2 (cnum2 - bol2) in
       s, loc
 }
 
@@ -670,7 +634,7 @@ rule lex_main state = parse
    { let loc = state.current_loc in
      let _ = lexeme_loc state lexbuf in
         set_next_line state lexbuf;
-        TokEol loc
+        Omake_ast_parse.TokEol loc
    }
  | white
    { let s, loc = lexeme_string state lexbuf in
@@ -775,7 +739,7 @@ and lex_quote state = parse
  | '\\'
  | string_text
    { let s, loc = lexeme_string state lexbuf in
-        TokString (s, loc)
+   Omake_ast_parse.TokString (s, loc)
    }
  | ['\'' '"']
    { let s, loc = lexeme_string state lexbuf in
@@ -822,7 +786,7 @@ and lex_string state = parse
    '\\'
  | string_text
    { let s, loc = lexeme_string state lexbuf in
-        TokString (s, loc)
+        Omake_ast_parse.TokString (s, loc)
    }
  | quote
    { let s, loc = lexeme_string state lexbuf in
@@ -883,7 +847,7 @@ and lex_skip_string state = parse
         match state.current_mode with
            ModeString s' when s' = s ->
               pop_mode state;
-              TokEndQuote ("", loc)
+              Omake_ast_parse.TokEndQuote ("", loc)
          | _ ->
               TokString ("", loc)
    }
@@ -957,7 +921,7 @@ and lex_deps = parse
  | other_drive
  | '\\'
    { let s, loc = lexeme_pos lexbuf in
-        TokString (s, loc)
+   Omake_ast_parse.TokString (s, loc)
    }
  | "\\:"
    { let _, loc = lexeme_pos lexbuf in
@@ -1049,9 +1013,9 @@ let prompt_indent prompt root indent =
       prompt_prune prompt indent
 
 let prompt_string state root nest e =
-   let prompt = prompt_ext (key_of_exp e) in
+   let prompt = prompt_ext (Omake_ast_util.key_of_exp e) in
       if state.is_interactive && root then
-         printf "%s%s@?" (prompt_prune prompt nest) state.current_buffer;
+         Lm_printf.printf "%s%s@?" (prompt_prune prompt nest) state.current_buffer;
       prompt
 
 (*
@@ -1059,7 +1023,7 @@ let prompt_string state root nest e =
  *)
 let body_parser state body =
    match body with
-      NoBody ->
+      Omake_ast.NoBody ->
          None
     | OptBody ->
          if state.is_interactive then
@@ -1153,7 +1117,7 @@ let lex_line state lexbuf =
             lex_quote state lexbuf
    in
       if !debug_lex then
-         eprintf "Token: %a@." pp_print_token tok;
+         Lm_printf.eprintf "Token: %a@." pp_print_token tok;
       state.current_token <- tok;
       tok
 
@@ -1191,7 +1155,7 @@ let parse_indent state prompt root nest =
                lex_indent state state.current_lexbuf
          in
             if !debug_lex then
-               eprintf "indent: %d@." indent;
+               Lm_printf.eprintf "indent: %d@." indent;
             state.current_lexmode <- LexModeNormal indent;
             indent
     | LexModeNormal indent ->
@@ -1201,68 +1165,68 @@ let parse_indent state prompt root nest =
  * Parse a single expression.
  *)
 let rec parse_exp state parse prompt root nest =
-   let indent = parse_indent state prompt root nest in
-      if indent > state.current_indent then
-         syntax_error state "illegal indentation" state.current_lexbuf
-      else if indent < state.current_indent then
-         raise End_of_file
-      else
-         parse_exp_indent state parse prompt root nest
+  let indent = parse_indent state prompt root nest in
+  if indent > state.current_indent then
+    syntax_error state "illegal indentation" state.current_lexbuf
+  else if indent < state.current_indent then
+    raise End_of_file
+  else
+    parse_exp_indent state parse prompt root nest
 
 and parse_exp_indent state parse _ root nest =
-   let code, e =
-      try parse (lex_line state) state.current_lexbuf with
-         Parsing.Parse_error ->
-            parse_error state
-   in
-   let code = scan_body_flag code e in
-   let parse = body_parser state code in
-      match parse with
-         Some parse ->
-            let prompt = prompt_string state root nest e in
-            let body = parse_body state parse prompt nest in
-            let e = update_body e code body in
-               (match can_continue e with
-                   Some prompt ->
-                      (try e :: parse_exp state parse (prompt_ext prompt) false nest with
-                          End_of_file ->
-                             [e])
-                 | None ->
-                      [e])
-       | None ->
-            [e]
+  let code, e =
+    try parse (lex_line state) state.current_lexbuf with
+      Parsing.Parse_error ->
+      parse_error state
+  in
+  let code = Omake_ast_util.scan_body_flag code e in
+  let parse = body_parser state code in
+  match parse with
+    Some parse ->
+    let prompt = prompt_string state root nest e in
+    let body = parse_body state parse prompt nest in
+    let e = Omake_ast_util.update_body e code body in
+    (match Omake_ast_util.can_continue e with
+      Some prompt ->
+      (try e :: parse_exp state parse (prompt_ext prompt) false nest with
+        End_of_file ->
+        [e])
+    | None ->
+      [e])
+  | None ->
+    [e]
 
 and parse_body state parse prompt nest =
-   let nest = succ nest in
-   let indent = parse_indent state prompt false nest in
-      if indent > state.current_indent then
-         begin
-            push_mode state ModeNormal;
-            state.current_indent <- indent;
-            parse_body_indent state parse prompt nest []
-         end
-      else
-         []
+  let nest = succ nest in
+  let indent = parse_indent state prompt false nest in
+  if indent > state.current_indent then
+    begin
+      push_mode state ModeNormal;
+      state.current_indent <- indent;
+      parse_body_indent state parse prompt nest []
+    end
+  else
+    []
 
 and parse_body_indent state parse prompt nest el =
-   let e =
-      try ParseExp (parse_exp state parse prompt false nest) with
-         End_of_file ->
-            if state.is_interactive then
-               printf ".@.";
-            pop_mode state;
-            ParseEOF
-       | OmakeException _ as exn when state.is_interactive ->
-            eprintf "%a@." pp_print_exn exn;
-            ParseError
-   in
-      match e with
-         ParseExp e ->
-            parse_body_indent state parse prompt nest (List.rev_append e el)
-       | ParseError ->
-            parse_body_indent state parse prompt nest el
-       | ParseEOF ->
-            List.rev el
+  let e =
+    try ParseExp (parse_exp state parse prompt false nest) with
+      End_of_file ->
+      if state.is_interactive then
+        Lm_printf.printf ".@.";
+      pop_mode state;
+      ParseEOF
+    | Omake_value_type.OmakeException _ as exn when state.is_interactive ->
+      Lm_printf.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+      ParseError
+  in
+  match e with
+    ParseExp e ->
+    parse_body_indent state parse prompt nest (List.rev_append e el)
+  | ParseError ->
+    parse_body_indent state parse prompt nest el
+  | ParseEOF ->
+    List.rev el
 
 (*
  * Parse a file.
@@ -1342,7 +1306,7 @@ let parse_deps name =
       try Omake_ast_parse.deps lex_deps lexbuf with
          exn ->
             close_in inx;
-            eprintf "%s: char %d: scanner dependency syntax error@." name (Lexing.lexeme_end lexbuf);
+            Lm_printf.eprintf "%s: char %d: scanner dependency syntax error@." name (Lexing.lexeme_end lexbuf);
             raise exn
    in
       close_in inx;
