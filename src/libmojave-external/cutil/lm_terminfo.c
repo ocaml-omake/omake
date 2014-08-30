@@ -11,6 +11,13 @@
 #   pragma warning (disable: 4127 4189 4702 4996)
 #endif
 
+#ifdef WIN32 
+  #include <windows.h>
+#else 
+  #include <unistd.h>
+#endif
+
+
 #ifdef NCURSES
 
 /* Headers that are readline-specific must be included here. */
@@ -44,6 +51,23 @@ static int load_terminfo() {
 }
 
 #endif /* NCURSES support? */
+
+
+/*
+ * Core Info 
+ */
+value caml_get_number_of_cores(value unit)
+{
+  CAMLparam1(unit);
+
+  #ifdef WIN32
+  SYSTEM_INFO sysinfo;
+  GetSystemInfo(&sysinfo);
+  CAMLreturn (Val_long(sysinfo.dwNumberOfProcessors));
+  #else 
+  CAMLreturn (Val_long(sysconf(_SC_NPROCESSORS_ONLN)));
+  #endif 
+}
 
 /*
  * Terminfo is enabled only of TERM is defined.

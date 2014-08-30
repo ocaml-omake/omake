@@ -27,7 +27,7 @@
    (or an empty string if the ID is not defined for this terminal).  *)
 external caml_tgetstr_enabled : unit -> bool = "caml_tgetstr_enabled"
 external caml_tgetstr : string -> string = "caml_tgetstr"
-
+external get_number_of_cores : unit -> int = "caml_get_number_of_cores"
 
 (* Tgetstr is enabled only if the terminal is defined *)
 let tgetstr_enabled = caml_tgetstr_enabled ()

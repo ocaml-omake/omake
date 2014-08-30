@@ -89,26 +89,26 @@ let set_job_count_and_servers_opt opts cnt srvs =
  *    3. a machine=count: a remote server that will handle <count> jobs
  *)
 let set_job_count options s =
-   let set_job (job_count, remote_servers) job =
-      try
-         let index = String.index job '=' in
-         let len = String.length job in
-         let machine = String.sub job 0 index in
-         let count = String.sub job (succ index) (len - index - 1) in
-         let count =
-            try int_of_string count with
-               Failure _ ->
-                  1
-         in
-            job_count, (machine, count) :: remote_servers
-      with
-         Not_found ->
-            try int_of_string job, remote_servers with
-               Failure _ ->
-                  job_count, (job, 1) :: remote_servers
-   in
-   let job_count, remote_servers = List.fold_left set_job (1, []) (Lm_string_util.split ":" s) in
-      set_job_count_and_servers_opt options (max 1 job_count) (List.rev remote_servers)
+  let set_job (job_count, remote_servers) job =
+    try
+      let index = String.index job '=' in
+      let len = String.length job in
+      let machine = String.sub job 0 index in
+      let count = String.sub job (index + 1) (len - index - 1) in
+      let count =
+        try int_of_string count with
+          Failure _ ->
+          1
+      in
+      job_count, (machine, count) :: remote_servers
+    with
+      Not_found ->
+      try int_of_string job, remote_servers with
+        Failure _ ->
+        job_count, (job, 1) :: remote_servers
+  in
+  let job_count, remote_servers = List.fold_left set_job (1, []) (Lm_string_util.split ":" s) in
+  set_job_count_and_servers_opt options (max 1 job_count) (List.rev remote_servers)
 
 let opt_dry_run opts =
    opts.opt_dry_run
@@ -147,30 +147,30 @@ let set_print_exit_opt opts flag =
    { opts with opt_print_exit = flag }
 
 let opt_print_progress opts =
-   match opts.opt_print_progress with
-      Set b ->
-         b
-    | Default ->
-         let ok_to_print =
-            try
-               (* XXX: TODO: in OCaml 3.10, use Unix.isatty *)
-               ignore (Unix.tcgetattr Unix.stdout); true
-            with
-            | Unix.Unix_error _ ->
-                  Format.eprintf 
-                   "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
-                  false
-            | Invalid_argument "Unix.tcgetattr not implemented" ->
-                (* We are on Windows :-( *)
-                true
-            | exn ->
-                Format.eprintf
-                  "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
-                  (Printexc.to_string exn);
-                  true
-         in
-            opts.opt_print_progress <- Set ok_to_print;
-            ok_to_print
+  match opts.opt_print_progress with
+    Set b ->
+    b
+  | Default ->
+    let ok_to_print =
+      try
+        (* XXX: TODO: in OCaml 3.10, use Unix.isatty *)
+        ignore (Unix.tcgetattr Unix.stdout); true
+      with
+      | Unix.Unix_error _ ->
+        Format.eprintf 
+          "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
+        false
+      | Invalid_argument "Unix.tcgetattr not implemented" ->
+        (* We are on Windows :-( *)
+        true
+      | exn ->
+        Format.eprintf
+          "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
+          (Printexc.to_string exn);
+        true
+    in
+    opts.opt_print_progress <- Set ok_to_print;
+    ok_to_print
 
 let set_print_progress_opt opts flag =
    { opts with opt_print_progress = Set flag }
@@ -385,7 +385,7 @@ let opt_divert opts =
  * Default options.
  *)
 let default_options =
-   { opt_job_count            = 1;
+   { opt_job_count            =  max (Lm_terminfo.get_number_of_cores ()) 1;
      opt_remote_servers       = [];
      opt_terminate_on_error   = Default;
      opt_dry_run              = false;
