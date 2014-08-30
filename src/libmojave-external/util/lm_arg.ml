@@ -154,21 +154,21 @@ let is_alnum = function
    Lookup an entry in the char table.  If no entry exists in the table,
    then None is returned (instead of raising an exception).  *)
 let char_table_lookup table ch =
-   try
-      Some (CharTable.find table ch)
-   with
-      Not_found ->
-         (* If the character is '_', try looking it up as '-'. This is a
-            hack to accomodate both '_' and '-' in option names (proper
-            GCC style uses hyphen, but our old options used underscores). *)
-         if ch = '_' then
-            try
-               Some (CharTable.find table '-')
-            with
-               Not_found ->
-                  None
-         else
-            None
+  try
+    Some (CharTable.find table ch)
+  with
+    Not_found ->
+    (* If the character is '_', try looking it up as '-'. This is a
+       hack to accomodate both '_' and '-' in option names (proper
+       GCC style uses hyphen, but our old options used underscores). *)
+    if ch = '_' then
+      try
+        Some (CharTable.find table '-')
+      with
+        Not_found ->
+        None
+    else
+      None
 
 
 (* lookup_option
@@ -202,47 +202,47 @@ let is_invertable_option opt = function
    exists, then an exception is thrown.  If a prefix or suffix of this
    option is already defined, then no error occurs.  *)
 let add_option options name spec =
-   if is_invert_prefix name then
-      raise (BogusArg ("Option contains an invertion prefix: " ^ name));
-   let length = String.length name in
+  if is_invert_prefix name then
+    raise (BogusArg ("Option contains an invertion prefix: " ^ name));
+  let length = String.length name in
 
-   (* deconstruct_name
-      Updates the subtree rooted at options, based on the substring
-      of name beginning with offset.  *)
-   let rec deconstruct_name options offset =
-      let ch = name.[offset] in
-      let offset = offset + 1 in
-      let entry =
-         if offset < length then
+  (* deconstruct_name
+     Updates the subtree rooted at options, based on the substring
+     of name beginning with offset.  *)
+  let rec deconstruct_name options offset =
+    let ch = name.[offset] in
+    let offset = offset + 1 in
+    let entry =
+      if offset < length then
 
-            (* This is NOT the last character of the option; we
-               need to build a subtree and recurse on ourself.  *)
-            match char_table_lookup options ch with
-               None ->
-                  NameNode (deconstruct_name CharTable.empty offset)
-             | Some (SpecNode spec') ->
-                  SpecOrName (spec', deconstruct_name CharTable.empty offset)
-             | Some (NameNode options) ->
-                  NameNode  (deconstruct_name options offset)
-             | Some (SpecOrName (spec', options)) ->
-                  SpecOrName (spec', deconstruct_name options offset)
-         else
+        (* This is NOT the last character of the option; we
+           need to build a subtree and recurse on ourself.  *)
+        match char_table_lookup options ch with
+          None ->
+          NameNode (deconstruct_name CharTable.empty offset)
+        | Some (SpecNode spec') ->
+          SpecOrName (spec', deconstruct_name CharTable.empty offset)
+        | Some (NameNode options) ->
+          NameNode  (deconstruct_name options offset)
+        | Some (SpecOrName (spec', options)) ->
+          SpecOrName (spec', deconstruct_name options offset)
+      else
 
-            (* This is the last character of the option; this is
-               where we might have a duplicate hit, and where we
-               need to drop our specification.  *)
-            match char_table_lookup options ch with
-               None ->
-                  SpecNode spec
-             | Some (NameNode options) ->
-                  SpecOrName (spec, options)
-             | Some _ ->
-                  raise (BogusArg ("Duplicate option defined: " ^ name))
-      in
-         (* Update this node in the tree *)
-         CharTable.add options ch entry
-   in
-      deconstruct_name options 0
+        (* This is the last character of the option; this is
+           where we might have a duplicate hit, and where we
+           need to drop our specification.  *)
+        match char_table_lookup options ch with
+          None ->
+          SpecNode spec
+        | Some (NameNode options) ->
+          SpecOrName (spec, options)
+        | Some _ ->
+          raise (BogusArg ("Duplicate option defined: " ^ name))
+    in
+    (* Update this node in the tree *)
+    CharTable.add options ch entry
+  in
+  deconstruct_name options 0
 
 
 (* lookup_option_core
@@ -258,7 +258,7 @@ let add_option options name spec =
    determine when the value associated with an option is not delimited by a
    space.  Note that any option that is a prefix of another option cannot
    take a value in this way.
- *)
+*)
 let lookup_option_core options name =
    let length = String.length name in
 
@@ -513,153 +513,153 @@ let rec get_next_option mode argv argv_length current =
    -help or --help is intercepted on the argument stream, then the
    usage message is displayed.  *)
 let fold_argv argv (mode_info, spec_info) arg default usage_msg =
-   (* Always add the --help flag *)
-   let spec_info = ("Help flags", ["--help", Usage, "Display a help message"]) :: spec_info in
+  (* Always add the --help flag *)
+  let spec_info = ("Help flags", ["--help", Usage, "Display a help message"]) :: spec_info in
 
-   (* Set the current mode *)
-   let mode =
-      match mode_info with
-         StrictOptions ->
-            StrictMode
-       | MultiLetterOptions ->
-            MultiLetterMode
-   in
+  (* Set the current mode *)
+  let mode =
+    match mode_info with
+      StrictOptions ->
+      StrictMode
+    | MultiLetterOptions ->
+      MultiLetterMode
+  in
 
 
-   (* Convert spec into an options tree, for easier parsing *)
-   let options = compute_option_tree spec_info in
-   let argv_length = Array.length argv in
+  (* Convert spec into an options tree, for easier parsing *)
+  let options = compute_option_tree spec_info in
+  let argv_length = Array.length argv in
 
-   (*
+  (*
     * Parse a single option.
     *    arg: the fold value being computed
     *    current: the current index into argv
     *)
-   let rec parse_option mode arg current =
-      let mode, pending = advance_options mode argv argv_length current in
-         if pending then
-            (* Get the name of the option *)
-            let opt, current, mode = get_next_option mode argv argv_length current in
-            let current, arg =
-               if String.length opt > 0 && opt.[0] = '-' then
-                  (* Get information on the option *)
-                  let spec, s = lookup_option options opt in
+  let rec parse_option mode arg current =
+    let mode, pending = advance_options mode argv argv_length current in
+    if pending then
+      (* Get the name of the option *)
+      let opt, current, mode = get_next_option mode argv argv_length current in
+      let current, arg =
+        if String.length opt > 0 && opt.[0] = '-' then
+          (* Get information on the option *)
+          let spec, s = lookup_option options opt in
 
-                  (* If no value was embedded in the option, but the option
-                     requires a value, then grab the next argument for its
-                     value.  *)
-                  let s, current, arg =
-                     match spec, s with
-                        String _,     ""
-                      | Int _,        ""
-                      | Float _,      ""
-                      | StringFold _, ""
-                      | IntFold _,    ""
-                      | FloatFold _,  "" ->
-                           let s, current = get_next_arg opt argv argv_length current in
-                              s, current, arg
+          (* If no value was embedded in the option, but the option
+             requires a value, then grab the next argument for its
+             value.  *)
+          let s, current, arg =
+            match spec, s with
+              String _,     ""
+            | Int _,        ""
+            | Float _,      ""
+            | StringFold _, ""
+            | IntFold _,    ""
+            | FloatFold _,  "" ->
+              let s, current = get_next_arg opt argv argv_length current in
+              s, current, arg
 
-                      | Unit _,       ""
-                      | Set _,        ""
-                      | Clear _,      ""
-                      | Usage,        ""
-                      | UnitFold _,   ""
-                      | SetFold _,    ""
-                      | ClearFold _,  ""
+            | Unit _,       ""
+            | Set _,        ""
+            | Clear _,      ""
+            | Usage,        ""
+            | UnitFold _,   ""
+            | SetFold _,    ""
+            | ClearFold _,  ""
 
-                      | String _,     _
-                      | Int _,        _
-                      | Float _,      _
-                      | StringFold _, _
-                      | IntFold _,    _
-                      | FloatFold _,  _ ->
-                           s, current, arg
+            | String _,     _
+            | Int _,        _
+            | Float _,      _
+            | StringFold _, _
+            | IntFold _,    _
+            | FloatFold _,  _ ->
+              s, current, arg
 
-                      | Rest f,     "" ->
-                           let rec rest_function current =
-                              if current < argv_length then begin
-                                 f argv.(current);
-                                 rest_function (current + 1)
-                              end
-                              else
-                                 "", current, arg
-                           in
-                              rest_function current
-                      | RestFold f,     "" ->
-                           let rec rest_function arg current =
-                              if current < argv_length then
-                                 rest_function (f arg argv.(current)) (current + 1)
-                              else
-                                 "", current, arg
-                           in
-                              rest_function arg current
-                      | _ ->
-                           raise (Invalid_argument "Lm_arg: internal error")
-                  in
+            | Rest f,     "" ->
+              let rec rest_function current =
+                if current < argv_length then begin
+                  f argv.(current);
+                  rest_function (current + 1)
+                end
+                else
+                  "", current, arg
+              in
+              rest_function current
+            | RestFold f,     "" ->
+              let rec rest_function arg current =
+                if current < argv_length then
+                  rest_function (f arg argv.(current)) (current + 1)
+                else
+                  "", current, arg
+              in
+              rest_function arg current
+            | _ ->
+              raise (Invalid_argument "Lm_arg: internal error")
+          in
 
-                  (* Actually process the option. *)
-                  let arg =
-                     match spec with
-                        Unit f ->
-                           f ();
-                           arg
-                      | UnitFold f ->
-                           f arg
-                      | Set x ->
-                           x := true;
-                           arg
-                      | SetFold f ->
-                           f arg true;
-                      | Clear x ->
-                           x := false;
-                           arg
-                      | ClearFold f ->
-                           f arg false
-                      | String f ->
-                           f s;
-                           arg
-                      | StringFold f ->
-                           f arg s
-                      | Int f ->
-                           f (int_of_string s);
-                           arg
-                      | IntFold f ->
-                           f arg (int_of_string s)
-                      | Float f ->
-                           f (float_of_string s);
-                           arg
-                      | FloatFold f ->
-                           f arg (float_of_string s)
-                      | Rest _
-                      | RestFold _ ->
-                           arg
-                      | Usage ->
-                           usage (mode_info, spec_info) usage_msg;
-                           raise UsageError
-                  in
-                     current, arg
-               else
-                  (* Not an option; pass to the default function *)
-                  let arg, rest = default arg opt in
-                     if rest then
-                        let rec rest_function arg current =
-                           if current < argv_length then
-                              let arg, _ = default arg argv.(current) in
-                                 rest_function arg (current + 1)
-                           else
-                              current, arg
-                        in
-                           rest_function arg current
-                     else
-                        current, arg
+          (* Actually process the option. *)
+          let arg =
+            match spec with
+              Unit f ->
+              f ();
+              arg
+            | UnitFold f ->
+              f arg
+            | Set x ->
+              x := true;
+              arg
+            | SetFold f ->
+              f arg true;
+            | Clear x ->
+              x := false;
+              arg
+            | ClearFold f ->
+              f arg false
+            | String f ->
+              f s;
+              arg
+            | StringFold f ->
+              f arg s
+            | Int f ->
+              f (int_of_string s);
+              arg
+            | IntFold f ->
+              f arg (int_of_string s)
+            | Float f ->
+              f (float_of_string s);
+              arg
+            | FloatFold f ->
+              f arg (float_of_string s)
+            | Rest _
+            | RestFold _ ->
+              arg
+            | Usage ->
+              usage (mode_info, spec_info) usage_msg;
+              raise UsageError
+          in
+          current, arg
+        else
+          (* Not an option; pass to the default function *)
+          let arg, rest = default arg opt in
+          if rest then
+            let rec rest_function arg current =
+              if current < argv_length then
+                let arg, _ = default arg argv.(current) in
+                rest_function arg (current + 1)
+              else
+                current, arg
             in
-               (* We're done with this option, advance to next *)
-               parse_option mode arg current
-         else
+            rest_function arg current
+          else
             current, arg
-   in
-   let _, arg = parse_option mode arg 1 in
-      arg
+      in
+      (* We're done with this option, advance to next *)
+      parse_option mode arg current
+    else
+      current, arg
+  in
+  let _, arg = parse_option mode arg 1 in
+  arg
 
 let fold spec arg default usage_msg =
    fold_argv Sys.argv spec arg default usage_msg

@@ -1363,7 +1363,7 @@ let venv_defined_env venv v =
 let venv_options venv =
    venv.venv_inner.venv_options
 
-let venv_with_options venv options =
+let venv_with_options venv (options : Omake_options.t)  : venv =
    { venv with venv_inner = { venv.venv_inner with venv_options = options } }
 
 let venv_set_options_aux venv loc pos argv =
@@ -1377,8 +1377,9 @@ let venv_set_options_aux venv loc pos argv =
           "Output options", Omake_options.output_spec]
    in
    let options =
-      try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown "Generic system builder" with
-          Lm_arg.BogusArg s ->
+      try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown
+          "Generic system builder" with
+        Lm_arg.BogusArg s ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
       venv_with_options venv options
