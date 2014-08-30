@@ -677,7 +677,7 @@ omake_ast_parse.input: ..$(slash)src$(slash)env$(slash)omake_ast_parse.input
 omake_exp_parse.mly: ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly
 	$(LN) ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly omake_exp_parse.mly
 
-omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_lex.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_exp_parse.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
 
 Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml omake_exp_parse.ml omake_exp_parse.mli
 
@@ -944,15 +944,6 @@ omake_builtin_test.mli: $(SRC_builtin)$(slash)omake_builtin_test.mli
 ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli
 
 
-CMOFILES_cvs_realclean = cvs_realclean.cmo
-OCAML_LIBS_cvs_realclean = lm.cma
-OCAML_OTHER_LIBS_cvs_realclean = unix.cma
-OCAML_CLIBS_cvs_realclean =
-OCAML_CCLIBS_cvs_realclean =
-
-cvs_realclean$(EXE): $(CMOFILES_cvs_realclean) $(OCAML_LIBS_cvs_realclean) $(OCAML_CLIBS_cvs_realclean)
-	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_cvs_realclean) $(OCAML_OTHER_LIBS_cvs_realclean) $(THREADSLIB) $(OCAML_LIBS_cvs_realclean) $(CMOFILES_cvs_realclean)
-
 CMOFILES_omake = omake_shell.cmo omake_main.cmo
 OCAML_LIBS_omake = lm.cma util.cma magic.cma ast.cma ir.cma env.cma exec.cma eval.cma shell.cma build.cma builtin.cma
 OCAML_OTHER_LIBS_omake = unix.cma
@@ -966,9 +957,6 @@ omake_shell.cmo omake_main.cmo omake_shell.cmi omake_main.cmi: magic.cma
 
 SRC_main = ..$(slash)src$(slash)main
 
-cvs_realclean.ml: $(SRC_main)$(slash)cvs_realclean.ml
-	$(LN) $(SRC_main)$(slash)cvs_realclean.ml cvs_realclean.ml
-
 omake_main.ml: $(SRC_main)$(slash)omake_main.ml
 	$(LN) $(SRC_main)$(slash)omake_main.ml omake_main.ml
 
@@ -981,7 +969,7 @@ omake_shell.ml: $(SRC_main)$(slash)omake_shell.ml
 omake_shell.mli: $(SRC_main)$(slash)omake_shell.mli
 	$(LN) $(SRC_main)$(slash)omake_shell.mli omake_shell.mli
 
-ALLFILES_main = cvs_realclean.ml omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli
+ALLFILES_main = omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli
 
 ALLFILES = $(ALLFILES_clib) $(ALLFILES_libmojave) $(ALLFILES_util) $(ALLFILES_magic) $(ALLFILES_ir) $(ALLFILES_exec) $(ALLFILES_ast) $(ALLFILES_env) $(ALLFILES_shell) $(ALLFILES_eval) $(ALLFILES_build) $(ALLFILES_builtin) $(ALLFILES_main)
 
