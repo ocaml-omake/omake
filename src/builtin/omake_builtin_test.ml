@@ -6,25 +6,8 @@
  * \section{File predicates}
  * \end{doc}
  *)
-open Lm_glob
-open Lm_lexer
+include Omake_pos.MakePos (struct let name = "Omake_builtin_test" end)
 
-
-
-open Omake_ir
-open Omake_env
-open Omake_pos
-open Omake_node
-open Omake_value
-
-open Omake_builtin
-open Omake_builtin_type
-open Omake_builtin_util
-open Omake_value_type
-open Omake_var
-
-module Pos = MakePos (struct let name = "Omake_builtin_test" end)
-open Pos
 
 (************************************************************************
  * Types.
@@ -95,7 +78,7 @@ type int_exp =
 
 type bool_exp =
    UnopExp of unop * string_exp
- | MatchExp of LmStr.t
+ | MatchExp of Lm_lexer.LmStr.t
  | BinopExp of binop * string_exp * string_exp
  | IntopExp of intop * int_exp * int_exp
  | NotExp of bool_exp
@@ -211,7 +194,7 @@ let length_of_token arg =
  * Translate the filename.
  *)
 let filename_of_string venv pos s =
-   filename_of_value venv pos (ValString s)
+   Omake_value.filename_of_value venv pos (ValString s)
 
 (*
  * Generic stat operations.
@@ -417,7 +400,7 @@ let older_than_file stat1 stat2 =
 let eval_string_exp venv pos arg =
    match arg with
       TokCurrentFile _ ->
-         string_of_value venv pos (venv_get_var venv pos braces_var)
+         Omake_value.string_of_value venv pos (Omake_env.venv_get_var venv pos Omake_var.braces_var)
     | _ ->
          string_of_token arg
 
@@ -517,38 +500,38 @@ let eval_intop_exp venv pos op e1 e2 =
  * Match against the regular expression.
  *)
 let eval_match_exp venv pos regex =
-   let basename =
-      match venv_get_var venv pos braces_var with
-         ValNode node ->
-            Node.tail node
-       | v ->
-            Filename.basename (string_of_value venv pos v)
-   in
-      LmStr.string_match regex basename 0
+  let basename =
+    match Omake_env.venv_get_var venv pos Omake_var.braces_var with
+      ValNode node ->
+      Omake_node.Node.tail node
+    | v ->
+      Filename.basename (Omake_value.string_of_value venv pos v)
+  in
+  Lm_lexer.LmStr.string_match regex basename 0
 
 (*
  * General evaluator.
  *)
 let rec eval_bool_exp venv pos e =
-   match e with
-      UnopExp (op, e) ->
-         eval_unop_exp venv pos op e
-    | MatchExp regex ->
-         eval_match_exp venv pos regex
-    | BinopExp (op, e1, e2) ->
-         eval_binop_exp venv pos op e1 e2
-    | IntopExp (op, e1, e2) ->
-         eval_intop_exp venv pos op e1 e2
-    | NotExp e ->
-         not (eval_bool_exp venv pos e)
-    | AndExp (e1, e2) ->
-         eval_bool_exp venv pos e1 && eval_bool_exp venv pos e2
-    | OrExp (e1, e2) ->
-         eval_bool_exp venv pos e1 || eval_bool_exp venv pos e2
+  match e with
+  | UnopExp (op, e) ->
+    eval_unop_exp venv pos op e
+  | MatchExp regex ->
+    eval_match_exp venv pos regex
+  | BinopExp (op, e1, e2) ->
+    eval_binop_exp venv pos op e1 e2
+  | IntopExp (op, e1, e2) ->
+    eval_intop_exp venv pos op e1 e2
+  | NotExp e ->
+    not (eval_bool_exp venv pos e)
+  | AndExp (e1, e2) ->
+    eval_bool_exp venv pos e1 && eval_bool_exp venv pos e2
+  | OrExp (e1, e2) ->
+    eval_bool_exp venv pos e1 || eval_bool_exp venv pos e2
 
 (************************************************************************
  * Expression parsing.
- *)
+*)
 
 (*
  * Integer operation.
@@ -604,9 +587,9 @@ let rec parse_term venv pos tokens =
        | TokUnop (op, _) :: arg :: tokens ->
             UnopExp (op, arg), tokens
        | TokName _ :: arg :: tokens ->
-            MatchExp (regex_of_shell_pattern no_glob_options (string_of_token arg)), tokens
+            MatchExp (Lm_glob.regex_of_shell_pattern no_glob_options (string_of_token arg)), tokens
        | TokRegex _ :: arg :: tokens ->
-            MatchExp (LmStr.regexp (string_of_token arg)), tokens
+            MatchExp (Lm_lexer.LmStr.regexp (string_of_token arg)), tokens
        | arg :: tokens ->
             UnopExp (IsNonEmptyStringOp, arg), tokens
        | [] ->
@@ -745,14 +728,14 @@ and parse_exp venv pos tokens =
  * \end{doc}
  *)
 let print_usage venv pos loc =
-   let outv = venv_find_var venv pos loc stderr_var in
-   let outx = channel_of_value venv pos outv in
+   let outv = Omake_env.venv_find_var venv pos loc Omake_var.stderr_var in
+   let outx = Omake_value.channel_of_value venv pos outv in
       Lm_channel.output_string outx "test <expression>\nFor usage, see the omake manual\n";
       false
 
 let print_version venv pos loc =
-   let outv = venv_find_var venv pos loc stdout_var in
-   let outx = channel_of_value venv pos outv in
+   let outv = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
+   let outx = Omake_value.channel_of_value venv pos outv in
       Lm_channel.output_string outx "test version 1.0.0\n";
       false
 
@@ -792,7 +775,7 @@ let test_cmd_exn venv pos loc argv =
 let test_cmd venv pos loc argv =
    try test_cmd_exn venv pos loc argv with
       Failure _ as exn ->
-         raise (UncaughtException (loc_pos loc pos, exn))
+         raise (Omake_value_type.UncaughtException (loc_pos loc pos, exn))
 
 (************************************************************************
  * Usage.
@@ -856,27 +839,27 @@ let test venv pos loc args =
    let code =
       match args with
          [arg] ->
-            let argv = "test" :: strings_of_value venv pos arg in
+            let argv = "test" :: Omake_value.strings_of_value venv pos arg in
                test_cmd venv pos loc argv
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
-      val_of_bool code
+      Omake_builtin_util.val_of_bool code
 
 let shell_test cmd venv pos loc args =
    let pos = string_pos "shell-test" pos in
    let code =
       match args with
          [arg] ->
-            let argv = cmd :: strings_of_value venv pos arg in
+            let argv = cmd :: Omake_value.strings_of_value venv pos arg in
                test_cmd venv pos loc argv
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
       if code then
-         val_true
+         Omake_builtin_util.val_true
       else
-         raise (ExitException (pos, 1))
+         raise (Omake_value_type.ExitException (pos, 1))
 
 (************************************************************************
  * Find function.
@@ -887,11 +870,11 @@ let shell_test cmd venv pos loc args =
  *)
 let rec find_file venv pos nodes name e =
    (* Convert the name to to a value *)
-   let v = node_value_of_value venv pos ~follow_symlinks:false (ValString name) in
+   let v = Omake_value.node_value_of_value venv pos ~follow_symlinks:false (ValString name) in
 
    (* Add this node if the expression matches *)
    let nodes =
-      let venv = venv_add_var venv braces_var v in
+      let venv = Omake_env.venv_add_var venv Omake_var.braces_var v in
          if eval_bool_exp venv pos e then
             v :: nodes
          else
@@ -900,7 +883,7 @@ let rec find_file venv pos nodes name e =
       (* If this is a directory, then walk it recursively *)
       match v with
          ValDir dir ->
-            let dirname = Dir.fullname dir in
+            let dirname = Omake_node.Dir.fullname dir in
             let names =
                try Array.to_list @@ Sys.readdir dirname with
                  Sys_error _ -> [] in
@@ -914,7 +897,7 @@ let rec find_file venv pos nodes name e =
  * The main function, from arguments.
  *)
 let find_top venv pos _ arg =
-   let argv = strings_of_value venv pos arg in
+   let argv = Omake_value.strings_of_value venv pos arg in
    let tokens = List.map token_of_string argv in
    let dir, tokens =
       match tokens with
@@ -941,45 +924,39 @@ let find venv pos loc args =
       match args with
          [arg] ->
             let nodes = find_top venv pos loc arg in
-               concat_array nodes
+               Omake_value.concat_array nodes
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let shell_find venv pos loc args =
    let pos = string_pos "find" pos in
-      match args with
-         [arg] ->
-            let stdout_fd = venv_find_var venv pos loc stdout_var in
-            let outp, _ = out_channel_of_any_value venv pos stdout_fd in
-            let outx = venv_find_channel venv pos outp in
-            let nodes = find_top venv pos loc arg in
-               List.iter (fun node ->
-                     Lm_channel.output_string outx (string_of_value venv pos node);
-                     Lm_channel.output_string outx "\n") nodes;
-               Lm_channel.flush outx;
-               ValNone
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   match args with
+   | [arg] ->
+     let stdout_fd = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
+     let outp, _ = Omake_value.out_channel_of_any_value venv pos stdout_fd in
+     let outx = Omake_env.venv_find_channel venv pos outp in
+     let nodes = find_top venv pos loc arg in
+     List.iter (fun node ->
+       Lm_channel.output_string outx (Omake_value.string_of_value venv pos node);
+       Lm_channel.output_string outx "\n") nodes;
+     Lm_channel.flush outx;
+     Omake_value_type.ValNone
+   | _ ->
+     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (************************************************************************
  * External interface.
  *)
 let () =
-   let builtin_funs =
-      [true, "test",                  test,                 ArityExact 1;
-       true, "builtin-test",          shell_test "test",    ArityExact 1;
-       true, "builtin-test-brack",    shell_test "[",       ArityExact 1;
-       true, "find",                  find,                 ArityExact 1;
-       true, "builtin-find",          shell_find,           ArityExact 1]
-   in
-   let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs }
-   in
-      register_builtin builtin_info
+  let builtin_funs =
+    [true, "test",                  test,                 Omake_ir.ArityExact 1;
+     true, "builtin-test",          shell_test "test",    ArityExact 1;
+     true, "builtin-test-brack",    shell_test "[",       ArityExact 1;
+     true, "find",                  find,                 ArityExact 1;
+     true, "builtin-find",          shell_find,           ArityExact 1]
+  in
+  let builtin_info =
+    { Omake_builtin_type.builtin_empty with builtin_funs = builtin_funs }
+  in
+  Omake_builtin.register_builtin builtin_info
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
