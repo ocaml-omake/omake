@@ -236,7 +236,7 @@ lib/OMakefile.default: $(BOOTFILES)
 ########################################################################
 # Installation
 #
-all: $(DEFAULTFILES)  $(INSTALLFILES)
+all: $(DEFAULTFILES)  $(INSTALLFILES) $(ROOT)/src/Makefile $(ROOT)/src/Makefile.nt
 
 install: $(DEFAULTFILES)  $(INSTALLFILES)
     mkdir -p $(INSTALL_LIBDIR)/omake

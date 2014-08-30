@@ -282,11 +282,10 @@ private.MAKEFILE_HEAD_COMMON = $'''
 #
 # OCaml configuration
 #
-OCAMLC = ocamlc
+OCAMLC = ocamlc.opt
 OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex
-OCAMLDEP = ocamldep
-
+OCAMLLEX = ocamllex.opt
+OCAMLDEP = ocamldep.opt
 .mly.ml:
 	$(OCAMLYACC) $*.mly
 
@@ -354,7 +353,7 @@ MakeRootMakefiles(dirs) =
     tmp3 = Makefile.tmp3
     tmp4 = Makefile.tmp4
 
-    Makefile: $(MAKEFILES)
+    Makefile: $(MAKEFILES) $(file $(ROOT)/mk/make_gen)
         @echo $(MAKEFILE_HEAD_UNIX) > $(tmp1)
         @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp1)
         @cat $(MAKEFILES) >> $(tmp1)
@@ -365,7 +364,7 @@ MakeRootMakefiles(dirs) =
 	@mv -f $(tmp2) $@
 	@chmod 444 $@
 
-    Makefile.nt: $(MAKEFILES)
+    Makefile.nt: $(MAKEFILES) $(file $(ROOT)/mk/make_gen)
         @echo $(MAKEFILE_HEAD_NT) > $(tmp3)
         @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp3)
         @cat $(MAKEFILES) >> $(tmp3)

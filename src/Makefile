@@ -38,11 +38,10 @@ THREADSLIB =
 #
 # OCaml configuration
 #
-OCAMLC = ocamlc
+OCAMLC = ocamlc.opt
 OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex
-OCAMLDEP = ocamldep
-
+OCAMLLEX = ocamllex.opt
+OCAMLDEP = ocamldep.opt
 .mly.ml:
 	$(OCAMLYACC) $*.mly
 
