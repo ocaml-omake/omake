@@ -20,7 +20,7 @@ OCAMLINCLUDES[] +=
 OCAML_LIBS[] =
     ../libmojave/lm
 
-# MakeOCamlProgram(cvs_realclean, cvs_realclean)
+
 
 #
 # Main programs

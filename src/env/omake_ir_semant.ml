@@ -8,10 +8,6 @@
  *       return statements.
  *)
 
-(* open Omake_env. *)
-(* open Omake_options. *)
-
-
 include Omake_pos.MakePos (struct let name = "Omake_ir_semant" end)
 
 

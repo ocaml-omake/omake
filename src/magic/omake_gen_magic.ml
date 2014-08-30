@@ -1,16 +1,13 @@
 (*
  * Generate magic numbers.
  *)
-open Printf
 
-(************************************************************************
- * Options.
- *)
+
 type mode =
-   CacheFiles
- | OmcFiles
- | OmoFiles
- | NoFiles
+  | CacheFiles
+  | OmcFiles
+  | OmoFiles
+  | NoFiles
 
 let mode        = ref NoFiles
 let make_magic  = ref false
@@ -33,7 +30,7 @@ let anon s =
        | OmoFiles ->
             omo_files
        | NoFiles ->
-            eprintf "You specified an anonymous file.  Use --help for help.";
+            Printf.eprintf "You specified an anonymous file.  Use --help for help.";
             exit 3
    in
       p := s :: !p
@@ -71,7 +68,7 @@ let read_version () =
    let version =
       try read_version_from_file inx with
          End_of_file ->
-            eprintf "The %s file does not contain a version number\n" file;
+            Printf.eprintf "The %s file does not contain a version number\n" file;
             flush stderr;
             exit 1
    in
@@ -83,9 +80,9 @@ let read_version () =
          let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
             if String.length release > 4 && String.sub release 0 4 = "0.rc" then
                let release = String.sub release 4 ((String.length release) - 4) in
-                  sprintf "%s (release candidate %s)" (String.sub version 0 dash) release
+                  Printf.sprintf "%s (release candidate %s)" (String.sub version 0 dash) release
             else
-               sprintf "%s (release %s)" (String.sub version 0 dash) release
+               Printf.sprintf "%s (release %s)" (String.sub version 0 dash) release
       else
          version ^ " (development snapshot)"
 
@@ -163,7 +160,7 @@ let copy_magic_file outx filename =
    let inx =
       try open_in filename with
          Sys_error _ ->
-            eprintf "Can't open %s\n" filename;
+            Printf.eprintf "Can't open %s\n" filename;
             flush stderr;
             exit 1
    in
@@ -189,7 +186,7 @@ let digest_files filename code filenames =
    let outx =
       try open_out_bin filename with
          Sys_error _ ->
-            eprintf "Can't open temporary_file %s\n" filename;
+            Printf.eprintf "Can't open temporary_file %s\n" filename;
             flush stderr;
             exit 2
    in
@@ -239,15 +236,15 @@ let omake_magic buf =
          _
        } = Unix.localtime now
    in
-      fprintf buf "let default_save_interval = %F\n" !default_save_interval;
-      fprintf buf "let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s\n" digest_len digest_len;
-      fprintf buf "let output_magic = output_string\n";
-      fprintf buf "let cache_magic = \"%s\"\n" (digest_files ".cache.magic" ".odb" !cache_files);
-      fprintf buf "let ir_magic = \"%s\"\n"    (digest_files ".omc.magic" ".omc" !omc_files);
-      fprintf buf "let obj_magic = \"%s\"\n"   (digest_files ".omo.magic" ".omo" !omo_files);
-      fprintf buf "let lib_dir = \"%s\"\n" (String.escaped libdir);
-      fprintf buf "let version = \"%s\"\n" (String.escaped (shorten_version version));
-      fprintf buf "let version_message = \"OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s\"\n"
+      Printf.fprintf buf "let default_save_interval = %F\n" !default_save_interval;
+      Printf.fprintf buf "let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s\n" digest_len digest_len;
+      Printf.fprintf buf "let output_magic = output_string\n";
+      Printf.fprintf buf "let cache_magic = \"%s\"\n" (digest_files ".cache.magic" ".odb" !cache_files);
+      Printf.fprintf buf "let ir_magic = \"%s\"\n"    (digest_files ".omc.magic" ".omc" !omc_files);
+      Printf.fprintf buf "let obj_magic = \"%s\"\n"   (digest_files ".omo.magic" ".omo" !omo_files);
+      Printf.fprintf buf "let lib_dir = \"%s\"\n" (String.escaped libdir);
+      Printf.fprintf buf "let version = \"%s\"\n" (String.escaped (shorten_version version));
+      Printf.fprintf buf "let version_message = \"OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s\"\n"
          (String.escaped version)
          wday_names.(wday)
          mon_names.(mon)
@@ -266,14 +263,14 @@ let omake_root buf name =
    let version = shorten_version (read_version ()) in
    let version =
       if Lm_string_util.contains_any version "()$\" " then
-         sprintf "$'''%s'''" version
+         Printf.sprintf "$'''%s'''" version
       else
          version
    in
    let inx = open_in name in
-      fprintf buf "#\n# Required version of omake\n#\nOMakeVersion(%s, %s)\n\n" version version;
+      Printf.fprintf buf "#\n# Required version of omake\n#\nOMakeVersion(%s, %s)\n\n" version version;
       copy_file buf inx;
-      fprintf buf "\n";
+      Printf.fprintf buf "\n";
       close_out buf;
       close_in inx
 

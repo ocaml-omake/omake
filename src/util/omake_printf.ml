@@ -483,13 +483,3 @@ struct
    let fprintf buf s args =
       print_loop buf args 0 (String.length s) s
 end
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

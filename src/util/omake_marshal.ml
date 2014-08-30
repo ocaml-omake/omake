@@ -1,69 +1,42 @@
 (*
  * Marshaling of messages.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
-open Fmarshal
+(* open Fmarshal. *)
 
 let version_number = Hashtbl.hash "$Id$"
 
 type magic =
-   LocationMagic
- | IdMagic
- | NullRootMagic
- | DriveRootMagic
- | DirRootMagic
- | DirSubMagic
- | NodeFileMagic
- | NodePhonyGlobalMagic
- | NodePhonyDirMagic
- | NodePhonyFileMagic
- | NodeFlaggedMagic
- | NodeIsOptionalMagic
- | NodeIsExistingMagic
- | NodeIsSquashedMagic
- | NodeIsScannerMagic
- | QuietFlagMagic
- | AllowFailureFlagMagic
- | AllowOutputFlagMagic
- | CommandLineMagic
- | PrintEagerMagic
- | PrintLazyMagic
- | PrintExitMagic
- | RequestSpawnMagic
- | ResponseCreateMagic
- | ResponseExitedMagic
- | ResponseStdoutMagic
- | ResponseStderrMagic
- | ResponseStatusMagic
- | MaxMagic
+  | LocationMagic
+  | IdMagic
+  | NullRootMagic
+  | DriveRootMagic
+  | DirRootMagic
+  | DirSubMagic
+  | NodeFileMagic
+  | NodePhonyGlobalMagic
+  | NodePhonyDirMagic
+  | NodePhonyFileMagic
+  | NodeFlaggedMagic
+  | NodeIsOptionalMagic
+  | NodeIsExistingMagic
+  | NodeIsSquashedMagic
+  | NodeIsScannerMagic
+  | QuietFlagMagic
+  | AllowFailureFlagMagic
+  | AllowOutputFlagMagic
+  | CommandLineMagic
+  | PrintEagerMagic
+  | PrintLazyMagic
+  | PrintExitMagic
+  | RequestSpawnMagic
+  | ResponseCreateMagic
+  | ResponseExitedMagic
+  | ResponseStdoutMagic
+  | ResponseStderrMagic
+  | ResponseStatusMagic
+  | MaxMagic
 
-type msg = magic item
+type msg = magic Fmarshal.item
 
 exception MarshalError
 
@@ -85,16 +58,16 @@ let magic_of_int i =
  * Some common marshalers.
  *)
 let marshal_string_list l =
-   List (List.map (fun s -> String s) l)
+   Fmarshal.List (List.map (fun s -> Fmarshal.String s) l)
 
 let unmarshal_string_list l =
-   match l with
-      List l ->
-         List.map (function
-            String s -> s
-          | _ -> raise MarshalError) l
-    | _ ->
-         raise MarshalError
+  match l with
+  | Fmarshal.List l ->
+    List.map (function
+      |  Fmarshal.String s -> s
+      | _ -> raise MarshalError) l
+  | _ ->
+    raise MarshalError
 
 (*
  * Locations.
@@ -102,21 +75,11 @@ let unmarshal_string_list l =
 let marshal_loc loc =
    let file, sline, schar, eline, echar = Lm_location.dest_loc loc in
    let file = Lm_symbol.to_string file in
-      List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar]
+      Fmarshal.List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar]
 
 let unmarshal_loc l =
-   match l with
-      List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar] ->
-         Lm_location.create_loc (Lm_symbol.add file) sline schar eline echar
-    | _ ->
-         raise MarshalError
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
+  match l with
+  |Fmarshal.List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar] ->
+    Lm_location.create_loc (Lm_symbol.add file) sline schar eline echar
+  | _ ->
+    raise MarshalError
