@@ -1,4 +1,4 @@
-open Lm_printf
+
 include  Omake_pos.MakePos (struct let name = "Omake_main" end);;
 
 
@@ -6,7 +6,7 @@ let debug_hash = ref false
 
 let print_hash_stats () =
   if !debug_hash then
-    eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
+    Lm_printf.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
 
 (* List of targets to build. *)
 let targets = ref []
@@ -52,7 +52,7 @@ let spec =
    output_spec;
    "Cache management", (**)
    ["--save-interval", Lm_arg.Float (fun f -> Omake_build.save_interval := f), (**)
-    (sprintf "Save the build DB (\".omakedb\") every x seconds (0 disables, default: %F)" (**)
+    (Lm_printf.sprintf "Save the build DB (\".omakedb\") every x seconds (0 disables, default: %F)" (**)
        Omake_magic.default_save_interval);
     "--force-dotomake", Lm_arg.Set Omake_state.always_use_dotomake, (**)
     "Always use $HOME/.omake for .omc cache files";
@@ -72,9 +72,9 @@ let spec =
       opts), (**)
     "Force overwriting of files during installation; implies --install";
     "--version", Lm_arg.Unit (fun () ->
-      printf "%s\n\nDefault library directory : %s@." Omake_magic.version_message Omake_magic.lib_dir;
+      Lm_printf.printf "%s\n\nDefault library directory : %s@." Omake_magic.version_message Omake_magic.lib_dir;
       if Omake_state.lib_dir_reason <> "" then
-        printf "Using library directory   : %s\n\t(as specified by the %s)@." (**)
+        Lm_printf.printf "Using library directory   : %s\n\t(as specified by the %s)@." (**)
           Omake_state.lib_dir Omake_state.lib_dir_reason;
       exit 0), (**)
     "Print the version string and exit"];
@@ -174,7 +174,7 @@ let chroot () =
       Unix.getcwd ()
     with
       Unix.Unix_error _ ->
-        eprintf "*** omake: fatal error: current directory does not exist@.";
+        Lm_printf.eprintf "*** omake: fatal error: current directory does not exist@.";
         exit 1  in
   let len = String.length cwd in
   let start = Lm_filename_util.drive_skip cwd in
@@ -202,7 +202,7 @@ let chroot () =
       search (len - 1)
   in
   if rest <> "." then
-    eprintf "*** omake: changing directory to %s@." dir;
+    Lm_printf.eprintf "*** omake: changing directory to %s@." dir;
   Unix.chdir dir;
   Omake_node.Dir.reset_cwd ();
   rest
@@ -277,7 +277,7 @@ let _ =
         exit 0
     | Lm_arg.BogusArg (s) ->
         Lm_arg.usage spec header;
-        eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
+        Lm_printf.eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
         exit 3
   in
   Lm_thread_core.debug_mutex := !Lm_thread_pool.debug_thread;

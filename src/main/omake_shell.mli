@@ -2,10 +2,3 @@
 
 
 val shell : Omake_options.t -> string option -> string list -> unit
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
