@@ -359,7 +359,7 @@ struct
        | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
             Lm_location.compare loc1 loc2
        | ValVar (_, v1), ValVar (_, v2) ->
-            VarInfoCompare.compare v1 v2
+            Omake_ir_util.VarInfoCompare.compare v1 v2
        | _ ->
             tag v1 - tag v2
 

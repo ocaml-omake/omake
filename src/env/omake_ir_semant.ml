@@ -94,7 +94,7 @@ let env_object_tail env =
  * Fresh environment for a function body.
  *)
 let new_return_id loc v =
-   let _, v = Omake_ir.var_of_var_info v in
+   let _, v = Omake_ir_util.var_of_var_info v in
       loc, Lm_symbol.to_string v
 
 let env_fun env id =

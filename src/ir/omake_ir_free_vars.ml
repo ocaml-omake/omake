@@ -8,31 +8,30 @@
  *)
 
 
-(* open Omake_ir. *)
 
 (*
  * Tables of free variables.
  *)
-type free_vars = Omake_ir.VarInfoSet.t
+type free_vars = Omake_ir_util.VarInfoSet.t
 
-let free_vars_empty = Omake_ir.VarInfoSet.empty
+let free_vars_empty = Omake_ir_util.VarInfoSet.empty
 
 (*
  * Free variable operations.
  *)
-let free_vars_add = Omake_ir.VarInfoSet.add
-let free_vars_remove = Omake_ir.VarInfoSet.remove
+let free_vars_add = Omake_ir_util.VarInfoSet.add
+let free_vars_remove = Omake_ir_util.VarInfoSet.remove
 
 let free_vars_remove_param_list fv params =
-   List.fold_left Omake_ir.VarInfoSet.remove fv params
+   List.fold_left Omake_ir_util.VarInfoSet.remove fv params
 
 let free_vars_remove_opt_param_list fv keywords =
-   List.fold_left (fun fv (_, v, _) -> Omake_ir.VarInfoSet.remove fv v) fv keywords
+   List.fold_left (fun fv (_, v, _) -> Omake_ir_util.VarInfoSet.remove fv v) fv keywords
 (*
  * Union of two free variable sets.
  *)
 let free_vars_union fv1 fv2 =
-   Omake_ir.VarInfoSet.fold Omake_ir.VarInfoSet.add fv1 fv2
+   Omake_ir_util.VarInfoSet.fold Omake_ir_util.VarInfoSet.add fv1 fv2
 
 (*
  * Free vars of the export.
@@ -49,7 +48,7 @@ let free_vars_export_info fv info =
         | ExportPhonies ->
           fv
         | ExportVar v ->
-          Omake_ir.VarInfoSet.add fv v) fv items
+          Omake_ir_util.VarInfoSet.add fv v) fv items
 
 (*
  * Free vars in optional args.

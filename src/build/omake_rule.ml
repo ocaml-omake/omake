@@ -1082,7 +1082,7 @@ and eval_rule venv loc target sources sloppy_deps values commands =
   let commands, fv = List.fold_left command_line ([], Omake_ir_free_vars.free_vars_empty) commands in
   let commands = List.rev commands in
   let values =
-    Omake_ir.VarInfoSet.fold (fun values v ->
+    Omake_ir_util.VarInfoSet.fold (fun values v ->
       Omake_value_type.ValMaybeApply (loc, v) :: values) values (Omake_ir_free_vars.free_vars_set fv)
   in
   let values =

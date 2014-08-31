@@ -2826,7 +2826,7 @@ let venv_add_memo_rule venv _pos loc _multiple is_static key vars sources values
   let globals = venv_globals venv in
   let venv =
     List.fold_left (fun venv info ->
-      let _, v = Omake_ir.var_of_var_info info in
+      let _, v = Omake_ir_util.var_of_var_info info in
       venv_add_var venv info (ValDelayed (ref (Omake_value_type.ValStaticApply (key, v))))) venv vars
   in
   globals.venv_memo_rules <- Omake_value_type.ValueTable.add globals.venv_memo_rules key (StaticRule srule);

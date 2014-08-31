@@ -7,7 +7,7 @@ include Omake_pos.MakePos (struct let name = "Omake_ir_ast" end)
  *)
 let raise_var_def_error pos info1 info2 =
    let print_error buf =
-      let loc, _ = Omake_ir.var_of_var_info info2 in
+      let loc, _ = Omake_ir_util.var_of_var_info info2 in
          Format.fprintf buf "@[<v 3>Variable declaration mismatch:@ variable@    %a@ is already defined as@    %a@    %a@]" (**)
             Omake_ir_print.pp_print_var_info info1
             Omake_ir_print.pp_print_var_info info2
@@ -120,13 +120,13 @@ end;;
 
 module AllVars : AllVarsSig =
 struct
-   type t = Omake_ir.var_info Omake_ir.SimpleVarTable.t
+   type t = Omake_ir.var_info Omake_ir_util.SimpleVarTable.t
 
    (* Inherit *)
-   let empty = Omake_ir.SimpleVarTable.empty
-   let find = Omake_ir.SimpleVarTable.find
-   let iter = Omake_ir.SimpleVarTable.iter
-   let add  = Omake_ir.SimpleVarTable.add
+   let empty = Omake_ir_util.SimpleVarTable.empty
+   let find = Omake_ir_util.SimpleVarTable.find
+   let iter = Omake_ir_util.SimpleVarTable.iter
+   let add  = Omake_ir_util.SimpleVarTable.add
 end;;
 
 (************************************************************************
@@ -716,7 +716,7 @@ let senv_export_var_list items =
     | ExportPhonies ->
       vars
     | ExportVar info ->
-      let _, v = Omake_ir.var_of_var_info info in
+      let _, v = Omake_ir_util.var_of_var_info info in
       Lm_symbol.SymbolTable.add vars v info) Lm_symbol.SymbolTable.empty items
 
 let senv_export_value senv info =

@@ -442,7 +442,7 @@ OCAML_LIB_FLAGS_ir =
 ir.cma: $(CMOFILES_ir)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_ir) -a -o $@ $(CMOFILES_ir)
 
-omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_node_sig.cmo omake_node.cmo omake_virtual_id.cmo omake_install.cmo omake_ir.cmo omake_var.cmo omake_ir_util.cmo omake_ir_print.cmo omake_ir_free_vars.cmo omake_lexer.cmo omake_parser.cmo omake_value_type.cmo omake_command_type.cmo omake_value_print.cmo omake_pos.cmo omake_shell_type.cmo omake_command.cmo omake_cache_type.cmo omake_cache.cmo omake_options.cmi omake_state.cmi omake_node.cmi omake_virtual_id.cmi omake_install.cmi omake_var.cmi omake_ir_util.cmi omake_ir_print.cmi omake_ir_free_vars.cmi omake_value_print.cmi omake_pos.cmi omake_command.cmi omake_cache.cmi: magic.cma
+omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_node_sig.cmo omake_node.cmo omake_virtual_id.cmo omake_install.cmo omake_ir.cmo omake_var.cmo omake_ir_util.cmo omake_ir_print.cmo omake_ir_free_vars.cmo omake_lexer.cmo omake_parser.cmo omake_value_type.cmo omake_command_type.cmo omake_value_print.cmo omake_pos.cmo omake_shell_type.cmo omake_command.cmo omake_cache_type.cmo omake_cache.cmo omake_options.cmi omake_state.cmi omake_node.cmi omake_virtual_id.cmi omake_install.cmi omake_var.cmi omake_ir_print.cmi omake_ir_free_vars.cmi omake_value_print.cmi omake_pos.cmi omake_command.cmi omake_cache.cmi: magic.cma
 
 SRC_ir = ..$(slash)src$(slash)ir
 
@@ -487,9 +487,6 @@ omake_ir_print.mli: $(SRC_ir)$(slash)omake_ir_print.mli
 
 omake_ir_util.ml: $(SRC_ir)$(slash)omake_ir_util.ml
 	$(LN) $(SRC_ir)$(slash)omake_ir_util.ml omake_ir_util.ml
-
-omake_ir_util.mli: $(SRC_ir)$(slash)omake_ir_util.mli
-	$(LN) $(SRC_ir)$(slash)omake_ir_util.mli omake_ir_util.mli
 
 omake_lexer.ml: $(SRC_ir)$(slash)omake_lexer.ml
 	$(LN) $(SRC_ir)$(slash)omake_lexer.ml omake_lexer.ml
@@ -554,7 +551,7 @@ omake_virtual_id.ml: $(SRC_ir)$(slash)omake_virtual_id.ml
 omake_virtual_id.mli: $(SRC_ir)$(slash)omake_virtual_id.mli
 	$(LN) $(SRC_ir)$(slash)omake_virtual_id.mli omake_virtual_id.mli
 
-ALLFILES_ir = omake_cache.ml omake_cache.mli omake_cache_type.ml omake_command.ml omake_command.mli omake_command_type.ml omake_install.ml omake_install.mli omake_ir.ml omake_ir_free_vars.ml omake_ir_free_vars.mli omake_ir_print.ml omake_ir_print.mli omake_ir_util.ml omake_ir_util.mli omake_lexer.ml omake_node.ml omake_node.mli omake_node_sig.ml omake_node_type.ml omake_options.ml omake_options.mli omake_parser.ml omake_pos.ml omake_pos.mli omake_shell_type.ml omake_state.ml omake_state.mli omake_symbol.ml omake_value_print.ml omake_value_print.mli omake_value_type.ml omake_var.ml omake_var.mli omake_virtual_id.ml omake_virtual_id.mli
+ALLFILES_ir = omake_cache.ml omake_cache.mli omake_cache_type.ml omake_command.ml omake_command.mli omake_command_type.ml omake_install.ml omake_install.mli omake_ir.ml omake_ir_free_vars.ml omake_ir_free_vars.mli omake_ir_print.ml omake_ir_print.mli omake_ir_util.ml omake_lexer.ml omake_node.ml omake_node.mli omake_node_sig.ml omake_node_type.ml omake_options.ml omake_options.mli omake_parser.ml omake_pos.ml omake_pos.mli omake_shell_type.ml omake_state.ml omake_state.mli omake_symbol.ml omake_value_print.ml omake_value_print.mli omake_value_type.ml omake_var.ml omake_var.mli omake_virtual_id.ml omake_virtual_id.mli
 
 
 CMOFILES_exec = omake_exec_id.cmo omake_exec_type.cmo omake_exec_print.cmo omake_exec_util.cmo omake_exec_local.cmo omake_exec_remote.cmo omake_exec_notify.cmo omake_exec.cmo
