@@ -1,21 +1,18 @@
 open Lm_printf
 open Lm_symbol
 open Lm_location
-
 open! Omake_ir
-open Omake_node
-open Omake_wild
-open Omake_lexer
-open Omake_parser
-open Omake_node_sig
-open Omake_ir_free_vars
-open Omake_handle_table
+
+
+
+
+
 
 (* %%MAGICBEGIN%% *)
 (*
  * Various kinds of handles.
  *)
-type handle_env = HandleTable.handle
+type handle_env = Omake_handle_table.HandleTable.handle
 
 (*
  * I/O channels.
@@ -25,7 +22,7 @@ type channel_mode = Lm_channel.mode =
  | OutChannel
  | InOutChannel
 
-type prim_channel = IntHandleTable.handle
+type prim_channel = Omake_handle_table.IntHandleTable.handle
 
 (*
  * Possible values.
@@ -43,9 +40,9 @@ type value =
  | ValData        of string
  | ValQuote       of value list
  | ValQuoteString of char * value list
- | ValRules       of Node.t list
- | ValNode        of Node.t
- | ValDir         of Dir.t
+ | ValRules       of Omake_node.Node.t list
+ | ValNode        of Omake_node.Node.t
+ | ValDir         of Omake_node.Dir.t
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
@@ -83,8 +80,8 @@ type value =
  * smaller.
  *)
 and value_other =
-   ValLexer       of Lexer.t
- | ValParser      of Parser.t
+   ValLexer       of Omake_lexer.Lexer.t
+ | ValParser      of Omake_parser.Parser.t
  | ValLocation    of loc
  | ValExitCode    of int
  | ValEnv         of handle_env * export
@@ -135,7 +132,7 @@ type path =
  * for various kinds of commands.
  *)
 type command =
-   CommandSection of value * free_vars * exp list   (* Name of the section, its free variables, and the expression *)
+  | CommandSection of value * Omake_ir_free_vars.free_vars * exp list   (* Name of the section, its free variables, and the expression *)
  | CommandValue of loc * env * string_exp
 
 (*
@@ -155,7 +152,7 @@ type rule_kind =
  * A target value that represents a node in a rule.
  *)
 type target =
-   TargetNode of Node.t
+   TargetNode of Omake_node.Node.t
  | TargetString of string
 
 (*
@@ -166,10 +163,10 @@ type target =
  *   4. A squashed source
  *)
 type source_core =
-   SourceWild of wild_out_patt
- | SourceNode of Node.t
+   SourceWild of Omake_wild.wild_out_patt
+ | SourceNode of Omake_node.Node.t
 
-type 'a source = node_kind * 'a
+type 'a source = Omake_node_sig.node_kind * 'a
 
 (************************************************************************
  * Exceptions.
@@ -190,8 +187,8 @@ and omake_error =
  | StringError        of string
  | StringAstError     of string * Omake_ast.exp
  | StringStringError  of string * string
- | StringDirError     of string * Dir.t
- | StringNodeError    of string * Node.t
+ | StringDirError     of string * Omake_node.Dir.t
+ | StringNodeError    of string * Omake_node.Node.t
  | StringVarError     of string * var
  | StringIntError     of string * int
  | StringMethodError  of string * var list
@@ -353,9 +350,9 @@ struct
        | ValData s1, ValData s2 ->
             Pervasives.compare s1 s2
        | ValNode node1, ValNode node2 ->
-            Node.compare node1 node2
+            Omake_node.Node.compare node1 node2
        | ValDir dir1, ValDir dir2 ->
-            Dir.compare dir1 dir2
+            Omake_node.Dir.compare dir1 dir2
        | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
             Lm_location.compare loc1 loc2
        | ValVar (_, v1), ValVar (_, v2) ->

@@ -1,34 +1,7 @@
 (*
  * Signatures for the Dir, Node modules.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
-open Omake_marshal
+(* open Omake_marshal. *)
 
 (*
  * A directory node.
@@ -80,8 +53,8 @@ sig
    (*
     * Marshaling.
     *)
-   val marshal : t -> msg
-   val unmarshal : msg -> t
+   val marshal : t -> Omake_marshal.msg
+   val unmarshal : Omake_marshal.msg -> t
 end
 
 (*
@@ -263,18 +236,11 @@ sig
    (*
     * Marshaling.
     *)
-   val marshal : t -> msg
-   val unmarshal : msg -> t
+   val marshal : t -> Omake_marshal.msg
+   val unmarshal : Omake_marshal.msg -> t
 
    (*
     * An internal representation of a node (optimization for the set of phony nodes)
     *)
    val dest : t -> pre
 end
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

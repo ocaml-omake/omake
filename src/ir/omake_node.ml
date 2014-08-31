@@ -5,20 +5,6 @@
  * does.  For each file, we maintain stat and MD5 information
  * (if they exist).
  *)
-open Lm_hash
-open Lm_printf
-
-open Lm_hash_sig
-
-
-open Lm_filename_util
-
-open Fmarshal
-
-open Omake_state
-open Omake_marshal
-open Omake_node_sig
-
 
 (************************************************************************
  * This case [in-]sensitivity of file names is a complex issue.
@@ -32,87 +18,87 @@ sig
    val create              : dir -> string -> t
    val compare             : t -> t -> int
    val equal               : t -> t -> bool
-   val add_filename        : HashCode.t -> t -> unit
+   val add_filename        : Lm_hash.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
-   val marshal             : t -> msg
-   val unmarshal           : msg -> t
+   val marshal             : t -> Omake_marshal.msg
+   val unmarshal           : Omake_marshal.msg -> t
 end;;
 
 module rec FileCase : FileCaseSig with type dir = DirHash.t =
-struct
-   (* %%MAGICBEGIN%% *)
-   type t = string
-   (* %%MAGICEND%% *)
+  struct
+    (* %%MAGICBEGIN%% *)
+    type t = string
+    (* %%MAGICEND%% *)
 
-   type dir = DirHash.t
+    type dir = DirHash.t
 
-   open DirElt
-   open Unix.LargeFile
+    open DirElt
+    open Unix.LargeFile
 
-   (*
+    (*
     * Check whether a directory is case-sensitive.
     *)
-   let case_table = ref DirTable.empty
+    let case_table = ref DirTable.empty
 
-   (* We'll use randomly generated names *)
-   let fs_random = Random.State.make_self_init ()
+    (* We'll use randomly generated names *)
+    let fs_random = Random.State.make_self_init ()
 
-   (*
+    (*
     * Test whether stats are equal enough that we think that it's the same file.
     *)
-   let stats_equal stat1 stat2 =
+    let stats_equal stat1 stat2 =
       stat1.st_dev = stat2.st_dev
-         && stat1.st_ino = stat2.st_ino
-         && stat1.st_kind = stat2.st_kind
-         && stat1.st_rdev = stat2.st_rdev
-         && stat1.st_nlink = stat2.st_nlink
-         && stat1.st_size = stat2.st_size
-         && stat1.st_mtime = stat2.st_mtime
-         && stat1.st_ctime = stat2.st_ctime
+      && stat1.st_ino = stat2.st_ino
+      && stat1.st_kind = stat2.st_kind
+      && stat1.st_rdev = stat2.st_rdev
+      && stat1.st_nlink = stat2.st_nlink
+      && stat1.st_size = stat2.st_size
+      && stat1.st_mtime = stat2.st_mtime
+      && stat1.st_ctime = stat2.st_ctime
 
-   (*
+    (*
     * Toggle the case of the name.
     * Raises Not_found if the name contains no alphabetic letters.
     *)
-   let rec toggle_name_case name len i =
+    let rec toggle_name_case name len i =
       if i = len then
-         raise Not_found
+        raise Not_found
       else
-         match name.[i] with
-            'A'..'Z'
-          | '\192' .. '\214'
-          | '\216' .. '\222' ->
-               String.lowercase name
-          | 'a'..'z'
-          | '\224' .. '\246'
-          | '\248' .. '\254' ->
-               String.uppercase name
-          | _ ->
-               toggle_name_case name len (succ i)
+        match name.[i] with
+          'A'..'Z'
+        | '\192' .. '\214'
+        | '\216' .. '\222' ->
+          String.lowercase name
+        | 'a'..'z'
+        | '\224' .. '\246'
+        | '\248' .. '\254' ->
+          String.uppercase name
+        | _ ->
+          toggle_name_case name len (succ i)
 
-   (*
+    (*
     * Stat, does not fail.
     *)
-   let do_stat absname =
+    let do_stat absname =
       try Some (Unix.LargeFile.lstat absname) with
-         Unix.Unix_error _ ->
-            None
+        Unix.Unix_error _ ->
+        None
 
-   (*
+    (*
     * Unlink, does not fail.
     *)
-   let do_unlink absname =
+    let do_unlink absname =
       try Unix.unlink absname with
-         Unix.Unix_error _ ->
-            ()
+        Unix.Unix_error _ ->
+        ()
 
-   (*
+    (*
     * Create a file, raising Unix_error if the file can't be created.
     *)
-   let do_create absname =
+    let do_create absname =
       Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
 
-   (*
+    (*
     * Given two filenames that differ only in case,
     * stat them both.  If the stats are different,
     * the directory is on a case-sensitive fs.
@@ -121,67 +107,67 @@ struct
     * a stat on the first file before and after.
     * Raise Not_found if a race condition is detected.
     *)
-   let stats_not_equal name1 name2 =
+    let stats_not_equal name1 name2 =
       let stat1 = do_stat name1 in
       let stat2 = do_stat name2 in
       let stat3 = do_stat name1 in
-         match stat1, stat3 with
-            Some s1, Some s3 when stats_equal s1 s3 ->
-               (match stat2 with
-                   Some s2 when stats_equal s2 s1 -> false
-                 | _ -> true)
-          | _ ->
-               raise Not_found
+      match stat1, stat3 with
+        Some s1, Some s3 when stats_equal s1 s3 ->
+        (match stat2 with
+          Some s2 when stats_equal s2 s1 -> false
+        | _ -> true)
+      | _ ->
+        raise Not_found
 
-   (*
+    (*
     * If we have an alphabetic name, just toggle the case.
     *)
-   let stat_with_toggle_case absdir name =
+    let stat_with_toggle_case absdir name =
       let alternate_name = toggle_name_case name (String.length name) 0 in
-         stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
+      stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
 
-   (*
+    (*
     * Look through the entire directory for a name with alphabetic characters.
     * A check for case-sensitivity base on that.
     *
     * Raises Not_found if there are no such filenames.
     *)
-   let rec dir_test_all_entries_exn absdir dir_handle =
+    let rec dir_test_all_entries_exn absdir dir_handle =
       let name =
-         try Unix.readdir dir_handle
-         with Unix.Unix_error _ | End_of_file as exn ->
-            Unix.closedir dir_handle;
-            raise exn
+        try Unix.readdir dir_handle
+        with Unix.Unix_error _ | End_of_file as exn ->
+          Unix.closedir dir_handle;
+          raise exn
       in
-         match name with
-            "."
-          | ".." ->
-               dir_test_all_entries_exn absdir dir_handle
-          | _ ->
-               try
-                  let result = stat_with_toggle_case absdir name in
-                     Unix.closedir dir_handle;
-                     result
-               with Not_found ->
-                     dir_test_all_entries_exn absdir dir_handle
+      match name with
+        "."
+      | ".." ->
+        dir_test_all_entries_exn absdir dir_handle
+      | _ ->
+        try
+          let result = stat_with_toggle_case absdir name in
+          Unix.closedir dir_handle;
+          result
+        with Not_found ->
+          dir_test_all_entries_exn absdir dir_handle
 
-   (*
+    (*
     * Check for sensativity by creating a dummy file.
     *)
-   let dir_test_new_entry_exn absdir =
+    let dir_test_new_entry_exn absdir =
       Unix.access absdir [Unix.W_OK];
-      let name = sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
+      let name = Lm_printf.sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
       let absname = Filename.concat absdir name in
       let () = do_create absname in
-         try
-            let flag = stat_with_toggle_case absdir name in
-               do_unlink absname;
-               flag
-         with Not_found as exn ->
-            do_unlink absname;
-            raise exn
+      try
+        let flag = stat_with_toggle_case absdir name in
+        do_unlink absname;
+        flag
+      with Not_found as exn ->
+        do_unlink absname;
+        raise exn
 
-   (*
+    (*
     * To check for case sensitivity, try these tests in order,
     * stopping when one is successful.
     *    1. Try the name being created itself.
@@ -193,96 +179,94 @@ struct
     * Steps 2-4 will only be performed when we really need them (the name contains
     * uppercase letters),
     *)
-   exception Not_a_usable_directory
-   exception Already_lowercase
+    exception Not_a_usable_directory
+    exception Already_lowercase
 
-   let rec check_already_lowercase name len i =
+    let rec check_already_lowercase name len i =
       if i = len then
-         raise Already_lowercase
+        raise Already_lowercase
       else
-         match name.[i] with
-            'A'..'Z'
-          | '\192' .. '\214'
-          | '\216' .. '\222' -> ()
-          | _ -> check_already_lowercase name len (i+1)
+        match name.[i] with
+          'A'..'Z'
+        | '\192' .. '\214'
+        | '\216' .. '\222' -> ()
+        | _ -> check_already_lowercase name len (i+1)
 
-   let rec dir_test_sensitivity shortcircuit dir absdir name =
+    let rec dir_test_sensitivity shortcircuit dir absdir name =
       try stat_with_toggle_case absdir name
       with Not_found ->
-         if shortcircuit then
-            check_already_lowercase name (String.length name) 0;
-         try
-            let dir_handle =
-               try Unix.opendir absdir with
-                  Unix.Unix_error ((Unix.ENOENT | Unix.ENOTDIR | Unix.ELOOP | Unix.ENAMETOOLONG), _, _) ->
-                     raise Not_a_usable_directory
-            in
-               try dir_test_all_entries_exn absdir dir_handle
-               with Unix.Unix_error _ | Not_found | End_of_file ->
-                     dir_test_new_entry_exn absdir
-         with Unix.Unix_error _ | Not_found | End_of_file | Not_a_usable_directory ->
-            match DirHash.get dir with
-               DirRoot _ ->
-                  (* Nothing else we can do, assume sensitive *)
-                  true
-             | DirSub (_, name, parent) ->
-                  dir_is_sensitive false parent name
+        if shortcircuit then
+          check_already_lowercase name (String.length name) 0;
+        try
+          let dir_handle =
+            try Unix.opendir absdir with
+              Unix.Unix_error ((Unix.ENOENT | Unix.ENOTDIR | Unix.ELOOP | Unix.ENAMETOOLONG), _, _) ->
+              raise Not_a_usable_directory
+          in
+          try dir_test_all_entries_exn absdir dir_handle
+          with Unix.Unix_error _ | Not_found | End_of_file ->
+            dir_test_new_entry_exn absdir
+        with Unix.Unix_error _ | Not_found | End_of_file | Not_a_usable_directory ->
+          match DirHash.get dir with
+            DirRoot _ ->
+            (* Nothing else we can do, assume sensitive *)
+            true
+          | DirSub (_, name, parent) ->
+            dir_is_sensitive false parent name
 
-   (*
+    (*
     * This is the caching version of the case-sensitivity test.
     *)
-   and dir_is_sensitive shortcircuit dir name =
+    and dir_is_sensitive shortcircuit dir name =
       try DirTable.find !case_table dir with
-         Not_found ->
-            let absdir = abs_dir_name dir in
-            let sensitive =
-               if Lm_fs_case_sensitive.available then
-                  try
-                     Lm_fs_case_sensitive.case_sensitive absdir
-                  with
-                     Failure _ ->
-                        dir_test_sensitivity shortcircuit dir absdir name
-               else
-                  dir_test_sensitivity shortcircuit dir absdir name
-            in
-               case_table := DirTable.add !case_table dir sensitive;
-               sensitive
+        Not_found ->
+        let absdir = abs_dir_name dir in
+        let sensitive =
+          if Lm_fs_case_sensitive.available then
+            try
+              Lm_fs_case_sensitive.case_sensitive absdir
+            with
+              Failure _ ->
+              dir_test_sensitivity shortcircuit dir absdir name
+          else
+            dir_test_sensitivity shortcircuit dir absdir name
+        in
+        case_table := DirTable.add !case_table dir sensitive;
+        sensitive
 
-   (*
+    (*
     * On Unix-like OS (especially on Mac OS X), create needs to check the fs of the node's parent
     * directory for case sensitivity.
     * See also http://bugzilla.metaprl.org/show_bug.cgi?id=657
     *)
-   let create =
+    let create =
       match Sys.os_type with
-         "Win32"
-       | "Cygwin" ->
-            (fun _ name -> String.lowercase name)
-       | _ ->
-            (fun dir name ->
-               try
-                  if dir_is_sensitive true dir name then name else String.lowercase name
-               with Already_lowercase ->
-                  name)
+        "Win32"
+      | "Cygwin" ->
+        (fun _ name -> String.lowercase name)
+      | _ ->
+        (fun dir name ->
+          try
+            if dir_is_sensitive true dir name then name else String.lowercase name
+          with Already_lowercase ->
+            name)
 
-   let compare = Lm_string_util.string_compare
-   let equal (s1: string) s2 = (s1 = s2)
-   let add_filename = HashCode.add_string
-   let add_filename_string = Buffer.add_string
+    let compare = Lm_string_util.string_compare
+    let equal (s1: string) s2 = (s1 = s2)
+    let add_filename = Lm_hash.HashCode.add_string
+    let add_filename_string = Buffer.add_string
 
-   let marshal s =
-      String s
+    let marshal s =
+      Fmarshal.String s
 
-   let unmarshal = function
-      String s ->
-         s
-    | _ ->
-         raise MarshalError
-end
+    let unmarshal = function
+      |Fmarshal.String s ->
+        s
+      | _ ->
+        raise Omake_marshal.MarshalError
+  end
 
-(************************************************************************
- * Directories.
- *)
+(** Directories. *)
 
 (*
  * Internally, we represent pathnames as absolute paths.
@@ -293,38 +277,38 @@ end
  *)
 (* %%MAGICBEGIN%% *)
 and DirElt :
-sig
-   type t =
-      DirRoot of Lm_filename_util.root
-    | DirSub of FileCase.t * string * DirHash.t
+  sig
+    type t =
+        DirRoot of Lm_filename_util.root
+      | DirSub of FileCase.t * string * DirHash.t
 
-   val abs_dir_name: DirHash.t -> string
-end
+    val abs_dir_name: DirHash.t -> string
+  end
 =
 struct
-   type t =
+  type t =
       DirRoot of Lm_filename_util.root
-    | DirSub of FileCase.t * string * t hash_marshal_eq_item
+    | DirSub of FileCase.t * string * t Lm_hash.hash_marshal_eq_item
 
-   let abs_dir_name =
-      let rec name buf dir =
-         match DirHash.get dir with
-            DirRoot root ->
-               Buffer.add_string buf (Lm_filename_util.string_of_root root)
-          | DirSub (key, _, parent) ->
-               name buf parent;
-               begin match DirHash.get parent with
-                  DirRoot _ ->
-                     ()
-                | _ ->
-                     Buffer.add_string buf Filename.dir_sep 
-               end;
-               FileCase.add_filename_string buf key
-      in
-      fun dir ->
-         let buf = Buffer.create 17 in
-         let () = name buf dir in
-            Buffer.contents buf
+  let abs_dir_name =
+    let rec name buf dir =
+      match DirHash.get dir with
+        DirRoot root ->
+        Buffer.add_string buf (Lm_filename_util.string_of_root root)
+      | DirSub (key, _, parent) ->
+        name buf parent;
+        begin match DirHash.get parent with
+          DirRoot _ ->
+          ()
+        | _ ->
+          Buffer.add_string buf Filename.dir_sep 
+        end;
+        FileCase.add_filename_string buf key
+    in
+    fun dir ->
+      let buf = Buffer.create 17 in
+      let () = name buf dir in
+      Buffer.contents buf
 
 end
 (* %%MAGICEND%% *)
@@ -332,83 +316,83 @@ end
 (*
  * Sets and tables.
  *)
-and DirCompare : HashMarshalEqArgSig with type t = DirElt.t =
-struct
-   open DirElt
-   type t = DirElt.t
+and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
+  struct
+    open DirElt
+    type t = DirElt.t
 
-   let debug = "Dir"
+    let debug = "Dir"
 
-   let fine_hash = function
-      DirRoot root ->
-         Hashtbl.hash root
-    | DirSub (_, raw_name, parent) ->
-         let buf = HashCode.create () in
-            HashCode.add_int buf (DirHash.hash parent);
-            HashCode.add_string buf raw_name;
-            HashCode.code buf
+    let fine_hash = function
+        DirRoot root ->
+        Hashtbl.hash root
+      | DirSub (_, raw_name, parent) ->
+        let buf = Lm_hash.HashCode.create () in
+        Lm_hash.HashCode.add_int buf (DirHash.hash parent);
+        Lm_hash.HashCode.add_string buf raw_name;
+        Lm_hash.HashCode.code buf
 
-   let coarse_hash = function
-      DirRoot root ->
-         Hashtbl.hash root
-    | DirSub (name, _, parent) ->
-         let buf = HashCode.create () in
-            HashCode.add_int buf (DirHash.hash parent);
-            FileCase.add_filename buf name;
-            HashCode.code buf
+    let coarse_hash = function
+        DirRoot root ->
+        Hashtbl.hash root
+      | DirSub (name, _, parent) ->
+        let buf = Lm_hash.HashCode.create () in
+        Lm_hash.HashCode.add_int buf (DirHash.hash parent);
+        FileCase.add_filename buf name;
+        Lm_hash.HashCode.code buf
 
-   let fine_compare dir1 dir2 =
+    let fine_compare dir1 dir2 =
       match dir1, dir2 with
-         DirRoot root1, DirRoot root2 ->
-            Pervasives.compare root1 root2
-       | DirSub (_, name1, parent1), DirSub (_, name2, parent2) ->
-            let cmp = Lm_string_util.string_compare name1 name2 in
-               if cmp = 0 then
-                  DirHash.fine_compare parent1 parent2
-               else
-                  cmp
-       | DirRoot _, DirSub _ ->
-            -1
-       | DirSub _, DirRoot _ ->
-            1
+        DirRoot root1, DirRoot root2 ->
+        Pervasives.compare root1 root2
+      | DirSub (_, name1, parent1), DirSub (_, name2, parent2) ->
+        let cmp = Lm_string_util.string_compare name1 name2 in
+        if cmp = 0 then
+          DirHash.fine_compare parent1 parent2
+        else
+          cmp
+      | DirRoot _, DirSub _ ->
+        -1
+      | DirSub _, DirRoot _ ->
+        1
 
-   let  coarse_compare dir1 dir2 =
+    let  coarse_compare dir1 dir2 =
       match dir1, dir2 with
-         DirRoot root1, DirRoot root2 ->
-            Pervasives.compare root1 root2
-       | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
-            let cmp = FileCase.compare name1 name2 in
-               if cmp = 0 then
-                  DirHash.compare parent1 parent2
-               else
-                  cmp
-       | DirRoot _, DirSub _ ->
-            -1
-       | DirSub _, DirRoot _ ->
-            1
+        DirRoot root1, DirRoot root2 ->
+        Pervasives.compare root1 root2
+      | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
+        let cmp = FileCase.compare name1 name2 in
+        if cmp = 0 then
+          DirHash.compare parent1 parent2
+        else
+          cmp
+      | DirRoot _, DirSub _ ->
+        -1
+      | DirSub _, DirRoot _ ->
+        1
 
-   let reintern dir =
+    let reintern dir =
       match dir with
-         DirRoot _ ->
-            dir
-       | DirSub (name1, name2, parent1) ->
-            let parent2 = DirHash.reintern parent1 in
-               if parent2 == parent1 then
-                  dir
-               else
-                  DirSub (name1, name2, parent2)
-end
+        DirRoot _ ->
+        dir
+      | DirSub (name1, name2, parent1) ->
+        let parent2 = DirHash.reintern parent1 in
+        if parent2 == parent1 then
+          dir
+        else
+          DirSub (name1, name2, parent2)
+  end
 
-(* %%MAGICBEGIN%% *)
-and DirHash :
-   HashMarshalEqSig
-   with type elt = DirElt.t
-   with type t = DirElt.t hash_marshal_eq_item
+                                                  (* %%MAGICBEGIN%% *)
+                                                  and DirHash :
+                                                    Lm_hash_sig.HashMarshalEqSig
+with type elt = DirElt.t
+with type t = DirElt.t Lm_hash.hash_marshal_eq_item
 =
-   MakeHashMarshalEq (DirCompare)
+    Lm_hash.MakeHashMarshalEq (DirCompare)
 
-and DirSet   : Lm_set_sig.LmSet with type elt = DirHash.t = Lm_set.LmMake (DirHash)
-and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
+ and DirSet   : Lm_set_sig.LmSet with type elt = DirHash.t = Lm_set.LmMake (DirHash)
+                                  and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
 
 type dir = DirHash.t
 (* %%MAGICEND%% *)
@@ -416,16 +400,16 @@ type dir = DirHash.t
 (*
  * Lists of directories.
  *)
-module rec DirListCompare : HashMarshalEqArgSig with type t = dir list =
+module rec DirListCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = dir list =
 struct
    type t = dir list
 
    let debug = "DirList"
 
    let hash f l =
-      let buf = HashCode.create () in
-         List.iter (fun dir -> HashCode.add_int buf (f dir)) l;
-         HashCode.code buf
+      let buf = Lm_hash.HashCode.create () in
+         List.iter (fun dir -> Lm_hash.HashCode.add_int buf (f dir)) l;
+         Lm_hash.HashCode.code buf
 
    let fine_hash = hash DirHash.fine_hash
    let coarse_hash = hash DirHash.hash
@@ -452,8 +436,8 @@ struct
       Lm_list_util.smap DirHash.reintern l
 end
 
-and DirListHash : HashMarshalEqSig with type elt = dir list =
-   MakeHashMarshalEq (DirListCompare);;
+and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = dir list =
+   Lm_hash.MakeHashMarshalEq (DirListCompare);;
 
 module DirListSet = Lm_set.LmMake (DirListHash);;
 module DirListTable = Lm_map.LmMake (DirListHash);;
@@ -482,12 +466,12 @@ type node_elt =
  | NodePhonyGlobal of string
  | NodePhonyDir    of dir * FileCase.t * string
  | NodePhonyFile   of dir * FileCase.t * string * string
- | NodeFlagged     of node_flag * node_elt hash_marshal_eq_item
+ | NodeFlagged     of node_flag * node_elt Lm_hash.hash_marshal_eq_item
 (* %%MAGICEND%% *)
 
 module rec NodeCompare :
 sig
-   include HashMarshalEqArgSig with type t = node_elt
+   include Lm_hash_sig.HashMarshalEqArgSig with type t = node_elt
    (* Include the default "compare" for the PreNodeSet *)
    val compare : t -> t -> int
 end
@@ -511,7 +495,7 @@ struct
     | CodeNodeIsScanner
 
    let add_code buf (code : code) =
-      HashCode.add_bits buf (Obj.magic code)
+      Lm_hash.HashCode.add_bits buf (Obj.magic code)
 
    let add_flag_code buf code =
       let code =
@@ -528,9 +512,9 @@ struct
          add_code buf code
 
    module MakeNodeOps (Arg : sig
-      val add_dir : HashCode.t -> DirHash.t -> unit
-      val add_node : HashCode.t -> NodeHash.t -> unit
-      val add_filename : HashCode.t -> FileCase.t -> string -> unit
+      val add_dir : Lm_hash.HashCode.t -> DirHash.t -> unit
+      val add_node : Lm_hash.HashCode.t -> NodeHash.t -> unit
+      val add_filename : Lm_hash.HashCode.t -> FileCase.t -> string -> unit
       val filename_compare : FileCase.t -> string -> FileCase.t -> string -> int
       val node_compare : NodeHash.t -> NodeHash.t -> int
       val dir_compare : DirHash.t -> DirHash.t -> int
@@ -547,7 +531,7 @@ struct
                add_code buf CodeEnd
           | NodePhonyGlobal name ->
                add_code buf CodeNodePhonyGlobal;
-               HashCode.add_string buf name;
+               Lm_hash.HashCode.add_string buf name;
                add_code buf CodeEnd
           | NodePhonyDir (dir, name, raw_name) ->
                add_code buf CodeNodePhonyDir;
@@ -561,7 +545,7 @@ struct
                add_code buf CodeSpace;
                add_filename buf key raw_name;
                add_code buf CodeSpace;
-               HashCode.add_string buf name;
+               Lm_hash.HashCode.add_string buf name;
                add_code buf CodeEnd
           | NodeFlagged (flag, node) ->
                add_code buf CodeNodeFlagged;
@@ -571,9 +555,9 @@ struct
                add_code buf CodeEnd
 
       let hash node =
-         let buf = HashCode.create () in
+         let buf = Lm_hash.HashCode.create () in
             add_node buf node;
-            HashCode.code buf
+            Lm_hash.HashCode.code buf
 
       let compare_flags flag1 flag2 =
          match flag1, flag2 with
@@ -655,10 +639,10 @@ struct
    module Ops =
       MakeNodeOps (struct
          let add_dir buf dir =
-            HashCode.add_int buf (DirHash.hash dir )
+            Lm_hash.HashCode.add_int buf (DirHash.hash dir )
 
          let add_node buf node =
-            HashCode.add_int buf (NodeHash.hash node)
+            Lm_hash.HashCode.add_int buf (NodeHash.hash node)
 
          let add_filename buf name _raw_name =
             FileCase.add_filename buf name
@@ -677,13 +661,13 @@ struct
    module FineOps =
       MakeNodeOps (struct
          let add_dir buf dir =
-            HashCode.add_int buf (DirHash.fine_hash dir )
+            Lm_hash.HashCode.add_int buf (DirHash.fine_hash dir )
 
          let add_node buf node =
-            HashCode.add_int buf (NodeHash.fine_hash node)
+            Lm_hash.HashCode.add_int buf (NodeHash.fine_hash node)
 
          let add_filename buf _name raw_name =
-            HashCode.add_string buf raw_name
+            Lm_hash.HashCode.add_string buf raw_name
 
          let filename_compare _name1 raw_name1 _name2 raw_name2 =
             String.compare raw_name1 raw_name2
@@ -731,11 +715,11 @@ end
 
 (* %%MAGICBEGIN%% *)
 and NodeHash :
-   HashMarshalEqSig
+   Lm_hash_sig.HashMarshalEqSig
    with type elt = node_elt
-   with type t = node_elt hash_marshal_eq_item
+   with type t = node_elt Lm_hash.hash_marshal_eq_item
 =
-   MakeHashMarshalEq (NodeCompare);;
+   Lm_hash.MakeHashMarshalEq (NodeCompare);;
 
 type node = NodeHash.t
 (* %%MAGICEND%% *)
@@ -815,7 +799,7 @@ let getcwd () =
  * A null root directory for globals.
  *)
 let null_root =
-   make_dir null_root []
+   make_dir Lm_filename_util.null_root []
 
 (*
  * Fake root for "absname" computations
@@ -1130,127 +1114,128 @@ let parse_phony_name s =
  *)
 module Dir =
 struct
-   type t = dir
+  type t = dir
 
-   (*
+  (*
     * We assume the cwd does not change
     * once we first get it.
     *)
-   let cwd_ref =
-      let dir =
-         try
-            getcwd ()
-         with Unix.Unix_error (err, _, _) ->
-            eprintf "@[<v3>*** omake: warning:@ Can not find out the current directory:@ %s;@ Using the root directory instead.@]@." (Unix.error_message err);
-            null_root
-      in
-         ref dir
+  let cwd_ref =
+    let dir =
+      try
+        getcwd ()
+      with Unix.Unix_error (err, _, _) ->
+        Lm_printf.eprintf "@[<v3>*** omake: warning:@ Can not find out the current directory:@ %s;@ Using the root directory instead.@]@." (Unix.error_message err);
+        null_root
+    in
+    ref dir
 
-   (*
+  (*
     * Default is current working directory.
     *)
-   let cwd () = !cwd_ref
+  let cwd () = !cwd_ref
 
-   let reset_cwd () =
-      let cwd = getcwd () in
-         cwd_ref := getcwd ();
-         make_dotdot_fail cwd
+  let reset_cwd () =
+    let cwd = getcwd () in
+    cwd_ref := getcwd ();
+    make_dotdot_fail cwd
 
-   (*
+  (*
     * Building a new path.
     *)
-   let chdir = new_dir
+  let chdir = new_dir
 
-   (*
+  (*
     * Name, relative to the cwd.
     *)
-   let name dir1 dir2 =
-      if DirHash.equal dir1 dir2 then
-         "."
-      else
-         relocate_dir dir1 dir2
+  let name dir1 dir2 =
+    if DirHash.equal dir1 dir2 then
+      "."
+    else
+      relocate_dir dir1 dir2
 
-   (*
+  (*
     * Name relative to the root.
     *)
-   let fullname dir =
-      name !cwd_ref dir
+  let fullname dir =
+    name !cwd_ref dir
 
-   (*
+  (*
     * Absolute name.
     *)
-   let root = null_root
+  let root = null_root
 
-   let absname dir =
-      name impossible_root dir
+  let absname dir =
+    name impossible_root dir
 
-   (*
+  (*
     * Library directory is relative to the root.
     *)
-   let lib =
-      match Lm_filename_util.filename_path Omake_state.lib_dir with
-         AbsolutePath (root, dir) ->
-            make_dir root dir
-       | RelativePath _ ->
-            raise (Invalid_argument ("Omake_node.lib_dir specified as relative path: " ^ Omake_state.lib_dir))
+  let lib =
+    match Lm_filename_util.filename_path Omake_state.lib_dir with
+      AbsolutePath (root, dir) ->
+      make_dir root dir
+    | RelativePath _ ->
+      raise (Invalid_argument ("Omake_node.lib_dir specified as relative path: " ^ Omake_state.lib_dir))
 
-   (*
+  (*
     * home directory is also relative to the root.
     *)
-   let home =
-      match Lm_filename_util.filename_path home_dir with
-         AbsolutePath (root, dir) ->
-            make_dir root dir
-       | RelativePath _ ->
-            raise (Invalid_argument ("Omake_node.home_dir specified as relative path: " ^ home_dir))
+  let home =
+    match Lm_filename_util.filename_path Omake_state.home_dir with
+      AbsolutePath (root, dir) ->
+      make_dir root dir
+    | RelativePath _ ->
+      raise (Invalid_argument ("Omake_node.home_dir specified as relative path: " ^ 
+              Omake_state.home_dir))
 
-   let () =
-      make_dotdot_fail root;
-      make_dotdot_fail home
+  let () =
+    make_dotdot_fail root;
+    make_dotdot_fail home
 
-   (*
+  (*
     * Equality.
     *)
-   let compare = DirHash.compare
-   let equal = DirHash.equal
+  let compare = DirHash.compare
+  let equal = DirHash.equal
 
-   (*
+  (*
     * Marshaling.
     *)
-   let marshal_root root =
-      match root with
-         NullRoot ->
-            Magic NullRootMagic
-       | DriveRoot c ->
-            List [Magic DriveRootMagic; Char c]
+  let marshal_root (root : Lm_filename_util.root) :  Omake_marshal.magic Fmarshal.item=
+    match root with
+      NullRoot ->
+      Magic NullRootMagic
+    | DriveRoot c ->
+      List [Magic DriveRootMagic; Char c]
 
-   let unmarshal_root l =
+  let unmarshal_root (l : Omake_marshal.magic Fmarshal.item)  =
+    match l with
+    | Magic NullRootMagic ->
+      Lm_filename_util.NullRoot
+    | List [Magic DriveRootMagic; Char c] ->
+      DriveRoot c
+    | _ ->
+      raise Omake_marshal.MarshalError
+
+  let rec marshal dir =
+    match DirHash.get dir with
+      DirRoot root ->
+      Fmarshal.List [Magic Omake_marshal.DirRootMagic; marshal_root root]
+    | DirSub (key, name, parent) ->
+      List [Magic DirSubMagic; FileCase.marshal key; String name; marshal parent]
+
+  let rec unmarshal l =
+    let dir =
       match l with
-         Magic NullRootMagic ->
-            NullRoot
-       | List [Magic DriveRootMagic; Char c] ->
-            DriveRoot c
-       | _ ->
-            raise MarshalError
-
-   let rec marshal dir =
-      match DirHash.get dir with
-         DirRoot root ->
-            List [Magic DirRootMagic; marshal_root root]
-       | DirSub (key, name, parent) ->
-            List [Magic DirSubMagic; FileCase.marshal key; String name; marshal parent]
-
-   let rec unmarshal l =
-      let dir =
-         match l with
-            List [Magic DirRootMagic; root] ->
-               DirRoot (unmarshal_root root)
-          | List [Magic DirSubMagic; key; String name; parent] ->
-               DirSub (FileCase.unmarshal key, name, unmarshal parent)
-          | _ ->
-               raise MarshalError
-      in
-         DirHash.create dir
+      | Fmarshal.List [Magic Omake_marshal.DirRootMagic; root] ->
+        DirRoot (unmarshal_root root)
+      | List [Magic DirSubMagic; key; String name; parent] ->
+        DirSub (FileCase.unmarshal key, name, unmarshal parent)
+      | _ ->
+        raise Omake_marshal.MarshalError
+    in
+    DirHash.create dir
 end;;
 
 (*
@@ -1259,7 +1244,7 @@ end;;
  *)
 module Mount =
 struct
-   type t = (Dir.t * Dir.t * mount_option list) list
+   type t = (Dir.t * Dir.t * Omake_node_sig.mount_option list) list
 
    type dir_tmp = dir
    type node_tmp = node
@@ -1278,10 +1263,10 @@ struct
       (dir_dst, dir_src, options) :: info
 end;;
 
-type mount_info = node poly_mount_info
+type mount_info = node Omake_node_sig.poly_mount_info
 
 let no_mount_info =
-   { mount_file_exists = (fun _ -> false);
+   { Omake_node_sig.mount_file_exists = (fun _ -> false);
      mount_file_reset  = (fun _ -> ());
      mount_is_dir      = (fun _ -> false);
      mount_stat        = (fun _ -> raise (Invalid_argument "no_mount_info"));
@@ -1380,21 +1365,21 @@ struct
    (*
     * Escape a node.
     *)
-   let create_escape kind node =
-      let node = core node in
-         match kind with
-            NodeNormal ->
-               node
-          | NodePhony ->
-               raise (Invalid_argument "Omake_node.Node.escape: NodePhony is not allowed")
-          | NodeOptional ->
-               NodeHash.create (NodeFlagged (NodeIsOptional, node))
-          | NodeExists ->
-               NodeHash.create (NodeFlagged (NodeIsExisting, node))
-          | NodeSquashed ->
-               NodeHash.create (NodeFlagged (NodeIsSquashed, node))
-          | NodeScanner ->
-               NodeHash.create (NodeFlagged (NodeIsScanner, node))
+  let create_escape kind node =
+    let node = core node in
+    match kind with
+    | Omake_node_sig.NodeNormal ->
+      node
+    | NodePhony ->
+      raise (Invalid_argument "Omake_node.Node.escape: NodePhony is not allowed")
+    | NodeOptional ->
+      NodeHash.create (NodeFlagged (NodeIsOptional, node))
+    | NodeExists ->
+      NodeHash.create (NodeFlagged (NodeIsExisting, node))
+    | NodeSquashed ->
+      NodeHash.create (NodeFlagged (NodeIsSquashed, node))
+    | NodeScanner ->
+      NodeHash.create (NodeFlagged (NodeIsScanner, node))
 
    (*
     * Hash code for a node.
@@ -1424,21 +1409,21 @@ struct
     * Kind of the node.
     *)
    let kind node =
-      match NodeHash.get node with
-         NodePhonyGlobal _
-       | NodePhonyDir _
-       | NodePhonyFile _ ->
-            NodePhony
-       | NodeFile _ ->
-            NodeNormal
-       | NodeFlagged (NodeIsOptional, _) ->
-            NodeOptional
-       | NodeFlagged (NodeIsExisting, _) ->
-            NodeExists
-       | NodeFlagged (NodeIsSquashed, _) ->
-            NodeSquashed
-       | NodeFlagged (NodeIsScanner, _) ->
-            NodeScanner
+     match NodeHash.get node with
+       NodePhonyGlobal _
+     | NodePhonyDir _
+     | NodePhonyFile _ ->
+       Omake_node_sig.NodePhony
+     | NodeFile _ ->
+       NodeNormal
+     | NodeFlagged (NodeIsOptional, _) ->
+       NodeOptional
+     | NodeFlagged (NodeIsExisting, _) ->
+       NodeExists
+     | NodeFlagged (NodeIsSquashed, _) ->
+       NodeSquashed
+     | NodeFlagged (NodeIsScanner, _) ->
+       NodeScanner
 
    (*
     * Phony nodes.
@@ -1532,7 +1517,7 @@ struct
     *)
    let marshal_flag = function
       NodeIsOptional ->
-         Magic NodeIsOptionalMagic
+         Fmarshal.Magic Omake_marshal.NodeIsOptionalMagic
     | NodeIsExisting ->
          Magic NodeIsExistingMagic
     | NodeIsSquashed ->
@@ -1540,54 +1525,53 @@ struct
     | NodeIsScanner ->
          Magic NodeIsScannerMagic
 
-   let unmarshal_flag flag =
-      match flag with
-         Magic NodeIsOptionalMagic ->
-            NodeIsOptional
-       | Magic NodeIsExistingMagic ->
-            NodeIsExisting
-       | Magic NodeIsSquashedMagic ->
-            NodeIsSquashed
-       | Magic NodeIsScannerMagic ->
-            NodeIsScanner
-       | _ ->
-            raise MarshalError
+  let unmarshal_flag flag =
+    match flag with
+    | Fmarshal.Magic Omake_marshal.NodeIsOptionalMagic ->
+      NodeIsOptional
+    | Magic NodeIsExistingMagic ->
+      NodeIsExisting
+    | Magic NodeIsSquashedMagic ->
+      NodeIsSquashed
+    | Magic NodeIsScannerMagic ->
+      NodeIsScanner
+    | _ ->
+      raise Omake_marshal.MarshalError
 
    (*
     * Marshaling.
     *)
-   let rec marshal node =
-      match NodeHash.get node with
-         NodeFile (dir, name1, name2) ->
-            List [Magic NodeFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
-       | NodePhonyGlobal s ->
-            List [Magic NodePhonyGlobalMagic; String s]
-       | NodePhonyDir (dir, name1, name2) ->
-            List [Magic NodePhonyDirMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
-       | NodePhonyFile (dir, name1, name2, name3) ->
-            List [Magic NodePhonyFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2; String name3]
-       | NodeFlagged (flag, node) ->
-            List [Magic NodeFlaggedMagic; marshal_flag flag; marshal node]
+  let rec marshal node =
+    match NodeHash.get node with
+    | NodeFile (dir, name1, name2) ->
+      Fmarshal.List [Magic Omake_marshal.NodeFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
+    | NodePhonyGlobal s ->
+      List [Magic NodePhonyGlobalMagic; String s]
+    | NodePhonyDir (dir, name1, name2) ->
+      List [Magic NodePhonyDirMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
+    | NodePhonyFile (dir, name1, name2, name3) ->
+      List [Magic NodePhonyFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2; String name3]
+    | NodeFlagged (flag, node) ->
+      List [Magic NodeFlaggedMagic; marshal_flag flag; marshal node]
 
-   let rec unmarshal l =
-      let node =
-         match l with
-            List [Magic NodeFileMagic; dir; name1; String name2] ->
-               NodeFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
-          | List [Magic NodePhonyGlobalMagic; String s] ->
-               NodePhonyGlobal s
-          | List [Magic NodePhonyDirMagic; dir; name1; String name2] ->
-               NodePhonyDir (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
-          | List [Magic NodePhonyFileMagic; dir; name1; String name2; String name3] ->
-               NodePhonyFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2, name3)
-          | List [Magic NodeFlaggedMagic; flag; node] ->
-               NodeFlagged (unmarshal_flag flag, unmarshal node)
-          | _ ->
-               raise MarshalError
-      in
-         NodeHash.create node
+  let rec unmarshal l =
+    let node =
+      match l with
+      | Fmarshal.List [Magic Omake_marshal.NodeFileMagic; dir; name1; String name2] ->
+        NodeFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
+      | List [Magic NodePhonyGlobalMagic; String s] ->
+        NodePhonyGlobal s
+      | List [Magic NodePhonyDirMagic; dir; name1; String name2] ->
+        NodePhonyDir (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
+      | List [Magic NodePhonyFileMagic; dir; name1; String name2; String name3] ->
+        NodePhonyFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2, name3)
+      | List [Magic NodeFlaggedMagic; flag; node] ->
+        NodeFlagged (unmarshal_flag flag, unmarshal node)
+      | _ ->
+        raise Omake_marshal.MarshalError in
+    NodeHash.create node
 
-   (*
+  (*
     * This is a hack to allow Omake_cache to take stats of directories.
     *)
    let node_of_dir dir =
@@ -1612,7 +1596,7 @@ struct
             ()
 
    let copy_file mount_info src dst =
-      if mount_info.mount_is_dir src then begin
+      if mount_info.Omake_node_sig.mount_is_dir src then begin
          if not (mount_info.mount_is_dir dst) then begin
             Lm_filename_util.mkdirhier (fullname dst) 0o777;
             mount_info.mount_file_reset dst
@@ -1629,7 +1613,7 @@ struct
                   mount_info.mount_file_reset dst
 
    let symlink_file_unix mount_info src dst =
-      if mount_info.mount_is_dir src then begin
+      if mount_info.Omake_node_sig.mount_is_dir src then begin
          if not (mount_info.mount_is_dir dst) then begin
             Lm_filename_util.mkdirhier (fullname dst) 0o777;
             mount_info.mount_file_reset dst
@@ -1654,7 +1638,7 @@ struct
          symlink_file_unix
 
    let create_node mount_info mounts dir name =
-      let { mount_file_exists = file_exists;
+      let {Omake_node_sig.mount_file_exists = file_exists;
             _
           } = mount_info
       in
@@ -1666,11 +1650,11 @@ struct
                (try
                    let node' = resolve_mount_node dir_dst dir_src node in
                       if file_exists node' then
-                         if List.mem MountCopy options then begin
+                         if List.mem Omake_node_sig.MountCopy options then begin
                             copy_file mount_info node' node;
                             node
                          end
-                         else if List.mem MountLink options then begin
+                         else if List.mem Omake_node_sig.MountLink options then begin
                             symlink_file mount_info node' node;
                             node
                          end
@@ -1696,19 +1680,19 @@ end
  *)
 let create_node_or_phony phonies mount_info mount phony_ok dir name =
    match parse_phony_name name, phony_ok with
-      PhonyDirString name, PhonyOK
-    | PhonyDirString name, PhonyExplicit ->
-         let dir, key, name = new_file dir name in
-            NodeHash.create (NodePhonyDir (dir, key, name))
-    | PhonyGlobalString name, PhonyOK
-    | PhonyGlobalString name, PhonyExplicit ->
-         NodeHash.create (NodePhonyGlobal name)
-    | PhonyDirString _, PhonyProhibited
-    | PhonyGlobalString _, PhonyProhibited ->
-         raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
-    | PhonySimpleString, PhonyOK ->
-         (* Try PhonyDir first *)
-         let node = NodePhonyDir (dir, FileCase.create dir name, name) in
+   | PhonyDirString name, Omake_node_sig.PhonyOK
+   | PhonyDirString name, PhonyExplicit ->
+     let dir, key, name = new_file dir name in
+     NodeHash.create (NodePhonyDir (dir, key, name))
+   | PhonyGlobalString name, PhonyOK
+   | PhonyGlobalString name, PhonyExplicit ->
+     NodeHash.create (NodePhonyGlobal name)
+   | PhonyDirString _, PhonyProhibited
+   | PhonyGlobalString _, PhonyProhibited ->
+     raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
+   | PhonySimpleString, PhonyOK ->
+     (* Try PhonyDir first *)
+     let node = NodePhonyDir (dir, FileCase.create dir name, name) in
             if PreNodeSet.mem phonies node then
                NodeHash.create node
             else
@@ -1728,7 +1712,7 @@ let create_node_or_phony phonies mount_info mount phony_ok dir name =
  *)
 let pp_print_dir buf dir =
    let root, _, path = path_of_dir dir in
-      fprintf buf "%s%s" (**)
+      Format.fprintf buf "%s%s" (**)
          (Lm_filename_util.string_of_root root)
          (flatten_dir path)
 
@@ -1736,16 +1720,15 @@ let pp_print_dir buf dir =
  * Print the kind.
  *)
 let pp_print_node_kind buf kind =
-   let s =
-      match kind with
-         NodePhony     -> "phony"
-       | NodeOptional  -> "optional"
-       | NodeExists    -> "exists"
-       | NodeSquashed  -> "squashed"
-       | NodeScanner   -> "scanner"
-       | NodeNormal    -> "normal"
-   in
-      pp_print_string buf s
+  let s =
+    match kind with
+      Omake_node_sig.NodePhony     -> "phony"
+    | NodeOptional  -> "optional"
+    | NodeExists    -> "exists"
+    | NodeSquashed  -> "squashed"
+    | NodeScanner   -> "scanner"
+    | NodeNormal    -> "normal" in
+  Lm_printf.pp_print_string buf s
 
 (*
  * Print the node, for debugging.
@@ -1753,20 +1736,20 @@ let pp_print_node_kind buf kind =
 let pp_print_node buf node =
    match Node.kind node with
       NodePhony ->
-         fprintf buf "<phony %s>" (Node.fullname node)
+         Format.fprintf buf "<phony %s>" (Node.fullname node)
     | NodeOptional ->
-         fprintf buf "<optional %s>" (Node.fullname node)
+         Format.fprintf buf "<optional %s>" (Node.fullname node)
     | NodeExists ->
-         fprintf buf "<exists %s>" (Node.fullname node)
+         Format.fprintf buf "<exists %s>" (Node.fullname node)
     | NodeSquashed ->
-         fprintf buf "<squash %s>" (Node.fullname node)
+         Format.fprintf buf "<squash %s>" (Node.fullname node)
     | NodeScanner ->
-         fprintf buf "<scanner %s>" (Node.fullname node)
+         Format.fprintf buf "<scanner %s>" (Node.fullname node)
     | NodeNormal ->
-         pp_print_string buf (Node.fullname node)
+         Lm_printf.pp_print_string buf (Node.fullname node)
 
 let pp_print_string_list buf sources =
-   List.iter (fun s -> fprintf buf "@ %s" s) (List.sort String.compare sources)
+   List.iter (fun s -> Format.fprintf buf "@ %s" s) (List.sort String.compare sources)
 
 let pp_compare_nodes n1 n2 =
    let cmp = Pervasives.compare (Node.kind n1) (Node.kind n2) in
@@ -1781,10 +1764,10 @@ let pp_compare_nodes n1 n2 =
 
 let pp_print_node_sorted buf nodes =
    let nodes = List.sort pp_compare_nodes nodes in
-      List.iter (fun node -> fprintf buf "@ %a" pp_print_node node) nodes
+      List.iter (fun node -> Format.fprintf buf "@ %a" pp_print_node node) nodes
 
 let pp_print_node_list buf nodes =
-   List.iter (fun node -> fprintf buf "@ %a" pp_print_node node) nodes
+   List.iter (fun node -> Format.fprintf buf "@ %a" pp_print_node node) nodes
 
 let pp_print_node_set buf set =
    pp_print_node_list buf (NodeSet.elements set)
@@ -1794,7 +1777,7 @@ let pp_print_node_table buf table =
 
 let pp_print_node_set_table buf table =
    NodeTable.iter (fun node set ->
-         fprintf buf "@ @[<b 3>%a:%a@]" (**)
+         Format.fprintf buf "@ @[<b 3>%a:%a@]" (**)
             pp_print_node node
             pp_print_node_set set) table
 
@@ -1803,7 +1786,7 @@ let pp_print_node_set_table_opt buf table_opt =
       Some table ->
          pp_print_node_set_table buf table
     | None ->
-         pp_print_string buf "<none>"
+         Lm_printf.pp_print_string buf "<none>"
 
 
 (*

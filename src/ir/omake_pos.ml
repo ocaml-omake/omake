@@ -1,9 +1,6 @@
 (* Standard exceptions. *)
-open Lm_printf
-open Omake_node
-open Omake_ir_print
-open Omake_print_util
-open Omake_value_print
+
+(* open Omake_value_print. *)
 
 
 
@@ -30,61 +27,62 @@ let rec pp_print_item buf (x  : Omake_value_type.item ) =
   | Symbol v ->
     Lm_symbol.pp_print_symbol buf v
   | String s ->
-    pp_print_string buf s
+    Lm_printf.pp_print_string buf s
   | Value v ->
-    pp_print_value buf v
+    Omake_value_print.pp_print_value buf v
   | Error e ->
     pp_print_exn buf e
 
 and pp_print_exn buf (x : Omake_value_type.omake_error )= 
   match x with 
   | SyntaxError s ->
-    fprintf buf "syntax error: %s" s
+    Format.fprintf buf "syntax error: %s" s
   | StringAstError (s, e) ->
-    fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
+    Format.fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
   | StringError s ->
-    pp_print_string buf s
+    Lm_printf.pp_print_string buf s
   | StringIntError (s, i) ->
-    fprintf buf "%s: %d" s i
+    Format.fprintf buf "%s: %d" s i
   | StringStringError (s1, s2) ->
-    fprintf buf "%s: %s" s1 s2
+    Format.fprintf buf "%s: %s" s1 s2
   | StringVarError (s, v) ->
-    fprintf buf "%s: %a" s Lm_symbol.pp_print_symbol v
+    Format.fprintf buf "%s: %a" s Lm_symbol.pp_print_symbol v
   | StringMethodError (s, v) ->
-    fprintf buf "%s: %a" s pp_print_method_name v
+    Format.fprintf buf "%s: %a" s Omake_print_util.pp_print_method_name v
   | StringDirError (s, n)->
-    fprintf buf "%s: %a" s pp_print_dir n
+    Format.fprintf buf "%s: %a" s Omake_node.pp_print_dir n
   | StringNodeError (s, n)->
-    fprintf buf "%s: %a" s pp_print_node n
+    Format.fprintf buf "%s: %a" s Omake_node.pp_print_node n
   | StringValueError (s, v) ->
-    fprintf buf "@[<hv 3>%s:@ %a@]" s pp_print_value v
+    Format.fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_value_print.pp_print_value v
   | StringTargetError (s, t) ->
-    fprintf buf "%s: %a" s pp_print_target t
+    Format.fprintf buf "%s: %a" s Omake_value_print.pp_print_target t
   | LazyError printer ->
     printer buf
   | UnboundVar v ->
-    fprintf buf "unbound variable: %a" Lm_symbol.pp_print_symbol v
+    Format.fprintf buf "unbound variable: %a" Lm_symbol.pp_print_symbol v
   | UnboundVarInfo v ->
-    fprintf buf "unbound variable: %a" pp_print_var_info v
+    Format.fprintf buf "unbound variable: %a" Omake_ir_print.pp_print_var_info v
   | UnboundKey v ->
-    fprintf buf "unbound key: %s" v
+    Format.fprintf buf "unbound key: %s" v
   | UnboundValue v ->
-    fprintf buf "unbound value: %a" pp_print_value v
+    Format.fprintf buf "unbound value: %a" Omake_value_print.pp_print_value v
   | UnboundFun v ->
-    fprintf buf "unbound function: %a" Lm_symbol.pp_print_symbol v
+    Format.fprintf buf "unbound function: %a" Lm_symbol.pp_print_symbol v
   | UnboundMethod vl ->
-    fprintf buf "unbound method: %a" pp_print_method_name vl
+    Format.fprintf buf "unbound method: %a" Omake_print_util.pp_print_method_name vl
   | UnboundFieldVar (obj, v) ->
-    fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" Lm_symbol.pp_print_symbol v;
+    Format.fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" Lm_symbol.pp_print_symbol v;
     Lm_symbol.SymbolTable.iter (fun v _ ->
-      fprintf buf "@ %a" Lm_symbol.pp_print_symbol v) (Omake_value_type.venv_get_class obj);
-    fprintf buf "@]@]"
+      Format.fprintf buf "@ %a" Lm_symbol.pp_print_symbol v) (Omake_value_type.venv_get_class obj);
+    Format.fprintf buf "@]@]"
   | ArityMismatch (len1, len2) ->
-    fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
+    Format.fprintf buf "arity mismatch: expected %a args, got %d" 
+      Omake_ir_print.pp_print_arity len1 len2
   | NotImplemented s ->
-    fprintf buf "not implemented: %s" s
+    Format.fprintf buf "not implemented: %s" s
   | NullCommand ->
-    pp_print_string buf "invalid null command"
+    Lm_printf.pp_print_string buf "invalid null command"
 
 
 

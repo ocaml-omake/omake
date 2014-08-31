@@ -2,39 +2,10 @@
  * Symbols used everywhere.
  * Eventually, we should collect all the global symbols and
  * put them here.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004-2007 Mojave Group, California Institute of Technology, and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
  *)
-open Lm_symbol
+
 
 let braces_sym                 = Lm_symbol.add "{}"
-
 let builtin_sym                = Lm_symbol.add "$builtin"
 let map_sym                    = Lm_symbol.add "$map"
 let pervasives_sym             = Lm_symbol.add "Pervasives"
@@ -258,10 +229,10 @@ let fsubst_sym    = Lm_symbol.add "fsubst"
  * The applications that can have cases.
  *)
 let cases_syms    = [awk_sym; fsubst_sym]
-let cases_set     = List.fold_left SymbolSet.add SymbolSet.empty cases_syms
+let cases_set     = List.fold_left Lm_symbol.SymbolSet.add Lm_symbol.SymbolSet.empty cases_syms
 
 let clauses_syms  = [case_sym; default_sym; when_sym; catch_sym; finally_sym; do_sym]
-let clauses_set   = List.fold_left SymbolSet.add SymbolSet.empty clauses_syms
+let clauses_set   = List.fold_left Lm_symbol.SymbolSet.add Lm_symbol.SymbolSet.empty clauses_syms
 
 (*
  * Colon symbols.
@@ -300,10 +271,3 @@ let omakepath_sym = Lm_symbol.add "OMAKEPATH"
 let oshell_sym    = Lm_symbol.add "OSHELL"
 
 let cdpath_sym    = Lm_symbol.add "cdpath"
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

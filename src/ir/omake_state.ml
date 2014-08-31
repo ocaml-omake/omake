@@ -1,36 +1,8 @@
 (*
  * Configuration variables.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
- * HRL Laboratories, LLC
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
- * @end[license]
  *)
-open! Lm_printf
-open Lm_filename_util
+
+
 
 (*
  * Error codes for various actions.
@@ -116,46 +88,45 @@ let omake_dir () =
  * Cache directory is separate for each host.
  *)
 let cache_dir () =
-   match !cache_dir_ref with
-      Some dir ->
-         dir
-    | None ->
-         let dirname = Filename.concat (omake_dir ()) "cache" in
-         let () =
-            try Unix.mkdir dirname 0o777 with
-               Unix.Unix_error _ ->
-                  ()
-         in
-            cache_dir_ref := Some dirname;
-            dirname
+  match !cache_dir_ref with
+  | Some dir -> dir
+  | None ->
+    let dirname = Filename.concat (omake_dir ()) "cache" in
+    let () =
+      try Unix.mkdir dirname 0o777 with
+        Unix.Unix_error _ ->
+        ()
+    in
+    cache_dir_ref := Some dirname;
+    dirname
 
 (* Create cache file hierarchy under the HOME directory *)
 let cache_file dir name =
-   let dir =
-      match Lm_filename_util.filename_string dir with
-         AbsolutePath (DriveRoot c, name) ->
-            Filename.concat (String.make 1 c) name
-       | AbsolutePath (NullRoot, name) ->
-            name
-       | RelativePath path ->
-            raise (Invalid_argument ("Omake_state.cache_file: received a relative path: " ^ path))
-   in
-   let dirname = Filename.concat (cache_dir ()) dir in
-      Lm_filename_util.mkdirhier dirname 0o777;
-      Filename.concat dirname name
+  let dir =
+    match Lm_filename_util.filename_string dir with
+    | AbsolutePath (DriveRoot c, name) ->
+      Filename.concat (String.make 1 c) name
+    | AbsolutePath (NullRoot, name) ->
+      name
+    | RelativePath path ->
+      raise (Invalid_argument ("Omake_state.cache_file: received a relative path: " ^ path))
+  in
+  let dirname = Filename.concat (cache_dir ()) dir in
+  Lm_filename_util.mkdirhier dirname 0o777;
+  Filename.concat dirname name
 
 let open_cache_file dir name =
    let filename = cache_file dir name in
-      filename, Lm_unix_util.openfile filename [Unix.O_RDWR; Unix.O_CREAT] 0o666
+   filename, Lm_unix_util.openfile filename [O_RDWR; O_CREAT] 0o666
 
 let get_cache_file dir name =
-   if !always_use_dotomake then
+  if !always_use_dotomake then
+    open_cache_file dir name
+  else
+    let filename = Filename.concat dir name in
+    try filename, Lm_unix_util.openfile filename [O_RDWR; O_CREAT] 0o666 with
+      Unix.Unix_error _ ->
       open_cache_file dir name
-   else
-      let filename = Filename.concat dir name in
-         try filename, Lm_unix_util.openfile filename [Unix.O_RDWR; Unix.O_CREAT] 0o666 with
-            Unix.Unix_error _ ->
-               open_cache_file dir name
 
 (*
  * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
@@ -173,10 +144,3 @@ let db_file () =
 
 let history_file () =
    Filename.concat (omake_dir ()) "osh_history"
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

@@ -1,13 +1,4 @@
 (*
- * Command lines.
- *)
-open Lm_printf
-open Lm_location
-
-open Omake_node
-open Omake_ir_print
-
-(*
  * Individual command arguments have three forms:
  *    - value lists
  *    - arg_string lists
@@ -46,9 +37,9 @@ type ('exp, 'argv, 'value) poly_command_inst =
  | CommandValues of 'value list
 
 type ('venv, 'exp, 'argv, 'value) poly_command_line =
-   { command_loc    : loc;
-     command_dir    : Dir.t;
-     command_target : Node.t;
+   { command_loc    : Lm_location.loc;
+     command_dir    : Omake_node.Dir.t;
+     command_target : Omake_node.Node.t;
      command_flags  : command_flag list;
      command_venv   : 'venv;
      command_inst   : ('exp, 'argv, 'value) poly_command_inst
@@ -105,9 +96,9 @@ let pp_arg_data_string =
    let rec pp_w_escapes buf special s =
       if Lm_string_util.contains_any s special then begin
          let i = Lm_string_util.index_set s special in
-            pp_print_string buf (String.sub s 0 i);
-            pp_print_char buf '\\';
-            pp_print_char buf (**)
+            Lm_printf.pp_print_string buf (String.sub s 0 i);
+            Lm_printf.pp_print_char buf '\\';
+            Lm_printf.pp_print_char buf (**)
                (match s.[i] with
                   '\n' -> 'n'
                 | '\r' -> 'r'
@@ -117,15 +108,15 @@ let pp_arg_data_string =
                pp_w_escapes buf special (String.sub s i (String.length s - i))
 
       end else
-         pp_print_string buf s
+         Lm_printf.pp_print_string buf s
    in
 
    let pp_w_quotes buf s =
       if Lm_string_util.contains_any s special1 then
          if String.length s > 2 then begin
-            pp_print_char buf '\'';
+            Lm_printf.pp_print_char buf '\'';
             pp_w_escapes buf special2 s;
-            pp_print_char buf '\''
+            Lm_printf.pp_print_char buf '\''
          end else
             pp_w_escapes buf special_all s
       else
@@ -137,7 +128,7 @@ let pp_arg_data_string =
 let pp_print_arg =
    let pp_print_arg_elem buf = function
       ArgString s ->
-         pp_print_string buf s
+         Lm_printf.pp_print_string buf s
     | ArgData s ->
          pp_arg_data_string buf s
    in
@@ -147,9 +138,9 @@ let pp_print_verbose_arg buf arg =
    List.iter (fun arg ->
          match arg with
             ArgString s ->
-               pp_print_string buf s
+               Lm_printf.pp_print_string buf s
           | ArgData s ->
-               fprintf buf "'%s'" s) arg
+               Format.fprintf buf "'%s'" s) arg
 
 let pp_print_command_flag buf flag =
    let c =
@@ -158,7 +149,7 @@ let pp_print_command_flag buf flag =
        | AllowFailureFlag -> '-'
        | AllowOutputFlag  -> '*'
    in
-      pp_print_char buf c
+      Lm_printf.pp_print_char buf c
 
 let pp_print_command_flags buf flags =
    List.iter (pp_print_command_flag buf) flags
@@ -167,7 +158,7 @@ module type PrintArgvSig =
 sig
    type argv
 
-   val pp_print_argv : formatter -> argv -> unit
+   val pp_print_argv : argv Lm_printf.t 
 end;;
 
 module MakePrintCommand (PrintArgv : PrintArgvSig) =
@@ -179,20 +170,13 @@ struct
          CommandPipe argv ->
             pp_print_argv buf argv
        | CommandEval exp ->
-            pp_print_exp_list_simple buf exp
+            Omake_ir_print.pp_print_exp_list_simple buf exp
        | CommandValues values ->
-            fprintf buf "<compute %i value dependencies>" (List.length values)
+            Format.fprintf buf "<compute %i value dependencies>" (List.length values)
 
    let pp_print_command_line buf line =
       pp_print_command_inst buf line.command_inst
 
    let pp_print_command_lines buf lines =
-      List.iter (fun line -> fprintf buf "@ %a" pp_print_command_line line) lines
+      List.iter (fun line -> Format.fprintf buf "@ %a" pp_print_command_line line) lines
 end;;
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
