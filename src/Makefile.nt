@@ -62,69 +62,6 @@ version.txt:
 	@echo 0.0.boot > $@
 
 
-lm_heap.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.c lm_heap.c
-
-lm_heap.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_heap.h lm_heap.h
-
-lm_channel.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_channel.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_channel.c lm_channel.c
-
-lm_compat_win32.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.c lm_compat_win32.c
-
-lm_compat_win32.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_compat_win32.h lm_compat_win32.h
-
-lm_ctype.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_ctype.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_ctype.c lm_ctype.c
-
-lm_printf.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_printf.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_printf.c lm_printf.c
-
-lm_uname_ext.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_uname_ext.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_uname_ext.c lm_uname_ext.c
-
-lm_unix_cutil.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_unix_cutil.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_unix_cutil.c lm_unix_cutil.c
-
-unixsupport.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)unixsupport.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)unixsupport.h unixsupport.h
-
-fam_win32.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_win32.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_win32.c fam_win32.c
-
-fam_kqueue.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_kqueue.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_kqueue.c fam_kqueue.c
-
-fam_inotify.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_inotify.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_inotify.c fam_inotify.c
-
-fam_pseudo.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_pseudo.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)fam_pseudo.h fam_pseudo.h
-
-lm_notify.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_notify.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_notify.c lm_notify.c
-
-inotify.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.h inotify.h
-
-inotify-syscalls.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h inotify-syscalls.h
-
-inotify.om: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om inotify.om
-
-lm_termsize.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_termsize.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_termsize.c lm_termsize.c
-
-lm_terminfo.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_terminfo.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_terminfo.c lm_terminfo.c
-
-lm_fs_case_sensitive.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_fs_case_sensitive.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)lm_fs_case_sensitive.c lm_fs_case_sensitive.c
-
 OFILES_clib = lm_heap$(EXT_OBJ) lm_channel$(EXT_OBJ) lm_printf$(EXT_OBJ) lm_ctype$(EXT_OBJ) lm_uname_ext$(EXT_OBJ) lm_unix_cutil$(EXT_OBJ) lm_compat_win32$(EXT_OBJ) readline$(EXT_OBJ) omake_shell_sys$(EXT_OBJ) fam_win32$(EXT_OBJ) fam_kqueue$(EXT_OBJ) fam_inotify$(EXT_OBJ) lm_notify$(EXT_OBJ) lm_termsize$(EXT_OBJ) lm_terminfo$(EXT_OBJ) lm_fs_case_sensitive$(EXT_OBJ)
 
 clib$(EXT_LIB): $(OFILES_clib)
@@ -133,13 +70,61 @@ clib$(EXT_LIB): $(OFILES_clib)
 
 SRC_clib = ..$(slash)src$(slash)clib
 
+fam_inotify.c: $(SRC_clib)$(slash)fam_inotify.c
+	$(LN) $(SRC_clib)$(slash)fam_inotify.c fam_inotify.c
+
+fam_kqueue.c: $(SRC_clib)$(slash)fam_kqueue.c
+	$(LN) $(SRC_clib)$(slash)fam_kqueue.c fam_kqueue.c
+
+fam_win32.c: $(SRC_clib)$(slash)fam_win32.c
+	$(LN) $(SRC_clib)$(slash)fam_win32.c fam_win32.c
+
+lm_channel.c: $(SRC_clib)$(slash)lm_channel.c
+	$(LN) $(SRC_clib)$(slash)lm_channel.c lm_channel.c
+
+lm_compat_win32.c: $(SRC_clib)$(slash)lm_compat_win32.c
+	$(LN) $(SRC_clib)$(slash)lm_compat_win32.c lm_compat_win32.c
+
+lm_compat_win32.h: $(SRC_clib)$(slash)lm_compat_win32.h
+	$(LN) $(SRC_clib)$(slash)lm_compat_win32.h lm_compat_win32.h
+
+lm_ctype.c: $(SRC_clib)$(slash)lm_ctype.c
+	$(LN) $(SRC_clib)$(slash)lm_ctype.c lm_ctype.c
+
+lm_fs_case_sensitive.c: $(SRC_clib)$(slash)lm_fs_case_sensitive.c
+	$(LN) $(SRC_clib)$(slash)lm_fs_case_sensitive.c lm_fs_case_sensitive.c
+
+lm_heap.c: $(SRC_clib)$(slash)lm_heap.c
+	$(LN) $(SRC_clib)$(slash)lm_heap.c lm_heap.c
+
+lm_heap.h: $(SRC_clib)$(slash)lm_heap.h
+	$(LN) $(SRC_clib)$(slash)lm_heap.h lm_heap.h
+
+lm_notify.c: $(SRC_clib)$(slash)lm_notify.c
+	$(LN) $(SRC_clib)$(slash)lm_notify.c lm_notify.c
+
+lm_printf.c: $(SRC_clib)$(slash)lm_printf.c
+	$(LN) $(SRC_clib)$(slash)lm_printf.c lm_printf.c
+
+lm_terminfo.c: $(SRC_clib)$(slash)lm_terminfo.c
+	$(LN) $(SRC_clib)$(slash)lm_terminfo.c lm_terminfo.c
+
+lm_termsize.c: $(SRC_clib)$(slash)lm_termsize.c
+	$(LN) $(SRC_clib)$(slash)lm_termsize.c lm_termsize.c
+
+lm_uname_ext.c: $(SRC_clib)$(slash)lm_uname_ext.c
+	$(LN) $(SRC_clib)$(slash)lm_uname_ext.c lm_uname_ext.c
+
+lm_unix_cutil.c: $(SRC_clib)$(slash)lm_unix_cutil.c
+	$(LN) $(SRC_clib)$(slash)lm_unix_cutil.c lm_unix_cutil.c
+
 omake_shell_sys.c: $(SRC_clib)$(slash)omake_shell_sys.c
 	$(LN) $(SRC_clib)$(slash)omake_shell_sys.c omake_shell_sys.c
 
 readline.c: $(SRC_clib)$(slash)readline.c
 	$(LN) $(SRC_clib)$(slash)readline.c readline.c
 
-ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify.om lm_termsize.c lm_terminfo.c lm_fs_case_sensitive.c
+ALLFILES_clib = fam_inotify.c fam_kqueue.c fam_win32.c lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_fs_case_sensitive.c lm_heap.c lm_heap.h lm_notify.c lm_printf.c lm_terminfo.c lm_termsize.c lm_uname_ext.c lm_unix_cutil.c omake_shell_sys.c readline.c
 
 
 CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash_sig.cmo lm_hash.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_lexer.cmo lm_parser.cmo lm_unix_util.cmo lm_glob.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo

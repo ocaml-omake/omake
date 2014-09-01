@@ -1,0 +1,45 @@
+#
+# Testing for inotify on Linux
+#
+open build/C
+open configure/Configure
+open configure/fam
+
+TEST_PROG = $"""
+#include <stdio.h>
+#include "inotify.h"
+#include "inotify-syscalls.h"
+
+int main(int argc, char **argv)
+{
+    int fd, wd;
+
+    fd = inotify_init();
+    if(fd < 0)
+        return 1;
+
+    wd = inotify_add_watch(fd, ".", IN_CLOSE_WRITE | IN_MOVED_TO | IN_CREATE | IN_DELETE);
+    if(wd < 0)
+        return 1;
+
+    return 0;
+}
+"""
+
+static. =
+        ConfMsgChecking(for inotify)
+        INOTIFY_AVAILABLE = $(CheckLib $(EMPTY), inotify_init inotify_add_watch inotify_rm_watch)
+        INOTIFY_HEADERS = $(CheckHeader $"<sys/inotify.h>")
+        if $(not $(INOTIFY_AVAILABLE))
+            # XXX: need a better way of locating the header files.
+            public.CFLAGS += $(mapprefix -I, $(dir libmojave/cutil src/libmojave-external/cutil cutil))
+            INOTIFY_AVAILABLE = $(TryRunC $(TEST_PROG))
+            export INOTIFY_AVAILABLE
+        ConfMsgFound($(INOTIFY_AVAILABLE))
+
+if $(INOTIFY_AVAILABLE)
+        FAM_AVAILABLE = true
+        FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_INOTIFY
+        FAM_CLIBS =
+        export
+

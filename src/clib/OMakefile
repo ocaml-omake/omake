@@ -3,32 +3,32 @@
 #
 EXTERNAL = ../libmojave-external
 
-CUTIL_FILES[] =
-    lm_heap.c
-    lm_heap.h
-    lm_channel.c
-    lm_compat_win32.c
-    lm_compat_win32.h
-    lm_ctype.c
-    lm_printf.c
-    lm_uname_ext.c
-    lm_unix_cutil.c
-    unixsupport.h
-    fam_win32.c
-    fam_kqueue.c
-    fam_inotify.c
-    fam_pseudo.h
-    lm_notify.c
-    inotify.h
-    inotify-syscalls.h
-    inotify.om
-    lm_termsize.c
-    lm_terminfo.c
-    lm_fs_case_sensitive.c
+# CUTIL_FILES[] =
+#     lm_heap.c
+#     lm_heap.h
+#     lm_channel.c
+#     lm_compat_win32.c
+#     lm_compat_win32.h
+#     lm_ctype.c
+#     lm_printf.c
+#     lm_uname_ext.c
+#     lm_unix_cutil.c
+#     unixsupport.h
+#     fam_win32.c
+#     fam_kqueue.c
+#     fam_inotify.c
+#     fam_pseudo.h
+#     lm_notify.c
+#     inotify.h
+#     inotify-syscalls.h
+#     inotify.om
+#     lm_termsize.c
+#     lm_terminfo.c
+#     lm_fs_case_sensitive.c
 
-MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
+# MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
 
-CGeneratedFiles($(CUTIL_FILES))
+# CGeneratedFiles($(CUTIL_FILES))
 
 open configure/snprintf
 open configure/fs_case_sensitive
@@ -62,7 +62,7 @@ FILES[] =
 MakeStaticCLibrary(clib, $(FILES))
 
 clean:
-    $(CLEAN) $(CUTIL_FILES)
+    $(CLEAN) 
 
 #
 # Generate the Makefile
