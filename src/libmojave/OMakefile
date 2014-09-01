@@ -8,25 +8,24 @@ STDLIB_FILES[] =
     lm_thread_pool.mli
 
 
-UNIX_FILES[] =
-    lm_uname.ml
-    lm_unix_util.ml
-    lm_uname.mli
-    lm_unix_util.mli
-    lm_notify.ml
-    lm_notify.mli
-    lm_fs_case_sensitive.ml
-    lm_fs_case_sensitive.mli
+# UNIX_FILES[] =
+    # lm_uname.ml
+    # lm_unix_util.ml
+    # lm_uname.mli
+    # lm_unix_util.mli
+    # lm_notify.ml
+    # lm_notify.mli
+    # lm_fs_case_sensitive.ml
+    # lm_fs_case_sensitive.mli
 
 EXTERNAL_FILES[] =
     $(STDLIB_FILES)
-    $(UNIX_FILES)
+    # $(UNIX_FILES)
     lm_symbol.ml
     lm_symbol.mli
 
 MakeLinkExternal($(EXTERNAL)/stdlib, $(STDLIB_FILES))
-
-MakeLinkExternal($(EXTERNAL)/unix, $(UNIX_FILES))
+# MakeLinkExternal($(EXTERNAL)/unix, $(UNIX_FILES))
 MakeLinkExternalFile(lm_symbol.ml, $(EXTERNAL)/util/lm_symbol_hash.ml)
 MakeLinkExternalFile(lm_symbol.mli, $(EXTERNAL)/util/lm_symbol_hash.mli)
 
