@@ -33,5 +33,6 @@ FILES[] =
 	top_config	
 	boot_top
 
-
 .DEFAULT: $(OCamlLibrary boot_repl, $(FILES))
+
+OCAMLINCLUDES+= $(shell ocamlfind query utop)
