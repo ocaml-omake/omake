@@ -1,48 +1,21 @@
 (*
  * A generic marshaler.
  * For marshaling, we need a
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2001 Jason Hickey, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
  *)
-open Lm_printf
 
 (*
  * All items eventually become ints, floats, or strings.
  *)
 type 'a item =
-   Bool of bool
- | Char of char
- | Code of int
- | Symbol of int
- | Int of int
- | Magic of 'a
- | Float of float
- | String of string
- | List of 'a item list
+  | Bool of bool
+  | Char of char
+  | Code of int
+  | Symbol of int
+  | Int of int
+  | Magic of 'a
+  | Float of float
+  | String of string
+  | List of 'a item list
 
 (************************************************************************
  * MARSHALING
@@ -68,9 +41,7 @@ sig
    val output_buffer : out_channel -> string -> int -> int -> unit
 end
 
-(*
- * Marshal module.
- *)
+(*  Marshal module. *)
 module type MarshalSig =
 sig
    type t
@@ -94,9 +65,7 @@ struct
    type in_channel = IO.in_channel
    type out_channel = IO.out_channel
 
-   (*
-    * Codes.
-    *)
+   (* Codes. *)
    let true_magic     = 0xe0
    let false_magic    = 0xe1
    let char_magic     = 0xe2
@@ -136,20 +105,20 @@ struct
       output_byte out (i land 0xff)
 
    let input_int inc =
-      let i = input_byte inc in
-      let i = (i lsl 8) lor (input_byte inc) in
-      let i = (i lsl 8) lor (input_byte inc) in
-      let i = (i lsl 8) lor (input_byte inc) in
-         i
+     let i = input_byte inc in
+     let i = (i lsl 8) lor (input_byte inc) in
+     let i = (i lsl 8) lor (input_byte inc) in
+     let i = (i lsl 8) lor (input_byte inc) in
+     i
 
    let output_int16 out i =
       output_byte out ((i lsr 8) land 0xff);
       output_byte out (i land 0xff)
 
    let input_int16 inc =
-      let i1 = input_byte inc in
-      let i2 = input_byte inc in
-         (i1 lsl 8) lor i2
+     let i1 = input_byte inc in
+     let i2 = input_byte inc in
+     (i1 lsl 8) lor i2
 
    let output_int64 out i =
       output_byte out ((Int64.to_int (Int64.shift_right i 56)) land 0xff);
@@ -345,29 +314,29 @@ struct
     * Build a value from the input.
     *)
    let rec unmarshal_item inc =
-      let magic = input_magic inc in
-         if magic = true_magic then
-            unmarshal_bool true
-         else if magic = false_magic then
-            unmarshal_bool false
-         else if magic = char_magic then
-            unmarshal_char inc
-         else if magic = code_magic then
-            unmarshal_code inc
-         else if magic = symbol_magic then
-            unmarshal_symbol inc
-         else if magic = int_magic then
-            unmarshal_int inc
-         else if magic = magic_magic then
-            unmarshal_magic inc
-         else if magic = float_magic then
-            unmarshal_float inc
-         else if magic = string_magic then
-            unmarshal_string inc
-         else if magic = list_magic then
-            unmarshal_list inc
-         else
-            raise (Failure (sprintf "unmarshal: unexpected magic number 0x%02x" magic))
+     let magic = input_magic inc in
+     if magic = true_magic then
+       unmarshal_bool true
+     else if magic = false_magic then
+       unmarshal_bool false
+     else if magic = char_magic then
+       unmarshal_char inc
+     else if magic = code_magic then
+       unmarshal_code inc
+     else if magic = symbol_magic then
+       unmarshal_symbol inc
+     else if magic = int_magic then
+       unmarshal_int inc
+     else if magic = magic_magic then
+       unmarshal_magic inc
+     else if magic = float_magic then
+       unmarshal_float inc
+     else if magic = string_magic then
+       unmarshal_string inc
+     else if magic = list_magic then
+       unmarshal_list inc
+     else
+       raise (Failure (Lm_printf.sprintf "unmarshal: unexpected magic number 0x%02x" magic))
 
    and unmarshal_list inc =
       let len = input_size inc in
@@ -387,22 +356,10 @@ struct
    let unmarshal_version inc =
       let i = input_int inc in
          if i <> version_number then
-            raise (Failure (sprintf "unmarshal_version: bogus version number: 0x%08x, should be 0x%08x" i version_number))
+            raise (Failure (Lm_printf.sprintf "unmarshal_version: bogus version number: 0x%08x, should be 0x%08x" i version_number))
 
-   (*
-    * Now read the data.
-    *)
+   (*    Now read the data.    *)
    let unmarshal inc =
       unmarshal_version inc;
       unmarshal_item inc
 end
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

@@ -7,23 +7,62 @@
  * When to print output.
  *)
 type eval_flag =
-   EvalNever
- | EvalLazy
- | EvalEager
+  | EvalNever
+  | EvalLazy
+  | EvalEager
 
 (*
  * Diversion control.
  *)
 type output_flag =
-   OutputNormal
- | OutputPostponeSuccess
- | OutputPostponeError
- | OutputRepeatErrors
+  | OutputNormal
+  | OutputPostponeSuccess
+  | OutputPostponeError
+  | OutputRepeatErrors
+
+(*
+ * Make the default state explicit (the actual value may depend on the value of other settings).
+ *)
+type setting 
 
 (*
  * The basic make flags.
  *)
-type t
+type t = private
+  { job_count            : int;
+    remote_servers       : (string * int) list;
+    terminate_on_error   : setting;
+    dry_run              : bool;
+    print_command        : eval_flag;
+    print_dir            : bool;
+    print_file           : bool;
+    print_status         : bool;
+    print_exit           : bool;
+    mutable print_progress :  setting;
+    verbose              : bool;
+    touch_only           : bool;
+    flush_cache          : bool;
+    flush_dependencies   : bool;
+    print_dependencies   : bool;
+    show_dependencies    : string list;
+    all_dependencies     : bool;
+    verbose_dependencies : bool;
+    cd_root              : bool;
+    project              : bool;
+    poll                 :  setting;
+    osh                  : bool;
+    poll_on_done         : bool;
+    flush_include        : bool;
+    flush_static         : bool;
+    allow_exceptions     : bool;
+    absname              : bool;
+    output               : (output_flag * bool) list;
+
+    (* Warnings *)
+    warn_declare        : bool;
+    warn_error          : bool
+  }
+ 
 
 (*
  * Initial options.

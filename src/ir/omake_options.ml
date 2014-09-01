@@ -1,10 +1,4 @@
 (*
- * Options for the omake program.
- *
- *)
-
-
-(*
  * When to print output.
  *)
 type eval_flag =
@@ -16,61 +10,61 @@ type eval_flag =
  * Diversion control.
  *)
 type output_flag =
-   OutputNormal
- | OutputPostponeSuccess
- | OutputPostponeError
- | OutputRepeatErrors
+  | OutputNormal
+  | OutputPostponeSuccess
+  | OutputPostponeError
+  | OutputRepeatErrors
 
 (*
  * Make the default state explicit (the actual value may depend on the value of other settings).
  *)
-type 'a setting =
-   Default
- | Set of 'a
+type  setting =
+  | Default
+  | Set of bool
 
 (*
  * The basic make flags.
  *)
 type t =
-   { opt_job_count            : int;
-     opt_remote_servers       : (string * int) list;
-     opt_terminate_on_error   : bool setting;
-     opt_dry_run              : bool;
-     opt_print_command        : eval_flag;
-     opt_print_dir            : bool;
-     opt_print_file           : bool;
-     opt_print_status         : bool;
-     opt_print_exit           : bool;
-     mutable opt_print_progress : bool setting;
-     opt_verbose              : bool;
-     opt_touch_only           : bool;
-     opt_flush_cache          : bool;
-     opt_flush_dependencies   : bool;
-     opt_print_dependencies   : bool;
-     opt_show_dependencies    : string list;
-     opt_all_dependencies     : bool;
-     opt_verbose_dependencies : bool;
-     opt_cd_root              : bool;
-     opt_project              : bool;
-     opt_poll                 : bool setting;
-     opt_osh                  : bool;
-     opt_poll_on_done         : bool;
-     opt_flush_include        : bool;
-     opt_flush_static         : bool;
-     opt_allow_exceptions     : bool;
-     opt_absname              : bool;
-     opt_output               : (output_flag * bool) list;
+   { job_count            : int;
+     remote_servers       : (string * int) list;
+     terminate_on_error   :  setting;
+     dry_run              : bool;
+     print_command        : eval_flag;
+     print_dir            : bool;
+     print_file           : bool;
+     print_status         : bool;
+     print_exit           : bool;
+     mutable print_progress :  setting;
+     verbose              : bool;
+     touch_only           : bool;
+     flush_cache          : bool;
+     flush_dependencies   : bool;
+     print_dependencies   : bool;
+     show_dependencies    : string list;
+     all_dependencies     : bool;
+     verbose_dependencies : bool;
+     cd_root              : bool;
+     project              : bool;
+     poll                 :  setting;
+     osh                  : bool;
+     poll_on_done         : bool;
+     flush_include        : bool;
+     flush_static         : bool;
+     allow_exceptions     : bool;
+     absname              : bool;
+     output               : (output_flag * bool) list;
 
      (* Warnings *)
-     opt_warn_declare        : bool;
-     opt_warn_error          : bool
+     warn_declare        : bool;
+     warn_error          : bool
    }
 
 let opt_job_count opts =
-   opts.opt_job_count
+   opts.job_count
 
 let opt_remote_servers opts =
-   opts.opt_remote_servers
+   opts.remote_servers
 
 (*
  * Predicate returns true iff there are parallel jobs.
@@ -79,7 +73,7 @@ let opt_parallel options =
    (opt_job_count options) > 1 || (opt_remote_servers options) <> []
 
 let set_job_count_and_servers_opt opts cnt srvs =
-   { opts with opt_job_count = cnt; opt_remote_servers = srvs }
+   { opts with job_count = cnt; remote_servers = srvs }
 
 (*
  * The argument string is a colon-separated list of server specification.
@@ -97,8 +91,7 @@ let set_job_count options s =
       let count = String.sub job (index + 1) (len - index - 1) in
       let count =
         try int_of_string count with
-          Failure _ ->
-          1
+          Failure _ -> 1
       in
       job_count, (machine, count) :: remote_servers
     with
@@ -111,43 +104,43 @@ let set_job_count options s =
   set_job_count_and_servers_opt options (max 1 job_count) (List.rev remote_servers)
 
 let opt_dry_run opts =
-   opts.opt_dry_run
+   opts.dry_run
 
 let set_dry_run_opt opts flag =
-   { opts with opt_dry_run = flag }
+   { opts with dry_run = flag }
 
 let opt_print_command opts =
-   opts.opt_print_command
+   opts.print_command
 
 let set_print_command_opt opts flag =
-   { opts with opt_print_command = flag }
+   { opts with print_command = flag }
 
 let opt_print_dir opts =
-   opts.opt_print_dir
+   opts.print_dir
 
 let set_print_dir_opt opts flag =
-   { opts with opt_print_dir = flag }
+   { opts with print_dir = flag }
 
 let opt_print_file opts =
-   opts.opt_print_file
+   opts.print_file
 
 let set_print_file_opt opts flag =
-   { opts with opt_print_file = flag }
+   { opts with print_file = flag }
 
 let opt_print_status opts =
-   opts.opt_print_status
+   opts.print_status
 
 let set_print_status_opt opts flag =
-   { opts with opt_print_status = flag }
+   { opts with print_status = flag }
 
 let opt_print_exit opts =
-   opts.opt_print_exit
+   opts.print_exit
 
 let set_print_exit_opt opts flag =
-   { opts with opt_print_exit = flag }
+   { opts with print_exit = flag }
 
 let opt_print_progress opts =
-  match opts.opt_print_progress with
+  match opts.print_progress with
     Set b ->
     b
   | Default ->
@@ -169,132 +162,132 @@ let opt_print_progress opts =
           (Printexc.to_string exn);
         true
     in
-    opts.opt_print_progress <- Set ok_to_print;
+    opts.print_progress <- Set ok_to_print;
     ok_to_print
 
 let set_print_progress_opt opts flag =
-   { opts with opt_print_progress = Set flag }
+   { opts with print_progress = Set flag }
 
 let opt_touch_only opts =
-   opts.opt_touch_only
+   opts.touch_only
 
 let set_touch_only_opt opts flag =
-   { opts with opt_touch_only = flag }
+   { opts with touch_only = flag }
 
 let opt_flush_cache opts =
-   opts.opt_flush_cache
+   opts.flush_cache
 
 let set_flush_cache_opt opts flag =
-   { opts with opt_flush_cache = flag }
+   { opts with flush_cache = flag }
 
 let opt_flush_dependencies opts =
-   opts.opt_flush_dependencies
+   opts.flush_dependencies
 
 let set_flush_dependencies_opt opts flag =
-   { opts with opt_flush_dependencies = flag }
+   { opts with flush_dependencies = flag }
 
 let opt_print_dependencies opts =
-   opts.opt_print_dependencies
+   opts.print_dependencies
 
 let set_print_dependencies_opt opts flag =
-   { opts with opt_print_dependencies = flag }
+   { opts with print_dependencies = flag }
 
 let opt_show_dependencies opts =
-   opts.opt_show_dependencies
+   opts.show_dependencies
 
 let add_show_dependency_opt opts dep =
-   { opts with opt_show_dependencies = dep :: opts.opt_show_dependencies }
+   { opts with show_dependencies = dep :: opts.show_dependencies }
 
 let opt_all_dependencies opts =
-   opts.opt_all_dependencies
+   opts.all_dependencies
 
 let set_all_dependencies_opt opts flag =
-   { opts with opt_all_dependencies = flag }
+   { opts with all_dependencies = flag }
 
 let opt_verbose opts =
-   opts.opt_verbose
+   opts.verbose
 
 let opt_verbose_dependencies opts =
-   opts.opt_verbose_dependencies
+   opts.verbose_dependencies
 
 let set_verbose_dependencies_opt opts flag =
-   { opts with opt_verbose_dependencies = flag }
+   { opts with verbose_dependencies = flag }
 
 let opt_cd_root opts =
-   opts.opt_cd_root
+   opts.cd_root
 
 let set_cd_root_opt opts flag =
-   { opts with opt_cd_root = flag }
+   { opts with cd_root = flag }
 
 let opt_project opts =
-   opts.opt_project
+   opts.project
 
 let set_project_opt opts flag =
-   { opts with opt_project = flag }
+   { opts with project = flag }
 
 let opt_poll_on_done opts =
-   opts.opt_poll_on_done
+   opts.poll_on_done
 
 let set_poll_on_done_opt opts b =
-   { opts with opt_poll_on_done = b }
+   { opts with poll_on_done = b }
 
 let opt_poll opts =
-   match opts.opt_poll with
+   match opts.poll with
       Set v -> v
     | Default -> (opt_poll_on_done opts)
 
 let set_poll_opt opts b =
-   { opts with opt_poll = Set b }
+   { opts with poll = Set b }
 
 let opt_osh opts =
-   opts.opt_osh
+   opts.osh
 
 let set_osh_opt opts =
-   { opts with opt_osh = true }
+   { opts with osh = true }
 
 let opt_terminate_on_error opts =
-   match opts.opt_terminate_on_error with
+   match opts.terminate_on_error with
       Set v  -> v
     | Default -> not (opt_poll opts)
 
 let set_terminate_on_error_opt opts flag =
-   { opts with opt_terminate_on_error = Set flag }
+   { opts with terminate_on_error = Set flag }
 
 let opt_flush_include opts =
-   opts.opt_flush_include
+   opts.flush_include
 
 let set_flush_include_opt opts flag =
-   { opts with opt_flush_include = flag }
+   { opts with flush_include = flag }
 
 let opt_flush_static opts =
-   opts.opt_flush_static
+   opts.flush_static
 
 let set_flush_static_opt opts flag =
-   { opts with opt_flush_static = flag }
+   { opts with flush_static = flag }
 
 let opt_allow_exceptions opts =
-   opts.opt_allow_exceptions
+   opts.allow_exceptions
 
 let set_allow_exceptions_opt opts flag =
-   { opts with opt_allow_exceptions = flag }
+   { opts with allow_exceptions = flag }
 
 let opt_absname opts =
-   opts.opt_absname
+   opts.absname
 
 let set_absname_opt opts flag =
-   { opts with opt_absname = flag }
+   { opts with absname = flag }
 
 let opt_warn_declare opts =
-   opts.opt_warn_declare
+   opts.warn_declare
 
 let set_warn_declare_opt opts flag =
-   { opts with opt_warn_declare = flag }
+   { opts with warn_declare = flag }
 
 let opt_warn_error opts =
-   opts.opt_warn_error
+   opts.warn_error
 
 let set_warn_error_opt opts flag =
-   { opts with opt_warn_error = flag }
+   { opts with warn_error = flag }
 
 (*
  * Output control.
@@ -303,24 +296,24 @@ let output_opt_char options c =
    match c with
       '0' ->
          (* -s --output-errors-only --no--progress *)
-         { options with opt_print_status   = false;
-                        opt_print_dir      = false;
-                        opt_print_file     = false;
-                        opt_print_exit     = false;
-                        opt_print_command  = EvalNever;
-                        opt_print_progress = Set false;
-                        opt_output         = [(OutputPostponeError, true)]
+         { options with print_status   = false;
+                        print_dir      = false;
+                        print_file     = false;
+                        print_exit     = false;
+                        print_command  = EvalNever;
+                        print_progress = Set false;
+                        output         = [(OutputPostponeError, true)]
          }
     | '1' ->
          (* -S --progress --output-errors-only *)
-         { options with opt_print_command = EvalLazy;
-                        opt_print_progress = Set true;
-                        opt_output = [(OutputPostponeError, true)]
+         { options with print_command = EvalLazy;
+                        print_progress = Set true;
+                        output = [(OutputPostponeError, true)]
          }
     | '2' ->
          (* --progress --output-postpone *)
-         { options with opt_print_progress = Set true;
-                        opt_output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
+         { options with print_progress = Set true;
+                        output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
          }
     | 'W' ->
          set_print_dir_opt options true
@@ -353,7 +346,7 @@ let set_output_opts options s =
       loop options 0
 
 let rec opt_output opts flag =
-   let answer = try Some(List.assoc flag opts.opt_output) with Not_found -> None in
+   let answer = try Some(List.assoc flag opts.output) with Not_found -> None in
    (* A few extra wrinkles *)
    match answer, flag with
       Some true, _ ->
@@ -375,8 +368,8 @@ let rec opt_output opts flag =
          false
 
 let set_output_opt flag opts on =
-   let flags = (flag, on) :: (List.remove_assoc flag opts.opt_output) in
-      { opts with opt_output = flags }
+   let flags = (flag, on) :: (List.remove_assoc flag opts.output) in
+      { opts with output = flags }
 
 let opt_divert opts =
    List.exists (opt_output opts) [OutputPostponeSuccess; OutputPostponeError; OutputRepeatErrors]
@@ -385,36 +378,36 @@ let opt_divert opts =
  * Default options.
  *)
 let default_options =
-   { opt_job_count            =  max (Lm_terminfo.get_number_of_cores ()) 1;
-     opt_remote_servers       = [];
-     opt_terminate_on_error   = Default;
-     opt_dry_run              = false;
-     opt_print_command        = EvalLazy;
-     opt_print_dir            = false;
-     opt_print_file           = true;
-     opt_print_status         = true;
-     opt_print_exit           = false;
-     opt_print_progress       = Default;
-     opt_verbose              = false;
-     opt_touch_only           = false;
-     opt_flush_cache          = false;
-     opt_flush_dependencies   = false;
-     opt_print_dependencies   = false;
-     opt_show_dependencies    = [];
-     opt_all_dependencies     = false;
-     opt_verbose_dependencies = false;
-     opt_cd_root              = false;
-     opt_project              = false;
-     opt_poll                 = Default;
-     opt_poll_on_done         = false;
-     opt_osh                  = false;
-     opt_flush_include        = false;
-     opt_flush_static         = false;
-     opt_allow_exceptions     = false;
-     opt_absname              = false;
-     opt_output               = [];
-     opt_warn_declare         = false;
-     opt_warn_error           = false;
+   { job_count            =  max (Lm_terminfo.get_number_of_cores ()) 1;
+     remote_servers       = [];
+     terminate_on_error   = Default;
+     dry_run              = false;
+     print_command        = EvalLazy;
+     print_dir            = false;
+     print_file           = true;
+     print_status         = true;
+     print_exit           = false;
+     print_progress       = Default;
+     verbose              = false;
+     touch_only           = false;
+     flush_cache          = false;
+     flush_dependencies   = false;
+     print_dependencies   = false;
+     show_dependencies    = [];
+     all_dependencies     = false;
+     verbose_dependencies = false;
+     cd_root              = false;
+     project              = false;
+     poll                 = Default;
+     poll_on_done         = false;
+     osh                  = false;
+     flush_include        = false;
+     flush_static         = false;
+     allow_exceptions     = false;
+     absname              = false;
+     output               = [];
+     warn_declare         = false;
+     warn_error           = false;
    }
 
 (*
@@ -481,23 +474,23 @@ let output_spec =
    [
     "--verbose", Lm_arg.UnitFold (fun options ->
             { options with
-              opt_print_command = EvalEager;
-              opt_verbose = true;
-              opt_print_status = true;
-              opt_print_exit = true;
-              opt_print_file = true
+              print_command = EvalEager;
+              verbose = true;
+              print_status = true;
+              print_exit = true;
+              print_file = true
             }),
        "Verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
     "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
        "Print the exit codes of commands";
-    "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
+    "-S", Lm_arg.SetFold (fun options b -> { options with print_command = if b then EvalLazy else EvalEager }), (**)
        "Print command only if the command prints output (default)";
     "-s", Lm_arg.ClearFold (fun options b ->
-          { options with opt_print_status  = b;
-                         opt_print_dir     = b;
-                         opt_print_file    = b;
-                         opt_print_exit    = b;
-                         opt_print_command = if b then EvalEager else EvalNever }), (**)
+          { options with print_status  = b;
+                         print_dir     = b;
+                         print_file    = b;
+                         print_exit    = b;
+                         print_command = if b then EvalEager else EvalNever }), (**)
        "Never print commands before they are executed";
     "--progress", Lm_arg.SetFold set_print_progress_opt, (**)
        ("Print a progress indicator " ^ progress_usage);

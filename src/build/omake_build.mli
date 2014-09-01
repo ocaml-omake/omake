@@ -1,7 +1,4 @@
 
-(*
- * Debugging flags.
- *)
 val debug_rule     : bool ref
 val debug_build    : bool ref
 val debug_deps     : bool ref
