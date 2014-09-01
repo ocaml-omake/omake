@@ -7,32 +7,6 @@ STDLIB_FILES[] =
     lm_thread_core.mli
     lm_thread_pool.mli
 
-UTIL_FILES[] =
-    lm_arg.ml
-    lm_hash_sig.ml
-    lm_hash.ml
-    lm_location.ml
-    lm_position.ml
-    lm_channel.ml
-    lm_lexer.ml
-    lm_parser.ml
-    lm_glob.ml
-    lm_db.ml
-    lm_arg.mli
-    lm_hash.mli
-    lm_location.mli
-    lm_position.mli
-    lm_channel.mli
-    lm_lexer.mli
-    lm_parser.mli
-    lm_glob.mli
-    lm_db.mli
-    lm_termsize.ml
-    lm_termsize.mli
-    lm_terminfo.ml
-    lm_terminfo.mli
-    lm_filename_util.ml
-    lm_filename_util.mli
 
 UNIX_FILES[] =
     lm_uname.ml
@@ -46,13 +20,12 @@ UNIX_FILES[] =
 
 EXTERNAL_FILES[] =
     $(STDLIB_FILES)
-    $(UTIL_FILES)
     $(UNIX_FILES)
     lm_symbol.ml
     lm_symbol.mli
 
 MakeLinkExternal($(EXTERNAL)/stdlib, $(STDLIB_FILES))
-MakeLinkExternal($(EXTERNAL)/util, $(UTIL_FILES))
+
 MakeLinkExternal($(EXTERNAL)/unix, $(UNIX_FILES))
 MakeLinkExternalFile(lm_symbol.ml, $(EXTERNAL)/util/lm_symbol_hash.ml)
 MakeLinkExternalFile(lm_symbol.mli, $(EXTERNAL)/util/lm_symbol_hash.mli)
