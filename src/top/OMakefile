@@ -4,9 +4,30 @@ OCAMLINCLUDES+= +compiler-libs
 top_config.ml:
         section
             FP = $(fopen top_config.ml,w)
-            fprintln($(FP), $""let bootdir = "$(absname $(BOOTDIR))" "")
+            fprintln($(FP), $""
+let bootdir = "$(absname $(BOOTDIR))" 
+let builddir = "$(absname $(BUILDDIR))"
+let include_dirs = let (//) = Filename.concat in [
+	builddir // "src"// "ast" ; 
+	builddir // "src"// "build" ; 	
+	builddir // "src"// "builtin" ; 	
+	builddir // "src"// "clib" ; 	
+	builddir // "src"// "env" ; 		
+	builddir // "src"// "eval" ; 		
+	builddir // "src"// "exec" ; 		
+	builddir // "src"// "ir" ; 		
+	builddir // "src"// "libmojave" ; 		
+	builddir // "src"// "magic" ; 		
+	builddir // "src"// "main" ; 		
+	builddir // "src"// "shell" ; 		
+
+]
+"")
             close($(FP))
 # OCamlGeneratedFiles(top_config.ml)
+
+
+
 # Here the order matters which should be fixed later
 FILES[] = 
 	top_config	
