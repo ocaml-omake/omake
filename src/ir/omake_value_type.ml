@@ -1,12 +1,3 @@
-open Lm_printf
-open Lm_symbol
-open Lm_location
-open! Omake_ir
-
-
-
-
-
 
 (* %%MAGICBEGIN%% *)
 (*
@@ -46,28 +37,28 @@ type value =
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
- | ValClass       of obj SymbolTable.t
+ | ValClass       of obj Lm_symbol.SymbolTable.t
 
    (* Raw expressions *)
- | ValStringExp   of env * string_exp
- | ValBody        of exp list * export
- | ValCases       of (var * value * exp list * export) list
+ | ValStringExp   of env * Omake_ir.string_exp
+ | ValBody        of Omake_ir.exp list * Omake_ir.export
+ | ValCases       of (Omake_ir.var * value * Omake_ir.exp list * Omake_ir.export) list
 
    (* Functions *)
- | ValFun         of env * keyword_param_value list * param list * exp list * export
- | ValFunCurry    of env * param_value list * keyword_param_value list * param list * exp list * export * keyword_value list
+ | ValFun         of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
+ | ValFunCurry    of env * param_value list * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export * keyword_value list
 
    (* Closed values *)
- | ValPrim        of arity * bool * apply_empty_strategy * prim_fun
+ | ValPrim        of Omake_ir.arity * bool * Omake_ir.apply_empty_strategy * prim_fun
 
    (* The args, kargs are kept in -reverse- order *)
- | ValPrimCurry   of arity * bool * prim_fun * value list * keyword_value list
+ | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * value list * keyword_value list
 
    (* Implicit value dependencies *)
- | ValMaybeApply  of loc * var_info
+ | ValMaybeApply  of Lm_location.loc * Omake_ir.var_info
 
    (* Variables that are not applications *)
- | ValVar         of loc * var_info
+ | ValVar         of Lm_location.loc * Omake_ir.var_info
 
    (* Other values *)
  | ValOther       of value_other
@@ -82,35 +73,35 @@ type value =
 and value_other =
    ValLexer       of Omake_lexer.Lexer.t
  | ValParser      of Omake_parser.Parser.t
- | ValLocation    of loc
+ | ValLocation    of Lm_location.loc
  | ValExitCode    of int
- | ValEnv         of handle_env * export
+ | ValEnv         of handle_env * Omake_ir.export
 
 and value_delayed =
    ValValue of value
 
    (* Value in a static block *)
- | ValStaticApply of value * var
+ | ValStaticApply of value * Omake_ir.var
 
 (*
  * Arguments have an optional keyword.
  *)
-and param_value = param * value
-and keyword_value = var * value
-and keyword_param_value = var * param * value option
+and param_value = Omake_ir.param * value
+and keyword_value = Omake_ir.var * value
+and keyword_param_value = Omake_ir.var * Omake_ir.param * value option
 
 (*
  * Primitives are option refs.
  * We do this so that we can marshal these values.
  * Just before marshaling, all the options are set to None.
  *)
-and prim_fun = symbol
+and prim_fun = Lm_symbol.symbol
 
 (*
  * An object is just an environment.
  *)
-and obj = value SymbolTable.t
-and env = value SymbolTable.t
+and obj = value Lm_symbol.SymbolTable.t
+and env = value Lm_symbol.SymbolTable.t
 and map = (value, value) Lm_map.tree
 (* %%MAGICEND%% *)
 
@@ -122,8 +113,8 @@ and map = (value, value) Lm_map.tree
  * A method path.
  *)
 type path =
-   PathVar   of var_info
- | PathField of path * obj * var
+   PathVar   of Omake_ir.var_info
+ | PathField of path * obj * Omake_ir.var
 
 (*
  * Command lists are used for rule bodies.
@@ -132,8 +123,8 @@ type path =
  * for various kinds of commands.
  *)
 type command =
-  | CommandSection of value * Omake_ir_free_vars.free_vars * exp list   (* Name of the section, its free variables, and the expression *)
- | CommandValue of loc * env * string_exp
+  | CommandSection of value * Omake_ir_free_vars.free_vars * Omake_ir.exp list   (* Name of the section, its free variables, and the expression *)
+ | CommandValue of Lm_location.loc * env * Omake_ir.string_exp
 
 (*
  * Kinds of rules.
@@ -172,39 +163,39 @@ type 'a source = Omake_node_sig.node_kind * 'a
  * Exceptions.
  *)
 type item =
-   Symbol        of symbol
+   Symbol        of Lm_symbol.symbol
  | String        of string
  | AstExp        of Omake_ast.exp
  | IrExp         of Omake_ir.exp
- | Location      of loc
+ | Location      of Lm_location.loc
  | Value         of value
  | Error         of omake_error
 
 and pos = item Lm_position.pos
 
 and omake_error =
-   SyntaxError        of string
- | StringError        of string
- | StringAstError     of string * Omake_ast.exp
- | StringStringError  of string * string
- | StringDirError     of string * Omake_node.Dir.t
- | StringNodeError    of string * Omake_node.Node.t
- | StringVarError     of string * var
- | StringIntError     of string * int
- | StringMethodError  of string * var list
- | StringValueError   of string * value
- | StringTargetError  of string * target
- | LazyError          of (formatter -> unit)
- | UnboundVar         of var
- | UnboundVarInfo     of var_info
- | UnboundFun         of var
- | UnboundMethod      of var list
- | UnboundFieldVar    of obj * var
- | ArityMismatch      of arity * int
- | NotImplemented     of string
- | UnboundKey         of string
- | UnboundValue       of value
- | NullCommand
+  |  SyntaxError        of string
+  | StringError        of string
+  | StringAstError     of string * Omake_ast.exp
+  | StringStringError  of string * string
+  | StringDirError     of string * Omake_node.Dir.t
+  | StringNodeError    of string * Omake_node.Node.t
+  | StringVarError     of string * Omake_ir.var
+  | StringIntError     of string * int
+  | StringMethodError  of string * Omake_ir.var list
+  | StringValueError   of string * value
+  | StringTargetError  of string * target
+  | LazyError          of (Format.formatter -> unit)
+  | UnboundVar         of Omake_ir.var
+  | UnboundVarInfo     of Omake_ir.var_info
+  | UnboundFun         of Omake_ir.var
+  | UnboundMethod      of Omake_ir.var list
+  | UnboundFieldVar    of obj * Omake_ir.var
+  | ArityMismatch      of Omake_ir.arity * int
+  | NotImplemented     of string
+  | UnboundKey         of string
+  | UnboundValue       of value
+  | NullCommand
 
 (*
  * Standard exceptions.
@@ -214,7 +205,7 @@ exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
 exception ExitParentException     of pos * int
-exception Return            of loc * value * return_id
+exception Return            of Lm_location.loc * value * Omake_ir.return_id
 
 (*
  * Omake's internal version of the Invalid_argument
@@ -227,27 +218,27 @@ exception OmakeFatalErr of pos * omake_error
  *)
 module type PosSig =
 sig
-   val loc_exp_pos    : loc -> pos
-   val loc_pos        : loc -> pos -> pos
+   val loc_exp_pos    : Lm_location.loc -> pos
+   val loc_pos        : Lm_location.loc -> pos -> pos
 
    val ast_exp_pos    : Omake_ast.exp -> pos
    val ir_exp_pos     : Omake_ir.exp -> pos
-   val var_exp_pos    : var -> pos
+   val var_exp_pos    : Omake_ir.var -> pos
    val string_exp_pos : string -> pos
    val value_exp_pos  : value -> pos
 
    val string_pos     : string -> pos -> pos
    val pos_pos        : pos -> pos -> pos
    val int_pos        : int -> pos -> pos
-   val var_pos        : var -> pos -> pos
+   val var_pos        : Omake_ir.var -> pos -> pos
    val error_pos      : omake_error -> pos -> pos
 
-   val del_pos        : (formatter -> unit) -> loc -> pos
-   val del_exp_pos    : (formatter -> unit) -> pos -> pos
+   val del_pos        : (Format.formatter -> unit) -> Lm_location.loc -> pos
+   val del_exp_pos    : (Format.formatter -> unit) -> pos -> pos
 
    (* Utilities *)
-   val loc_of_pos     : pos -> loc
-   val pp_print_pos   : formatter -> pos -> unit
+   val loc_of_pos     : pos -> Lm_location.loc
+   val pp_print_pos   : Format.formatter -> pos -> unit
 end
 
 (************************************************************************
@@ -257,7 +248,7 @@ end
 (*
  * Empty object.
  *)
-let empty_obj = SymbolTable.empty
+let empty_obj = Lm_symbol.SymbolTable.empty
 
 (*
  * Get the class identifiers from the object.
@@ -266,14 +257,14 @@ let class_sym = Lm_symbol.add "$class"
 
 let venv_get_class obj =
    match
-      try SymbolTable.find obj class_sym with
+      try Lm_symbol.SymbolTable.find obj class_sym with
          Not_found ->
             ValNone
    with
       ValClass table ->
          table
     | _ ->
-         SymbolTable.empty
+         Lm_symbol.SymbolTable.empty
 
 (************************************************************************
  * Value table.

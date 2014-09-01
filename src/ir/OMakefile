@@ -12,7 +12,6 @@ FILES[] =
     omake_node_type
     omake_node_sig
     omake_node
-    omake_virtual_id
     omake_install
     omake_ir
     omake_var

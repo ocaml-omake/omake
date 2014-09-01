@@ -3,125 +3,115 @@
  *)
 
 
-
-open Lm_location
-
-open Omake_ir
-
-
-
-open Omake_symbol
-
-
 (*
  * These are all builtin variables.
  *
  * ZZZ: in 0.9.8 they are VarGlobal.
  *)
-let loc = bogus_loc "Builtin"
+let loc = Lm_location.bogus_loc "Builtin"
 
 let create_pervasives_var v =
-   VarGlobal (loc, v)
+   Omake_ir.VarGlobal (loc, v)
 
 (*
  * Generally useful virtual variables.
  *)
-let argv_var                   = create_pervasives_var argv_sym
-let options_var                = create_pervasives_var options_object_sym
+let argv_var                   = create_pervasives_var Omake_symbol.argv_sym
+let options_var                = create_pervasives_var Omake_symbol.options_object_sym
 
-let explicit_target_var        = create_pervasives_var explicit_target_sym
-let cwd_var                    = create_pervasives_var cwd_sym
-let stdlib_var                 = create_pervasives_var stdlib_sym
-let stdroot_var                = create_pervasives_var stdroot_sym
-let ostype_var                 = create_pervasives_var ostype_sym
-let omakepath_var              = create_pervasives_var omakepath_sym
-let path_var                   = create_pervasives_var path_sym
-let auto_rehash_var            = create_pervasives_var auto_rehash_sym
-let printexitvalue_var         = create_pervasives_var printexitvalue_sym
-let system_var                 = create_pervasives_var system_sym
-let oshell_var                 = create_pervasives_var oshell_sym
-let cdpath_var                 = create_pervasives_var cdpath_sym
-let history_file_var           = create_pervasives_var history_file_sym
-let history_length_var         = create_pervasives_var history_length_sym
-let targets_var                = create_pervasives_var targets_sym
-let build_summary_var          = create_pervasives_var build_summary_sym
+let explicit_target_var        = create_pervasives_var Omake_symbol.explicit_target_sym
+let cwd_var                    = create_pervasives_var Omake_symbol.cwd_sym
+let stdlib_var                 = create_pervasives_var Omake_symbol.stdlib_sym
+let stdroot_var                = create_pervasives_var Omake_symbol.stdroot_sym
+let ostype_var                 = create_pervasives_var Omake_symbol.ostype_sym
+let omakepath_var              = create_pervasives_var Omake_symbol.omakepath_sym
+let path_var                   = create_pervasives_var Omake_symbol.path_sym
+let auto_rehash_var            = create_pervasives_var Omake_symbol.auto_rehash_sym
+let printexitvalue_var         = create_pervasives_var Omake_symbol.printexitvalue_sym
+let system_var                 = create_pervasives_var Omake_symbol.system_sym
+let oshell_var                 = create_pervasives_var Omake_symbol.oshell_sym
+let cdpath_var                 = create_pervasives_var Omake_symbol.cdpath_sym
+let history_file_var           = create_pervasives_var Omake_symbol.history_file_sym
+let history_length_var         = create_pervasives_var Omake_symbol.history_length_sym
+let targets_var                = create_pervasives_var Omake_symbol.targets_sym
+let build_summary_var          = create_pervasives_var Omake_symbol.build_summary_sym
 
-let prompt_var                 = create_pervasives_var prompt_sym
-let ignoreeof_var              = create_pervasives_var ignoreeof_sym
-let exit_on_uncaught_exception_var = create_pervasives_var exit_on_uncaught_exception_sym
-let abort_on_command_error_var = create_pervasives_var abort_on_command_error_sym
-let create_subdirs_var         = create_pervasives_var create_subdirs_sym
-let allow_empty_subdirs_var    = create_pervasives_var allow_empty_subdirs_sym
-let glob_options_var           = create_pervasives_var glob_options_sym
-let glob_ignore_var            = create_pervasives_var glob_ignore_sym
-let glob_allow_var             = create_pervasives_var glob_allow_sym
-let scanner_mode_var           = create_pervasives_var scanner_mode_sym
+let prompt_var                 = create_pervasives_var Omake_symbol.prompt_sym
+let ignoreeof_var              = create_pervasives_var Omake_symbol.ignoreeof_sym
+let exit_on_uncaught_exception_var = create_pervasives_var Omake_symbol.exit_on_uncaught_exception_sym
+let abort_on_command_error_var = create_pervasives_var Omake_symbol.abort_on_command_error_sym
+let create_subdirs_var         = create_pervasives_var Omake_symbol.create_subdirs_sym
+let allow_empty_subdirs_var    = create_pervasives_var Omake_symbol.allow_empty_subdirs_sym
+let glob_options_var           = create_pervasives_var Omake_symbol.glob_options_sym
+let glob_ignore_var            = create_pervasives_var Omake_symbol.glob_ignore_sym
+let glob_allow_var             = create_pervasives_var Omake_symbol.glob_allow_sym
+let scanner_mode_var           = create_pervasives_var Omake_symbol.scanner_mode_sym
 
-let stdin_var                  = create_pervasives_var stdin_sym
-let stdout_var                 = create_pervasives_var stdout_sym
-let stderr_var                 = create_pervasives_var stderr_sym
+let stdin_var                  = create_pervasives_var Omake_symbol.stdin_sym
+let stdout_var                 = create_pervasives_var Omake_symbol.stdout_sym
+let stderr_var                 = create_pervasives_var Omake_symbol.stderr_sym
 
-let star_var                   = create_pervasives_var star_sym
-let at_var                     = create_pervasives_var at_sym
-let gt_var                     = create_pervasives_var gt_sym
-let plus_var                   = create_pervasives_var plus_sym
-let hat_var                    = create_pervasives_var hat_sym
-let lt_var                     = create_pervasives_var lt_sym
-let amp_var                    = create_pervasives_var amp_sym
-let braces_var                 = create_pervasives_var braces_sym
-let fs_var                     = create_pervasives_var fs_sym
-let rs_var                     = create_pervasives_var rs_sym
-let filename_var               = create_pervasives_var filename_sym
-let fnr_var                    = create_pervasives_var fnr_sym
+let star_var                   = create_pervasives_var Omake_symbol.star_sym
+let at_var                     = create_pervasives_var Omake_symbol.at_sym
+let gt_var                     = create_pervasives_var Omake_symbol.gt_sym
+let plus_var                   = create_pervasives_var Omake_symbol.plus_sym
+let hat_var                    = create_pervasives_var Omake_symbol.hat_sym
+let lt_var                     = create_pervasives_var Omake_symbol.lt_sym
+let amp_var                    = create_pervasives_var Omake_symbol.amp_sym
+let braces_var                 = create_pervasives_var Omake_symbol.braces_sym
+let fs_var                     = create_pervasives_var Omake_symbol.fs_sym
+let rs_var                     = create_pervasives_var Omake_symbol.rs_sym
+let filename_var               = create_pervasives_var Omake_symbol.filename_sym
+let fnr_var                    = create_pervasives_var Omake_symbol.fnr_sym
 
-let parse_loc_var              = create_pervasives_var parse_loc_sym
-let zero_var                   = create_pervasives_var zero_sym
-let nf_var                     = create_pervasives_var nf_sym
+let parse_loc_var              = create_pervasives_var Omake_symbol.parse_loc_sym
+let zero_var                   = create_pervasives_var Omake_symbol.zero_sym
+let nf_var                     = create_pervasives_var Omake_symbol.nf_sym
 
-let object_var                 = create_pervasives_var object_sym
-let int_object_var             = create_pervasives_var int_object_sym
-let float_object_var           = create_pervasives_var float_object_sym
-let string_object_var          = create_pervasives_var string_object_sym
-let sequence_object_var        = create_pervasives_var sequence_object_sym
-let array_object_var           = create_pervasives_var array_object_sym
-let fun_object_var             = create_pervasives_var fun_object_sym
-let rule_object_var            = create_pervasives_var rule_object_sym
-let file_object_var            = create_pervasives_var file_object_sym
-let dir_object_var             = create_pervasives_var dir_object_sym
-let body_object_var            = create_pervasives_var body_object_sym
-let in_channel_object_var      = create_pervasives_var in_channel_object_sym
-let out_channel_object_var     = create_pervasives_var out_channel_object_sym
-let in_out_channel_object_var  = create_pervasives_var in_out_channel_object_sym
-let lexer_object_var           = create_pervasives_var lexer_object_sym
-let parser_object_var          = create_pervasives_var parser_object_sym
-let location_object_var        = create_pervasives_var location_object_sym
-let map_object_var             = create_pervasives_var map_object_sym
-let shell_object_var           = create_pervasives_var shell_object_sym
-let target_object_var          = create_pervasives_var target_object_sym
-let stat_object_var            = create_pervasives_var stat_object_sym
-let passwd_object_var          = create_pervasives_var passwd_object_sym
-let group_object_var           = create_pervasives_var group_object_sym
-let pipe_object_var            = create_pervasives_var pipe_object_sym
-let select_object_var          = create_pervasives_var pipe_object_sym
-let runtime_exception_var      = create_pervasives_var runtime_exception_sym
-let var_object_var             = create_pervasives_var var_object_sym
-let tm_object_var              = create_pervasives_var tm_object_sym
+let object_var                 = create_pervasives_var Omake_symbol.object_sym
+let int_object_var             = create_pervasives_var Omake_symbol.int_object_sym
+let float_object_var           = create_pervasives_var Omake_symbol.float_object_sym
+let string_object_var          = create_pervasives_var Omake_symbol.string_object_sym
+let sequence_object_var        = create_pervasives_var Omake_symbol.sequence_object_sym
+let array_object_var           = create_pervasives_var Omake_symbol.array_object_sym
+let fun_object_var             = create_pervasives_var Omake_symbol.fun_object_sym
+let rule_object_var            = create_pervasives_var Omake_symbol.rule_object_sym
+let file_object_var            = create_pervasives_var Omake_symbol.file_object_sym
+let dir_object_var             = create_pervasives_var Omake_symbol.dir_object_sym
+let body_object_var            = create_pervasives_var Omake_symbol.body_object_sym
+let in_channel_object_var      = create_pervasives_var Omake_symbol.in_channel_object_sym
+let out_channel_object_var     = create_pervasives_var Omake_symbol.out_channel_object_sym
+let in_out_channel_object_var  = create_pervasives_var Omake_symbol.in_out_channel_object_sym
+let lexer_object_var           = create_pervasives_var Omake_symbol.lexer_object_sym
+let parser_object_var          = create_pervasives_var Omake_symbol.parser_object_sym
+let location_object_var        = create_pervasives_var Omake_symbol.location_object_sym
+let map_object_var             = create_pervasives_var Omake_symbol.map_object_sym
+let shell_object_var           = create_pervasives_var Omake_symbol.shell_object_sym
+let target_object_var          = create_pervasives_var Omake_symbol.target_object_sym
+let stat_object_var            = create_pervasives_var Omake_symbol.stat_object_sym
+let passwd_object_var          = create_pervasives_var Omake_symbol.passwd_object_sym
+let group_object_var           = create_pervasives_var Omake_symbol.group_object_sym
+let pipe_object_var            = create_pervasives_var Omake_symbol.pipe_object_sym
+let select_object_var          = create_pervasives_var Omake_symbol.pipe_object_sym
+let runtime_exception_var      = create_pervasives_var Omake_symbol.runtime_exception_sym
+let var_object_var             = create_pervasives_var Omake_symbol.var_object_sym
+let tm_object_var              = create_pervasives_var Omake_symbol.tm_object_sym
 
-let extends_var                = create_pervasives_var extends_sym
-let omakeflags_var             = create_pervasives_var omakeflags_sym
-let omakeargv_var              = create_pervasives_var omakeargv_sym
+let extends_var                = create_pervasives_var Omake_symbol.extends_sym
+let omakeflags_var             = create_pervasives_var Omake_symbol.omakeflags_sym
+let omakeargv_var              = create_pervasives_var Omake_symbol.omakeargv_sym
 
-let printexitvalue_var         = create_pervasives_var printexitvalue_sym
+let printexitvalue_var         = create_pervasives_var Omake_symbol.printexitvalue_sym
 
-let loc_field_var              = VarThis (loc, loc_sym)
-let builtin_field_var          = VarThis (loc, builtin_sym)
-let map_field_var              = VarThis (loc, map_sym)
-let current_prec_field_var     = VarThis (loc, current_prec_sym)
-let lexer_field_var            = VarThis (loc, lexer_sym)
+let loc_field_var              = Omake_ir.VarThis (loc, Omake_symbol.loc_sym)
+let builtin_field_var          = Omake_ir.VarThis (loc, Omake_symbol.builtin_sym)
+let map_field_var              = Omake_ir.VarThis (loc, Omake_symbol.map_sym)
+let current_prec_field_var     = Omake_ir.VarThis (loc, Omake_symbol.current_prec_sym)
+let lexer_field_var            = Omake_ir.VarThis (loc, Omake_symbol.lexer_sym)
 
-let file_var                   = VarPrivate (loc, file_sym)
-let file_id_var                = VarPrivate (loc, file_id_sym)
-let wild_var                   = VarPrivate (loc, wild_sym)
+let file_var                   = Omake_ir.VarPrivate (loc, Omake_symbol.file_sym)
+let file_id_var                = Omake_ir.VarPrivate (loc, Omake_symbol.file_id_sym)
+let wild_var                   = Omake_ir.VarPrivate (loc, Omake_symbol.wild_sym)
 
 (*
  * Special handling for small numeric vars.
