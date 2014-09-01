@@ -211,13 +211,3 @@ let distinct cmp = function
     in
     Array.fast_sort cmp array;
     d_find 0
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
-*)

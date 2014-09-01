@@ -21,67 +21,67 @@ type prim_channel = Omake_handle_table.IntHandleTable.handle
  * For the function, the obj is the static scope.
  *)
 type value =
-   ValNone
- | ValInt         of int
- | ValFloat       of float
- | ValSequence    of value list
- | ValArray       of value list
- | ValWhite       of string
- | ValString      of string
- | ValData        of string
- | ValQuote       of value list
- | ValQuoteString of char * value list
- | ValRules       of Omake_node.Node.t list
- | ValNode        of Omake_node.Node.t
- | ValDir         of Omake_node.Dir.t
- | ValObject      of obj
- | ValMap         of map
- | ValChannel     of channel_mode * prim_channel
- | ValClass       of obj Lm_symbol.SymbolTable.t
+  |ValNone
+  | ValInt         of int
+  | ValFloat       of float
+  | ValSequence    of value list
+  | ValArray       of value list
+  | ValWhite       of string
+  | ValString      of string
+  | ValData        of string
+  | ValQuote       of value list
+  | ValQuoteString of char * value list
+  | ValRules       of Omake_node.Node.t list
+  | ValNode        of Omake_node.Node.t
+  | ValDir         of Omake_node.Dir.t
+  | ValObject      of obj
+  | ValMap         of map
+  | ValChannel     of channel_mode * prim_channel
+  | ValClass       of obj Lm_symbol.SymbolTable.t
 
-   (* Raw expressions *)
- | ValStringExp   of env * Omake_ir.string_exp
- | ValBody        of Omake_ir.exp list * Omake_ir.export
- | ValCases       of (Omake_ir.var * value * Omake_ir.exp list * Omake_ir.export) list
+  (* Raw expressions *)
+  | ValStringExp   of env * Omake_ir.string_exp
+  | ValBody        of Omake_ir.exp list * Omake_ir.export
+  | ValCases       of (Omake_ir.var * value * Omake_ir.exp list * Omake_ir.export) list
 
-   (* Functions *)
- | ValFun         of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
- | ValFunCurry    of env * param_value list * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export * keyword_value list
+  (* Functions *)
+  | ValFun         of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
+  | ValFunCurry    of env * param_value list * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export * keyword_value list
 
-   (* Closed values *)
- | ValPrim        of Omake_ir.arity * bool * Omake_ir.apply_empty_strategy * prim_fun
+  (* Closed values *)
+  | ValPrim        of Omake_ir.arity * bool * Omake_ir.apply_empty_strategy * prim_fun
 
-   (* The args, kargs are kept in -reverse- order *)
- | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * value list * keyword_value list
+  (* The args, kargs are kept in -reverse- order *)
+  | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * value list * keyword_value list
 
-   (* Implicit value dependencies *)
- | ValMaybeApply  of Lm_location.loc * Omake_ir.var_info
+  (* Implicit value dependencies *)
+  | ValMaybeApply  of Lm_location.loc * Omake_ir.var_info
 
-   (* Variables that are not applications *)
- | ValVar         of Lm_location.loc * Omake_ir.var_info
+  (* Variables that are not applications *)
+  | ValVar         of Lm_location.loc * Omake_ir.var_info
 
-   (* Other values *)
- | ValOther       of value_other
+  (* Other values *)
+  | ValOther       of value_other
 
-   (* Delayed values *)
- | ValDelayed     of value_delayed ref
+  (* Delayed values *)
+  | ValDelayed     of value_delayed ref
 
 (*
  * Put all the other stuff here, to keep the primary value type
  * smaller.
  *)
 and value_other =
-   ValLexer       of Omake_lexer.Lexer.t
- | ValParser      of Omake_parser.Parser.t
- | ValLocation    of Lm_location.loc
- | ValExitCode    of int
- | ValEnv         of handle_env * Omake_ir.export
+  | ValLexer       of Omake_lexer.Lexer.t
+  | ValParser      of Omake_parser.Parser.t
+  | ValLocation    of Lm_location.loc
+  | ValExitCode    of int
+  | ValEnv         of handle_env * Omake_ir.export
 
 and value_delayed =
-   ValValue of value
+    ValValue of value
 
-   (* Value in a static block *)
- | ValStaticApply of value * Omake_ir.var
+  (* Value in a static block *)
+  | ValStaticApply of value * Omake_ir.var
 
 (*
  * Arguments have an optional keyword.
@@ -107,14 +107,14 @@ and map = (value, value) Lm_map.tree
 
 (************************************************************************
  * Non-marshaled values.
- *)
+*)
 
 (*
  * A method path.
  *)
 type path =
-   PathVar   of Omake_ir.var_info
- | PathField of path * obj * Omake_ir.var
+  | PathVar   of Omake_ir.var_info
+  | PathField of path * obj * Omake_ir.var
 
 (*
  * Command lists are used for rule bodies.
@@ -123,8 +123,9 @@ type path =
  * for various kinds of commands.
  *)
 type command =
-  | CommandSection of value * Omake_ir_free_vars.free_vars * Omake_ir.exp list   (* Name of the section, its free variables, and the expression *)
- | CommandValue of Lm_location.loc * env * Omake_ir.string_exp
+  | CommandSection of value * Omake_ir_free_vars.free_vars * Omake_ir.exp list
+  (* Name of the section, its free variables, and the expression *)
+  | CommandValue of Lm_location.loc * env * Omake_ir.string_exp
 
 (*
  * Kinds of rules.
@@ -256,15 +257,10 @@ let empty_obj = Lm_symbol.SymbolTable.empty
 let class_sym = Lm_symbol.add "$class"
 
 let venv_get_class obj =
-   match
-      try Lm_symbol.SymbolTable.find obj class_sym with
-         Not_found ->
-            ValNone
-   with
-      ValClass table ->
-         table
-    | _ ->
-         Lm_symbol.SymbolTable.empty
+   match Lm_symbol.SymbolTable.find obj class_sym with
+   |   ValClass table -> table
+   | _ -> Lm_symbol.SymbolTable.empty 
+   | exception Not_found -> Lm_symbol.SymbolTable.empty 
 
 (************************************************************************
  * Value table.

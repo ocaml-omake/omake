@@ -41,13 +41,3 @@ val sub_map : ('a -> 'b) -> 'a array -> int -> int -> 'b array
  * of the input array. Returns the # of distinct elements.
  *)
 val distinct: ('a -> 'a -> int) -> 'a array -> int
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

@@ -14,29 +14,54 @@ val raise_uncaught_exception : Omake_value_type.pos -> exn -> 'a
  * Evaluate an expression.
  *)
 val eval : Omake_env.venv -> Omake_ir.exp -> Omake_value_type.value
-val eval_exp : Omake_env.venv -> Omake_value_type.value -> Omake_ir.exp -> Omake_env.venv * Omake_value_type.value
-val eval_sequence : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_ir.exp list -> Omake_env.venv * Omake_value_type.value
-val eval_sequence_export : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_ir.exp list -> Omake_ir.export -> Omake_env.venv * Omake_value_type.value
-val eval_sequence_exp : Omake_env.venv -> Omake_value_type.pos -> Omake_ir.exp list -> Omake_env.venv * Omake_value_type.value
-val eval_sequence_export_exp : Omake_env.venv -> Omake_value_type.pos -> Omake_ir.exp list -> Omake_ir.export -> Omake_env.venv * Omake_value_type.value
+
+val eval_exp : 
+  Omake_env.venv -> Omake_value_type.value -> Omake_ir.exp
+  -> Omake_env.venv * Omake_value_type.value
+
+val eval_sequence : 
+  Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value ->
+  Omake_ir.exp list -> Omake_env.venv * Omake_value_type.value
+
+val eval_sequence_export : Omake_env.venv -> Omake_value_type.pos ->
+  Omake_value_type.value -> Omake_ir.exp list -> Omake_ir.export ->
+  Omake_env.venv * Omake_value_type.value
+
+val eval_sequence_exp : Omake_env.venv -> Omake_value_type.pos -> 
+  Omake_ir.exp list -> Omake_env.venv * Omake_value_type.value
+
+val eval_sequence_export_exp : 
+  Omake_env.venv -> Omake_value_type.pos ->
+  Omake_ir.exp list -> Omake_ir.export -> Omake_env.venv * Omake_value_type.value
 
 (*
  * String expression evaluation.
  *)
-val eval_string_exp : Omake_env.venv -> Omake_value_type.pos -> Omake_ir.string_exp -> Omake_value_type.value
+val eval_string_exp : 
+  Omake_env.venv -> Omake_value_type.pos -> Omake_ir.string_exp -> Omake_value_type.value
 
 (*
  * Include the file literally.
  *)
-val find_include_file : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> string -> Omake_node.Node.t
+val find_include_file : 
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> string -> Omake_node.Node.t
+
 val eval_open_file : Omake_env.venv -> Omake_ir_ast.senv_open_file
-val eval_include_file : Omake_env.venv -> Omake_env.include_scope -> Omake_value_type.pos -> Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv * Omake_value_type.value
-val include_file : Omake_env.venv -> Omake_env.include_scope -> Omake_value_type.pos -> Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv
+
+val eval_include_file : 
+  Omake_env.venv -> Omake_env.include_scope -> Omake_value_type.pos
+  -> Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv * Omake_value_type.value
+
+val include_file : Omake_env.venv -> 
+  Omake_env.include_scope -> Omake_value_type.pos ->
+  Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv
 
 (*
  * Evaluate a file as if it were an object.
  *)
-val eval_object_file : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_node.Node.t -> Omake_value_type.obj
+val eval_object_file : 
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc ->
+  Omake_node.Node.t -> Omake_value_type.obj
 
 (*
  * Evaluate the program.
@@ -62,23 +87,36 @@ val eval_value : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.valu
 (*
  * Evaluate ValBody expressions.
  *)
-val eval_body_value : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value
-val eval_body_exp   : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value -> Omake_env.venv * Omake_value_type.value
+val eval_body_value : 
+  Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.value
+
+val eval_body_exp   : 
+  Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value ->
+  Omake_value_type.value -> Omake_env.venv * Omake_value_type.value
 
 (*
  * Get the object for the Omake_value_type.value.
  *)
 val eval_object : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.obj
-val eval_find_field : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> Omake_value_type.path * Omake_value_type.obj * Omake_ir.var
-val eval_find_method : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> Omake_env.venv * Omake_value_type.value
-val eval_defined_field : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> bool
+
+val eval_find_field : 
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info ->
+  Omake_ir.var list -> Omake_value_type.path * Omake_value_type.obj * Omake_ir.var
+
+val eval_find_method : Omake_env.venv -> Omake_value_type.pos ->
+  Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> Omake_env.venv * Omake_value_type.value
+
+val eval_defined_field : Omake_env.venv -> Omake_value_type.pos ->
+  Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> bool
 
 (*
  * Evaluate a Omake_value_type.value that should be a function.
  * Be careful with this: don't create a ValPrim using
  * this function, since marshaling will fail.
  *)
-val eval_fun : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> bool * Omake_env.prim_fun_data
+val eval_fun : 
+  Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value ->
+  bool * Omake_env.prim_fun_data
 
 (*
  * Also, if the Omake_value_type.value is an array of 1 element,

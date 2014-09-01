@@ -1,42 +1,9 @@
 (*
  * Right now the symbol table is just a representation of strings.
- *
- * ----------------------------------------------------------------
- *
- * Copyright (C) 1999-2002-2005 Mojave Group, Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey
- * jyh@cs.caltech.edu
- *
- * ----------------------------------------------------------------
- * Revision History
- *
- *  2002  Dec  4  Michael Maire  Added SymbolIndex
- *                               Added sets, tables, indices for
- *                               symbol pairs and triples
  *)
-open Lm_debug
-open Lm_printf
-open Lm_thread
+
+
+(* open Lm_thread. *)
 
 let debug_symbol = ref false
 
@@ -73,25 +40,25 @@ type symbol = SymbolHash.t
  * We no longer use a hashtable.
  * Symbols with a 0 index are interned.
  *)
-type var = symbol
+
 
 (* An "empty" variable name *)
 let empty_var = SymbolHash.create (0, "")
 
 let new_number, make =
    let count = ref 100 in
-   let lock = Mutex.create "Lm_symbol_hash" in
+   let lock = Lm_thread.Mutex.create "Lm_symbol_hash" in
       (fun () ->
-            Mutex.lock lock;
+            Lm_thread.Mutex.lock lock;
             let i = !count in
                count := succ i;
-               Mutex.unlock lock;
+               Lm_thread.Mutex.unlock lock;
                i),
       (fun s i ->
          if i >= !count then begin
-            Mutex.lock lock;
+            Lm_thread.Mutex.lock lock;
             count := max (!count) (succ i);
-            Mutex.unlock lock
+            Lm_thread.Mutex.unlock lock
          end;
          SymbolHash.create (i, s))
 
@@ -156,7 +123,7 @@ let mangle s =
  * Add a symbol to the table.
  *)
 let stop s =
-   eprintf "Bogus symbol %s@." s;
+   Lm_printf.eprintf "Bogus symbol %s@." s;
    false
 
 let char0 = Char.code '0'
@@ -223,7 +190,7 @@ let new_symbol v =
 let new_symbol_pre pre v =
    let v = to_string v in
    let s =
-      if debug debug_symbol then
+      if Lm_debug.debug debug_symbol then
          v ^ "/" ^ pre
       else
          v
@@ -288,7 +255,7 @@ let rec output_symbol_list out vl =
       [v] ->
          output_symbol out v
     | v :: vl ->
-         Lm_printf.fprintf out "%a, %a" output_symbol v output_symbol_list vl
+         Format.fprintf out "%a, %a" output_symbol v output_symbol_list vl
     | [] ->
          ()
 
@@ -318,25 +285,25 @@ let string_of_ext_symbol v =
       if i = 0 then
          s
       else
-         sprintf "%s%d" s i
+         Lm_printf.sprintf "%s%d" s i
    in
       if has_special_char s then
-         sprintf "`\"%s\"" s
+         Lm_printf.sprintf "`\"%s\"" s
       else
          s
 
 let pp_print_ext_symbol buf v =
-   pp_print_string buf (string_of_ext_symbol v)
+   Lm_printf.pp_print_string buf (string_of_ext_symbol v)
 
 let pp_print_symbol buf v =
-   pp_print_string buf (string_of_symbol v)
+   Lm_printf.pp_print_string buf (string_of_symbol v)
 
 let rec pp_print_symbol_list buf vl =
    match vl with
       [v] ->
          pp_print_symbol buf v
     | v :: vl ->
-         fprintf buf "%a, %a" pp_print_symbol v pp_print_symbol_list vl
+         Format.fprintf buf "%a, %a" pp_print_symbol v pp_print_symbol_list vl
     | [] ->
          ()
 
@@ -459,11 +426,3 @@ let output_symbol_set out s =
 
 let pp_print_symbol_set buf s =
    pp_print_symbol_list buf (SymbolSet.to_list s)
-
-(*
- * -*-
- * Local Variables:
- * Caml-master: "set"
- * End:
- * -*-
- *)
