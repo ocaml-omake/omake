@@ -142,86 +142,8 @@ readline.c: $(SRC_clib)$(slash)readline.c
 ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify.om lm_termsize.c lm_terminfo.c lm_fs_case_sensitive.c
 
 
-lm_printf.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml lm_printf.ml
-
-lm_debug.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.ml lm_debug.ml
-
-lm_heap.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_heap.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_heap.ml lm_heap.ml
-
-lm_list_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.ml lm_list_util.ml
-
-lm_array_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.ml lm_array_util.ml
-
-lm_set_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set_sig.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set_sig.ml lm_set_sig.ml
-
-lm_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.ml lm_set.ml
-
-lm_map_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map_sig.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map_sig.ml lm_map_sig.ml
-
-lm_map.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.ml lm_map.ml
-
-lm_int_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.ml lm_int_set.ml
-
-lm_index.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.ml lm_index.ml
-
-lm_thread_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_sig.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_sig.ml lm_thread_sig.ml
-
-lm_thread.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.ml lm_thread.ml
-
-lm_string_util.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.ml lm_string_util.ml
-
-lm_string_set.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.ml lm_string_set.ml
-
-lm_printf.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.mli lm_printf.mli
-
-lm_debug.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_debug.mli lm_debug.mli
-
-lm_list_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_list_util.mli lm_list_util.mli
-
-lm_array_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_array_util.mli lm_array_util.mli
-
-lm_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_set.mli lm_set.mli
-
-lm_map.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_map.mli lm_map.mli
-
-lm_int_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_int_set.mli lm_int_set.mli
-
-lm_index.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_index.mli lm_index.mli
-
 lm_thread_core.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core.mli
 	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_core.mli lm_thread_core.mli
-
-lm_thread.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread.mli lm_thread.mli
-
-lm_string_util.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_util.mli lm_string_util.mli
-
-lm_string_set.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_string_set.mli lm_string_set.mli
 
 lm_thread_pool.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool.mli
 	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_thread_pool.mli lm_thread_pool.mli
@@ -345,7 +267,88 @@ lm_thread_core.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-ext
 
 SRC_libmojave = ..$(slash)src$(slash)libmojave
 
-ALLFILES_libmojave =  lm_printf.ml lm_debug.ml lm_heap.ml lm_list_util.ml lm_array_util.ml lm_set_sig.ml lm_set.ml lm_map_sig.ml lm_map.ml lm_int_set.ml lm_index.ml lm_thread_sig.ml lm_thread.ml lm_string_util.ml lm_string_set.ml lm_printf.mli lm_debug.mli lm_list_util.mli lm_array_util.mli lm_set.mli lm_map.mli lm_int_set.mli lm_index.mli lm_thread_core.mli lm_thread.mli lm_string_util.mli lm_string_set.mli lm_thread_pool.mli lm_arg.ml lm_hash_sig.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
+lm_array_util.ml: $(SRC_libmojave)$(slash)lm_array_util.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_array_util.ml lm_array_util.ml
+
+lm_array_util.mli: $(SRC_libmojave)$(slash)lm_array_util.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_array_util.mli lm_array_util.mli
+
+lm_debug.ml: $(SRC_libmojave)$(slash)lm_debug.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_debug.ml lm_debug.ml
+
+lm_debug.mli: $(SRC_libmojave)$(slash)lm_debug.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_debug.mli lm_debug.mli
+
+lm_heap.ml: $(SRC_libmojave)$(slash)lm_heap.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_heap.ml lm_heap.ml
+
+lm_heap.mli: $(SRC_libmojave)$(slash)lm_heap.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_heap.mli lm_heap.mli
+
+lm_index.ml: $(SRC_libmojave)$(slash)lm_index.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_index.ml lm_index.ml
+
+lm_index.mli: $(SRC_libmojave)$(slash)lm_index.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_index.mli lm_index.mli
+
+lm_int_set.ml: $(SRC_libmojave)$(slash)lm_int_set.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_int_set.ml lm_int_set.ml
+
+lm_int_set.mli: $(SRC_libmojave)$(slash)lm_int_set.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_int_set.mli lm_int_set.mli
+
+lm_list_util.ml: $(SRC_libmojave)$(slash)lm_list_util.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_list_util.ml lm_list_util.ml
+
+lm_list_util.mli: $(SRC_libmojave)$(slash)lm_list_util.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_list_util.mli lm_list_util.mli
+
+lm_map.ml: $(SRC_libmojave)$(slash)lm_map.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_map.ml lm_map.ml
+
+lm_map.mli: $(SRC_libmojave)$(slash)lm_map.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_map.mli lm_map.mli
+
+lm_map_sig.ml: $(SRC_libmojave)$(slash)lm_map_sig.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_map_sig.ml lm_map_sig.ml
+
+lm_printf.ml: $(SRC_libmojave)$(slash)lm_printf.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_printf.ml lm_printf.ml
+
+lm_printf.mli: $(SRC_libmojave)$(slash)lm_printf.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_printf.mli lm_printf.mli
+
+lm_set.ml: $(SRC_libmojave)$(slash)lm_set.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_set.ml lm_set.ml
+
+lm_set.mli: $(SRC_libmojave)$(slash)lm_set.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_set.mli lm_set.mli
+
+lm_set_sig.ml: $(SRC_libmojave)$(slash)lm_set_sig.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_set_sig.ml lm_set_sig.ml
+
+lm_string_set.ml: $(SRC_libmojave)$(slash)lm_string_set.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_string_set.ml lm_string_set.ml
+
+lm_string_set.mli: $(SRC_libmojave)$(slash)lm_string_set.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_string_set.mli lm_string_set.mli
+
+lm_string_util.ml: $(SRC_libmojave)$(slash)lm_string_util.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_string_util.ml lm_string_util.ml
+
+lm_string_util.mli: $(SRC_libmojave)$(slash)lm_string_util.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_string_util.mli lm_string_util.mli
+
+lm_thread.ml: $(SRC_libmojave)$(slash)lm_thread.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_thread.ml lm_thread.ml
+
+lm_thread.mli: $(SRC_libmojave)$(slash)lm_thread.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_thread.mli lm_thread.mli
+
+lm_thread_sig.ml: $(SRC_libmojave)$(slash)lm_thread_sig.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_thread_sig.ml lm_thread_sig.ml
+
+ALLFILES_libmojave = lm_array_util.ml lm_array_util.mli lm_debug.ml lm_debug.mli lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_int_set.ml lm_int_set.mli lm_list_util.ml lm_list_util.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_printf.ml lm_printf.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_thread.ml lm_thread.mli lm_thread_sig.ml lm_thread_core.mli lm_thread_pool.mli lm_arg.ml lm_hash_sig.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
 
 
 CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo

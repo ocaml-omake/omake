@@ -4,33 +4,7 @@
 EXTERNAL = ../libmojave-external
 
 STDLIB_FILES[] =
-    lm_printf.ml
-    lm_debug.ml
-    lm_heap.ml
-    lm_list_util.ml
-    lm_array_util.ml
-    lm_set_sig.ml
-    lm_set.ml
-    lm_map_sig.ml
-    lm_map.ml
-    lm_int_set.ml
-    lm_index.ml
-    lm_thread_sig.ml
-    lm_thread.ml
-    lm_string_util.ml
-    lm_string_set.ml
-    lm_printf.mli
-    lm_debug.mli
-    lm_list_util.mli
-    lm_array_util.mli
-    lm_set.mli
-    lm_map.mli
-    lm_int_set.mli
-    lm_index.mli
     lm_thread_core.mli
-    lm_thread.mli
-    lm_string_util.mli
-    lm_string_set.mli
     lm_thread_pool.mli
 
 UTIL_FILES[] =
