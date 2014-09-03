@@ -157,7 +157,6 @@ let pp_print_command_flags buf flags =
 module type PrintArgvSig =
 sig
    type argv
-
    val pp_print_argv : argv Lm_printf.t 
 end;;
 

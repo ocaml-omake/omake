@@ -1,8 +1,8 @@
-(* open Omake_command_type. *)
 
 (************************************************************************
  * Argument collapsing.
  *)
+
 type arg_buffer = Omake_command_type.arg_string list
 
 let arg_buffer_empty =

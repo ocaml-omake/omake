@@ -82,7 +82,8 @@ let set_job_count_and_servers_opt opts cnt srvs =
  *    2. a machine: this specified a remote server that will handle 1 job
  *    3. a machine=count: a remote server that will handle <count> jobs
  *)
-let set_job_count options s =
+
+let get_job_count (s : string) : int * (string * int) list = 
   let set_job (job_count, remote_servers) job =
     try
       let index = String.index job '=' in
@@ -100,8 +101,14 @@ let set_job_count options s =
         Failure _ ->
         job_count, (job, 1) :: remote_servers
   in
-  let job_count, remote_servers = List.fold_left set_job (1, []) (Lm_string_util.split ":" s) in
-  set_job_count_and_servers_opt options (max 1 job_count) (List.rev remote_servers)
+  let job_count, remote_servers = 
+    List.fold_left (fun acc x -> set_job acc x)  (1, []) (Lm_string_util.split ":" s) in
+  job_count , List.rev remote_servers 
+
+let set_job_count (options : t) (s: string) : t   =
+  let job_count, remote_servers = get_job_count s in
+  set_job_count_and_servers_opt options (max  1 job_count) remote_servers 
+
 
 let opt_dry_run opts =
    opts.dry_run
@@ -141,27 +148,10 @@ let set_print_exit_opt opts flag =
 
 let opt_print_progress opts =
   match opts.print_progress with
-    Set b ->
-    b
+  | Set b -> b
   | Default ->
     let ok_to_print =
-      try
-        (* XXX: TODO: in OCaml 3.10, use Unix.isatty *)
-        ignore (Unix.tcgetattr Unix.stdout); true
-      with
-      | Unix.Unix_error _ ->
-        Format.eprintf 
-          "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
-        false
-      | Invalid_argument "Unix.tcgetattr not implemented" ->
-        (* We are on Windows :-( *)
-        true
-      | exn ->
-        Format.eprintf
-          "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
-          (Printexc.to_string exn);
-        true
-    in
+        Unix.isatty Unix.stdout in
     opts.print_progress <- Set ok_to_print;
     ok_to_print
 
@@ -232,23 +222,22 @@ let set_poll_on_done_opt opts b =
    { opts with poll_on_done = b }
 
 let opt_poll opts =
-   match opts.poll with
-      Set v -> v
-    | Default -> (opt_poll_on_done opts)
+  match opts.poll with
+  | Set v -> v
+  | Default -> (opt_poll_on_done opts)
 
 let set_poll_opt opts b =
    { opts with poll = Set b }
 
-let opt_osh opts =
-   opts.osh
+let opt_osh opts = opts.osh
 
 let set_osh_opt opts =
    { opts with osh = true }
 
 let opt_terminate_on_error opts =
    match opts.terminate_on_error with
-      Set v  -> v
-    | Default -> not (opt_poll opts)
+   | Set v  -> v
+   | Default -> not (opt_poll opts)
 
 let set_terminate_on_error_opt opts flag =
    { opts with terminate_on_error = Set flag }
@@ -292,84 +281,77 @@ let set_warn_error_opt opts flag =
 (*
  * Output control.
  *)
-let output_opt_char options c =
-   match c with
-      '0' ->
-         (* -s --output-errors-only --no--progress *)
-         { options with print_status   = false;
-                        print_dir      = false;
-                        print_file     = false;
-                        print_exit     = false;
-                        print_command  = EvalNever;
-                        print_progress = Set false;
-                        output         = [(OutputPostponeError, true)]
-         }
-    | '1' ->
-         (* -S --progress --output-errors-only *)
-         { options with print_command = EvalLazy;
-                        print_progress = Set true;
-                        output = [(OutputPostponeError, true)]
-         }
-    | '2' ->
-         (* --progress --output-postpone *)
-         { options with print_progress = Set true;
-                        output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
-         }
-    | 'W' ->
-         set_print_dir_opt options true
-    | 'w' ->
-         set_print_dir_opt options false
-    | 'P' ->
-         set_print_progress_opt options true
-    | 'p' ->
-         set_print_progress_opt options false
-    | 'X' ->
-         set_print_exit_opt options true
-    | 'x' ->
-         set_print_exit_opt options false
-    | 'S' ->
-         set_print_status_opt options true
-    | 's' ->
-         set_print_status_opt options false
-    | _ ->
-         (* Ignore, for forward compatibility *)
-         options
+let output_opt_char (options : t)  (c : char) : t  =
+  match c with
+  | '0' ->
+    (* -s --output-errors-only --no--progress *)
+    { options with print_status   = false;
+                   print_dir      = false;
+                   print_file     = false;
+                   print_exit     = false;
+                   print_command  = EvalNever;
+                   print_progress = Set false;
+                   output         = [(OutputPostponeError, true)]
+    }
+  | '1' ->
+    (* -S --progress --output-errors-only *)
+    { options with print_command = EvalLazy;
+                   print_progress = Set true;
+                   output = [(OutputPostponeError, true)]
+    }
+  | '2' ->
+    (* --progress --output-postpone *)
+    { options with print_progress = Set true;
+                   output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
+    }
+  | 'W' ->
+    set_print_dir_opt options true
+  | 'w' ->
+    set_print_dir_opt options false
+  | 'P' ->
+    set_print_progress_opt options true
+  | 'p' ->
+    set_print_progress_opt options false
+  | 'X' ->
+    set_print_exit_opt options true
+  | 'x' ->
+    set_print_exit_opt options false
+  | 'S' ->
+    set_print_status_opt options true
+  | 's' ->
+    set_print_status_opt options false
+  | _ ->
+    (* Ignore, for forward compatibility *)
+    options
+;;
+let set_output_opts (options : t) (s : string) : t =
+  Lm_string_util.fold_left (fun opt char -> output_opt_char  opt char)    options s
 
-let set_output_opts options s =
-   let len = String.length s in
-   let rec loop options i =
-      if i = len then
-         options
-      else
-         loop (output_opt_char options s.[i]) (succ i)
-   in
-      loop options 0
-
-let rec opt_output opts flag =
-   let answer = try Some(List.assoc flag opts.output) with Not_found -> None in
-   (* A few extra wrinkles *)
-   match answer, flag with
-      Some true, _ ->
-         (* Everything should be on when explicitly enabled *)
-         true
-    | (Some false | None), OutputPostponeError ->
-         (* If successes are printed, errors should be too, no matter what *)
-         opt_output opts OutputPostponeSuccess
-    | Some false, _ ->
-         (* Everything else should be off when explicitly disabled *)
-         false
-    | None, OutputNormal ->
-         not (opt_output opts OutputPostponeSuccess || opt_output opts OutputPostponeError)
-    | None, OutputRepeatErrors ->
-         (* default is "on iff -k/-p/-P" *)
-         not (opt_terminate_on_error opts)
-    | None, OutputPostponeSuccess ->
-         (* off by default *)
-         false
+let rec opt_output (opts : t) (flag : output_flag) : bool =
+  let answer = try Some(List.assoc flag opts.output) with Not_found -> None in
+  (* A few extra wrinkles *)
+  match answer, flag with
+  | Some true, _ ->
+    (* Everything should be on when explicitly enabled *)
+    true
+  | (Some false | None), OutputPostponeError ->
+    (* If successes are printed, errors should be too, no matter what *)
+    opt_output opts OutputPostponeSuccess
+  | Some false, _ ->
+    (* Everything else should be off when explicitly disabled *)
+    false
+  | None, OutputNormal ->
+    not (opt_output opts OutputPostponeSuccess || opt_output opts OutputPostponeError)
+  | None, OutputRepeatErrors ->
+    (* default is "on iff -k/-p/-P" *)
+    not (opt_terminate_on_error opts)
+  | None, OutputPostponeSuccess ->
+    (* off by default *)
+    false
 
 let set_output_opt flag opts on =
    let flags = (flag, on) :: (List.remove_assoc flag opts.output) in
-      { opts with output = flags }
+   { opts with output = flags }
 
 let opt_divert opts =
    List.exists (opt_output opts) [OutputPostponeSuccess; OutputPostponeError; OutputRepeatErrors]
@@ -460,54 +442,64 @@ let options_spec =
 
 let progress_usage =
    match Sys.os_type with
-      "Unix" | "Cygwin" ->
-         "(enabled by default when the stdout is a terminal)"
-    | "Windows" ->
-         "(default)"
-    | _ -> (* Should not happen *)
+   | "Unix" | "Cygwin" -> "(enabled by default when the stdout is a terminal)"
+   | "Windows" -> "(default)"
+   | _ -> (* Should not happen *)
          "(may be enabled by default)"
 
 (*
  * Output control.
  *)
 let output_spec =
-   [
-    "--verbose", Lm_arg.UnitFold (fun options ->
-            { options with
-              print_command = EvalEager;
-              verbose = true;
-              print_status = true;
-              print_exit = true;
-              print_file = true
-            }),
-       "Verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
-    "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
-       "Print the exit codes of commands";
-    "-S", Lm_arg.SetFold (fun options b -> { options with print_command = if b then EvalLazy else EvalEager }), (**)
-       "Print command only if the command prints output (default)";
+  [
+    "--verbose", 
+    Lm_arg.UnitFold
+      (fun options ->
+         { options with
+           print_command = EvalEager;
+           verbose = true;
+           print_status = true;
+           print_exit = true;
+           print_file = true
+         }),
+    "Verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
+   
+    "--print-exit", Lm_arg.SetFold set_print_exit_opt, "Print the exit codes of commands";
+
+    "-S", Lm_arg.SetFold
+      (fun options b -> { options with print_command = if b then EvalLazy else EvalEager }), 
+    "Print command only if the command prints output (default)";
+
     "-s", Lm_arg.ClearFold (fun options b ->
-          { options with print_status  = b;
-                         print_dir     = b;
-                         print_file    = b;
-                         print_exit    = b;
-                         print_command = if b then EvalEager else EvalNever }), (**)
-       "Never print commands before they are executed";
-    "--progress", Lm_arg.SetFold set_print_progress_opt, (**)
-       ("Print a progress indicator " ^ progress_usage);
-    "--print-status", Lm_arg.SetFold set_print_status_opt, (**)
-       "Print status lines (default)";
-    "-w", Lm_arg.SetFold set_print_dir_opt, (**)
-       "Print the directory in \"make format\" as commands are executed";
-    "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), (**)
-       "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
+        { options with print_status  = b;
+                       print_dir     = b;
+                       print_file    = b;
+                       print_exit    = b;
+                       print_command = if b then EvalEager else EvalNever }),
+    "Never print commands before they are executed";
+
+    "--progress", Lm_arg.SetFold set_print_progress_opt,
+    ("Print a progress indicator " ^ progress_usage);
+
+    "--print-status", Lm_arg.SetFold set_print_status_opt,
+    "Print status lines (default)";
+
+    "-w", Lm_arg.SetFold set_print_dir_opt,
+    "Print the directory in \"make format\" as commands are executed";
+
+    "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), 
+    "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
+
     "--output-postpone", Lm_arg.SetFold (fun opt flag ->
-            set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag), (**)
-       "Postpone printing command output until a rule terminates.";
-    "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), (**)
-       "Same as --output-postpone, but postponed output will only be printed for commands that fail.";
-    "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), (**)
-       "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled (directly or via -p/-P).";
+        set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag), 
+    "Postpone printing command output until a rule terminates.";
+
+    "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), 
+    "Same as --output-postpone, but postponed output will only be printed for commands that fail.";
+
+    "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), 
+    "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled (directly or via -p/-P).";
     "-o", Lm_arg.StringFold set_output_opts, (**)
-       "Short output options [01jwWpPxXsS] (see the manual)";
-    ]
+    "Short output options [01jwWpPxXsS] (see the manual)";
+  ]
 

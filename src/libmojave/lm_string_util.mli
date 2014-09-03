@@ -1,34 +1,4 @@
 (*
- * String utilities.
- *
- * ----------------------------------------------------------------
- *
- * Copyright (C) 2000-2006 Mojave Group, Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey <jyh@cs.caltech.edu>
- * Modified By: Aleksey Nogin <nogin@cs.caltech.edu>
- *)
-
-(*
  * Faster comparison function for strings
  *)
 val string_compare : string -> string -> int
@@ -279,9 +249,10 @@ val get : string -> string -> int -> char
 val decode_hex_name : string -> string
 val encode_hex_name : string -> string
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+val fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
+val fold_lefti : ('a -> int -> char -> 'a) -> 'a -> string -> 'a
+ 
+val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
+val fold_righti : (int -> char -> 'a -> 'a) -> string -> 'a -> 'a
+
+val iteri : (int -> char -> 'a) -> string -> unit
