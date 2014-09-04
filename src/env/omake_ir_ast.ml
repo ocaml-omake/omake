@@ -46,7 +46,7 @@ sig
    val empty         : t
    val mem           : t -> Omake_ir.var -> bool
    val add_var       : t -> Omake_value_type.pos -> Omake_ir.var -> Omake_ir.var_info -> t
-   val add_param     : t -> Omake_value_type.pos -> Omake_ir.var -> Omake_ir.var_info -> t
+   (* val add_param     : t -> Omake_value_type.pos -> Omake_ir.var -> Omake_ir.var_info -> t *)
    val add_extern    : t -> Omake_ir.var -> Omake_ir.var_info -> t
    val find_var      : t -> Omake_ir.var -> Omake_ir.var_info
    val fold_var      : ('a -> Omake_ir.var -> Omake_ir.var_info -> 'a) -> 'a -> t -> 'a
@@ -74,15 +74,15 @@ struct
        | ForcedExtern info ->
             info
 
-   let find_local_var env v =
-      match Lm_symbol.SymbolTable.find env v with
-         ForcedVar info ->
-            info
-       | ForcedExtern _ ->
-            raise Not_found
+   (* let find_local_var env v = *)
+   (*    match Lm_symbol.SymbolTable.find env v with *)
+   (*       ForcedVar info -> *)
+   (*          info *)
+   (*     | ForcedExtern _ -> *)
+   (*          raise Not_found *)
 
-   let add_param env _pos v info =
-      Lm_symbol.SymbolTable.add env v (ForcedVar info)
+   (* let add_param env _pos v info = *)
+   (*    Lm_symbol.SymbolTable.add env v (ForcedVar info) *)
 
    let add_var env _pos v info =
       Lm_symbol.SymbolTable.add env v (ForcedVar info)
@@ -115,7 +115,7 @@ sig
    val empty  : t
    val add    : t -> Omake_ir.simple_var_info -> Omake_ir.var_info -> t
    val find   : t -> Omake_ir.simple_var_info -> Omake_ir.var_info
-   val iter   : (Omake_ir.simple_var_info -> Omake_ir.var_info -> unit) -> t -> unit
+   (* val iter   : (Omake_ir.simple_var_info -> Omake_ir.var_info -> unit) -> t -> unit *)
 end;;
 
 module AllVars : AllVarsSig =
@@ -125,7 +125,7 @@ struct
    (* Inherit *)
    let empty = Omake_ir_util.SimpleVarTable.empty
    let find = Omake_ir_util.SimpleVarTable.find
-   let iter = Omake_ir_util.SimpleVarTable.iter
+   (* let iter = Omake_ir_util.SimpleVarTable.iter *)
    let add  = Omake_ir_util.SimpleVarTable.add
 end;;
 
@@ -299,8 +299,8 @@ let lazy_env =
 (*
  * Add a warning.
  *)
-let genv_add_warning genv =
-   { genv with genv_warning_count = succ genv.genv_warning_count }
+(* let genv_add_warning genv = *)
+(*    { genv with genv_warning_count = succ genv.genv_warning_count } *)
 
 let genv_warn_error genv senv =
    let { genv_file = file;
@@ -320,11 +320,11 @@ let genv_warn_error genv senv =
 (*
  * In a nested object, all currently protected vars become private.
  *)
-let nested_object_vars vars =
-   Lm_symbol.SymbolTable.map (function
-      Omake_ir.VarThis (loc, v) ->
-         Omake_ir.VarPrivate (loc, v)
-    | x -> x) vars
+(* let nested_object_vars vars = *)
+(*    Lm_symbol.SymbolTable.map (function *)
+(*       Omake_ir.VarThis (loc, v) -> *)
+(*          Omake_ir.VarPrivate (loc, v) *)
+(*     | x -> x) vars *)
 
 (*
  * Collect the cases in a conditional.
@@ -687,15 +687,15 @@ let senv_export_section senv pos result =
 (*
  * Warn if a statement is not reached.
  *)
-let senv_warn_not_reached genv e result =
-   match result with
-      ValNotReached ->
-         let loc = Omake_ast_util.loc_of_exp e in
-            Lm_printf.eprintf "@[<v 3>*** omake warning: %a@ statement not reached@]@." Lm_location.pp_print_location loc;
-            genv_add_warning genv
-    | ValValue
-    | ValExport _ ->
-         genv
+(* let senv_warn_not_reached genv e result = *)
+(*    match result with *)
+(*       ValNotReached -> *)
+(*          let loc = Omake_ast_util.loc_of_exp e in *)
+(*             Lm_printf.eprintf "@[<v 3>*** omake warning: %a@ statement not reached@]@." Lm_location.pp_print_location loc; *)
+(*             genv_add_warning genv *)
+(*     | ValValue *)
+(*     | ValExport _ -> *)
+(*          genv *)
 
 (*
  * Get the export vars.
@@ -719,14 +719,14 @@ let senv_export_var_list items =
       let _, v = Omake_ir_util.var_of_var_info info in
       Lm_symbol.SymbolTable.add vars v info) Lm_symbol.SymbolTable.empty items
 
-let senv_export_value senv info =
-   match info with
-      Omake_ir.ExportNone ->
-         Lm_symbol.SymbolTable.empty
-    | Omake_ir.ExportAll ->
-         senv_export_all_vars senv
-    | Omake_ir.ExportList items ->
-         senv_export_var_list items
+(* let senv_export_value senv info = *)
+(*    match info with *)
+(*       Omake_ir.ExportNone -> *)
+(*          Lm_symbol.SymbolTable.empty *)
+(*     | Omake_ir.ExportAll -> *)
+(*          senv_export_all_vars senv *)
+(*     | Omake_ir.ExportList items -> *)
+(*          senv_export_var_list items *)
 
 (*
  * Items from the export mode.
@@ -900,30 +900,30 @@ let senv_open_file genv senv pos loc filename =
  *
  * This should be uncommented in 0.9.9.
  *)
-let senv_define_var_info_bogus senv _ _ scope v info =
-  let { senv_object_senv = object_vars;
-        senv_update_vars = update_vars;
-        senv_forced_vars = forced_vars;
-        senv_all_vars    = all_vars;
-        _
-      } = senv
-  in
+(* let senv_define_var_info_bogus senv _ _ scope v info = *)
+(*   let { senv_object_senv = object_vars; *)
+(*         senv_update_vars = update_vars; *)
+(*         senv_forced_vars = forced_vars; *)
+(*         senv_all_vars    = all_vars; *)
+(*         _ *)
+(*       } = senv *)
+(*   in *)
 
-  (* They appear in the object only if not private *)
-  let object_vars =
-    match info with
-    |Omake_ir.VarPrivate _ ->
-      object_vars
-    | _ ->
-      Lm_symbol.SymbolTable.add object_vars v info
-  in
-  let update_vars = Lm_symbol.SymbolTable.add update_vars v info in
-  let all_vars    = AllVars.add all_vars (scope, v) info in
-  { senv with senv_object_senv = object_vars;
-    senv_update_vars = update_vars;
-    senv_forced_vars = forced_vars;
-    senv_all_vars    = all_vars
-  }
+(*   (\* They appear in the object only if not private *\) *)
+(*   let object_vars = *)
+(*     match info with *)
+(*     |Omake_ir.VarPrivate _ -> *)
+(*       object_vars *)
+(*     | _ -> *)
+(*       Lm_symbol.SymbolTable.add object_vars v info *)
+(*   in *)
+(*   let update_vars = Lm_symbol.SymbolTable.add update_vars v info in *)
+(*   let all_vars    = AllVars.add all_vars (scope, v) info in *)
+(*   { senv with senv_object_senv = object_vars; *)
+(*     senv_update_vars = update_vars; *)
+(*     senv_forced_vars = forced_vars; *)
+(*     senv_all_vars    = all_vars *)
+(*   } *)
 
 (*
  * Low-level variable definition.
@@ -1019,8 +1019,8 @@ let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
       in
          genv, oenv, senv, info
 
-let senv_add_var genv oenv senv cenv pos loc v =
-   senv_add_var_aux genv oenv senv cenv pos loc (cenv_scope cenv) v
+(* let senv_add_var genv oenv senv cenv pos loc v = *)
+(*    senv_add_var_aux genv oenv senv cenv pos loc (cenv_scope cenv) v *)
 
 let senv_add_scoped_var genv oenv senv cenv pos loc info v =
    senv_add_var_aux genv oenv senv cenv pos loc (cenv_update_scope cenv info) v
@@ -1190,18 +1190,18 @@ let build_literal_string_opt e =
       Omake_value_type.OmakeException _ ->
          None
 
-let literal_string_equal e s =
-   try build_literal_string e = s with
-      Omake_value_type.OmakeException _ ->
-         false
+(* let literal_string_equal e s = *)
+(*    try build_literal_string e = s with *)
+(*       Omake_value_type.OmakeException _ -> *)
+(*          false *)
 
 let build_literal_argv_list el =
    List.map build_literal_string el
 
-let is_empty_string e =
-   try build_literal_string e = "" with
-      Omake_value_type.OmakeException _ ->
-         false
+(* let is_empty_string e = *)
+(*    try build_literal_string e = "" with *)
+(*       Omake_value_type.OmakeException _ -> *)
+(*          false *)
 
 (* Some is_static - it's a memo |  None - it's not *)
 let get_memo_target e =
@@ -1276,13 +1276,13 @@ and build_string_list genv oenv senv cenv el pos =
   in
   genv, oenv, List.rev el
 
-and build_string_opt genv oenv senv cenv sl pos =
-  let pos = string_pos "build_string_opt" pos in
-  match sl with
-    Some s ->
-    Some (build_string genv oenv senv cenv s pos)
-  | None ->
-    None
+(* and build_string_opt genv oenv senv cenv sl pos = *)
+(*   let pos = string_pos "build_string_opt" pos in *)
+(*   match sl with *)
+(*     Some s -> *)
+(*     Some (build_string genv oenv senv cenv s pos) *)
+(*   | None -> *)
+(*     None *)
 
 (*
  * Parameter lists.

@@ -225,13 +225,13 @@ let pp_print_command_state buf (state : Omake_build_type.command_state)  =
   | CommandSucceeded _               -> Lm_printf.pp_print_string buf "succeeded"
   | CommandFailed code               -> Format.fprintf buf "failed(%d)" code
 
-let pp_print_command_opt buf (command_opt : Omake_build_type.command option) =
-  match command_opt with
-  | Some { command_target = target;
-           command_state = state; _} -> 
-    Format.fprintf buf "%a[%a]" Omake_node.pp_print_node target pp_print_command_state state
-  | None ->
-    Lm_printf.pp_print_string buf "<none>"
+(* let pp_print_command_opt buf (command_opt : Omake_build_type.command option) = *)
+(*   match command_opt with *)
+(*   | Some { command_target = target; *)
+(*            command_state = state; _} ->  *)
+(*     Format.fprintf buf "%a[%a]" Omake_node.pp_print_node target pp_print_command_state state *)
+(*   | None -> *)
+(*     Lm_printf.pp_print_string buf "<none>" *)
 
 let pp_print_command buf (command : Omake_build_type.command) =
   match command with 

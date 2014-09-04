@@ -107,10 +107,7 @@ val firstn : int -> 'a list -> 'a list
  *)
 val nth_tl : int -> 'a list -> 'a list
 
-(*
- * Replace the nth element of the list.
- *)
-val replace_nth : int -> 'a -> 'a list -> 'a list
+
 
 (*
  * Subtract two lists as if they were sets.

@@ -148,22 +148,22 @@ let spec =
    ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
     "Run as a remote server";]])
 
-let concat =
-  let buf = Buffer.create 17 in
-  let concat sl =
-    if sl = [] then
-      Filename.dir_sep
-    else
-      let _ =
-        List.iter (fun s ->
-          Buffer.add_string buf Filename.dir_sep;
-          Buffer.add_string buf s) sl
-      in
-      let s = Buffer.contents buf in
-      Buffer.clear buf;
-      s
-  in
-  concat
+(* let concat = *)
+(*   let buf = Buffer.create 17 in *)
+(*   let concat sl = *)
+(*     if sl = [] then *)
+(*       Filename.dir_sep *)
+(*     else *)
+(*       let _ = *)
+(*         List.iter (fun s -> *)
+(*           Buffer.add_string buf Filename.dir_sep; *)
+(*           Buffer.add_string buf s) sl *)
+(*       in *)
+(*       let s = Buffer.contents buf in *)
+(*       Buffer.clear buf; *)
+(*       s *)
+(*   in *)
+(*   concat *)
 
 (*
  * Find the outermost OMakeroot.

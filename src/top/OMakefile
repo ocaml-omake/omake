@@ -10,6 +10,7 @@ let builddir = "$(absname $(BUILDDIR))"
 let include_dirs = let (//) = Filename.concat in [
 	builddir // "src"// "ast" ; 
 	builddir // "src"// "build" ; 	
+	builddir // "src"// "util" ; 	
 	builddir // "src"// "builtin" ; 	
 	builddir // "src"// "clib" ; 	
 	builddir // "src"// "env" ; 		
@@ -32,7 +33,6 @@ let include_dirs = let (//) = Filename.concat in [
 FILES[] = 
 	top_config	
 	boot_top
-
 .DEFAULT: $(OCamlLibrary boot_repl, $(FILES))
 
 OCAMLINCLUDES+= $(shell ocamlfind query utop)

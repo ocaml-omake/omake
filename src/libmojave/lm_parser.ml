@@ -556,18 +556,18 @@ struct
    (*
     * A state element is a set of items, with lookaheads for each.
     *)
-   type info_item =
-      { info_item_index   : int;
-        info_item_empties : prop_entry list;
-        info_item_closure : prop_entry list;
-        info_item_entries : prop_entry array
-      }
+   (* type info_item = *)
+   (*    { info_item_index   : int; *)
+   (*      info_item_empties : prop_entry list; *)
+   (*      info_item_closure : prop_entry list; *)
+   (*      info_item_entries : prop_entry array *)
+   (*    } *)
 
    (************************************************************************
     * Printing and errors.
     *)
-   let string_of_var v =
-      Arg.to_string (Var.get v)
+   (* let string_of_var v = *)
+   (*    Arg.to_string (Var.get v) *)
 
    let pp_print_var buf v =
       Arg.pp_print_symbol buf (Var.get v)
@@ -575,15 +575,15 @@ struct
    let  pp_print_vars buf vl =
       List.iter (fun v -> fprintf buf " %a" pp_print_var v) vl
 
-   let pp_print_var_set buf s =
-      VarSet.iter (fun v ->
-            fprintf buf "@ %a" pp_print_var v) s
+   (* let pp_print_var_set buf s = *)
+   (*    VarSet.iter (fun v -> *)
+   (*          fprintf buf "@ %a" pp_print_var v) s *)
 
-   let pp_print_var_table buf table =
-      VarTable.iter (fun v s ->
-            fprintf buf "@ @[<b 3>%a:%a@]" (**)
-               pp_print_var v
-               pp_print_var_set s) table
+   (* let pp_print_var_table buf table = *)
+   (*    VarTable.iter (fun v s -> *)
+   (*          fprintf buf "@ @[<b 3>%a:%a@]" (\**\) *)
+   (*             pp_print_var v *)
+   (*             pp_print_var_set s) table *)
 
    let pp_print_action buf action =
       Arg.pp_print_action buf (Action.get action)
@@ -651,9 +651,9 @@ struct
             pp_print_string buf "error"
        
 
-   let pp_print_pda_actions info buf actions =
-      IVarTable.iter (fun v action ->
-            fprintf buf "@ %a: %a" (pp_print_ivar info) v (pp_print_pda_action info) action) actions
+   (* let pp_print_pda_actions info buf actions = *)
+   (*    IVarTable.iter (fun v action -> *)
+   (*          fprintf buf "@ %a: %a" (pp_print_ivar info) v (pp_print_pda_action info) action) actions *)
 
    let pp_print_prod_item_core info buf item =
       let { prod_item_action = action;
@@ -683,27 +683,27 @@ struct
          pp_print_prod_item_set info buf items;
          eprintf "@]"
 
-   let pp_print_info_item info buf info_item =
-      let { info_hash = hash;
-            info_hash_state_item = hash_state_item;
-            _
-          } = info
-      in
-      let { info_item_index = index;
-            info_item_entries = entries;
-            _
-          } = info_item
-      in
-         fprintf buf "@[<v 3>State %d:" index;
-         Array.iter (fun entry ->
-               let { prop_state_item = state_item;
-                     prop_vars = lookahead;
-                     _
-                   } = entry
-               in
-               let _, prod_item = StateItem.get hash_state_item state_item in
-                  fprintf buf "@ @[<hv 3>%a@ @[<b 2>#%a@]@]" (pp_print_prod_item info) prod_item (pp_print_ivar_set hash) lookahead) entries;
-         fprintf buf "@]"
+   (* let pp_print_info_item info buf info_item = *)
+   (*    let { info_hash = hash; *)
+   (*          info_hash_state_item = hash_state_item; *)
+   (*          _ *)
+   (*        } = info *)
+   (*    in *)
+   (*    let { info_item_index = index; *)
+   (*          info_item_entries = entries; *)
+   (*          _ *)
+   (*        } = info_item *)
+   (*    in *)
+   (*       fprintf buf "@[<v 3>State %d:" index; *)
+   (*       Array.iter (fun entry -> *)
+   (*             let { prop_state_item = state_item; *)
+   (*                   prop_vars = lookahead; *)
+   (*                   _ *)
+   (*                 } = entry *)
+   (*             in *)
+   (*             let _, prod_item = StateItem.get hash_state_item state_item in *)
+   (*                fprintf buf "@ @[<hv 3>%a@ @[<b 2>#%a@]@]" (pp_print_prod_item info) prod_item (pp_print_ivar_set hash) lookahead) entries; *)
+   (*       fprintf buf "@]" *)
 
    let pp_print_info buf info =
       let { info_grammar = gram;

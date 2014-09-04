@@ -12,8 +12,8 @@ let debug_string =
       }
 
 let code0 = Char.code '0'
-let codea = Char.code 'a'
-let codeA = Char.code 'A'
+(* let codea = Char.code 'a' *)
+(* let codeA = Char.code 'A' *)
 
 (*
  * Efficient string ordering (_not_ lexicographic)

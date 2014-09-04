@@ -13,7 +13,7 @@ open Omake_pos
 open Omake_node_sig
 open Omake_node
 open Omake_value
-open Omake_symbol
+(* open Omake_symbol *)
 open Omake_shell_sys
 open Omake_shell_type
 open Omake_value_type
@@ -130,24 +130,24 @@ let pp_print_status buf code =
 (*
  * Print a job expression.
  *)
-let rec pp_print_exp buf e =
-   match e with
-      SubjobProcess (pid, _) ->
-         fprintf buf "(%d)" pid
-    | SubjobPipe (e1, e2) ->
-         fprintf buf "@[<hv 1>(%a@ | %a)@]" pp_print_exp e1 pp_print_exp e2
-    | SubjobCond (e, cond) ->
-         let { cond_op = op;
-               cond_pipe = pipe;
-               _
-             } = cond
-         in
-            fprintf buf "@[<hv 1>(%a)@ %a@ %a@]" (**)
-               pp_print_exp e
-               pp_print_pipe_op op
-               pp_print_string_pipe pipe
-    | SubjobFinished (code, _) ->
-         fprintf buf "[Finished: %a]" pp_print_status code
+(* let rec pp_print_exp buf e = *)
+(*    match e with *)
+(*       SubjobProcess (pid, _) -> *)
+(*          fprintf buf "(%d)" pid *)
+(*     | SubjobPipe (e1, e2) -> *)
+(*          fprintf buf "@[<hv 1>(%a@ | %a)@]" pp_print_exp e1 pp_print_exp e2 *)
+(*     | SubjobCond (e, cond) -> *)
+(*          let { cond_op = op; *)
+(*                cond_pipe = pipe; *)
+(*                _ *)
+(*              } = cond *)
+(*          in *)
+(*             fprintf buf "@[<hv 1>(%a)@ %a@ %a@]" (\**\) *)
+(*                pp_print_exp e *)
+(*                pp_print_pipe_op op *)
+(*                pp_print_string_pipe pipe *)
+(*     | SubjobFinished (code, _) -> *)
+(*          fprintf buf "[Finished: %a]" pp_print_status code *)
 
 (*
  * Print a job.
@@ -350,7 +350,7 @@ let create_channels stdin stdin_file append stdout stdout_file stderr_divert std
  * Application at the toplevel.
  * Don't create a thread.
  *)
-let restore_vars = [stdin_sym; stdout_sym; stderr_sym]
+(* let restore_vars = [stdin_sym; stdout_sym; stderr_sym] *)
 
 let create_apply_top venv stdin stdout stderr apply =
    let { 

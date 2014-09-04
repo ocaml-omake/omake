@@ -68,7 +68,7 @@ type 'value job_state =
    (*
     * Printing.
     *)
-   let pp_print_pid = pp_print_int
+   (* let pp_print_pid = pp_print_int *)
 
    let allow_output shell command =
       let flags, _dir, _target = shell.shell_info command in

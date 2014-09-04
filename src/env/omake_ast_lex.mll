@@ -182,8 +182,8 @@ let create name readline =
         current_stack   = []
       }
 
-let set_current_loc state loc =
-   state.current_loc <- loc
+(* let set_current_loc state loc = *)
+(*    state.current_loc <- loc *)
 
 let current_location state =
    state.current_loc
@@ -327,20 +327,20 @@ let lexeme_string state lexbuf =
 (*
  * Remove any trailing dots from the string.
  *)
-let split_nl_string s =
-   let len = String.length s in
-   let rec search i =
-      if i = len then
-         s, ""
-      else
-         match s.[i] with
-             '\n'
-           | '\r' ->
-                 search (succ i)
-           | _ ->
-                 String.sub s 0 i, String.sub s i (len - i)
-   in
-      search 0
+(* let split_nl_string s = *)
+(*    let len = String.length s in *)
+(*    let rec search i = *)
+(*       if i = len then *)
+(*          s, "" *)
+(*       else *)
+(*          match s.[i] with *)
+(*              '\n' *)
+(*            | '\r' -> *)
+(*                  search (succ i) *)
+(*            | _ -> *)
+(*                  String.sub s 0 i, String.sub s i (len - i) *)
+(*    in *)
+(*       search 0 *)
 
 (*
  * Process a name.

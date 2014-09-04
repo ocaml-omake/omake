@@ -61,10 +61,12 @@ type code =
  | CodeReturnExp
  | CodeReturnObjectExp
  | CodeReturnSaveExp
- | CodeVarScopePrivate
- | CodeVarScopeThis
- | CodeVarScopeVirtual
- | CodeVarScopeGlobal
+ (* | CodeVarScopePrivate *) (* report Mantis location incorrect {|File "/Users/hongbozhang/omake-fork/src/env/omake_command_digest.ml", line 12, characters 5-2211:
+Warning 37: unused constructor CodeVarScopePrivate.
+|}*)
+ (* | CodeVarScopeThis *)
+ (* | CodeVarScopeVirtual *)
+ (* | CodeVarScopeGlobal *)
  | CodeVarPrivate
  | CodeVarThis
  | CodeVarVirtual
@@ -123,18 +125,18 @@ type code =
  | CodePipeBackground
  | CodeCommandEnvItem
  | CodeCommandEnv
- | CodeQuietFlag
- | CodeAllowFailureFlag
- | CodeAllowOutputFlag
- | CodeCommandFlags
+ (* | CodeQuietFlag *)
+ (* | CodeAllowFailureFlag *)
+ (* | CodeAllowOutputFlag *)
+ (* | CodeCommandFlags *)
  | CodeCmdArg
  | CodeCmdNode
  | CodePipe
  | CodeRedirectNode
  | CodeRedirectArg
  | CodeRedirectNone
- | CodeKeywordSpec
- | CodeKeywordSpecList
+ (* | CodeKeywordSpec *)
+ (* | CodeKeywordSpecList *)
  | CodeNone
  | CodeSome
  | CodeLazyString
@@ -179,10 +181,10 @@ let rec squash_vars buf vars =
     | [] ->
          ()
 
-let squash_var_set buf vars =
-   Lm_symbol.SymbolSet.iter (fun v ->
-         Hash.add_code buf CodeSpace;
-         squash_var buf v) vars
+(* let squash_var_set buf vars = *)
+(*    Lm_symbol.SymbolSet.iter (fun v -> *)
+(*          Hash.add_code buf CodeSpace; *)
+(*          squash_var buf v) vars *)
 
 let squash_var_info buf v =
    match v with
@@ -216,14 +218,14 @@ let rec squash_var_info_list buf vars =
 
 let squash_params = squash_var_info_list
 
-let squash_keyword_spec buf (v, required) =
-   Hash.add_code buf CodeKeywordSpec;
-   squash_var buf v;
-   Hash.add_bool buf required
+(* let squash_keyword_spec buf (v, required) = *)
+(*    Hash.add_code buf CodeKeywordSpec; *)
+(*    squash_var buf v; *)
+(*    Hash.add_bool buf required *)
 
-let squash_keyword_spec_list buf keywords =
-   Hash.add_code buf CodeKeywordSpecList;
-   List.iter (squash_keyword_spec buf) keywords
+(* let squash_keyword_spec_list buf keywords = *)
+(*    Hash.add_code buf CodeKeywordSpecList; *)
+(*    List.iter (squash_keyword_spec buf) keywords *)
 
 (*
  * File.
@@ -234,15 +236,15 @@ let squash_node buf node =
 (*
  * String representations.
  *)
-let squash_var_scope buf scope =
-   let code =
-      match scope with
-         Omake_ir.VarScopePrivate -> CodeVarScopePrivate
-       | VarScopeThis    -> CodeVarScopeThis
-       | VarScopeVirtual -> CodeVarScopeVirtual
-       | VarScopeGlobal  -> CodeVarScopeGlobal
-   in
-      Hash.add_code buf code
+(* let squash_var_scope buf scope = *)
+(*    let code = *)
+(*       match scope with *)
+(*          Omake_ir.VarScopePrivate -> CodeVarScopePrivate *)
+(*        | VarScopeThis    -> CodeVarScopeThis *)
+(*        | VarScopeVirtual -> CodeVarScopeVirtual *)
+(*        | VarScopeGlobal  -> CodeVarScopeGlobal *)
+(*    in *)
+(*       Hash.add_code buf code *)
 
 let squash_def_kind buf kind =
    let s =
@@ -800,22 +802,22 @@ and squash_cases pos buf cases =
 (*
  * Commands.
  *)
-let squash_command_flag buf flag =
-  let code =
-    match flag with
-    |Omake_command_type.QuietFlag ->
-      CodeQuietFlag
-    | AllowFailureFlag ->
-      CodeAllowFailureFlag
-    | AllowOutputFlag ->
-      CodeAllowOutputFlag
-  in
-  Hash.add_code buf code
+(* let squash_command_flag buf flag = *)
+(*   let code = *)
+(*     match flag with *)
+(*     |Omake_command_type.QuietFlag -> *)
+(*       CodeQuietFlag *)
+(*     | AllowFailureFlag -> *)
+(*       CodeAllowFailureFlag *)
+(*     | AllowOutputFlag -> *)
+(*       CodeAllowOutputFlag *)
+(*   in *)
+(*   Hash.add_code buf code *)
 
-let squash_command_flags buf flags =
-   Hash.add_code buf CodeCommandFlags;
-   List.iter (squash_command_flag buf) flags;
-   Hash.add_code buf CodeEnd
+(* let squash_command_flags buf flags = *)
+(*    Hash.add_code buf CodeCommandFlags; *)
+(*    List.iter (squash_command_flag buf) flags; *)
+(*    Hash.add_code buf CodeEnd *)
 
 let squash_arg_string buf arg =
   match arg with

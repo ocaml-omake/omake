@@ -220,19 +220,19 @@ let pp_print_memo_result _pp_print_result buf result =
 (*
  * Print a memo.
  *)
-let pp_print_memo buf memo =
-   let { memo_index    = index;
-         memo_targets  = targets;
-         memo_deps     = deps;
-         memo_result   = _result;
-         memo_commands = commands
-       } = memo
-   in
-      Format.fprintf buf "@[<hv 0>@[<hv 3>memo {@ index = %d;@ @[<b 3>targets =%a@];@ @[<b 3>deps =%a@]@ @[<hv 3>commands =%a@]@]@ }@]" (**)
-         index
-         pp_print_node_digest_table targets
-         pp_print_node_digest_table deps
-         pp_print_digest commands
+(* let pp_print_memo buf memo = *)
+(*    let { memo_index    = index; *)
+(*          memo_targets  = targets; *)
+(*          memo_deps     = deps; *)
+(*          memo_result   = _result; *)
+(*          memo_commands = commands *)
+(*        } = memo *)
+(*    in *)
+(*       Format.fprintf buf "@[<hv 0>@[<hv 3>memo {@ index = %d;@ @[<b 3>targets =%a@];@ @[<b 3>deps =%a@]@ @[<hv 3>commands =%a@]@]@ }@]" (\**\) *)
+(*          index *)
+(*          pp_print_node_digest_table targets *)
+(*          pp_print_node_digest_table deps *)
+(*          pp_print_digest commands *)
 
 (************************************************************************
  * Persistence.
@@ -428,15 +428,15 @@ let stats_equal stat1 stat2 =
    in
       ino1 = ino2 && kind1 = kind2 && size1 = size2 && mtime1 = mtime2
 
-let pp_print_stat buf (stat : Unix.LargeFile.stats) =
-  match stat with 
-    { st_ino  = ino;
-      st_kind = _kind;
-      st_size = size;
-      st_mtime = mtime;
-      _
-    } ->
-    Format.fprintf buf "ino = %d, size = %Ld, mtime = %g" ino size mtime
+(* let pp_print_stat buf (stat : Unix.LargeFile.stats) = *)
+(*   match stat with  *)
+(*     { st_ino  = ino; *)
+(*       st_kind = _kind; *)
+(*       st_size = size; *)
+(*       st_mtime = mtime; *)
+(*       _ *)
+(*     } -> *)
+(*     Format.fprintf buf "ino = %d, size = %Ld, mtime = %g" ino size mtime *)
 
 (*
  * Sloppy digests on files larger than 16MB.

@@ -45,7 +45,7 @@ let current_prec_sym           = Lm_symbol.add "current-prec"
 
 let lex_sym                    = Lm_symbol.add "lex"
 let name_sym                   = Lm_symbol.add "name"
-let value_sym                  = Lm_symbol.add "value"
+(* let value_sym                  = Lm_symbol.add "value" *)
 let lexer_sym                  = Lm_symbol.add "lexer"
 let val_sym                    = Lm_symbol.add "val"
 

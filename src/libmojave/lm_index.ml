@@ -244,22 +244,22 @@ struct
    (*
     * Lookup subindex for a key, return an option.
     *)
-   let find_index_opt index key =
-      try
-         Some (find_index index key)
-      with
-         Not_found ->
-            None
+   (* let find_index_opt index key = *)
+   (*    try *)
+   (*       Some (find_index index key) *)
+   (*    with *)
+   (*       Not_found -> *)
+   (*          None *)
 
    (*
     * Lookup data for key, return an option (Some data or None).
     *)
-   let find_data_opt index key =
-      try
-         Some (find_data index key)
-      with
-         Not_found ->
-            None
+   (* let find_data_opt index key = *)
+   (*    try *)
+   (*       Some (find_data index key) *)
+   (*    with *)
+   (*       Not_found -> *)
+   (*          None *)
 
    (*
     * Filter add a (key, (index, data)) pair to an index.

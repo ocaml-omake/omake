@@ -220,10 +220,10 @@ and pp_print_args buf (args : Omake_ast.arg list) =
 and pp_print_exp_list buf commands =
   List.iter (fun e -> Format.fprintf buf "@ %a" pp_print_exp e) commands
 
-and pp_print_exp_option buf e_opt =
-  match e_opt with
-  | Some e -> pp_print_exp buf e
-  | None -> Lm_printf.pp_print_string buf "<none>"
+(* and pp_print_exp_option buf e_opt = *)
+(*   match e_opt with *)
+(*   | Some e -> pp_print_exp buf e *)
+(*   | None -> Lm_printf.pp_print_string buf "<none>" *)
 
 and pp_print_table_exp buf source =
   Format.fprintf buf "@[<hv 0>@[<hv 3>{";

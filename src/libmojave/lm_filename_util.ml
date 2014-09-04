@@ -248,43 +248,43 @@ let filename_string name =
 (*
  * Be careful not to split on glob characters.
  *)
-let is_glob_char s i =
-   match String.unsafe_get s i with
-      '{' | '}' | '*' | '?' | '[' | ']' ->
-         true
-    | _ ->
-         false
+(* let is_glob_char s i = *)
+(*    match String.unsafe_get s i with *)
+(*       '{' | '}' | '*' | '?' | '[' | ']' -> *)
+(*          true *)
+(*     | _ -> *)
+(*          false *)
 
-let filename_split name =
-   let len = String.length name in
-   let rec collect path off i =
-      if i = len then
-         let path =
-            if i <= succ off then
-               path
-            else
-               String.sub name off (i - off) :: path
-         in
-            List.rev path
-      else
-         let c = String.unsafe_get name i in
-            match c with
-               '/' ->
-                  if i <= succ off then
-                     collect path i (succ i)
-                  else
-                     collect (String.sub name off (i - off) :: path) i (succ i)
-             | '\\' ->
-                  if i < len - 1 && is_glob_char name (succ i) then
-                     collect path off (i + 2)
-                  else if i <= succ off then
-                     collect path i (succ i)
-                  else
-                     collect (String.sub name off (i - off) :: path) i (succ i)
-             | _ ->
-                  collect path off (succ i)
-   in
-      collect [] 0 0
+(* let filename_split name = *)
+(*    let len = String.length name in *)
+(*    let rec collect path off i = *)
+(*       if i = len then *)
+(*          let path = *)
+(*             if i <= succ off then *)
+(*                path *)
+(*             else *)
+(*                String.sub name off (i - off) :: path *)
+(*          in *)
+(*             List.rev path *)
+(*       else *)
+(*          let c = String.unsafe_get name i in *)
+(*             match c with *)
+(*                '/' -> *)
+(*                   if i <= succ off then *)
+(*                      collect path i (succ i) *)
+(*                   else *)
+(*                      collect (String.sub name off (i - off) :: path) i (succ i) *)
+(*              | '\\' -> *)
+(*                   if i < len - 1 && is_glob_char name (succ i) then *)
+(*                      collect path off (i + 2) *)
+(*                   else if i <= succ off then *)
+(*                      collect path i (succ i) *)
+(*                   else *)
+(*                      collect (String.sub name off (i - off) :: path) i (succ i) *)
+(*              | _ -> *)
+(*                   collect path off (succ i) *)
+(*    in *)
+(*       collect [] 0 0 *)
 
 (*
  * Split the rest into parts.

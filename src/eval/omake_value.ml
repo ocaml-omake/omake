@@ -320,8 +320,8 @@ let prim_channel_of_string venv pos s =
   else
     raise (Omake_value_type.OmakeException (pos, StringStringError ("not a channel string", s)))
 
-let channel_of_string venv pos s =
-  Omake_env.venv_find_channel venv pos (prim_channel_of_string venv pos s)
+(* let channel_of_string venv pos s = *)
+(*   Omake_env.venv_find_channel venv pos (prim_channel_of_string venv pos s) *)
 
 let rec is_int_string s i len =
   if i = len then

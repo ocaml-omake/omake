@@ -9,13 +9,13 @@ let string_override s pp_fun complete buf arg =
 (*
  * Match kind.
  *)
-let pp_print_match_kind out kind =
-   let s =
-      match kind with
-         Omake_ir.MatchWild -> "switch"
-       | MatchRegex -> "match"
-   in
-      Lm_printf.pp_print_string out s
+(* let pp_print_match_kind out kind = *)
+(*    let s = *)
+(*       match kind with *)
+(*          Omake_ir.MatchWild -> "switch" *)
+(*        | MatchRegex -> "match" *)
+(*    in *)
+(*       Lm_printf.pp_print_string out s *)
 
 (*
  * Arities.
@@ -34,14 +34,14 @@ let pp_print_arity buf arity =
 (*
  * Print a list of symbols.
  *)
-let rec pp_print_symbol_list buf sl =
-   match sl with
-      [s] ->
-         Lm_symbol.pp_print_symbol buf s
-    | [] ->
-         ()
-    | s :: sl ->
-         Format.fprintf buf "%a, %a" Lm_symbol.pp_print_symbol s pp_print_symbol_list sl
+(* let rec pp_print_symbol_list buf sl = *)
+(*    match sl with *)
+(*       [s] -> *)
+(*          Lm_symbol.pp_print_symbol buf s *)
+(*     | [] -> *)
+(*          () *)
+(*     | s :: sl -> *)
+(*          Format.fprintf buf "%a, %a" Lm_symbol.pp_print_symbol s pp_print_symbol_list sl *)
 
 (*
  * Print a variable definition kind.
@@ -435,6 +435,6 @@ let pp_print_string_exp_list = pp_print_string_exp_list true
 
 let pp_print_exp_list = pp_print_exp_list true
 
-let pp_print_prog buf el =
-   Format.fprintf buf "@[<v 0>%a@]" pp_print_exp_list el
+(* let pp_print_prog buf el = *)
+(*    Format.fprintf buf "@[<v 0>%a@]" pp_print_exp_list el *)
 

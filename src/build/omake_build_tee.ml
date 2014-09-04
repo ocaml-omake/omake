@@ -4,7 +4,7 @@
 (*
  * The empty tee.
  *)
-let tee_none = Omake_exec_util.tee_create false
+(* let tee_none = Omake_exec_util.tee_create false *)
 
 (*
  * Unlink all the tee files.

@@ -41,7 +41,7 @@ let print_files =
 (*
  * For now, use a bogu location for parameters.
  *)
-let param_loc = Lm_location.bogus_loc "Omake_eval.param"
+(* let param_loc = Lm_location.bogus_loc "Omake_eval.param" *)
 
 (*
  * Including files.
@@ -1661,8 +1661,8 @@ and eval_string_exp venv pos s =
     let venv = Omake_env.venv_add_var venv v x in
     eval_string_exp venv pos s2
 
-and eval_keyword_string_exp venv pos (v, s) =
-  v, eval_string_exp venv pos s
+(* and eval_keyword_string_exp venv pos (v, s) = *)
+(*   v, eval_string_exp venv pos s *)
 
 and eval_keyword_param_value_list_exp venv pos opt_params =
   List.map (eval_keyword_param_value_exp venv pos) opt_params

@@ -2,14 +2,14 @@
 (************************************************************************
  * Simple printing.
  *)
-let pp_print_string_list buf sl =
-   List.iter (fun s -> Format.fprintf buf "@ %s" s) sl
+(* let pp_print_string_list buf sl = *)
+(*    List.iter (fun s -> Format.fprintf buf "@ %s" s) sl *)
 
-let pp_print_node_list buf l =
-   List.iter (fun s -> Format.fprintf buf "@ %a" Omake_node.pp_print_node s) l
+(* let pp_print_node_list buf l = *)
+(*    List.iter (fun s -> Format.fprintf buf "@ %a" Omake_node.pp_print_node s) l *)
 
-let pp_print_node_set buf set =
-   Omake_node.NodeSet.iter (fun s -> Format.fprintf buf "@ %a" Omake_node.pp_print_node s) set
+(* let pp_print_node_set buf set = *)
+(*    Omake_node.NodeSet.iter (fun s -> Format.fprintf buf "@ %a" Omake_node.pp_print_node s) set *)
 
 let pp_print_wild_list buf wl =
    List.iter (fun w -> Format.fprintf buf "@ %a" Omake_wild.pp_print_wild_in w) wl
@@ -31,11 +31,11 @@ let pp_print_target buf target =
    | TargetString s ->
      Lm_printf.pp_print_string buf s
 
-let pp_print_required buf b =
-   if b then
-      Lm_printf.pp_print_char buf '~'
-   else
-      Lm_printf.pp_print_char buf '?'
+(* let pp_print_required buf b = *)
+(*    if b then *)
+(*       Lm_printf.pp_print_char buf '~' *)
+(*    else *)
+(*       Lm_printf.pp_print_char buf '?' *)
 
 (************************************************************************
  * Path printing.
@@ -160,28 +160,28 @@ let rec pp_print_value buf v =
 and pp_print_value_list buf vl =
    List.iter (fun v -> Format.fprintf buf "@ %a" pp_print_value v) vl
 
-and pp_print_normal_args buf first args =
-   match args with
-      arg :: args ->
-         if not first then
-            Format.fprintf buf ",@ ";
-         pp_print_value buf arg;
-         pp_print_normal_args buf false args
-    | [] ->
-         first
+(* and pp_print_normal_args buf first args = *)
+(*    match args with *)
+(*       arg :: args -> *)
+(*          if not first then *)
+(*             Format.fprintf buf ",@ "; *)
+(*          pp_print_value buf arg; *)
+(*          pp_print_normal_args buf false args *)
+(*     | [] -> *)
+(*          first *)
 
-and pp_print_keyword_args buf first kargs =
-   match kargs with
-      (v, arg) :: kargs ->
-         if not first then
-            Format.fprintf buf ",@ ";
-         Format.fprintf buf "@[<hv 3>%a =@ %a@]" Lm_symbol.pp_print_symbol v pp_print_value arg;
-         pp_print_keyword_args buf false kargs
-    | [] ->
-         ()
+(* and pp_print_keyword_args buf first kargs = *)
+(*    match kargs with *)
+(*       (v, arg) :: kargs -> *)
+(*          if not first then *)
+(*             Format.fprintf buf ",@ "; *)
+(*          Format.fprintf buf "@[<hv 3>%a =@ %a@]" Lm_symbol.pp_print_symbol v pp_print_value arg; *)
+(*          pp_print_keyword_args buf false kargs *)
+(*     | [] -> *)
+(*          () *)
 
-and pp_print_value_args buf (args, kargs) =
-   pp_print_keyword_args buf (pp_print_normal_args buf true args) kargs
+(* and pp_print_value_args buf (args, kargs) = *)
+(*    pp_print_keyword_args buf (pp_print_normal_args buf true args) kargs *)
 
 and pp_print_env buf env =
   let tags = Omake_value_type.venv_get_class env in

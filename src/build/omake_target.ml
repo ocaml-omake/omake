@@ -80,9 +80,9 @@ and search_irules bound cache venv pos target irules =
 (*
  * Outer wrappers.
  *)
-let check_build_phase pos =
-   if not (Omake_builtin_util.is_build_phase ()) then
-      raise (Omake_value_type.OmakeException (pos, StringError "this command can only be executed in a rule body"))
+(* let check_build_phase pos = *)
+(*    if not (Omake_builtin_util.is_build_phase ()) then *)
+(*       raise (Omake_value_type.OmakeException (pos, StringError "this command can only be executed in a rule body")) *)
 
 (* XXX: JYH: temporarily disable it *)
 let check_build_phase _pos =

@@ -39,11 +39,6 @@ include Omake_pos.MakePos (struct let name = "Omake_builtin_io" end)
  * The standard error channel, open for writing.
  * \end{doc}
  *)
-let builtin_vars =
-   ["nl",     (fun _ -> Omake_value_type.ValString "\n");
-    "stdin",  (fun _ -> ValChannel (InChannel,  Omake_env.venv_stdin));
-    "stdout", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stdout));
-    "stderr", (fun _ -> ValChannel (OutChannel, Omake_env.venv_stderr))]
 
 (*
  * \begin{doc}
@@ -1938,10 +1933,3 @@ let () =
       }
    in
       Omake_builtin.register_builtin builtin_info
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

@@ -49,7 +49,7 @@ open Pos;;
 (*
  * Locations.
  *)
-let shell_sym = Lm_symbol.add "shell"
+(* let shell_sym = Lm_symbol.add "shell" *)
 
 let syntax_error s loc =
    raise (OmakeException (loc_exp_pos loc, SyntaxError s))

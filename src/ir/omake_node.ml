@@ -17,7 +17,7 @@ sig
 
    val create              : dir -> string -> t
    val compare             : t -> t -> int
-   val equal               : t -> t -> bool
+   (* val equal               : t -> t -> bool *)
    val add_filename        : Lm_hash.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> Omake_marshal.msg
@@ -252,7 +252,7 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
             name)
 
     let compare = Lm_string_util.string_compare
-    let equal (s1: string) s2 = (s1 = s2)
+    (* let equal (s1: string) s2 = (s1 = s2) *)
     let add_filename = Lm_hash.HashCode.add_string
     let add_filename_string = Buffer.add_string
 
@@ -1014,9 +1014,9 @@ let file_contents name buf =
    let buf = dir_add_string buf name in
       dir_contents buf
 
-let flatten_file dir name =
-   let buf = dir_add_string dir_buffer Filename.dir_sep in
-      flatten_generic dir_add_string (file_contents name) buf dir
+(* let flatten_file dir name = *)
+(*    let buf = dir_add_string dir_buffer Filename.dir_sep in *)
+(*       flatten_generic dir_add_string (file_contents name) buf dir *)
 
 let relocate_file dir1 dir2 name =
    if DirHash.equal dir1 dir2 then
@@ -1385,7 +1385,7 @@ struct
     * Hash code for a node.
     *)
    let hash = NodeHash.hash
-   let reintern = NodeHash.reintern
+   (* let reintern = NodeHash.reintern *)
 
    (*
     * For building targets, we sometimes want to know the
@@ -1438,16 +1438,16 @@ struct
        | NodeFlagged _ ->
             false
 
-   let rec phony_name node =
-      match NodeHash.get node with
-         NodePhonyGlobal name
-       | NodePhonyDir (_, _, name)
-       | NodePhonyFile (_, _, _, name) ->
-            name
-       | NodeFile _ ->
-            raise (Invalid_argument "phony_name")
-       | NodeFlagged (_, node) ->
-            phony_name node
+   (* let rec phony_name node = *)
+   (*    match NodeHash.get node with *)
+   (*       NodePhonyGlobal name *)
+   (*     | NodePhonyDir (_, _, name) *)
+   (*     | NodePhonyFile (_, _, _, name) -> *)
+   (*          name *)
+   (*     | NodeFile _ -> *)
+   (*          raise (Invalid_argument "phony_name") *)
+   (*     | NodeFlagged (_, node) -> *)
+   (*          phony_name node *)
 
    let rec is_real node =
       match NodeHash.get node with
@@ -1751,20 +1751,20 @@ let pp_print_node buf node =
 let pp_print_string_list buf sources =
    List.iter (fun s -> Format.fprintf buf "@ %s" s) (List.sort String.compare sources)
 
-let pp_compare_nodes n1 n2 =
-   let cmp = Pervasives.compare (Node.kind n1) (Node.kind n2) in
-      if cmp = 0 then
-         let cmp = String.compare (Node.fullname n1) (Node.fullname n2) in
-            if cmp = 0 then
-               NodeHash.compare n1 n2
-            else
-               cmp
-      else
-         cmp
+(* let pp_compare_nodes n1 n2 = *)
+(*    let cmp = Pervasives.compare (Node.kind n1) (Node.kind n2) in *)
+(*       if cmp = 0 then *)
+(*          let cmp = String.compare (Node.fullname n1) (Node.fullname n2) in *)
+(*             if cmp = 0 then *)
+(*                NodeHash.compare n1 n2 *)
+(*             else *)
+(*                cmp *)
+(*       else *)
+(*          cmp *)
 
-let pp_print_node_sorted buf nodes =
-   let nodes = List.sort pp_compare_nodes nodes in
-      List.iter (fun node -> Format.fprintf buf "@ %a" pp_print_node node) nodes
+(* let pp_print_node_sorted buf nodes = *)
+(*    let nodes = List.sort pp_compare_nodes nodes in *)
+(*       List.iter (fun node -> Format.fprintf buf "@ %a" pp_print_node node) nodes *)
 
 let pp_print_node_list buf nodes =
    List.iter (fun node -> Format.fprintf buf "@ %a" pp_print_node node) nodes

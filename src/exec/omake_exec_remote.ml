@@ -6,7 +6,7 @@
 open Lm_printf
 open Lm_debug
 
-open Omake_util
+(* open Omake_util *)
 open Omake_node
 open Omake_state
 open Omake_exec_id
@@ -56,43 +56,43 @@ let sync_string = "\255OMake Remote Execution Protocol Version 1.0"
 (************************************************************************
  * Printing.
  *)
-let pp_print_command_line buf (shell, command) =
-   shell.shell_print_exp buf command
+(* let pp_print_command_line buf (shell, command) = *)
+(*    shell.shell_print_exp buf command *)
 
-let pp_print_command_lines buf (shell, commands) =
-   List.iter (fun exp -> fprintf buf "@ %a" shell.shell_print_exp exp) commands
+(* let pp_print_command_lines buf (shell, commands) = *)
+(*    List.iter (fun exp -> fprintf buf "@ %a" shell.shell_print_exp exp) commands *)
 
-let pp_print_request _buf (shell, request) =
-   match request with
-      RequestSpawn (id, target, commands) ->
-         eprintf "@[<hv 0>@[<hv 3>RequestSpawn {@ id = %a;@ target = %a;@ @[<v 3>commands = %a@]@]@ }@]" (**)
-            pp_print_pid id
-            pp_print_node target
-            pp_print_command_lines (shell, commands)
+(* let pp_print_request _buf (shell, request) = *)
+(*    match request with *)
+(*       RequestSpawn (id, target, commands) -> *)
+(*          eprintf "@[<hv 0>@[<hv 3>RequestSpawn {@ id = %a;@ target = %a;@ @[<v 3>commands = %a@]@]@ }@]" (\**\) *)
+(*             pp_print_pid id *)
+(*             pp_print_node target *)
+(*             pp_print_command_lines (shell, commands) *)
 
-let pp_print_flag buf (shell, flag) =
-   match flag with
-      PrintEager command ->
-         fprintf buf "@[<hv 3>Eager@ %a@]" pp_print_command_line (shell, command)
-    | PrintLazy command ->
-         fprintf buf "@[<hv 3>Lazy@ %a@]" pp_print_command_line (shell, command)
-    | PrintExit (command, code, _, time) ->
-         fprintf buf "@[<hv 3>Exit %d,@ %a,@ %a@]" code pp_time time pp_print_command_line (shell, command)
+(* let pp_print_flag buf (shell, flag) = *)
+(*    match flag with *)
+(*       PrintEager command -> *)
+(*          fprintf buf "@[<hv 3>Eager@ %a@]" pp_print_command_line (shell, command) *)
+(*     | PrintLazy command -> *)
+(*          fprintf buf "@[<hv 3>Lazy@ %a@]" pp_print_command_line (shell, command) *)
+(*     | PrintExit (command, code, _, time) -> *)
+(*          fprintf buf "@[<hv 3>Exit %d,@ %a,@ %a@]" code pp_time time pp_print_command_line (shell, command) *)
 
-let pp_print_response _buf (shell, response) =
-   match response with
-      ResponseCreate flag ->
-         eprintf "ResponseCreate %b" flag
-    | ResponseExited (id, code, _) ->
-         eprintf "ResponseExited (%a, %d)" pp_print_pid id code
-    | ResponseStdout (id, s) ->
-         eprintf "ResponseStdout (%a, \"%s\")" pp_print_pid id (String.escaped s)
-    | ResponseStderr (id, s) ->
-         eprintf "ResponseStderr (%a, \"%s\")" pp_print_pid id (String.escaped s)
-    | ResponseStatus (id, flag) ->
-         eprintf "@[<hv 0>@[<hv 3>ResponseStatus {@ id = %a;@ flag = %a@]@ }@]" (**)
-            pp_print_pid id
-            pp_print_flag (shell, flag)
+(* let pp_print_response _buf (shell, response) = *)
+(*    match response with *)
+(*       ResponseCreate flag -> *)
+(*          eprintf "ResponseCreate %b" flag *)
+(*     | ResponseExited (id, code, _) -> *)
+(*          eprintf "ResponseExited (%a, %d)" pp_print_pid id code *)
+(*     | ResponseStdout (id, s) -> *)
+(*          eprintf "ResponseStdout (%a, \"%s\")" pp_print_pid id (String.escaped s) *)
+(*     | ResponseStderr (id, s) -> *)
+(*          eprintf "ResponseStderr (%a, \"%s\")" pp_print_pid id (String.escaped s) *)
+(*     | ResponseStatus (id, flag) -> *)
+(*          eprintf "@[<hv 0>@[<hv 3>ResponseStatus {@ id = %a;@ flag = %a@]@ }@]" (\**\) *)
+(*             pp_print_pid id *)
+(*             pp_print_flag (shell, flag) *)
 
 (************************************************************************
  * Data is marshaled.
@@ -150,8 +150,8 @@ let handle_status id flag =
 (*
  * We don't evaluate commands remotely.
  *)
-let eval _ =
-   raise (Invalid_argument "Omake_exec_remote.eval")
+(* let eval _ = *)
+(*    raise (Invalid_argument "Omake_exec_remote.eval") *)
 
 (*
  * Start a process.

@@ -98,8 +98,8 @@ struct
         let pp_print_value = pp_print_item
       end
       )
-  let loc_pos_pos loc pos =
-    cons_pos (Location loc) pos
+  (* let loc_pos_pos loc pos = *)
+  (*   cons_pos (Location loc) pos *)
 
   let ast_exp_pos e    = base_pos (AstExp e)
   let ir_exp_pos e     = base_pos (IrExp e)
@@ -107,7 +107,7 @@ struct
   let string_exp_pos s = base_pos (String s)
   let value_exp_pos v  = base_pos (Value v)
   let var_pos          = symbol_pos
-  let value_pos v pos  = cons_pos (Value v) pos
+  (* let value_pos v pos  = cons_pos (Value v) pos *)
   let error_pos e pos  = cons_pos (Error e) pos
 end
 

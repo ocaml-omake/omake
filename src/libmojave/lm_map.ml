@@ -103,127 +103,127 @@ struct
    (*
     * Check the size of the set.
     *)
-   let rec check_size = function
-      Black (_, _, left, right, size)
-    | Red (_, _, left, right, size) ->
-         let lsize = check_size left in
-         let rsize = check_size right in
-         if size <> lsize + rsize + 1 then
-            let msg = "Lm_map.check_size: " ^ (string_of_int size) ^ " <> " ^
-                     (string_of_int lsize) ^ "+" ^ (string_of_int rsize) in
-               raise (Failure msg)
-         else
-            size
+   (* let rec check_size = function *)
+   (*    Black (_, _, left, right, size) *)
+   (*  | Red (_, _, left, right, size) -> *)
+   (*       let lsize = check_size left in *)
+   (*       let rsize = check_size right in *)
+   (*       if size <> lsize + rsize + 1 then *)
+   (*          let msg = "Lm_map.check_size: " ^ (string_of_int size) ^ " <> " ^ *)
+   (*                   (string_of_int lsize) ^ "+" ^ (string_of_int rsize) in *)
+   (*             raise (Failure msg) *)
+   (*       else *)
+   (*          size *)
 
-    | Leaf ->
-         0
+   (*  | Leaf -> *)
+   (*       0 *)
 
    (*
     * Check the red-invariant.
     *)
-   let rec check_red = function
-      Red (_, _, left, right, _) ->
-         begin
-            match left, right with
-               Red _, _
-             | _, Red _ ->
-                  raise (Failure "Red_black_table.red_black_set.check_red")
+   (* let rec check_red = function *)
+   (*    Red (_, _, left, right, _) -> *)
+   (*       begin *)
+   (*          match left, right with *)
+   (*             Red _, _ *)
+   (*           | _, Red _ -> *)
+   (*                raise (Failure "Red_black_table.red_black_set.check_red") *)
 
-             | _ ->
-                  check_red left;
-                  check_red right
-         end
-    | Black (_, _, left, right, _) ->
-         check_red left;
-         check_red right
+   (*           | _ -> *)
+   (*                check_red left; *)
+   (*                check_red right *)
+   (*       end *)
+   (*  | Black (_, _, left, right, _) -> *)
+   (*       check_red left; *)
+   (*       check_red right *)
 
-    | Leaf ->
-         ()
+   (*  | Leaf -> *)
+   (*       () *)
 
    (*
     * Check the black invariant.
     *)
-   let rec black_depth i = function
-      Black (_, _, left, _, _) ->
-         black_depth (succ i) left
-    | Red (_, _, left, _, _) ->
-         black_depth i left
-    | Leaf ->
-         i
+   (* let rec black_depth i = function *)
+   (*    Black (_, _, left, _, _) -> *)
+   (*       black_depth (succ i) left *)
+   (*  | Red (_, _, left, _, _) -> *)
+   (*       black_depth i left *)
+   (*  | Leaf -> *)
+   (*       i *)
 
-   let rec check_black_aux i j = function
-      Black (_, _, left, right, _) ->
-         check_black_aux i (succ j) left;
-         check_black_aux i (succ j) right
-    | Red (_, _, left, right, _) ->
-         check_black_aux i j left;
-         check_black_aux i j right
-    | Leaf ->
-         if j <> i then
-            raise (Failure "Red_black_table.check_black")
+   (* let rec check_black_aux i j = function *)
+   (*    Black (_, _, left, right, _) -> *)
+   (*       check_black_aux i (succ j) left; *)
+   (*       check_black_aux i (succ j) right *)
+   (*  | Red (_, _, left, right, _) -> *)
+   (*       check_black_aux i j left; *)
+   (*       check_black_aux i j right *)
+   (*  | Leaf -> *)
+   (*       if j <> i then *)
+   (*          raise (Failure "Red_black_table.check_black") *)
 
-   let check_black tree =
-      check_black_aux (black_depth 0 tree) 0 tree
+   (* let check_black tree = *)
+   (*    check_black_aux (black_depth 0 tree) 0 tree *)
 
    (*
     * Check that all the nodes are sorted.
     *)
-   let rec check_sort_lt key = function
-      Black (key', _, left, right, _) ->
-         if Base.compare key' key >= 0 then
-            raise (Failure "Red_black_table.check_sort");
-         check_sort_lt key' left;
-         check_sort_gt_lt key' key right
+   (* let rec check_sort_lt key = function *)
+   (*    Black (key', _, left, right, _) -> *)
+   (*       if Base.compare key' key >= 0 then *)
+   (*          raise (Failure "Red_black_table.check_sort"); *)
+   (*       check_sort_lt key' left; *)
+   (*       check_sort_gt_lt key' key right *)
 
-    | Red (key', _, left, right, _) ->
-         if Base.compare key' key >= 0 then
-            raise (Failure "Red_black_table.check_sort");
-         check_sort_lt key' left;
-         check_sort_gt_lt key' key right
+   (*  | Red (key', _, left, right, _) -> *)
+   (*       if Base.compare key' key >= 0 then *)
+   (*          raise (Failure "Red_black_table.check_sort"); *)
+   (*       check_sort_lt key' left; *)
+   (*       check_sort_gt_lt key' key right *)
 
-    | Leaf ->
-         ()
+   (*  | Leaf -> *)
+   (*       () *)
 
-   and check_sort_gt key = function
-      Black (key', _, left, right, _)
-    | Red (key', _, left, right, _) ->
-         if Base.compare key' key <= 0 then
-            raise (Failure "Red_black_table.check_sort");
-         check_sort_gt_lt key key' left;
-         check_sort_gt key right
+   (* and check_sort_gt key = function *)
+   (*    Black (key', _, left, right, _) *)
+   (*  | Red (key', _, left, right, _) -> *)
+   (*       if Base.compare key' key <= 0 then *)
+   (*          raise (Failure "Red_black_table.check_sort"); *)
+   (*       check_sort_gt_lt key key' left; *)
+   (*       check_sort_gt key right *)
 
-    | Leaf ->
-         ()
+    (* | Leaf -> *)
+    (*      () *)
 
-   and check_sort_gt_lt key key' = function
-      Black (key'', _, left, right, _)
-    | Red (key'', _, left, right, _) ->
-         if Base.compare key'' key <= 0 || Base.compare key'' key' >= 0 then
-            raise (Failure "Red_black_table.check_sort");
-         check_sort_gt_lt key key'' left;
-         check_sort_gt_lt key'' key' right
+   (* and check_sort_gt_lt key key' = function *)
+   (*    Black (key'', _, left, right, _) *)
+   (*  | Red (key'', _, left, right, _) -> *)
+   (*       if Base.compare key'' key <= 0 || Base.compare key'' key' >= 0 then *)
+   (*          raise (Failure "Red_black_table.check_sort"); *)
+   (*       check_sort_gt_lt key key'' left; *)
+   (*       check_sort_gt_lt key'' key' right *)
 
-    | Leaf ->
-         ()
+   (*  | Leaf -> *)
+   (*       () *)
 
-   let check_sort = function
-      Black (key, _, left, right, _) ->
-         check_sort_lt key left;
-         check_sort_gt key right
-    | Red _ ->
-         raise (Failure "Red_black_table.check_sort: root is red")
-    | Leaf ->
-         ()
+   (* let check_sort = function *)
+   (*    Black (key, _, left, right, _) -> *)
+   (*       check_sort_lt key left; *)
+   (*       check_sort_gt key right *)
+   (*  | Red _ -> *)
+   (*       raise (Failure "Red_black_table.check_sort: root is red") *)
+   (*  | Leaf -> *)
+   (*       () *)
 
    (*
     * Perform all the checks.
     *)
-   let check tree =
-      check_red tree;
-      check_black tree;
-      check_sort tree;
-      ignore (check_size tree);
-      tree
+   (* let check tree = *)
+   (*    check_red tree; *)
+   (*    check_black tree; *)
+   (*    check_sort tree; *)
+   (*    ignore (check_size tree); *)
+   (*    tree *)
 
    (************************************************************************
     * INSERTION                                                            *
@@ -1082,86 +1082,86 @@ struct
    let to_list tree =
       to_list_aux [] tree
 
-   let elements = to_list
+   (* let elements = to_list *)
 
-   let rec keys_aux elements = function
-      Black (key, _, left, right, _)
-    | Red (key, _, left, right, _)  ->
-         keys_aux (key :: keys_aux elements right) left
-    | Leaf ->
-         elements
+   (* let rec keys_aux elements = function *)
+   (*    Black (key, _, left, right, _) *)
+   (*  | Red (key, _, left, right, _)  -> *)
+   (*       keys_aux (key :: keys_aux elements right) left *)
+   (*  | Leaf -> *)
+   (*       elements *)
 
-   let keys = keys_aux []
+   (* let keys = keys_aux [] *)
 
-   let rec reverse elements = function
-      h :: t ->
-         reverse (h :: elements) t
-    | [] ->
-         elements
+   (* let rec reverse elements = function *)
+   (*    h :: t -> *)
+   (*       reverse (h :: elements) t *)
+   (*  | [] -> *)
+   (*       elements *)
 
-   let rec merge elements elements1 elements2 =
-      match elements1, elements2 with
-         ((key1, data1) as hd1) :: tl1, ((key2, data2) as hd2) :: tl2 ->
-            let comp = Base.compare key1 key2 in
-               if comp = 0 then
-                  merge ((key1, data1 @ data2) :: elements) tl1 tl2
-               else if comp < 0 then
-                  merge (hd1 :: elements) tl1 elements2
-               else
-                  merge (hd2 :: elements) elements1 tl2
-       | _, [] ->
-            reverse elements1 elements
-       | [], _ ->
-            reverse elements2 elements
+   (* let rec merge elements elements1 elements2 = *)
+   (*    match elements1, elements2 with *)
+   (*       ((key1, data1) as hd1) :: tl1, ((key2, data2) as hd2) :: tl2 -> *)
+   (*          let comp = Base.compare key1 key2 in *)
+   (*             if comp = 0 then *)
+   (*                merge ((key1, data1 @ data2) :: elements) tl1 tl2 *)
+   (*             else if comp < 0 then *)
+   (*                merge (hd1 :: elements) tl1 elements2 *)
+   (*             else *)
+   (*                merge (hd2 :: elements) elements1 tl2 *)
+   (*     | _, [] -> *)
+   (*          reverse elements1 elements *)
+   (*     | [], _ -> *)
+   (*          reverse elements2 elements *)
 
    (*
     * Log of a number.
     *)
-   let rec log2 i x =
-      if 1 lsl i >= x then
-         i
-      else
-         log2 (succ i) x
+   (* let rec log2 i x = *)
+   (*    if 1 lsl i >= x then *)
+   (*       i *)
+   (*    else *)
+   (*       log2 (succ i) x *)
 
    (*
     * Build a set from a list.
     *)
-   let rec log2 i j =
-      if 1 lsl i >= j then
-         i
-      else
-         log2 (succ i) j
+   (* let rec log2 i j = *)
+   (*    if 1 lsl i >= j then *)
+   (*       i *)
+   (*    else *)
+   (*       log2 (succ i) j *)
 
-   let rec of_array depth max_depth elements off len =
-      if len = 1 then
-         let key, data = elements.(off) in
-            if depth = max_depth then
-               Red (key, data, Leaf, Leaf, 1)
-            else
-               Black (key, data, Leaf, Leaf, 1)
-      else if len = 2 then
-         let key1, data1 = elements.(off) in
-         let key0, data0 = elements.(succ off) in
-            Black (key0, data0, Red (key1, data1, Leaf, Leaf, 1), Leaf, 2)
-      else
-         let len2 = len lsr 1 in
-         let key0, data0 = elements.(off + len2) in
-            Black (key0, data0,
-                   of_array (succ depth) max_depth elements off len2,
-                   of_array (succ depth) max_depth elements (off + len2 + 1) (len - len2 - 1),
-                   len)
+   (* let rec of_array depth max_depth elements off len = *)
+   (*    if len = 1 then *)
+   (*       let key, data = elements.(off) in *)
+   (*          if depth = max_depth then *)
+   (*             Red (key, data, Leaf, Leaf, 1) *)
+   (*          else *)
+   (*             Black (key, data, Leaf, Leaf, 1) *)
+   (*    else if len = 2 then *)
+   (*       let key1, data1 = elements.(off) in *)
+   (*       let key0, data0 = elements.(succ off) in *)
+   (*          Black (key0, data0, Red (key1, data1, Leaf, Leaf, 1), Leaf, 2) *)
+   (*    else *)
+   (*       let len2 = len lsr 1 in *)
+   (*       let key0, data0 = elements.(off + len2) in *)
+   (*          Black (key0, data0, *)
+   (*                 of_array (succ depth) max_depth elements off len2, *)
+   (*                 of_array (succ depth) max_depth elements (off + len2 + 1) (len - len2 - 1), *)
+   (*                 len) *)
 
-   let of_list elements =
-      match elements with
-         [] ->
-            Leaf
-       | [key, data] ->
-            Black (key, data, Leaf, Leaf, 1)
-       | elements ->
-            let elements = Array.of_list elements in
-            let length = Array.length elements in
-            let max_depth = pred (log2 1 (succ length)) in
-               of_array 0 max_depth elements 0 length
+   (* let of_list elements = *)
+   (*    match elements with *)
+   (*       [] -> *)
+   (*          Leaf *)
+   (*     | [key, data] -> *)
+   (*          Black (key, data, Leaf, Leaf, 1) *)
+   (*     | elements -> *)
+   (*          let elements = Array.of_list elements in *)
+   (*          let length = Array.length elements in *)
+   (*          let max_depth = pred (log2 1 (succ length)) in *)
+   (*             of_array 0 max_depth elements 0 length *)
 
    (*
     * Union flattens the two trees,
@@ -1198,22 +1198,22 @@ struct
    (*
     * See if two sets intersect.
     *)
-   let rec intersect_aux elems1 elems2 =
-      match elems1, elems2 with
-         elem1 :: elems1', elem2 :: elems2' ->
-            let comp = Base.compare elem1 elem2 in
-               if comp = 0 then
-                  true
-               else if comp < 0 then
-                  intersect_aux elems1' elems2
-               else
-                  intersect_aux elems1 elems2'
-       | [], _
-       | _, [] ->
-            false
+   (* let rec intersect_aux elems1 elems2 = *)
+   (*    match elems1, elems2 with *)
+   (*       elem1 :: elems1', elem2 :: elems2' -> *)
+   (*          let comp = Base.compare elem1 elem2 in *)
+   (*             if comp = 0 then *)
+   (*                true *)
+   (*             else if comp < 0 then *)
+   (*                intersect_aux elems1' elems2 *)
+   (*             else *)
+   (*                intersect_aux elems1 elems2' *)
+   (*     | [], _ *)
+   (*     | _, [] -> *)
+   (*          false *)
 
-   let intersectp s1 s2 =
-      intersect_aux (keys s1) (keys s2)
+   (* let intersectp s1 s2 = *)
+   (*    intersect_aux (keys s1) (keys s2) *)
 
    (*
     * Equality of sets.
@@ -1275,8 +1275,8 @@ struct
     | Black _ ->
          false
 
-   let make key data =
-      Black (key, data, Leaf, Leaf, 1)
+   (* let make key data = *)
+   (*    Black (key, data, Leaf, Leaf, 1) *)
 
    (*
     * Iterate a function over the hashtable.
@@ -1290,7 +1290,7 @@ struct
     | Leaf ->
          ()
 
-   let iter_all = iter
+   (* let iter_all = iter *)
 
    let rec map f = function
       Black (key, data, left, right, size) ->
@@ -1320,19 +1320,19 @@ struct
       | Leaf ->
            Leaf
 
-   let rec mapi_all f = function
-      Black (key, data, left, right, size) ->
-         let left = mapi_all f left in
-         let data = f key data in
-         let right = mapi_all f right in
-            Black (key, data, left, right, size)
-      | Red (key, data, left, right, size) ->
-         let left = mapi_all f left in
-         let data = f key data in
-         let right = mapi_all f right in
-            Red (key, data, left, right, size)
-      | Leaf ->
-           Leaf
+   (* let rec mapi_all f = function *)
+   (*    Black (key, data, left, right, size) -> *)
+   (*       let left = mapi_all f left in *)
+   (*       let data = f key data in *)
+   (*       let right = mapi_all f right in *)
+   (*          Black (key, data, left, right, size) *)
+   (*    | Red (key, data, left, right, size) -> *)
+   (*       let left = mapi_all f left in *)
+   (*       let data = f key data in *)
+   (*       let right = mapi_all f right in *)
+   (*          Red (key, data, left, right, size) *)
+   (*    | Leaf -> *)
+   (*         Leaf *)
 
    let rec fold f arg = function
        Black (key, data, left, right, _)
@@ -1343,7 +1343,7 @@ struct
      | Leaf ->
           arg
 
-   let fold_all = fold
+   (* let fold_all = fold *)
 
    let rec fold_map f arg = function
       Black (key, data, left, right, size) ->

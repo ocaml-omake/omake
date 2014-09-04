@@ -651,15 +651,15 @@ let target_of_value venv pos (v : Omake_value_type.value) =
 let targets_of_value venv pos v =
    List.map (target_of_value venv pos) (Omake_eval.values_of_value venv pos v)
 
-let pp_print_target buf (target : Omake_value_type.target) =
-  match target with
-  | TargetNode node ->
-    Format.fprintf buf "TargetNode %a" Omake_node.pp_print_node node
-  | TargetString s ->
-    Format.fprintf buf "TargetString %s" s
+(* let pp_print_target buf (target : Omake_value_type.target) = *)
+(*   match target with *)
+(*   | TargetNode node -> *)
+(*     Format.fprintf buf "TargetNode %a" Omake_node.pp_print_node node *)
+(*   | TargetString s -> *)
+(*     Format.fprintf buf "TargetString %s" s *)
 
-let pp_print_targets buf targets =
-   List.iter (fun target -> Format.fprintf buf " %a" pp_print_target target) targets
+(* let pp_print_targets buf targets = *)
+(*    List.iter (fun target -> Format.fprintf buf " %a" pp_print_target target) targets *)
 
 (*
  * From Omake_cache.

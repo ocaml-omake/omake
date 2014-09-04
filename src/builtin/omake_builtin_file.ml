@@ -902,8 +902,8 @@ let filter_nodes node_exists venv pos loc args =
 let file_exists venv pos loc args =
    node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
 
-let file_exists_force venv pos loc args =
-   node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args
+(* let file_exists_force venv pos loc args = *)
+(*    node_exists (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args *)
 
 let filter_exists venv pos loc args =
    filter_nodes (fun cache _ _ node -> Omake_cache.exists cache node) venv pos loc args

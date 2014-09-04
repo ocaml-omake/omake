@@ -365,6 +365,9 @@ omake_handle_table.ml: $(SRC_util)$(slash)omake_handle_table.ml
 omake_marshal.ml: $(SRC_util)$(slash)omake_marshal.ml
 	$(LN) $(SRC_util)$(slash)omake_marshal.ml omake_marshal.ml
 
+omake_marshal.mli: $(SRC_util)$(slash)omake_marshal.mli
+	$(LN) $(SRC_util)$(slash)omake_marshal.mli omake_marshal.mli
+
 omake_print_util.ml: $(SRC_util)$(slash)omake_print_util.ml
 	$(LN) $(SRC_util)$(slash)omake_print_util.ml omake_print_util.ml
 
@@ -392,7 +395,7 @@ omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
 omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
 	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
 
-ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
+ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_marshal.mli omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
 
 
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo

@@ -124,14 +124,12 @@ let rec remove_nth i l =
 (*
  * Work left-to-right, but reverse the result.
  *)
-let rec rev_map' f l = function
-   h :: t ->
-      rev_map' f (f h :: l) t
- | [] ->
-      l
+(* let rec rev_map' f l = function *)
+(*    h :: t -> *)
+(*       rev_map' f (f h :: l) t *)
+(*  | [] -> *)
+(*       l *)
 
-let rev_map f l =
-   rev_map' f [] l
 
 (*
  * Reverse do_list.
@@ -541,18 +539,6 @@ let addq x l =
    else
       x :: l
 
-(*
- * Union of two lists using equality.
- *)
-let rec union l1 l2 =
-   match l1 with
-      x :: l1 ->
-         if List.mem x l2 then
-            union l1 l2
-         else
-            x :: union l1 l2
-    | [] ->
-         l2
 
 (*
  * Intersect two lists.

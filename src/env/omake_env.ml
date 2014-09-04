@@ -535,13 +535,13 @@ let is_multiple_rule = function
  | RuleScannerSingle ->
       false
 
-let is_scanner_rule = function
-   Omake_value_type.RuleScannerSingle
- | RuleScannerMultiple ->
-      true
- | RuleSingle
- | RuleMultiple ->
-      false
+(* let is_scanner_rule = function *)
+(*    Omake_value_type.RuleScannerSingle *)
+(*  | RuleScannerMultiple -> *)
+(*       true *)
+(*  | RuleSingle *)
+(*  | RuleMultiple -> *)
+(*       false *)
 
 let rule_kind = function
    Omake_value_type.RuleScannerSingle
@@ -1457,21 +1457,21 @@ let venv_save_static_values venv =
  * Create a path when fetching fields, so that we
  * can hoist the exports from a method call.
  *)
-let raise_field_error mode pos loc v =
-   let print_error buf =
-      Format.fprintf buf "@[<v 3>Accessing %s field: %a@ The variable was defined at the following location@ %a@]" (**)
-         mode
-         Lm_symbol.pp_print_symbol v
-         Lm_location.pp_print_location loc
-   in
-      raise (Omake_value_type.OmakeException (pos, LazyError print_error))
+(* let raise_field_error mode pos loc v = *)
+(*    let print_error buf = *)
+(*       Format.fprintf buf "@[<v 3>Accessing %s field: %a@ The variable was defined at the following location@ %a@]" (\**\) *)
+(*          mode *)
+(*          Lm_symbol.pp_print_symbol v *)
+(*          Lm_location.pp_print_location loc *)
+(*    in *)
+(*       raise (Omake_value_type.OmakeException (pos, LazyError print_error)) *)
 
-let rec squash_path_info path info =
-  match path with
-  |Omake_value_type.PathVar _ ->
-    Omake_value_type.PathVar info
-  | PathField (path, _, _) ->
-    squash_path_info path info
+(* let rec squash_path_info path info = *)
+(*   match path with *)
+(*   |Omake_value_type.PathVar _ -> *)
+(*     Omake_value_type.PathVar info *)
+(*   | PathField (path, _, _) -> *)
+(*     squash_path_info path info *)
 
 (*
  * When finding a value, also construct the path to
@@ -1707,18 +1707,18 @@ let venv_intern_rule_target venv multiple name =
 let venv_intern_dir venv name =
    Omake_node.Dir.chdir venv.venv_inner.venv_dir name
 
-let venv_intern_list venv names =
-   List.map (venv_intern venv) names
+(* let venv_intern_list venv names = *)
+(*    List.map (venv_intern venv) names *)
 
 let node_set_of_list nodes =
    List.fold_left Omake_node.NodeSet.add Omake_node.NodeSet.empty nodes
 
-let node_set_add_names venv phony_flag nodes names =
-   List.fold_left (fun nodes name ->
-         Omake_node.NodeSet.add nodes (venv_intern venv phony_flag name)) nodes names
+(* let node_set_add_names venv phony_flag nodes names = *)
+(*    List.fold_left (fun nodes name -> *)
+(*          Omake_node.NodeSet.add nodes (venv_intern venv phony_flag name)) nodes names *)
 
-let node_set_of_names venv phony_flag names =
-   node_set_add_names venv phony_flag Omake_node.NodeSet.empty names
+(* let node_set_of_names venv phony_flag names = *)
+(*    node_set_add_names venv phony_flag Omake_node.NodeSet.empty names *)
 
 (*
  * Convert back to a string.
@@ -1832,7 +1832,7 @@ let intern_source venv (kind, source) =
 (*
  * Symbols for directories.
  *)
-let wild_sym            = Lm_symbol.add Omake_wild.wild_string
+(* let wild_sym            = Lm_symbol.add Omake_wild.wild_string *)
 let explicit_target_sym = Lm_symbol.add "<EXPLICIT_TARGET>"
 
 (*

@@ -26,8 +26,6 @@ let debug_enabled =  true
 let debug flag =
   debug_enabled && !flag
 
-let debug_level flag i =
-  debug_enabled && !flag >= i
 
 
 
@@ -36,33 +34,33 @@ let debug_level flag i =
 let info = ref []
 
 (*  Description of debug flags added from the command line. *)
-let default_description = "Unitialized debug flag"
+(* let default_description = "Unitialized debug flag" *)
 
 
 (*  List all the debug flags. *)
-let debuggers () =
-  let collect { info_name = name; info_info = info; info_flag = flag } =
-    let info =
-      match info with
-      |Some info ->
-        info
-      | None ->
-        default_description in
-    { debug_name = name; debug_description = info; debug_value = !flag }
-  in
-  Array.of_list (List.map collect !info)
+(* let debuggers () = *)
+(*   let collect { info_name = name; info_info = info; info_flag = flag } = *)
+(*     let info = *)
+(*       match info with *)
+(*       |Some info -> *)
+(*         info *)
+(*       | None -> *)
+(*         default_description in *)
+(*     { debug_name = name; debug_description = info; debug_value = !flag } *)
+(*   in *)
+(*   Array.of_list (List.map collect !info) *)
 
 
 (*
  * Print a usage argument.
  *)
-let debug_usage () =
-  let usage { debug_name = name; debug_description = desc; debug_value = flag } =
-  Printf.eprintf "\t%s: %s: %b\n" name desc flag  in
-  Printf.eprintf "Debugging flags:\n";
-  Printf.eprintf "You can specify these as a colon-separated list\n";
-  Array.iter usage (debuggers ());
-  flush stderr
+(* let debug_usage () = *)
+(*   let usage { debug_name = name; debug_description = desc; debug_value = flag } = *)
+(*   Printf.eprintf "\t%s: %s: %b\n" name desc flag  in *)
+(*   Printf.eprintf "Debugging flags:\n"; *)
+(*   Printf.eprintf "You can specify these as a colon-separated list\n"; *)
+(*   Array.iter usage (debuggers ()); *)
+(*   flush stderr *)
 
 (*  Create a debugging variable. *)
 let create_debug
@@ -96,84 +94,37 @@ let create_debug
   in
   search !info 
 
-(*
- * Get the value of a debugging variable.
- *)
-let load_debug name =
-  let rec search = function
-    | { info_name = name'; info_flag = flag ; _} :: t ->
-      if name' = name then
-        flag
-      else
-        search t
-    | [] ->
-      raise (Failure (Printf.sprintf "Lm_debug.load_debug: variable '%s' has not been created" name))
-  in
-  search !info
 
 (*
  * Modify a debugging flag.
  *)
-let set_debug name flag =
-  let rec search = function
-      h :: t ->
-      let { info_name = name'; info_flag = flag'; _ } = h in
-      if name' = name then
-        flag' := flag
-      else
-        search t
-    | [] -> raise (Failure "set_debug")
-  in
-  search !info
+(* let set_debug name flag = *)
+(*   let rec search = function *)
+(*       h :: t -> *)
+(*       let { info_name = name'; info_flag = flag'; _ } = h in *)
+(*       if name' = name then *)
+(*         flag' := flag *)
+(*       else *)
+(*         search t *)
+(*     | [] -> raise (Failure "set_debug") *)
+(*   in *)
+(*   search !info *)
 
 (*
  * Possible debug flag.
  * Try setting the flag first.
  *)
-let set_possible_debug name flag =
-  try set_debug name flag with
-    Failure "set_debug" ->
-    let flag' = ref flag in
-    let ninfo =
-      { info_name = name;
-        info_info = None;
-        info_flag = flag'
-      }
-    in
-    info := ninfo :: !info
-
-(*
- * Get the value of a debugging flag.
- *)
-let get_debug name =
-  let rec search = function
-      h :: t ->
-      if h.info_name = name then
-        let { info_info = description; info_flag = flag ; _} = h in
-        let description =
-          match description with
-            Some desc ->
-            desc
-          | None ->
-            default_description
-        in
-        { debug_name = name;
-          debug_description = description;
-          debug_value = !flag
-        }
-      else
-        search t
-    | [] ->
-      Printf.eprintf "Lm_debug.get_debug: no such variable: %s\n%t" name flush;
-      raise (Failure "get_debug")
-  in
-  search !info
-
-(*
- * Check for no remaining possible debug flags.
- *)
-let check_debug () =
-  ()
+(* let set_possible_debug name flag = *)
+(*   try set_debug name flag with *)
+(*     Failure "set_debug" -> *)
+(*     let flag' = ref flag in *)
+(*     let ninfo = *)
+(*       { info_name = name; *)
+(*         info_info = None; *)
+(*         info_flag = flag' *)
+(*       } *)
+(*     in *)
+(*     info := ninfo :: !info *)
 
 (************************************************************************
  * PARTICULAR DEBUG                                                     *
@@ -200,42 +151,31 @@ let show_loading s =
 (*
  * Split a string at a particular char.
  *)
-let split c s =
-  let len = String.length s in
-  let rec loop i j =
-    if j = len then
-      if i = j then
-        []
-      else
-        [String.sub s i (j - i)]
-    else if String.contains c s.[j] then
-      if i = j then
-        loop (j + 1 ) (j + 1)
-      else
-        String.sub s i (j - i) :: loop ( j + 1) ( j + 1)
-    else
-      loop i (succ j)
-  in
-  loop 0 0
+(* let split c s = *)
+(*   let len = String.length s in *)
+(*   let rec loop i j = *)
+(*     if j = len then *)
+(*       if i = j then *)
+(*         [] *)
+(*       else *)
+(*         [String.sub s i (j - i)] *)
+(*     else if String.contains c s.[j] then *)
+(*       if i = j then *)
+(*         loop (j + 1 ) (j + 1) *)
+(*       else *)
+(*         String.sub s i (j - i) :: loop ( j + 1) ( j + 1) *)
+(*     else *)
+(*       loop i (succ j) *)
+(*   in *)
+(*   loop 0 0 *)
 
-(*
- * Set debug flags from the environment.
- *)
-let set_possible_debug_flags _ _ flags =
-  List.iter (fun name -> set_possible_debug name true) (split ":" flags)
 
-let set_debug_flags flags =
-  let names = split ":" flags in
-  try List.iter (fun name -> set_debug name true) names with
-    Failure _ ->
-    debug_usage ();
-    exit 1
 
 (*************************************************************************
  * AD-HOC PROFILING
 *)
 
-open Unix
+(* open Unix *)
 
 type times = 
   {
@@ -250,9 +190,9 @@ type profile = {
   exn : times
 }
 
-type 'a res =
-  | Ok of 'a
-  | Exn of exn
+(* type 'a res = *)
+(*   | Ok of 'a *)
+(*   | Exn of exn *)
 
 let tbl = Hashtbl.create 19
 
@@ -287,36 +227,4 @@ let report_timing () =
     List.iter report (Sort.list compare (Hashtbl.fold add tbl []))
 
 let () = at_exit report_timing
-
-let timing_wrap s f arg =
-  let start_f = gettimeofday () in
-  let start_p = times () in
-  let res =
-    try Ok (f arg)
-    with exn -> Exn exn
-  in
-  let end_f = gettimeofday () in
-  let end_p = times () in
-  let times =
-    try Hashtbl.find tbl s
-    with Not_found ->
-      let times = {
-        ok = {calls = 0; wtime = 0.0; utime = 0.0; stime = 0.0};
-        exn = {calls = 0; wtime = 0.0; utime = 0.0; stime = 0.0}}
-      in
-      Hashtbl.add tbl s times;
-      times
-  in
-  let times =
-    match res with
-    | Ok _ -> times.ok
-    | Exn _ -> times.exn
-  in
-  times.calls <- times.calls + 1;
-  times.wtime <- times.wtime +. end_f -. start_f;
-  times.utime <- times.utime +. end_p.tms_utime -. start_p.tms_utime;
-  times.stime <- times.stime +. end_p.tms_stime -. start_p.tms_stime;
-  match res with
-  | Ok res -> res
-  | Exn exn -> raise exn
 

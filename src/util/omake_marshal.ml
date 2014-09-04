@@ -1,9 +1,9 @@
 (*
  * Marshaling of messages.
  *)
-(* open Fmarshal. *)
 
-let version_number = Hashtbl.hash "$Id$"
+
+(* let version_number = Hashtbl.hash "$Id$" *)
 
 type magic =
   | LocationMagic
@@ -33,26 +33,14 @@ type magic =
   | ResponseExitedMagic
   | ResponseStdoutMagic
   | ResponseStderrMagic
-  | ResponseStatusMagic
   | MaxMagic
+  | ResponseStatusMagic
+
 
 type msg = magic Fmarshal.item
 
 exception MarshalError
 
-(*
- * Magic numbers.
- * We cheat a little here.
- *)
-let int_of_magic magic =
-   (Obj.magic magic : int)
-
-let max_magic = int_of_magic MaxMagic
-
-let magic_of_int i =
-   if i < 0 || i >= max_magic then
-      raise (Failure "magic_of_int");
-   (Obj.magic i : magic)
 
 (*
  * Some common marshalers.
@@ -60,7 +48,7 @@ let magic_of_int i =
 let marshal_string_list l =
    Fmarshal.List (List.map (fun s -> Fmarshal.String s) l)
 
-let unmarshal_string_list l =
+let unmarshal_string_list (l : 'a Fmarshal.item) : string list  =
   match l with
   | Fmarshal.List l ->
     List.map (function
@@ -69,17 +57,15 @@ let unmarshal_string_list l =
   | _ ->
     raise MarshalError
 
-(*
- * Locations.
- *)
-let marshal_loc loc =
+
+let marshal_loc (loc : Lm_location.loc) : magic Fmarshal.item =
    let file, sline, schar, eline, echar = Lm_location.dest_loc loc in
    let file = Lm_symbol.to_string file in
-      Fmarshal.List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar]
+   List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar]
 
-let unmarshal_loc l =
+let unmarshal_loc (l : magic Fmarshal.item) : Lm_location.loc =
   match l with
-  |Fmarshal.List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar] ->
+  | List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar] ->
     Lm_location.create_loc (Lm_symbol.add file) sline schar eline echar
   | _ ->
     raise MarshalError

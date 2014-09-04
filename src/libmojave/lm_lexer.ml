@@ -170,19 +170,19 @@ struct
    (*
     * Union of two sets.
     *)
-   let rec union (s1 : t) (s2 : t) =
-      match s1, s2 with
-         i1 :: l1, i2 :: l2 ->
-            if i1 = i2 then
-               i1 :: union l1 l2
-            else if i1 < i2 then
-               i1 :: union l1 s2
-            else
-               i2 :: union s1 l2
-       | _, [] ->
-            s1
-       | [], _ ->
-            s2
+   (* let rec union (s1 : t) (s2 : t) = *)
+   (*    match s1, s2 with *)
+   (*       i1 :: l1, i2 :: l2 -> *)
+   (*          if i1 = i2 then *)
+   (*             i1 :: union l1 l2 *)
+   (*          else if i1 < i2 then *)
+   (*             i1 :: union l1 s2 *)
+   (*          else *)
+   (*             i2 :: union s1 l2 *)
+   (*     | _, [] -> *)
+   (*          s1 *)
+   (*     | [], _ -> *)
+   (*          s2 *)
 end;;
 
 module DfaStateArg =
@@ -741,8 +741,8 @@ struct
 
    let xdigit_chars = explode_chars_add digit_chars "abcdefABCDEF"
 
-   let white_or_bof_chars = IntSet.add space_chars bof
-   let white_or_eof_chars = IntSet.add space_chars eof
+   (* let white_or_bof_chars = IntSet.add space_chars bof *)
+   (* let white_or_eof_chars = IntSet.add space_chars eof *)
    let word_chars = IntSet.add alnum_chars (Char.code '_')
 
    let all_chars =
@@ -1428,8 +1428,8 @@ struct
       NfaStateSet.iter (fun s ->
             fprintf buf "@ %a" (pp_print_nfa_id hash) s) states
 
-   let pp_print_choices buf choices =
-      IntSet.iter (fun i -> fprintf buf " %d" i) choices
+   (* let pp_print_choices buf choices = *)
+   (*    IntSet.iter (fun i -> fprintf buf " %d" i) choices *)
 
    let pp_print_nfa_action buf action =
       match action with
@@ -1819,20 +1819,20 @@ struct
          List.iter (fun action -> fprintf buf "@ %a" pp_print_dfa_arg_action action) args;
          fprintf buf "@])@]"
 
-   let pp_print_dfa_transition buf trans =
-      match trans with
-         DfaTransition (i, _) ->
-            fprintf buf "goto %d" i
-       | DfaNoTransition ->
-            fprintf buf "error"
-       | DfaUnknownTransition ->
-            fprintf buf "unknown"
+   (* let pp_print_dfa_transition buf trans = *)
+   (*    match trans with *)
+   (*       DfaTransition (i, _) -> *)
+   (*          fprintf buf "goto %d" i *)
+   (*     | DfaNoTransition -> *)
+   (*          fprintf buf "error" *)
+   (*     | DfaUnknownTransition -> *)
+   (*          fprintf buf "unknown" *)
 
-   let pp_print_trans_table buf table =
-      fprintf buf "@[<hv 3>(trans";
-      Array.iter (fun (key, trans) ->
-            fprintf buf "@ %d -> %a" key pp_print_dfa_transition trans) table;
-      fprintf buf ")@]"
+   (* let pp_print_trans_table buf table = *)
+   (*    fprintf buf "@[<hv 3>(trans"; *)
+   (*    Array.iter (fun (key, trans) -> *)
+   (*          fprintf buf "@ %d -> %a" key pp_print_dfa_transition trans) table; *)
+   (*    fprintf buf ")@]" *)
 
    (*
     * Print an argument.

@@ -268,7 +268,7 @@ val venv_find_environment     : venv -> Omake_value_type.pos -> Omake_value_type
  *)
 val venv_dir                  : venv -> Omake_node.Dir.t
 val venv_defined              : venv -> Omake_ir.var_info -> bool
-val venv_defined_field        : venv -> Omake_value_type.obj -> Omake_ir.var -> bool
+(* val venv_defined_field        : venv -> Omake_value_type.obj -> Omake_ir.var -> bool *)
 
 val venv_get_var              : venv -> Omake_value_type.pos -> Omake_ir.var_info -> Omake_value_type.value
 

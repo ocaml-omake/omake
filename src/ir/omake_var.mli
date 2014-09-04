@@ -16,7 +16,7 @@ val ostype_var                 : Omake_ir.var_info
 val omakepath_var              : Omake_ir.var_info
 val path_var                   : Omake_ir.var_info
 val auto_rehash_var            : Omake_ir.var_info
-val printexitvalue_var         : Omake_ir.var_info
+(* val printexitvalue_var         : Omake_ir.var_info *)
 val system_var                 : Omake_ir.var_info
 val oshell_var                 : Omake_ir.var_info
 val cdpath_var                 : Omake_ir.var_info

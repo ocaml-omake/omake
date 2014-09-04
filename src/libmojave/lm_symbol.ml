@@ -77,54 +77,54 @@ let to_string v =
 (*
  * Mangle a string so it uses printable characters.
  *)
-let is_special s =
-   let len = String.length s in
-   let rec search i =
-      if i = len then
-         false
-      else
-         match s.[i] with
-            'a'..'z'
-          | 'A'..'Z'
-          | '0'..'9'
-          | '_'
-          | '.'
-          | '%' ->
-               search (succ i)
-          | _ ->
-               true
-   in
-      search 0
+(* let is_special s = *)
+(*    let len = String.length s in *)
+(*    let rec search i = *)
+(*       if i = len then *)
+(*          false *)
+(*       else *)
+(*          match s.[i] with *)
+(*             'a'..'z' *)
+(*           | 'A'..'Z' *)
+(*           | '0'..'9' *)
+(*           | '_' *)
+(*           | '.' *)
+(*           | '%' -> *)
+(*                search (succ i) *)
+(*           | _ -> *)
+(*                true *)
+(*    in *)
+(*       search 0 *)
 
-let rec buffer_mangle buf s i len =
-   if len <> 0 then
-      let c = s.[i] in
-      let _ =
-         match c with
-            'a'..'z'
-          | 'A'..'Z'
-          | '0'..'9'
-          | '_' ->
-               Buffer.add_char buf c
-          | _ ->
-               Buffer.add_char buf '.';
-               Buffer.add_string buf (string_of_int (Char.code c))
-      in
-         buffer_mangle buf s (succ i) (pred len)
+(* let rec buffer_mangle buf s i len = *)
+(*    if len <> 0 then *)
+(*       let c = s.[i] in *)
+(*       let _ = *)
+(*          match c with *)
+(*             'a'..'z' *)
+(*           | 'A'..'Z' *)
+(*           | '0'..'9' *)
+(*           | '_' -> *)
+(*                Buffer.add_char buf c *)
+(*           | _ -> *)
+(*                Buffer.add_char buf '.'; *)
+(*                Buffer.add_string buf (string_of_int (Char.code c)) *)
+(*       in *)
+(*          buffer_mangle buf s (succ i) (pred len) *)
 
-let mangle s =
-   let len = String.length s in
-   let buf = Buffer.create len in
-      buffer_mangle buf s 0 len;
-      Buffer.contents buf
+(* let mangle s = *)
+(*    let len = String.length s in *)
+(*    let buf = Buffer.create len in *)
+(*       buffer_mangle buf s 0 len; *)
+(*       Buffer.contents buf *)
 
 
 (*
  * Add a symbol to the table.
  *)
-let stop s =
-   Lm_printf.eprintf "Bogus symbol %s@." s;
-   false
+(* let stop s = *)
+(*    Lm_printf.eprintf "Bogus symbol %s@." s; *)
+(*    false *)
 
 let char0 = Char.code '0'
 
@@ -167,8 +167,8 @@ let add =
    in
       (fun s -> loop s 1 0 (String.length s - 1))
 
-let add_mangle s =
-   add (mangle s)
+(* let add_mangle s = *)
+(*    add (mangle s) *)
 
 let reintern = SymbolHash.reintern
 

@@ -132,10 +132,10 @@ let check_return_placement env loc =
          end;
          id
 
-let check_section_tail env loc =
-   if not env.env_section_tail then
-      let pos = string_pos "check_section_tail" (loc_exp_pos loc) in
-         raise (Omake_value_type.OmakeException (pos, StringError "This should be the last expression in the section."))
+(* let check_section_tail env loc = *)
+(*    if not env.env_section_tail then *)
+(*       let pos = string_pos "check_section_tail" (loc_exp_pos loc) in *)
+(*          raise (Omake_value_type.OmakeException (pos, StringError "This should be the last expression in the section.")) *)
 
 let check_object_tail env loc =
    if env.env_in_function <> None || not env.env_section_tail then

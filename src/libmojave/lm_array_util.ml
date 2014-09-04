@@ -34,11 +34,6 @@ let for_all2 f a1 a2 =
    in
    apply 0)
 
-let exists f v =
-  let rec search f i len v =
-    i <> len && (f v.(i) || search f (succ i) len v)
-  in
-  search f 0 (Array.length v) v
 
 (*
  * Membership in an array.
