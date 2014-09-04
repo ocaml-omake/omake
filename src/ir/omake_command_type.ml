@@ -7,24 +7,20 @@
  * The arg_string is like a string, but various parts of it are quoted.
  *)
 type arg_string =
-   ArgString of string
- | ArgData   of string
+  | ArgString of string
+  | ArgData   of string
 
-type arg =
-   arg_string list
+type arg = arg_string list
 
-(*
- * Command digest.
- *)
 type command_digest = Digest.t option
 
 (*
  * A command line is a string, together with come flags.
  *)
 type command_flag =
-   QuietFlag
- | AllowFailureFlag
- | AllowOutputFlag
+  | QuietFlag
+  | AllowFailureFlag
+  | AllowOutputFlag
 
 (*
  * The command line has some flags,
@@ -32,9 +28,9 @@ type command_flag =
  * or passed to the shell.
  *)
 type ('exp, 'argv, 'value) poly_command_inst =
-   CommandEval   of 'exp list
- | CommandPipe   of 'argv
- | CommandValues of 'value list
+  | CommandEval   of 'exp list
+  | CommandPipe   of 'argv
+  | CommandValues of 'value list
 
 type ('venv, 'exp, 'argv, 'value) poly_command_line =
    { command_loc    : Lm_location.loc;
@@ -45,42 +41,39 @@ type ('venv, 'exp, 'argv, 'value) poly_command_line =
      command_inst   : ('exp, 'argv, 'value) poly_command_inst
    }
 
-(************************************************************************
- * Printing.
- *)
+
 let simple_string_of_arg arg =
-   match arg with
-      [ArgString s]
-    | [ArgData s] ->
-         s
-    | _ ->
-         let buf = Buffer.create 32 in
-            List.iter (fun arg ->
-                  let s =
-                     match arg with
-                        ArgString s -> s
-                      | ArgData s -> s
-                  in
-                     Buffer.add_string buf s) arg;
-            Buffer.contents buf
+  match arg with
+  | [ArgString s]
+  | [ArgData s] ->    s
+  | _ ->
+    let buf = Buffer.create 32 in
+    List.iter
+      (fun arg ->
+        let s =
+          match arg with
+          | ArgString s -> s
+          | ArgData s -> s in
+        Buffer.add_string buf s) arg;
+    Buffer.contents buf
 
 let glob_string_of_arg options arg =
-   let buf = Buffer.create 32 in
-      List.iter (fun arg ->
-            match arg with
-               ArgString s ->
-                  Buffer.add_string buf s
-             | ArgData s ->
-                  Lm_glob.glob_add_escaped options buf s) arg;
-      Buffer.contents buf
+  let buf = Buffer.create 32 in
+  List.iter (fun arg ->
+      match arg with
+        ArgString s ->
+        Buffer.add_string buf s
+      | ArgData s ->
+        Lm_glob.glob_add_escaped options buf s) arg;
+  Buffer.contents buf
 
 let is_glob_arg options arg =
-   List.exists (fun arg ->
-         match arg with
-            ArgString s ->
-               Lm_glob.is_glob_string options s
-          | ArgData _ ->
-               false) arg
+  List.exists (fun arg ->
+      match arg with
+      | ArgString s ->
+        Lm_glob.is_glob_string options s
+      | ArgData _ ->
+        false) arg
 
 let is_quoted_arg arg =
    List.exists (fun v ->
@@ -157,6 +150,7 @@ let pp_print_command_flags buf flags =
 module type PrintArgvSig =
 sig
    type argv
+
    val pp_print_argv : argv Lm_printf.t 
 end;;
 
