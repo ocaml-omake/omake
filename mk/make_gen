@@ -269,7 +269,8 @@ EXT_OBJ = .obj
 EXT_LIB = .lib
 EXE = .exe
 
-OCAMLFLAGS = -thread
+OCAMLFLAGS = -thread -w -40
+
 THREADSLIB = threads.cma
 
 .SUFFIXES: .mll .mly .mli .ml .cmi .cmo

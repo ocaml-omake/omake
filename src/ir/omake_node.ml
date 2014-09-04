@@ -14,15 +14,131 @@ module type FileCaseSig =
 sig
    type t
    type dir
-
    val create              : dir -> string -> t
    val compare             : t -> t -> int
-   (* val equal               : t -> t -> bool *)
    val add_filename        : Lm_hash.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> Omake_marshal.msg
    val unmarshal           : Omake_marshal.msg -> t
 end;;
+
+
+(* Test whether stats are equal enough that we think that it's the same file.
+*)
+let stats_equal (stat1 : Unix.LargeFile.stats) (stat2 : Unix.LargeFile.stats) =
+  stat1.st_dev = stat2.st_dev
+  && stat1.st_ino = stat2.st_ino
+  && stat1.st_kind = stat2.st_kind
+  && stat1.st_rdev = stat2.st_rdev
+  && stat1.st_nlink = stat2.st_nlink
+  && stat1.st_size = stat2.st_size
+  && stat1.st_mtime = stat2.st_mtime
+  && stat1.st_ctime = stat2.st_ctime
+
+(* Toggle the case of the name.
+   Raises Not_found if the name contains no alphabetic letters.
+*)
+let rec toggle_name_case name len i : string  =
+  if i = len then
+    raise Not_found
+  else
+    match name.[i] with
+    | 'A'..'Z'
+    | '\192' .. '\214'
+    | '\216' .. '\222' ->
+      String.lowercase name
+    | 'a'..'z'
+    | '\224' .. '\246'
+    | '\248' .. '\254' ->
+      String.uppercase name
+    | _ ->
+      toggle_name_case name len (i+ 1)
+
+(* Stat, does not fail. *)
+let do_stat absname =
+  try Some (Unix.LargeFile.lstat absname) with
+    Unix.Unix_error _ ->
+    None
+
+    (*
+    * Unlink, does not fail.
+    *)
+let do_unlink absname =
+  try Unix.unlink absname with
+    Unix.Unix_error _ ->
+    ()
+
+(* Create a file, raising Unix_error if the file can't be created. *)
+let do_create absname =
+  Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
+
+(*
+Given two filenames that differ only in case,
+stat them both.  If the stats are different,
+the directory is on a case-sensitive fs.
+
+XXX: try to detect race conditions by performing
+a stat on the first file before and after.
+Raise Not_found if a race condition is detected.
+*)
+let stats_not_equal name1 name2 =
+  let stat1 = do_stat name1 in
+  let stat2 = do_stat name2 in
+  let stat3 = do_stat name1 in
+  match stat1, stat3 with
+    Some s1, Some s3 when stats_equal s1 s3 ->
+    (match stat2 with
+       Some s2 when stats_equal s2 s1 -> false
+     | _ -> true)
+  | _ ->
+    raise Not_found
+
+(*
+* If we have an alphabetic name, just toggle the case.
+*)
+let stat_with_toggle_case absdir name =
+  let alternate_name = toggle_name_case name (String.length name) 0 in
+  stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
+
+
+
+    (*
+    * Look through the entire directory for a name with alphabetic characters.
+    * A check for case-sensitivity base on that.
+    *
+    * Raises Not_found if there are no such filenames.
+    *)
+let rec dir_test_all_entries_exn absdir dir_handle =
+  let name =
+    try Unix.readdir dir_handle
+    with Unix.Unix_error _ | End_of_file as exn ->
+      Unix.closedir dir_handle;
+      raise exn
+  in
+  match name with
+    "."
+  | ".." ->
+    dir_test_all_entries_exn absdir dir_handle
+  | _ ->
+    try
+      let result = stat_with_toggle_case absdir name in
+      Unix.closedir dir_handle;
+      result
+    with Not_found ->
+      dir_test_all_entries_exn absdir dir_handle
+
+exception Already_lowercase
+
+let rec check_already_lowercase name len i =
+  if i = len then
+    raise Already_lowercase
+  else
+    match name.[i] with
+    | 'A'..'Z'
+    | '\192' .. '\214'
+    | '\216' .. '\222' -> ()
+    | _ -> check_already_lowercase name len (i+1)
+
 
 module rec FileCase : FileCaseSig with type dir = DirHash.t =
   struct
@@ -32,130 +148,18 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
 
     type dir = DirHash.t
 
-    open DirElt
-    open Unix.LargeFile
-
     (*
     * Check whether a directory is case-sensitive.
     *)
     let case_table = ref DirTable.empty
 
-    (* We'll use randomly generated names *)
+
     let fs_random = Random.State.make_self_init ()
-
-    (*
-    * Test whether stats are equal enough that we think that it's the same file.
-    *)
-    let stats_equal stat1 stat2 =
-      stat1.st_dev = stat2.st_dev
-      && stat1.st_ino = stat2.st_ino
-      && stat1.st_kind = stat2.st_kind
-      && stat1.st_rdev = stat2.st_rdev
-      && stat1.st_nlink = stat2.st_nlink
-      && stat1.st_size = stat2.st_size
-      && stat1.st_mtime = stat2.st_mtime
-      && stat1.st_ctime = stat2.st_ctime
-
-    (*
-    * Toggle the case of the name.
-    * Raises Not_found if the name contains no alphabetic letters.
-    *)
-    let rec toggle_name_case name len i =
-      if i = len then
-        raise Not_found
-      else
-        match name.[i] with
-          'A'..'Z'
-        | '\192' .. '\214'
-        | '\216' .. '\222' ->
-          String.lowercase name
-        | 'a'..'z'
-        | '\224' .. '\246'
-        | '\248' .. '\254' ->
-          String.uppercase name
-        | _ ->
-          toggle_name_case name len (succ i)
-
-    (*
-    * Stat, does not fail.
-    *)
-    let do_stat absname =
-      try Some (Unix.LargeFile.lstat absname) with
-        Unix.Unix_error _ ->
-        None
-
-    (*
-    * Unlink, does not fail.
-    *)
-    let do_unlink absname =
-      try Unix.unlink absname with
-        Unix.Unix_error _ ->
-        ()
-
-    (*
-    * Create a file, raising Unix_error if the file can't be created.
-    *)
-    let do_create absname =
-      Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
-
-    (*
-    * Given two filenames that differ only in case,
-    * stat them both.  If the stats are different,
-    * the directory is on a case-sensitive fs.
-    *
-    * XXX: try to detect race conditions by performing
-    * a stat on the first file before and after.
-    * Raise Not_found if a race condition is detected.
-    *)
-    let stats_not_equal name1 name2 =
-      let stat1 = do_stat name1 in
-      let stat2 = do_stat name2 in
-      let stat3 = do_stat name1 in
-      match stat1, stat3 with
-        Some s1, Some s3 when stats_equal s1 s3 ->
-        (match stat2 with
-          Some s2 when stats_equal s2 s1 -> false
-        | _ -> true)
-      | _ ->
-        raise Not_found
-
-    (*
-    * If we have an alphabetic name, just toggle the case.
-    *)
-    let stat_with_toggle_case absdir name =
-      let alternate_name = toggle_name_case name (String.length name) 0 in
-      stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
-
-    (*
-    * Look through the entire directory for a name with alphabetic characters.
-    * A check for case-sensitivity base on that.
-    *
-    * Raises Not_found if there are no such filenames.
-    *)
-    let rec dir_test_all_entries_exn absdir dir_handle =
-      let name =
-        try Unix.readdir dir_handle
-        with Unix.Unix_error _ | End_of_file as exn ->
-          Unix.closedir dir_handle;
-          raise exn
-      in
-      match name with
-        "."
-      | ".." ->
-        dir_test_all_entries_exn absdir dir_handle
-      | _ ->
-        try
-          let result = stat_with_toggle_case absdir name in
-          Unix.closedir dir_handle;
-          result
-        with Not_found ->
-          dir_test_all_entries_exn absdir dir_handle
-
     (*
     * Check for sensativity by creating a dummy file.
     *)
     let dir_test_new_entry_exn absdir =
-      Unix.access absdir [Unix.W_OK];
+      Unix.access absdir [W_OK];
       let name = Lm_printf.sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
       let absname = Filename.concat absdir name in
       let () = do_create absname in
@@ -179,18 +183,8 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
     * Steps 2-4 will only be performed when we really need them (the name contains
     * uppercase letters),
     *)
-    exception Not_a_usable_directory
-    exception Already_lowercase
 
-    let rec check_already_lowercase name len i =
-      if i = len then
-        raise Already_lowercase
-      else
-        match name.[i] with
-          'A'..'Z'
-        | '\192' .. '\214'
-        | '\216' .. '\222' -> ()
-        | _ -> check_already_lowercase name len (i+1)
+    exception Not_a_usable_directory
 
     let rec dir_test_sensitivity shortcircuit dir absdir name =
       try stat_with_toggle_case absdir name
@@ -220,7 +214,7 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
     and dir_is_sensitive shortcircuit dir name =
       try DirTable.find !case_table dir with
         Not_found ->
-        let absdir = abs_dir_name dir in
+        let absdir = DirElt.abs_dir_name dir in
         let sensitive =
           if Lm_fs_case_sensitive.available then
             try
@@ -241,7 +235,7 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
     *)
     let create =
       match Sys.os_type with
-        "Win32"
+      | "Win32"
       | "Cygwin" ->
         (fun _ name -> String.lowercase name)
       | _ ->
@@ -252,16 +246,16 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
             name)
 
     let compare = Lm_string_util.string_compare
-    (* let equal (s1: string) s2 = (s1 = s2) *)
+
     let add_filename = Lm_hash.HashCode.add_string
+
     let add_filename_string = Buffer.add_string
 
     let marshal s =
       Fmarshal.String s
 
     let unmarshal = function
-      |Fmarshal.String s ->
-        s
+      | Fmarshal.String s -> s
       | _ ->
         raise Omake_marshal.MarshalError
   end
@@ -318,13 +312,14 @@ end
  *)
 and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
   struct
-    open DirElt
+    (* open DirElt *)
     type t = DirElt.t
 
     let debug = "Dir"
 
-    let fine_hash = function
-        DirRoot root ->
+    let fine_hash (x : t) =
+      match x with 
+      | DirRoot root ->
         Hashtbl.hash root
       | DirSub (_, raw_name, parent) ->
         let buf = Lm_hash.HashCode.create () in
@@ -332,8 +327,9 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
         Lm_hash.HashCode.add_string buf raw_name;
         Lm_hash.HashCode.code buf
 
-    let coarse_hash = function
-        DirRoot root ->
+    let coarse_hash (x : t)  =
+      match x with 
+      | DirRoot root ->
         Hashtbl.hash root
       | DirSub (name, _, parent) ->
         let buf = Lm_hash.HashCode.create () in
@@ -341,9 +337,9 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
         FileCase.add_filename buf name;
         Lm_hash.HashCode.code buf
 
-    let fine_compare dir1 dir2 =
+    let fine_compare (dir1 : t) (dir2 : t) =
       match dir1, dir2 with
-        DirRoot root1, DirRoot root2 ->
+      | DirRoot root1, DirRoot root2 ->
         Pervasives.compare root1 root2
       | DirSub (_, name1, parent1), DirSub (_, name2, parent2) ->
         let cmp = Lm_string_util.string_compare name1 name2 in
@@ -356,9 +352,9 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
       | DirSub _, DirRoot _ ->
         1
 
-    let  coarse_compare dir1 dir2 =
+    let  coarse_compare (dir1 : t) ( dir2 : t) =
       match dir1, dir2 with
-        DirRoot root1, DirRoot root2 ->
+      | DirRoot root1, DirRoot root2 ->
         Pervasives.compare root1 root2
       | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
         let cmp = FileCase.compare name1 name2 in
@@ -371,9 +367,9 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
       | DirSub _, DirRoot _ ->
         1
 
-    let reintern dir =
+    let reintern (dir : t) =
       match dir with
-        DirRoot _ ->
+      | DirRoot _ ->
         dir
       | DirSub (name1, name2, parent1) ->
         let parent2 = DirHash.reintern parent1 in
@@ -383,66 +379,70 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
           DirSub (name1, name2, parent2)
   end
 
-                                                  (* %%MAGICBEGIN%% *)
-                                                  and DirHash :
-                                                    Lm_hash_sig.HashMarshalEqSig
+(* %%MAGICBEGIN%% *)
+and DirHash :
+  Lm_hash_sig.HashMarshalEqSig
 with type elt = DirElt.t
 with type t = DirElt.t Lm_hash.hash_marshal_eq_item
-=
-    Lm_hash.MakeHashMarshalEq (DirCompare)
+  = Lm_hash.MakeHashMarshalEq (DirCompare)
 
- and DirSet   : Lm_set_sig.LmSet with type elt = DirHash.t = Lm_set.LmMake (DirHash)
-                                  and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
+and DirSet   : Lm_set_sig.LmSet with
+  type elt = DirHash.t = Lm_set.LmMake (DirHash)
+
+and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
 
 type dir = DirHash.t
 (* %%MAGICEND%% *)
+
+let hash f l =
+  let buf = Lm_hash.HashCode.create () in
+  List.iter (fun dir -> Lm_hash.HashCode.add_int buf (f dir)) l;
+  Lm_hash.HashCode.code buf
+
 
 (*
  * Lists of directories.
  *)
 module rec DirListCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = dir list =
 struct
-   type t = dir list
+  type t = dir list
 
-   let debug = "DirList"
+  let debug = "DirList"
 
-   let hash f l =
-      let buf = Lm_hash.HashCode.create () in
-         List.iter (fun dir -> Lm_hash.HashCode.add_int buf (f dir)) l;
-         Lm_hash.HashCode.code buf
+  let fine_hash = hash DirHash.fine_hash
+  let coarse_hash = hash DirHash.hash
 
-   let fine_hash = hash DirHash.fine_hash
-   let coarse_hash = hash DirHash.hash
+  let rec compare f (l1 : t) (l2 : t) =
+    match l1, l2 with
+    | d1 :: l1, d2 :: l2 ->
+      let cmp = f d1 d2 in
+      if cmp = 0 then
+        compare f l1 l2
+      else
+        cmp
+    | [], [] ->
+      0
+    | [], _ :: _ ->
+      -1
+    | _ :: _, [] ->
+      1
 
-   let rec compare f l1 l2 =
-      match l1, l2 with
-         d1 :: l1, d2 :: l2 ->
-            let cmp = f d1 d2 in
-               if cmp = 0 then
-                  compare f l1 l2
-               else
-                  cmp
-       | [], [] ->
-            0
-       | [], _ :: _ ->
-            -1
-       | _ :: _, [] ->
-            1
+  let fine_compare = compare DirHash.fine_compare
+  let coarse_compare = compare DirHash.compare
 
-   let fine_compare = compare DirHash.fine_compare
-   let coarse_compare = compare DirHash.compare
-
-   let reintern l =
-      Lm_list_util.smap DirHash.reintern l
+  let reintern l = Lm_list_util.smap DirHash.reintern l
 end
 
-and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = dir list =
-   Lm_hash.MakeHashMarshalEq (DirListCompare);;
+and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = dir list 
+  =
+  Lm_hash.MakeHashMarshalEq (DirListCompare);;
 
-module DirListSet = Lm_set.LmMake (DirListHash);;
-module DirListTable = Lm_map.LmMake (DirListHash);;
 
-open DirElt
+module DirListSet = Lm_set.LmMake (DirListHash)
+
+module DirListTable = Lm_map.LmMake (DirListHash)
+
+(* open DirElt. *)
 
 (************************************************************************
  * Nodes.
@@ -1204,7 +1204,7 @@ struct
     *)
   let marshal_root (root : Lm_filename_util.root) :  Omake_marshal.magic Fmarshal.item=
     match root with
-      NullRoot ->
+    | NullRoot ->
       Magic NullRootMagic
     | DriveRoot c ->
       List [Magic DriveRootMagic; Char c]
@@ -1225,8 +1225,8 @@ struct
     | DirSub (key, name, parent) ->
       List [Magic DirSubMagic; FileCase.marshal key; String name; marshal parent]
 
-  let rec unmarshal l =
-    let dir =
+  let rec unmarshal l : DirHash.t =
+    let dir : DirElt.t =
       match l with
       | Fmarshal.List [Magic Omake_marshal.DirRootMagic; root] ->
         DirRoot (unmarshal_root root)
@@ -1251,17 +1251,16 @@ struct
    type dir = dir_tmp
    type node = node_tmp
 
-   (*
-    * Create a new mount state.
-    *)
+   (* Create a new mount state. *)
    let empty = []
 
-   (*
-    * Add a mount point.
-    *)
+   (*     Add a mount point. *)
    let mount info options dir_src dir_dst =
       (dir_dst, dir_src, options) :: info
 end;;
+
+
+
 
 type mount_info = node Omake_node_sig.poly_mount_info
 
@@ -1782,16 +1781,8 @@ let pp_print_node_set_table buf table =
             pp_print_node_set set) table
 
 let pp_print_node_set_table_opt buf table_opt =
-   match table_opt with
-      Some table ->
-         pp_print_node_set_table buf table
-    | None ->
-         Lm_printf.pp_print_string buf "<none>"
-
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+  match table_opt with
+  |Some table ->
+    pp_print_node_set_table buf table
+  | None ->
+    Lm_printf.pp_print_string buf "<none>"

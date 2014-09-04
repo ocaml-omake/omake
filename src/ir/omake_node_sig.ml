@@ -1,7 +1,7 @@
 (*
  * Signatures for the Dir, Node modules.
  *)
-(* open Omake_marshal. *)
+
 
 (*
  * A directory node.
@@ -61,8 +61,8 @@ end
  * Mount flags.
  *)
 type mount_option =
-   MountCopy
- | MountLink
+  | MountCopy
+  | MountLink
 
 (*
  * A "mount" specifies a virtual search path for files.

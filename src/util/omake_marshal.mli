@@ -1,6 +1,7 @@
 
 
-type magic =
+type magic 
+  =
   | LocationMagic
   | IdMagic
   | NullRootMagic

@@ -3,8 +3,6 @@
  *)
 
 
-(* let version_number = Hashtbl.hash "$Id$" *)
-
 type magic =
   | LocationMagic
   | IdMagic

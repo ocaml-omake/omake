@@ -1,6 +1,4 @@
-(*
- * Abstract representation of files.
- *)
+(* Abstract representation of files. *)
 module Dir : Omake_node_sig.DirSig
 
 module DirSet : Lm_set_sig.LmSet with type elt = Dir.t
