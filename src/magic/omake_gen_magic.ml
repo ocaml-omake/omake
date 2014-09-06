@@ -218,43 +218,52 @@ let shorten_version s =
    else
       s
 
-let omake_magic buf =
+let omake_magic buf : unit =
    let libdir = 
       match !libdir with 
          Some s -> Filename.concat s "omake"
        | None -> Filename.concat (Filename.dirname (Unix.getcwd ())) "lib"
    in
    let version = read_version () in
-   let now = Unix.time () in
-   let { Unix.tm_year = year;
-         Unix.tm_mon = mon;
-         Unix.tm_mday = mday;
-         Unix.tm_wday = wday;
-         Unix.tm_hour = hour;
-         Unix.tm_min = min;
-         Unix.tm_sec = sec;
+   match Unix.(localtime (time ())) with
+     {tm_year = year;
+         tm_mon = mon;
+         tm_mday = mday;
+         tm_wday = wday;
+         tm_hour = hour;
+         tm_min = min;
+         tm_sec = sec;
          _
-       } = Unix.localtime now
-   in
-      Printf.fprintf buf "let default_save_interval = %F\n" !default_save_interval;
-      Printf.fprintf buf "let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s\n" digest_len digest_len;
-      Printf.fprintf buf "let output_magic = output_string\n";
-      Printf.fprintf buf "let cache_magic = \"%s\"\n" (digest_files ".cache.magic" ".odb" !cache_files);
-      Printf.fprintf buf "let ir_magic = \"%s\"\n"    (digest_files ".omc.magic" ".omc" !omc_files);
-      Printf.fprintf buf "let obj_magic = \"%s\"\n"   (digest_files ".omo.magic" ".omo" !omo_files);
-      Printf.fprintf buf "let lib_dir = \"%s\"\n" (String.escaped libdir);
-      Printf.fprintf buf "let version = \"%s\"\n" (String.escaped (shorten_version version));
-      Printf.fprintf buf "let version_message = \"OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s\"\n"
-         (String.escaped version)
-         wday_names.(wday)
-         mon_names.(mon)
-         mday
-         hour
-         min
-         sec
-         (year + 1900)
-         (String.escaped (Unix.gethostname ()));
-      flush buf
+       } -> 
+     Printf.fprintf buf {|
+let default_save_interval = %F
+let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s
+let output_magic = output_string
+let cache_magic = "%s"
+let ir_magic = "%s"
+let obj_magic = "%s"
+let lib_dir = "%s"
+let version = "%s"
+let version_message = "OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s"
+|}
+       !default_save_interval
+       digest_len
+       digest_len
+       (digest_files ".cache.magic" ".odb" !cache_files)
+       (digest_files ".omc.magic" ".omc" !omc_files)
+       (digest_files ".omo.magic" ".omo" !omo_files)
+       (String.escaped libdir)
+       (String.escaped (shorten_version version))
+       (String.escaped version)
+       wday_names.(wday)
+       mon_names.(mon)
+       mday
+       hour
+       min
+       sec
+       (year + 1900)
+       (String.escaped (Unix.gethostname ()));
+     flush buf
 
 (************************************************************************
  * OMakeroot file.
