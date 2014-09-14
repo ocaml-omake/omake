@@ -660,7 +660,7 @@ omake_ast_parse.input: ..$(slash)src$(slash)env$(slash)omake_ast_parse.input
 omake_exp_parse.mly: ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly
 	$(LN) ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly omake_exp_parse.mly
 
-omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_lex.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_exp_parse.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
 
 Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml omake_exp_parse.ml omake_exp_parse.mli
 
