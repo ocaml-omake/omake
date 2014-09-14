@@ -40,7 +40,7 @@ let compile_in s =
       raise (Failure "Only one wildcard symbol % allowed in a match pattern");
     index, prefix, slen, suffix
   | exception Not_found -> 
-    raise (Invalid_argument "Omake_wild.wild_compile")
+    raise (Invalid_argument "Lm_wild.wild_compile")
 
 let compile_out s =
    Lm_string_util.split wild_string s

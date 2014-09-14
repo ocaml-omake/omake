@@ -42,7 +42,7 @@ open Omake_shell_sys_type
 external ext_set_tty_pgrp   : pgrp -> unit                = "omake_shell_sys_set_tty_pgrp"
 external ext_setpgid        : pid -> pid -> unit          = "omake_shell_sys_setpgid"
 
-let interact = ref (Omake_readline.isatty ())
+let interact = ref (Lm_readline.isatty ())
 
 let set_interactive flag =
    interact := flag

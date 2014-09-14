@@ -308,6 +308,19 @@ let rec pp_print_symbol_list buf vl =
          ()
 
 (*
+ * Method name.
+ *)
+let rec pp_print_method_name buf vl =
+  match vl with
+  |[v] ->
+    pp_print_symbol buf v
+  | v :: vl ->
+    Format.fprintf buf "%a.%a" pp_print_symbol v pp_print_method_name vl 
+  | [] -> ()
+
+
+
+(*
  * Compare for equality.
  *)
 let eq = SymbolHash.equal

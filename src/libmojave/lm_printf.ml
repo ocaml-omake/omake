@@ -56,14 +56,6 @@ let prerr_string  = pp_print_string err_formatter
 let flush buf  = pp_print_flush buf ()
 let eflush buf = pp_print_newline buf ()
  
- (*
-* Printing functions.
-*)
-let printf  = printf
-let eprintf = eprintf
-let sprintf = sprintf
-let fprintf = fprintf
-let bprintf = bprintf
  
 (*
 * Formatting functions.
@@ -71,7 +63,7 @@ let bprintf = bprintf
 let set_all_formatter_output_functions out flush newline spaces =
   set_all_formatter_output_functions ~out ~flush ~newline ~spaces
 
-  let pp_set_all_formatter_output_functions buf out flush newline spaces =
+let pp_set_all_formatter_output_functions buf out flush newline spaces =
 pp_set_all_formatter_output_functions buf ~out ~flush ~newline ~spaces
  
 (*

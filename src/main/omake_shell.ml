@@ -92,7 +92,7 @@ let load_history_file =
         let node = Omake_value.file_of_value venv pos v in
         let filename = Omake_node.Node.fullname node in
         if !existing_file <> Some filename then begin
-          Omake_readline.load filename;
+          Lm_readline.load filename;
           existing_file := Some filename
         end
     with
@@ -113,7 +113,7 @@ let set_history_length =
          let v = Omake_env.venv_find_var_exn venv Omake_var.history_length_var in
          let i = Omake_value.int_of_value venv pos v in
             if !existing_length <> i then begin
-               Omake_readline.set_length i;
+               Lm_readline.set_length i;
                existing_length := i
             end
       with
@@ -129,13 +129,13 @@ let set_history_length =
  *)
 let set_current_directory venv =
   let cwd = Omake_env.venv_dir venv in
-  Omake_readline.set_directory (Omake_node.Dir.absname cwd)
+  Lm_readline.set_directory (Omake_node.Dir.absname cwd)
 
 (*
  * Save the history when exiting.
  *)
 let exit code =
-   Omake_readline.save ();
+   Lm_readline.save ();
    Pervasives.exit code
 
 (*

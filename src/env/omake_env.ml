@@ -50,7 +50,7 @@ and irule =
   { irule_loc        : Lm_location.loc;
     irule_multiple   : Omake_value_type.rule_multiple;
     irule_targets    : Lm_string_set.StringSet.t option;
-    irule_patterns   : Omake_wild.in_patt list;
+    irule_patterns   : Lm_wild.in_patt list;
     irule_locks      : Omake_value_type.source_core Omake_value_type.source list;
     irule_sources    : Omake_value_type.source_core Omake_value_type.source list;
     irule_scanners   : Omake_value_type.source_core Omake_value_type.source list;
@@ -65,7 +65,7 @@ and irule =
 and inrule =
   { inrule_loc        : Lm_location.loc;
     inrule_multiple   : Omake_value_type.rule_multiple;
-    inrule_patterns   : Omake_wild.in_patt list;
+    inrule_patterns   : Lm_wild.in_patt list;
     inrule_locks      : Omake_value_type.source_core Omake_value_type.source list;
     inrule_sources    : Omake_value_type.source_core Omake_value_type.source list;
     inrule_scanners   : Omake_value_type.source_core Omake_value_type.source list;
@@ -113,7 +113,7 @@ and erule_info =
 and orule =
   { orule_loc      : Lm_location.loc;
     orule_name     : Lm_symbol.symbol;
-    orule_pattern  : Omake_wild.in_patt;
+    orule_pattern  : Lm_wild.in_patt;
     orule_sources  : Omake_value_type.source_core list
   }
 
@@ -1752,7 +1752,7 @@ let target_is_wild target =
       Omake_value_type.TargetNode _ ->
          false
     | TargetString s ->
-         Omake_wild.is_wild s
+         Lm_wild.is_wild s
 
 let string_of_target venv target =
   match target with
@@ -1767,10 +1767,10 @@ let string_of_target venv target =
  *)
 let compile_wild_pattern _venv pos loc target =
   match target with
-  | Omake_value_type.TargetString s when Omake_wild.is_wild s ->
+  | Omake_value_type.TargetString s when Lm_wild.is_wild s ->
     if Lm_string_util.contains_any s Lm_filename_util.separators then
       raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("filename pattern is a path", s)));
-    Omake_wild.compile_in s
+    Lm_wild.compile_in s
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, StringTargetError ("patterns must be wildcards", target)))
 
@@ -1782,8 +1782,8 @@ let compile_source_core venv s =
   | Omake_value_type.TargetNode node ->
     Omake_value_type.SourceNode node
   | TargetString s ->
-    if Omake_wild.is_wild s then
-      SourceWild (Omake_wild.compile_out s)
+    if Lm_wild.is_wild s then
+      SourceWild (Lm_wild.compile_out s)
     else
       SourceNode (venv_intern venv PhonyOK s)
 
@@ -1804,7 +1804,7 @@ let compile_implicit3_target pos loc = function
 let subst_source_core venv dir subst source =
   match source with
   | Omake_value_type.SourceWild wild ->
-    let s = Omake_wild.subst subst wild in
+    let s = Lm_wild.subst subst wild in
     venv_intern_cd venv PhonyOK dir s
   | SourceNode node ->
     node
@@ -1832,7 +1832,7 @@ let intern_source venv (kind, source) =
 (*
  * Symbols for directories.
  *)
-(* let wild_sym            = Lm_symbol.add Omake_wild.wild_string *)
+(* let wild_sym            = Lm_symbol.add Lm_wild.wild_string *)
 let explicit_target_sym = Lm_symbol.add "<EXPLICIT_TARGET>"
 
 (*
@@ -2012,7 +2012,7 @@ let create options _dir exec cache =
   let venv = venv_add_var venv Omake_var.stdlib_var (ValDir Omake_node.Dir.lib) in
   let venv = venv_add_var venv Omake_var.stdroot_var (ValNode (venv_intern_cd venv PhonyProhibited Omake_node.Dir.lib "OMakeroot")) in
   let venv = venv_add_var venv Omake_var.ostype_var (ValString Sys.os_type) in
-  let venv = venv_add_wild_match venv (ValData Omake_wild.wild_string) in
+  let venv = venv_add_wild_match venv (ValData Lm_wild.wild_string) in
   let omakepath =
     try
       let path = Lm_string_util.split Lm_filename_util.pathsep (Lm_symbol.SymbolTable.find env Omake_symbol.omakepath_sym) in
@@ -2373,7 +2373,7 @@ let venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources
    let targets = List.map (compile_implicit3_target pos loc) targets in
    let rec check_target target = function
       pattern :: patterns ->
-         begin match Omake_wild.wild_match pattern target with
+         begin match Lm_wild.wild_match pattern target with
             Some _ -> ()
           | None -> check_target target patterns
          end
@@ -2573,7 +2573,7 @@ let venv_find_implicit_deps_inner venv target =
       let rec search patterns =
         match patterns with
           pattern :: patterns ->
-          (match Omake_wild.wild_match pattern target_name with
+          (match Lm_wild.wild_match pattern target_name with
             Some subst ->
             let lock_deps =
               List.fold_left (fun lock_deps source ->
@@ -2626,7 +2626,7 @@ let venv_find_implicit_rules_inner venv target =
   in
   let rec patt_search = function
       pattern :: patterns ->
-      begin match Omake_wild.wild_match pattern target_name with
+      begin match Lm_wild.wild_match pattern target_name with
         None -> patt_search patterns
       | (Some _) as subst -> subst
       end
@@ -2669,14 +2669,14 @@ let venv_find_implicit_rules_inner venv target =
             let locks = node_set_of_list lock_args in
             let scanner_args = List.map (subst_source venv target_dir subst) irule.irule_scanners in
             let scanners = node_set_of_list scanner_args in
-            let core = Omake_wild.core subst in
+            let core = Lm_wild.core subst in
             let core_val = Omake_value_type.ValData core in
             let venv = venv_add_wild_match venv core_val in
             let commands = List.map (command_add_wild venv core_val) irule.irule_body in
             let commands = make_command_info venv source_args irule.irule_values commands in
             let effects =
               List.fold_left (fun effects pattern ->
-                let effect = Omake_wild.subst_in subst pattern in
+                let effect = Lm_wild.subst_in subst pattern in
                 let effect = venv_intern_rule_target venv multiple (TargetString effect) in
                 Omake_node.NodeSet.add effects effect) Omake_node.NodeSet.empty irule.irule_patterns
             in
@@ -2786,7 +2786,7 @@ let venv_get_ordering_deps venv orules deps =
               _
             } = orule
         in
-        match Omake_wild.wild_match pattern target_str with
+        match Lm_wild.wild_match pattern target_str with
           Some subst ->
           List.fold_left (fun deps source ->
               let source = subst_source_core venv target_dir subst source in

@@ -39,6 +39,9 @@ FILES[] =
     lm_db
     lm_notify
     lm_fs_case_sensitive
+    lm_wild
+    lm_readline
+
 
 MakeOCamlLibrary(lm, $(FILES))
 

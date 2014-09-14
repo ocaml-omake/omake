@@ -167,11 +167,11 @@ let rec pp_print_string_exp complete buf s =
   | MethodApplyString (_, v, vl, [], []) ->
     Format.fprintf buf "@[<hv 3>$(%a.%a)@]" (**)
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
   | MethodApplyString (_, v, vl, args, kargs) ->
     Format.fprintf buf "@[<hv 3>$(%a.%a %a)@]" (**)
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
       (pp_print_args complete) (args, kargs)
   | SequenceString (_, sl) ->
     Format.fprintf buf "@[<hv 1>(%a)@]" (**)
@@ -315,21 +315,21 @@ and pp_print_exp complete buf e =
     LetVarExp (_, v, vl, kind, s) ->
     Format.fprintf buf "@[<hv 3>%a%a %a@ %a@]" (**)
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
       pp_print_var_def_kind kind
       (pp_print_string_exp complete) s
   | LetFunExp (_, v, vl, curry, opt_params, params, el, export) ->
     Format.fprintf buf "@[<hv 3>%a%a%a(%a) =@ %a%a@]" (**)
       pp_print_curry curry
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
       (pp_print_all_params complete) (opt_params, params)
       (string_override "<...>" pp_print_exp_list complete) el
       pp_print_export_info export
   | LetObjectExp (_, v, vl, s, el, export) ->
     Format.fprintf buf "@[<v 3>%a%a. =@ extends %a@ %a%a@]" (**)
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
       (pp_print_string_exp complete) s
       (string_override "<...>" pp_print_exp_list complete) el
       pp_print_export_info export
@@ -376,7 +376,7 @@ and pp_print_exp complete buf e =
   | MethodApplyExp (_, v, vl, args, kargs) ->
     Format.fprintf buf "@[<hv 3>%a.%a(%a)@]" (**)
       pp_print_var_info v
-      Omake_print_util.pp_print_method_name vl
+      Lm_symbol.pp_print_method_name vl
       (pp_print_args complete) (args, kargs)
   | ReturnBodyExp (_, el, id) ->
     Format.fprintf buf "@[<hv 3>return-body %a@ %a@]" (**)

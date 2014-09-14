@@ -2272,9 +2272,9 @@ let compile_patterns venv _ pos patterns =
       (fun _ -> false)
     | pattern :: patterns ->
       let f = f patterns in
-      if Omake_wild.is_wild pattern then
-        let wild = Omake_wild.compile_in pattern in
-        (fun s -> Omake_wild.wild_match wild s <> None || f s)
+      if Lm_wild.is_wild pattern then
+        let wild = Lm_wild.compile_in pattern in
+        (fun s -> Lm_wild.wild_match wild s <> None || f s)
       else
         (fun s -> s = pattern || f s)
   in

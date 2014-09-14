@@ -48,7 +48,7 @@ and pp_print_exn buf (x : Omake_value_type.omake_error )=
   | StringVarError (s, v) ->
     Format.fprintf buf "%s: %a" s Lm_symbol.pp_print_symbol v
   | StringMethodError (s, v) ->
-    Format.fprintf buf "%s: %a" s Omake_print_util.pp_print_method_name v
+    Format.fprintf buf "%s: %a" s Lm_symbol.pp_print_method_name v
   | StringDirError (s, n)->
     Format.fprintf buf "%s: %a" s Omake_node.pp_print_dir n
   | StringNodeError (s, n)->
@@ -70,7 +70,7 @@ and pp_print_exn buf (x : Omake_value_type.omake_error )=
   | UnboundFun v ->
     Format.fprintf buf "unbound function: %a" Lm_symbol.pp_print_symbol v
   | UnboundMethod vl ->
-    Format.fprintf buf "unbound method: %a" Omake_print_util.pp_print_method_name vl
+    Format.fprintf buf "unbound method: %a" Lm_symbol.pp_print_method_name vl
   | UnboundFieldVar (obj, v) ->
     Format.fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" Lm_symbol.pp_print_symbol v;
     Lm_symbol.SymbolTable.iter (fun v _ ->

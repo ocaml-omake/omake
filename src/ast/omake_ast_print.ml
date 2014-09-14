@@ -6,7 +6,7 @@ module SymbolTable = Lm_symbol.SymbolTable
 let create_debug = Lm_debug.create_debug
 
 let pp_print_method_name = 
-  Omake_print_util.(pp_print_method_name)
+  Lm_symbol.pp_print_method_name
 
 let print_location =
   create_debug (**)

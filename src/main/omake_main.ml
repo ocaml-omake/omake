@@ -81,7 +81,7 @@ let spec =
    "Shell flags", (**)
    ["--shell", Lm_arg.Set shell_flag, (**)
     "Run the OMake shell: osh";
-    "-i", Lm_arg.SetFold (fun opts b -> Omake_readline.set_interactive b; opts), (**)
+    "-i", Lm_arg.SetFold (fun opts b -> Lm_readline.set_interactive b; opts), (**)
     "Treat the session as interactive";
     "-c", Lm_arg.String (fun s -> command_string := Some s), (**)
     "Evaluate the commands from the string"];

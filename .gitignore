@@ -13,6 +13,7 @@
 *.out
 *.install
 *.default
+*.i.mli
 *.magic
 .\#*
 \#*\#

@@ -12,12 +12,12 @@
 (*    Omake_node.NodeSet.iter (fun s -> Format.fprintf buf "@ %a" Omake_node.pp_print_node s) set *)
 
 let pp_print_wild_list buf wl =
-   List.iter (fun w -> Format.fprintf buf "@ %a" Omake_wild.pp_print_wild_in w) wl
+   List.iter (fun w -> Format.fprintf buf "@ %a" Lm_wild.pp_print_wild_in w) wl
 
 let pp_print_source buf (_, source) =
   match source with
   | Omake_value_type.SourceWild wild ->
-    Omake_wild.pp_print_wild_out buf wild
+    Lm_wild.pp_print_wild_out buf wild
   | SourceNode node ->
     Omake_node.pp_print_node buf node
 

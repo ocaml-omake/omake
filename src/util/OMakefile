@@ -4,9 +4,6 @@ OCAMLINCLUDES[] +=
 FILES[] =
     fmarshal
     ocaml_patch
-    omake_wild
-    omake_print_util
-    omake_readline
     omake_printf
     omake_marshal
     omake_handle_table

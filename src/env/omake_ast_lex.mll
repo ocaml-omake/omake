@@ -1277,8 +1277,8 @@ let parse_string s =
  * Parse an expression.
  *)
 let create_shell () =
-   let state = create "-" Omake_readline.readline in
-      state.is_interactive <- Omake_readline.is_interactive ();
+   let state = create "-" Lm_readline.readline in
+      state.is_interactive <- Lm_readline.is_interactive ();
       state
 
 (*
@@ -1290,7 +1290,7 @@ let parse_shell state prompt =
       state.current_fill_ok <- true;
       try parse_exp state Omake_ast_parse.shell prompt true 0 with
          exn ->
-            Omake_readline.flush ();
+            Lm_readline.flush ();
             restore_mode state stack;
             state.current_buffer <- "";
             state.current_index <- 0;

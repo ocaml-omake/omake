@@ -121,6 +121,8 @@ val output_symbol_set    : SymbolSet.t Lm_printf.t
  *)
 val pp_print_symbol      : symbol Lm_printf.t
 val pp_print_symbol_list : symbol list Lm_printf.t 
+val pp_print_method_name : symbol list Lm_printf.t
+
 val pp_print_symbol_set  : SymbolSet.t Lm_printf.t 
 val pp_print_ext_symbol  : symbol Lm_printf.t 
 

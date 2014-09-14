@@ -364,7 +364,7 @@ let history_index _ pos loc args =
   let pos = string_pos "history-index" pos in
   match args with
     [] ->
-    Omake_value_type.ValInt (Omake_readline.where ())
+    Omake_value_type.ValInt (Lm_readline.where ())
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
 
@@ -372,7 +372,7 @@ let history _ pos loc args =
   let pos = string_pos "history" pos in
   match args with
   | [] ->
-    let strings = Omake_readline.history () in
+    let strings = Lm_readline.history () in
     let strings = Array.to_list strings in
     let strings = List.map (fun s -> Omake_value_type.ValData s) strings in
     Omake_value_type.ValArray strings

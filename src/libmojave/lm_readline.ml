@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 external flush           : unit -> unit                          = "omake_readline_flush"
 external isatty          : unit -> bool                          = "omake_isatty"
 external is_interactive  : unit -> bool                          = "omake_is_interactive"
@@ -26,9 +14,9 @@ external get_prompt_invs : unit -> string * string               = "omake_rl_pro
 let () = init ()
 
 let prompt_invisible =
-   match get_prompt_invs () with
-      "", "" -> None
-    | inv -> Some inv
+  match get_prompt_invs () with
+  | "", "" -> None
+  | inv -> Some inv
 
 external ext_readline    : string -> string                      = "omake_readline"
 external ext_readstring  : string -> string -> int -> int -> int = "omake_readstring"

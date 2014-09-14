@@ -267,8 +267,8 @@ let opt_wrap f = function
    Some x -> Some (f x)
  | None -> None
 
-let prompt_invisible_begin = str_wrap "prompt-invisible-begin" (opt_wrap fst) Omake_readline.prompt_invisible
-let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Omake_readline.prompt_invisible
+let prompt_invisible_begin = str_wrap "prompt-invisible-begin" (opt_wrap fst) Lm_readline.prompt_invisible
+let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Lm_readline.prompt_invisible
 
 (*
  * \begin{doc}
