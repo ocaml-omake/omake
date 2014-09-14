@@ -155,8 +155,8 @@ type target =
  *   4. A squashed source
  *)
 type source_core =
-   SourceWild of Omake_wild.wild_out_patt
- | SourceNode of Omake_node.Node.t
+  | SourceWild of Omake_wild.out_patt
+  | SourceNode of Omake_node.Node.t
 
 type 'a source = Omake_node_sig.node_kind * 'a
 

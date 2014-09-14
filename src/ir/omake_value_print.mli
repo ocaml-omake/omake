@@ -1,6 +1,6 @@
 
 val pp_print_target           : Omake_value_type.target Lm_printf.t
-val pp_print_wild_list        : Omake_wild.wild_in_patt list Lm_printf.t 
+val pp_print_wild_list        : Omake_wild.in_patt list Lm_printf.t 
 val pp_print_source_list      : ('a * Omake_value_type.source_core) list Lm_printf.t 
 val pp_print_value            : Omake_value_type.value Lm_printf.t
 val pp_print_simple_value     : Omake_value_type.value Lm_printf.t
