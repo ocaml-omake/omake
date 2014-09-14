@@ -38,6 +38,18 @@ let print_files =
       debug_value = false
     }
 
+let bool_of_string s =
+  match String.lowercase s with
+  | ""
+  | "0"
+  | "no"
+  | "nil"
+  | "false"
+  | "undefined" ->
+    false
+  | _ ->
+    true
+
 (*
  * For now, use a bogu location for parameters.
  *)
@@ -888,9 +900,9 @@ and bool_of_value venv pos v =
     x <> 0.0
   | [ValData s]
   | [ValString s] ->
-    Omake_util.bool_of_string s
+    bool_of_string s
   | [ValQuote vl] ->
-    Omake_util.bool_of_string (string_of_quote venv pos None vl)
+    bool_of_string (string_of_quote venv pos None vl)
   | _ ->
     true
 

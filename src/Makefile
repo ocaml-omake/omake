@@ -338,7 +338,7 @@ lm_unix_util.mli: $(SRC_libmojave)$(slash)lm_unix_util.mli
 ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_channel.ml lm_channel.mli lm_db.ml lm_db.mli lm_debug.ml lm_debug.mli lm_filename_util.ml lm_filename_util.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_glob.ml lm_glob.mli lm_hash.ml lm_hash.mli lm_hash_sig.ml lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_int_set.ml lm_int_set.mli lm_lexer.ml lm_lexer.mli lm_list_util.ml lm_list_util.mli lm_location.ml lm_location.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_notify.ml lm_notify.mli lm_parser.ml lm_parser.mli lm_position.ml lm_position.mli lm_printf.ml lm_printf.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_symbol.ml lm_symbol.mli lm_terminfo.ml lm_terminfo.mli lm_termsize.ml lm_termsize.mli lm_thread.ml lm_thread.mli lm_thread_core.ml lm_thread_core.mli lm_thread_pool.ml lm_thread_pool.mli lm_thread_sig.ml lm_uname.ml lm_uname.mli lm_unix_util.ml lm_unix_util.mli
 
 
-CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
+CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
 OCAML_LIB_FLAGS_util =
 
 util.cma: $(CMOFILES_util)
@@ -383,19 +383,13 @@ omake_readline.ml: $(SRC_util)$(slash)omake_readline.ml
 omake_readline.mli: $(SRC_util)$(slash)omake_readline.mli
 	$(LN) $(SRC_util)$(slash)omake_readline.mli omake_readline.mli
 
-omake_util.ml: $(SRC_util)$(slash)omake_util.ml
-	$(LN) $(SRC_util)$(slash)omake_util.ml omake_util.ml
-
-omake_util.mli: $(SRC_util)$(slash)omake_util.mli
-	$(LN) $(SRC_util)$(slash)omake_util.mli omake_util.mli
-
 omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
 	$(LN) $(SRC_util)$(slash)omake_wild.ml omake_wild.ml
 
 omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
 	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
 
-ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_marshal.mli omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
+ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_marshal.mli omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
 
 
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo

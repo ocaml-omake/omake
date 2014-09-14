@@ -22,11 +22,8 @@ let pp_print_wild_in buf (_, s1, _, s2) =
 let pp_print_wild_out buf strs =
    Lm_printf.pp_print_string buf (String.concat wild_string strs)
 
-(*
- * Check if a string is a wild pattern.
- *)
-let is_wild s =
-   String.contains s wild_char
+
+let is_wild s =   String.contains s wild_char
 
 (*
  * Compile a pattern to make searching easier.

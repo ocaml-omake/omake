@@ -347,6 +347,14 @@ let strip_suffixes name =
 
 let separators = "/\\"
 
+
+(*  Path separator. *)
+let pathsep =
+   if Sys.os_type = "Win32" then
+      ";"
+   else
+      ":"
+
 (*
  * Split a pathname.
  *)

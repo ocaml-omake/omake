@@ -2015,7 +2015,7 @@ let create options _dir exec cache =
   let venv = venv_add_wild_match venv (ValData Omake_wild.wild_string) in
   let omakepath =
     try
-      let path = Lm_string_util.split Omake_util.pathsep (Lm_symbol.SymbolTable.find env Omake_symbol.omakepath_sym) in
+      let path = Lm_string_util.split Lm_filename_util.pathsep (Lm_symbol.SymbolTable.find env Omake_symbol.omakepath_sym) in
       List.map (fun s -> Omake_value_type.ValString s) path
     with
       Not_found ->
@@ -2025,7 +2025,7 @@ let create options _dir exec cache =
   let venv = venv_add_var venv Omake_var.omakepath_var omakepath in
   let path =
     try
-      let path = Lm_string_util.split Omake_util.pathsep (Lm_symbol.SymbolTable.find env Omake_symbol.path_sym) in
+      let path = Lm_string_util.split Lm_filename_util.pathsep (Lm_symbol.SymbolTable.find env Omake_symbol.path_sym) in
       Omake_value_type.ValArray (List.map (fun s -> Omake_value_type.ValData s) path)
     with
       Not_found ->

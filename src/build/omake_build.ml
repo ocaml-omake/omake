@@ -2231,7 +2231,7 @@ let print_stats (env : Omake_build_type.env) message start_time =
         Lm_printf.printf "*** omake: %i/%i targets are up to date@." env.env_succeeded_count total
       end;
       Lm_printf.printf "*** omake: %s (%a, %d/%d scans, %d/%d rules, %d/%d digests)@." (**)
-        message Omake_util.pp_time total_time
+        message Lm_unix_util.pp_time total_time
         scan_exec_count scan_count
         rule_exec_count rule_count
         digest_count stat_count
@@ -2442,7 +2442,7 @@ let create_env exec options cache targets =
       if Omake_options.opt_poll options && restartable_exn exn && not (Omake_node.NodeSet.is_empty (Omake_env.venv_files venv)) then begin
         if Omake_options.opt_print_status options then begin
           let now' = Unix.gettimeofday () in
-          Lm_printf.printf "*** omake: reading %ss failed (%a)@." Omake_state.makefile_name Omake_util.pp_time (now' -. now);
+          Lm_printf.printf "*** omake: reading %ss failed (%a)@." Omake_state.makefile_name Lm_unix_util.pp_time (now' -. now);
         end;
         Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
         notify_wait_simple venv cwd exec cache;
@@ -2456,7 +2456,7 @@ let create_env exec options cache targets =
     if Omake_options.opt_print_status options then
       let now' = Unix.gettimeofday () in
       Lm_printf.printf "*** omake: finished reading %ss (%a)@." Omake_state.makefile_name 
-        Omake_util.pp_time (now' -. now)
+        Lm_unix_util.pp_time (now' -. now)
   in
   let env = create exec venv cache summary in
   Omake_builtin_util.set_env env;

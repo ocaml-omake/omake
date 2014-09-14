@@ -1,41 +1,3 @@
-(*
- * Extra unix utilities.
- *
- * ----------------------------------------------------------------
- *
- * This file is part of MetaPRL, a modular, higher order
- * logical framework that provides a logical programming
- * environment for OCaml and other languages.
- *
- * See the file doc/htmlman/default.html or visit http://metaprl.org/
- * for more information.
- *
- * Copyright (C) 1998-2007 PRL Group, Cornell University, California
- * Institute of Technology and HRL Laboratories, LLC
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey <jyh@cs.cornell.edu>
- * Modified By: Aleksey Nogin <anogin@hrl.com>
- *)
-open Lm_printf
 
 (*
  * Registry handles.
@@ -50,6 +12,21 @@ type registry_hkey =
 external print_stack_pointer : unit -> unit = "lm_print_stack_pointer"
 external registry_find   : registry_hkey -> string -> string -> string = "caml_registry_find"
 external getpwents : unit -> Unix.passwd_entry list = "lm_getpwents"
+
+
+let pp_time buf secs =
+  if secs < 60. then
+    Format.fprintf buf "%0.2f sec" secs
+  else
+    let subsec, sec = modf secs in
+    let sec = int_of_float sec in
+    let h = sec / 3600 in
+    let m = (sec / 60) mod 60 in
+    let s = sec mod 60 in
+    if h > 0 then
+      Format.fprintf buf "%d hrs %02d min %05.2f sec" h m (float s +. subsec)
+    else
+      Format.fprintf buf "%d min %05.2f sec" m (float s +. subsec)
 
 (*
  * Read the exact amount.
@@ -172,9 +149,9 @@ let find_home_dir () =
             try (Unix.getpwnam (Unix.getlogin ())).Unix.pw_dir with
                Not_found
              | Unix.Unix_error _ ->
-                 eprintf "!!! Lm_unix_util.find_home_dir:@.";
-                 eprintf "!!! You have no home directory.@.";
-                 eprintf "!!! Please set the HOME environment variable to a suitable directory.@.";
+                 Format.eprintf "!!! Lm_unix_util.find_home_dir:@.";
+                 Format.eprintf "!!! You have no home directory.@.";
+                 Format.eprintf "!!! Please set the HOME environment variable to a suitable directory.@.";
                  raise (Invalid_argument "Lm_unix_util.find_home_dir")
          in
             Unix.putenv "HOME" home;

@@ -16,7 +16,7 @@ type 'a path =
 
 (**  Pathname separator chars. *)
 val separators       : string
-
+val pathsep : string
 (*
  * Remove quotations from a string that represents a filename.
  *)

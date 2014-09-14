@@ -1159,7 +1159,7 @@ and eval_path venv pos =
     let venv' = if Omake_options.opt_absname options then venv else Omake_env.venv_with_options venv 
           ( Omake_options.set_absname_opt options true) in
     let path = Omake_eval.strings_of_value venv' pos path in
-    let path = String.concat Omake_util.pathsep path in
+    let path = String.concat Lm_filename_util.pathsep path in
     Omake_env.venv_setenv venv Omake_symbol.path_sym path
   with
     Not_found ->
