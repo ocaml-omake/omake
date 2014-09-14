@@ -10,18 +10,137 @@
  * This case [in-]sensitivity of file names is a complex issue.
  * We make the type abstract so we don't make a mistake.
  *)
-
-
-module rec FileCase : sig
+module type FileCaseSig =
+sig
    type t
-   type dir = DirHash.t 
+   type dir
    val create              : dir -> string -> t
    val compare             : t -> t -> int
    val add_filename        : Lm_hash.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> Omake_marshal.msg
    val unmarshal           : Omake_marshal.msg -> t
-end =
+end;;
+
+
+(* Test whether stats are equal enough that we think that it's the same file.
+*)
+let stats_equal (stat1 : Unix.LargeFile.stats) (stat2 : Unix.LargeFile.stats) =
+  stat1.st_dev = stat2.st_dev
+  && stat1.st_ino = stat2.st_ino
+  && stat1.st_kind = stat2.st_kind
+  && stat1.st_rdev = stat2.st_rdev
+  && stat1.st_nlink = stat2.st_nlink
+  && stat1.st_size = stat2.st_size
+  && stat1.st_mtime = stat2.st_mtime
+  && stat1.st_ctime = stat2.st_ctime
+
+(* Toggle the case of the name.
+   Raises Not_found if the name contains no alphabetic letters.
+*)
+let rec toggle_name_case name len i : string  =
+  if i = len then
+    raise Not_found
+  else
+    match name.[i] with
+    | 'A'..'Z'
+    | '\192' .. '\214'
+    | '\216' .. '\222' ->
+      String.lowercase name
+    | 'a'..'z'
+    | '\224' .. '\246'
+    | '\248' .. '\254' ->
+      String.uppercase name
+    | _ ->
+      toggle_name_case name len (i+ 1)
+
+(* Stat, does not fail. *)
+let do_stat absname =
+  try Some (Unix.LargeFile.lstat absname) with
+    Unix.Unix_error _ ->
+    None
+
+    (*
+    * Unlink, does not fail.
+    *)
+let do_unlink absname =
+  try Unix.unlink absname with
+    Unix.Unix_error _ ->
+    ()
+
+(* Create a file, raising Unix_error if the file can't be created. *)
+let do_create absname =
+  Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
+
+(*
+Given two filenames that differ only in case,
+stat them both.  If the stats are different,
+the directory is on a case-sensitive fs.
+
+XXX: try to detect race conditions by performing
+a stat on the first file before and after.
+Raise Not_found if a race condition is detected.
+*)
+let stats_not_equal name1 name2 =
+  let stat1 = do_stat name1 in
+  let stat2 = do_stat name2 in
+  let stat3 = do_stat name1 in
+  match stat1, stat3 with
+    Some s1, Some s3 when stats_equal s1 s3 ->
+    (match stat2 with
+       Some s2 when stats_equal s2 s1 -> false
+     | _ -> true)
+  | _ ->
+    raise Not_found
+
+(*
+* If we have an alphabetic name, just toggle the case.
+*)
+let stat_with_toggle_case absdir name =
+  let alternate_name = toggle_name_case name (String.length name) 0 in
+  stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
+
+
+
+    (*
+    * Look through the entire directory for a name with alphabetic characters.
+    * A check for case-sensitivity base on that.
+    *
+    * Raises Not_found if there are no such filenames.
+    *)
+let rec dir_test_all_entries_exn absdir dir_handle =
+  let name =
+    try Unix.readdir dir_handle
+    with Unix.Unix_error _ | End_of_file as exn ->
+      Unix.closedir dir_handle;
+      raise exn
+  in
+  match name with
+    "."
+  | ".." ->
+    dir_test_all_entries_exn absdir dir_handle
+  | _ ->
+    try
+      let result = stat_with_toggle_case absdir name in
+      Unix.closedir dir_handle;
+      result
+    with Not_found ->
+      dir_test_all_entries_exn absdir dir_handle
+
+exception Already_lowercase
+
+let rec check_already_lowercase name len i =
+  if i = len then
+    raise Already_lowercase
+  else
+    match name.[i] with
+    | 'A'..'Z'
+    | '\192' .. '\214'
+    | '\216' .. '\222' -> ()
+    | _ -> check_already_lowercase name len (i+1)
+
+
+module rec FileCase : FileCaseSig with type dir = DirHash.t =
   struct
     (* %%MAGICBEGIN%% *)
     type t = string
@@ -29,9 +148,28 @@ end =
 
     type dir = DirHash.t
 
-    (* Check whether a directory is case-sensitive. *)
+    (*
+    * Check whether a directory is case-sensitive.
+    *)
     let case_table = ref DirTable.empty
 
+
+    let fs_random = Random.State.make_self_init ()
+    (*
+    * Check for sensativity by creating a dummy file.
+    *)
+    let dir_test_new_entry_exn absdir =
+      Unix.access absdir [W_OK];
+      let name = Lm_printf.sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
+      let absname = Filename.concat absdir name in
+      let () = do_create absname in
+      try
+        let flag = stat_with_toggle_case absdir name in
+        do_unlink absname;
+        flag
+      with Not_found as exn ->
+        do_unlink absname;
+        raise exn
 
     (*
     * To check for case sensitivity, try these tests in order,
@@ -45,41 +183,51 @@ end =
     * Steps 2-4 will only be performed when we really need them (the name contains
     * uppercase letters),
     *)
-    
-    (* This is the caching version of the case-sensitivity test. *)
-    let dir_is_sensitive dir name = 
-      let rec  aux  shortcircuit dir name =
-        try DirTable.find !case_table dir with
-          Not_found ->
-          let absdir = DirElt.abs_dir_name dir in
-          let dir_test_sensitivity shortcircuit dir absdir name =
-            try Lm_fs_case_sensitive.stat_with_toggle_case absdir name
-            with Not_found ->
-              if shortcircuit then
-                Lm_fs_case_sensitive.check_already_lowercase name (String.length name) 0;
-              try
-                Lm_fs_case_sensitive.dir_case_sensitive absdir 
-              with Unix.Unix_error _ | Not_found | End_of_file 
-                 | Lm_fs_case_sensitive.Not_a_usable_directory ->
-                match DirHash.get dir with
-                | DirRoot _ ->
-                  (* Nothing else we can do, assume sensitive *)
-                  true
-                | DirSub (_, name, parent) ->
-                  aux false parent name
+
+    exception Not_a_usable_directory
+
+    let rec dir_test_sensitivity shortcircuit dir absdir name =
+      try stat_with_toggle_case absdir name
+      with Not_found ->
+        if shortcircuit then
+          check_already_lowercase name (String.length name) 0;
+        try
+          let dir_handle =
+            try Unix.opendir absdir with
+              Unix.Unix_error ((Unix.ENOENT | Unix.ENOTDIR | Unix.ELOOP | Unix.ENAMETOOLONG), _, _) ->
+              raise Not_a_usable_directory
           in
-          let sensitive =
-            match Lm_fs_case_sensitive.available with
-            | true -> 
+          try dir_test_all_entries_exn absdir dir_handle
+          with Unix.Unix_error _ | Not_found | End_of_file ->
+            dir_test_new_entry_exn absdir
+        with Unix.Unix_error _ | Not_found | End_of_file | Not_a_usable_directory ->
+          match DirHash.get dir with
+            DirRoot _ ->
+            (* Nothing else we can do, assume sensitive *)
+            true
+          | DirSub (_, name, parent) ->
+            dir_is_sensitive false parent name
+
+    (*
+    * This is the caching version of the case-sensitivity test.
+    *)
+    and dir_is_sensitive shortcircuit dir name =
+      try DirTable.find !case_table dir with
+        Not_found ->
+        let absdir = DirElt.abs_dir_name dir in
+        let sensitive =
+          if Lm_fs_case_sensitive.available then
+            try
               Lm_fs_case_sensitive.case_sensitive absdir
-            | exception Failure _ -> 
+            with
+              Failure _ ->
               dir_test_sensitivity shortcircuit dir absdir name
-            | false -> 
-              dir_test_sensitivity shortcircuit dir absdir name
-          in
-          case_table := DirTable.add !case_table dir sensitive;
-          sensitive in
-      aux true dir name 
+          else
+            dir_test_sensitivity shortcircuit dir absdir name
+        in
+        case_table := DirTable.add !case_table dir sensitive;
+        sensitive
+
     (*
     * On Unix-like OS (especially on Mac OS X), create needs to check the fs of the node's parent
     * directory for case sensitivity.
@@ -93,8 +241,8 @@ end =
       | _ ->
         (fun dir name ->
           try
-            if dir_is_sensitive dir name then name else String.lowercase name
-          with Lm_fs_case_sensitive.Already_lowercase ->
+            if dir_is_sensitive true dir name then name else String.lowercase name
+          with Already_lowercase ->
             name)
 
     let compare = Lm_string_util.string_compare
@@ -112,6 +260,7 @@ end =
         raise Omake_marshal.MarshalError
   end
 
+(** Directories. *)
 
 (*
  * Internally, we represent pathnames as absolute paths.
@@ -124,7 +273,7 @@ end =
 and DirElt :
   sig
     type t =
-      | DirRoot of Lm_filename_util.root
+        DirRoot of Lm_filename_util.root
       | DirSub of FileCase.t * string * DirHash.t
 
     val abs_dir_name: DirHash.t -> string
@@ -132,7 +281,7 @@ and DirElt :
 =
 struct
   type t =
-    | DirRoot of Lm_filename_util.root
+      DirRoot of Lm_filename_util.root
     | DirSub of FileCase.t * string * t Lm_hash.hash_marshal_eq_item
 
   let abs_dir_name =
@@ -158,8 +307,12 @@ struct
 end
 (* %%MAGICEND%% *)
 
+(*
+ * Sets and tables.
+ *)
 and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
   struct
+    (* open DirElt *)
     type t = DirElt.t
 
     let debug = "Dir"

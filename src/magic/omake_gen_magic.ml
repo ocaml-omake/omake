@@ -9,206 +9,40 @@ type mode =
   | OmoFiles
   | NoFiles
 
-let mode        = ref NoFiles
-let make_magic  = ref false
-let make_root   = ref None
-let output_file = ref None
-let cache_files = ref []
-let omc_files   = ref []
-let omo_files   = ref []
-let libdir      = ref None
-let version_txt = ref "version.txt"
-let default_save_interval = ref 15.0
-
-let anon s =
-   let p =
-      match !mode with
-         CacheFiles ->
-            cache_files
-       | OmcFiles ->
-            omc_files
-       | OmoFiles ->
-            omo_files
-       | NoFiles ->
-            Printf.eprintf "You specified an anonymous file.  Use --help for help.";
-            exit 3
-   in
-      p := s :: !p
-
-let spec =
-   ["--magic",       Arg.Set make_magic, "generate the omake_magic.ml file";
-    "--lib",         Arg.String (fun s -> libdir := Some s), "specify the location of the library directory";
-    "--root",        Arg.String (fun s -> make_root := Some s),  "generate the OMakeroot file";
-    "--cache-files", Arg.Unit (fun () -> mode := CacheFiles), "specify the magic files for the cache magic number";
-    "--omc-files",   Arg.Unit (fun () -> mode := OmcFiles), "specify the files to scan for the IR magic number";
-    "--omo-files",   Arg.Unit (fun () -> mode := OmoFiles), "specify the files to scan for the object magic number";
-    "--version",     Arg.String (fun s -> version_txt := s), "specify the version.txt file";
-    "--default_save_interval", 
-         Arg.Float (fun f -> default_save_interval := f), "specify the default .omakedb save interval";
-    "-o",            Arg.String (fun s -> output_file := Some s), "set the output file"]
-
-let usage = "Generate special files"
-
-(************************************************************************
- * Version numbers.
- *)
-
-(*
- * Get the version from the version.txt file.
- *)
+(* Get the version from the version.txt file. *)
 let read_version_from_file inx =
    let line = Lm_string_util.trim (input_line inx) in
-      if line = "" then
-         raise End_of_file;
-      line
+   if line = "" then raise End_of_file;
+   line
 
-let read_version () =
-   let file = !version_txt in
-   let inx = open_in file in
-   let version =
-      try read_version_from_file inx with
-         End_of_file ->
-            Printf.eprintf "The %s file does not contain a version number\n" file;
-            flush stderr;
-            exit 1
-   in
-      close_in inx;
-      if Lm_string_util.contains_any version "()$\" " then
-         version
-      else if (String.contains version '-') then
-         let dash = String.index version '-' in
-         let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
-            if String.length release > 4 && String.sub release 0 4 = "0.rc" then
-               let release = String.sub release 4 ((String.length release) - 4) in
-                  Printf.sprintf "%s (release candidate %s)" (String.sub version 0 dash) release
-            else
-               Printf.sprintf "%s (release %s)" (String.sub version 0 dash) release
-      else
-         version ^ " (development snapshot)"
 
-(************************************************************************
- * File copying.
- *)
 
-(*
- * Copy a file from input to output.
- *)
-let copy_file buf inx =
-   let rec copy () =
-      let line = input_line inx in
-         output_string buf line;
-         output_char buf '\n';
-         copy ()
-   in
-      try copy () with
-         End_of_file ->
-            ()
 
-(************************************************************************
- * Magic numbers.
- *)
 
-type magic =
-   MagicBegin
- | MagicEnd
- | MagicNone
+let read_version version_txt : string =
+  let file = version_txt in
+  let inx = open_in file in
+  let version =
+    try read_version_from_file inx with
+      End_of_file ->
+      Printf.eprintf "The %s file does not contain a version number\n" file;
+      flush stderr;
+      exit 1
+  in
+  close_in inx;
+  if Lm_string_util.contains_any version "()$\" " then
+    version
+  else if String.contains version '-' then
+    let dash = String.index version '-' in
+    let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
+    if String.length release > 4 && String.sub release 0 4 = "0.rc" then
+      let release = String.sub release 4 ((String.length release) - 4) in
+      Printf.sprintf "%s (release candidate %s)" (String.sub version 0 dash) release
+    else
+      Printf.sprintf "%s (release %s)" (String.sub version 0 dash) release
+  else
+    version ^ " (development snapshot)"
 
-type magic_mode =
-   MagicIdle
- | MagicStart
- | MagicScanning
-
-(*
- * Figure out if the line is a magic directive.
- *)
-let buf = Buffer.create 200
-
-let magic_line_type line =
-   let len = String.length line in
-   let rec loop mode i =
-      if i <> len then
-         let c = line.[i] in
-            if c = '%' then
-               match mode with
-                  MagicIdle ->
-                     loop MagicStart (succ i)
-                | MagicStart ->
-                     loop MagicScanning (succ i)
-                | MagicScanning ->
-                     ()
-            else begin
-               if mode = MagicScanning then
-                  Buffer.add_char buf c;
-               loop mode (succ i)
-            end
-   in
-   let () = loop MagicIdle 0 in
-   let code = Buffer.contents buf in
-      Buffer.clear buf;
-      match code with
-         "MAGICBEGIN" ->
-            MagicBegin
-       | "MAGICEND" ->
-            MagicEnd
-       | _ ->
-            MagicNone
-
-(*
- * Copy magic data from some files.
- *)
-let copy_magic_file outx filename =
-   let inx =
-      try open_in filename with
-         Sys_error _ ->
-            Printf.eprintf "Can't open %s\n" filename;
-            flush stderr;
-            exit 1
-   in
-   let rec copy magic_flag =
-      let line = input_line inx in
-         match magic_line_type line with
-            MagicBegin ->
-               copy true
-          | MagicEnd ->
-               copy false
-          | MagicNone ->
-               if magic_flag then begin
-                  output_string outx line;
-                  output_char outx '\n'
-               end;
-               copy magic_flag
-   in
-      try copy false with
-         End_of_file ->
-            close_in inx
-
-let digest_files filename code filenames =
-   let outx =
-      try open_out_bin filename with
-         Sys_error _ ->
-            Printf.eprintf "Can't open temporary_file %s\n" filename;
-            flush stderr;
-            exit 2
-   in
-   let digest =
-      List.iter (copy_magic_file outx) filenames;
-      close_out outx;
-      Digest.file filename
-   in
-      String.escaped (code ^ digest)
-
-(************************************************************************
- * omake_magic.ml file.
- *)
-
-(*
- * Save the date in the version string.
- *)
-let wday_names =
-   [|"Sun"; "Mon"; "Tue"; "Wed"; "Thu"; "Fri"; "Sat"|]
-
-let mon_names =
-   [|"Jan"; "Feb"; "Mar"; "Apr"; "May"; "Jun"; "Jul"; "Aug"; "Sep"; "Oct"; "Nov"; "Dec"|]
 
 let digest_len = 4 + String.length (Digest.string "hello world")
 
@@ -218,24 +52,95 @@ let shorten_version s =
    else
       s
 
-let omake_magic buf : unit =
-   let libdir = 
-      match !libdir with 
-         Some s -> Filename.concat s "omake"
-       | None -> Filename.concat (Filename.dirname (Unix.getcwd ())) "lib"
-   in
-   let version = read_version () in
-   match Unix.(localtime (time ())) with
-     {tm_year = year;
-         tm_mon = mon;
-         tm_mday = mday;
-         tm_wday = wday;
-         tm_hour = hour;
-         tm_min = min;
-         tm_sec = sec;
-         _
-       } -> 
-     Printf.fprintf buf {|
+
+
+
+(* Figure out if the line is a magic directive. *)
+(* 
+{[
+magic_line_type "(\* %%MAGICEND%% *\)";; 
+`END
+magic_line_type "(* %%MAGICBEGIN%% *)";;
+`Begin
+]}
+*)
+let magic_line_type line  =
+  let gbuf = Buffer.create 200  in
+  let len = String.length line in
+  let rec loop mode i =
+    if i <> len then
+      let c = line.[i] in
+      if c = '%' then
+        match mode with
+        | `Idle ->
+          loop `Start (i+1)
+        | `Start ->
+          loop `Scanning (i+1)
+        | `Scanning -> ()
+      else begin
+        if mode = `Scanning then
+          Buffer.add_char gbuf c;
+        loop mode (i+1)
+      end
+  in
+  let () = loop `Idle 0 in
+  let code = Buffer.contents gbuf in
+  Buffer.clear gbuf;
+  begin match code with
+    | "MAGICBEGIN" -> `Begin
+    | "MAGICEND" -> `End
+    | _ -> `None
+  end
+
+let copy_magic_file outx inp : unit =
+  let rec copy inx magic_flag =
+    let line = input_line inx in
+    match magic_line_type line with
+    | `Begin ->
+      copy inx true
+    | `End ->
+      copy inx false
+    | `None ->
+      if magic_flag then
+        begin
+          output_string outx line;
+          output_char outx '\n'
+        end;
+      copy inx magic_flag in
+  match open_in inp with 
+  | exception  Sys_error _ ->
+    Printf.eprintf "Can't open %s\n" inp;
+    flush stderr;
+    exit 1
+  | inx -> 
+    try copy inx false with End_of_file -> close_in inx
+
+    
+let omake_magic (buf : out_channel) 
+    version_txt
+    default_save_interval
+    libdir
+    cache_files
+    omc_files
+    omo_files
+  : unit =
+
+  let digest_files filename code filenames =
+    match open_out_bin filename with
+    | exception Sys_error _ ->
+      Printf.eprintf "Can't open temporary_file %s\n" filename;
+      flush stderr;
+      exit 2
+    | outx ->
+      let digest =
+        List.iter (copy_magic_file outx) filenames;
+        close_out outx;
+        Digest.file filename
+      in
+      String.escaped (code ^ digest) in
+  let version = read_version version_txt in
+  let tm =  Unix.(localtime (time ())) in 
+  Printf.fprintf buf {|
 let default_save_interval = %F
 let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s
 let output_magic = output_string
@@ -246,30 +151,36 @@ let lib_dir = "%s"
 let version = "%s"
 let version_message = "OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s"
 |}
-       !default_save_interval
+       default_save_interval
        digest_len
        digest_len
-       (digest_files ".cache.magic" ".odb" !cache_files)
-       (digest_files ".omc.magic" ".omc" !omc_files)
-       (digest_files ".omo.magic" ".omo" !omo_files)
+       (digest_files ".cache.magic" ".odb" cache_files)
+       (digest_files ".omc.magic" ".omc" omc_files)
+       (digest_files ".omo.magic" ".omo" omo_files)
        (String.escaped libdir)
        (String.escaped (shorten_version version))
        (String.escaped version)
-       wday_names.(wday)
-       mon_names.(mon)
-       mday
-       hour
-       min
-       sec
-       (year + 1900)
+       [|"Sun"; "Mon"; "Tue"; "Wed"; "Thu"; "Fri"; "Sat"|].(tm.tm_wday)
+       [|"Jan"; "Feb"; "Mar"; "Apr"; "May"; "Jun"; "Jul"; "Aug"; "Sep"; "Oct"; "Nov"; "Dec"|].(tm.tm_mon)
+       tm.tm_mday
+       tm.tm_hour
+       tm.tm_min
+       tm.tm_sec
+       (tm.tm_year + 1900)
        (String.escaped (Unix.gethostname ()));
      flush buf
 
-(************************************************************************
- * OMakeroot file.
- *)
-let omake_root buf name =
-   let version = shorten_version (read_version ()) in
+let omake_root buf version_txt name =
+  (* Copy a file from input to output. *)
+  let copy_file buf inx =
+    let rec copy () =
+      let line = input_line inx in
+      output_string buf line;
+      output_char buf '\n';
+      copy () in
+    try copy () with End_of_file -> () in
+
+   let version = shorten_version (read_version version_txt) in
    let version =
       if Lm_string_util.contains_any version "()$\" " then
          Printf.sprintf "$'''%s'''" version
@@ -277,11 +188,58 @@ let omake_root buf name =
          version
    in
    let inx = open_in name in
-      Printf.fprintf buf "#\n# Required version of omake\n#\nOMakeVersion(%s, %s)\n\n" version version;
-      copy_file buf inx;
-      Printf.fprintf buf "\n";
-      close_out buf;
-      close_in inx
+   Printf.fprintf buf "#\n# Required version of omake\n#\nOMakeVersion(%s, %s)\n\n" version version;
+   copy_file buf inx;
+   Printf.fprintf buf "\n";
+   close_out buf;
+   close_in inx
+
+
+
+
+
+
+let libdir      = ref None
+let version_txt = ref "version.txt"
+let mode        = ref NoFiles
+let make_magic  = ref false
+let make_root   = ref None
+let output_file = ref None
+let cache_files = ref []
+let omc_files   = ref []
+let omo_files   = ref []
+let default_save_interval = ref 15.0 
+
+
+
+let anon s =
+  let p =
+    match !mode with
+    | CacheFiles -> cache_files
+    | OmcFiles -> omc_files
+    | OmoFiles -> omo_files
+    | NoFiles ->
+      Printf.eprintf "You specified an anonymous file.  Use --help for help.";
+      exit 3 in
+  p := s :: !p
+
+let spec : (string * Arg.spec * string) list =
+   ["--magic", Set make_magic, "generate the omake_magic.ml file";
+    
+    "--cache-files", Unit (fun () -> mode := CacheFiles), "specify the magic files for the cache magic number";
+    "--omc-files", Unit (fun () -> mode := OmcFiles), "specify the files to scan for the IR magic number";
+    "--omo-files", Unit (fun () -> mode := OmoFiles), "specify the files to scan for the object magic number";
+    "--version", String (fun s -> version_txt := s), "specify the version.txt file";
+  
+    "-o",String (fun s -> output_file := Some s), "set the output file";
+    "--lib", String (fun s -> libdir := Some s), "specify the location of the library directory";
+    "--root", String (fun s -> make_root := Some s),  "generate the OMakeroot file";
+    "--default_save_interval",
+    Float (fun f -> default_save_interval := f), "specify the default .omakedb save interval";
+   ]
+
+let usage = "Generate special files"
+
 
 (************************************************************************
  * Main function.
@@ -290,17 +248,23 @@ let main () =
   Arg.parse spec anon usage;
   let buf =
     match !output_file with
-      Some name ->
+    | Some name ->
       open_out_bin name
     | None ->
       raise (Invalid_argument "use the -o option to specify an output file")
   in
+  let libdir = 
+    match !libdir with 
+    | Some s -> Filename.concat s "omake"
+    | None -> Filename.concat (Filename.dirname (Unix.getcwd ())) "lib"
+  in
+
   if !make_magic then
-    omake_magic buf
+    omake_magic buf !version_txt !default_save_interval libdir !cache_files !omc_files !omo_files
   else
     match !make_root with
     | Some name ->
-      omake_root buf name
+      omake_root  buf !version_txt name
     | None ->
       Arg.usage spec usage;
       exit 2
