@@ -497,6 +497,11 @@ if you really want to build this file.
             %$(EXT_OBJ) %.cmi %.cmx: %.ml :scanner: scan-ocaml-%.ml
                 $(OCamlOpt) -c $<
 
+# This is an experimental rule
+%.i.mli: %.ml
+    section rule
+	%.i.mli: %.ml %.cmi  :scanner: scan-ocaml-%.ml
+		$(OCamlC) -i -c %.ml > $@
 %.cmo: %.ml
     section rule
         if $(not $(BYTE_ENABLED))
