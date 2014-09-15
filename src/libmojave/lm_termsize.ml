@@ -1,27 +1,3 @@
-(*
- * Extra terminal commands.
- *
- * ----------------------------------------------------------------
- *
- * Copyright (C) 2000-2006 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- * Author: Jason Hickey <jyh@cs.caltech.edu>
- * Modified by: Aleksey Nogin <nogin@cs.cornell.edu>
- *)
 open Unix
 open Lm_debug
 open! Lm_printf
@@ -56,12 +32,6 @@ let stdout_width = term_width_fd Unix.stdout 80
 let stderr_width = term_width_fd Unix.stderr 80
 
 let () =
-   if stdout_width <> 80 then pp_set_margin stdout stdout_width;
-   if stderr_width <> 80 then pp_set_margin stderr stderr_width
+   if stdout_width <> 80 then pp_set_margin std_formatter stdout_width;
+   if stderr_width <> 80 then pp_set_margin err_formatter stderr_width
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

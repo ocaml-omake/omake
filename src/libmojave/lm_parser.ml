@@ -1,34 +1,3 @@
-(*
- * Generic parser generator.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
- *)
 open Lm_debug
 open Lm_hash
 open! Lm_printf
@@ -131,7 +100,7 @@ sig
    val create_prec_gt : t -> precedence -> assoc  -> t * precedence
 
    (* Print a precedence *)
-   val pp_print_prec  : t -> out_channel -> precedence -> unit
+   val pp_print_prec  : t -> precedence Lm_printf.t 
 
    (* Comparison *)
    val add_assoc      : t -> precedence -> assoc -> t
@@ -157,7 +126,7 @@ sig
 
    (* For debugging *)
    val to_string : symbol -> string
-   val pp_print_symbol : out_channel -> symbol -> unit
+   val pp_print_symbol : symbol Lm_printf.t 
 
    (* Sets and tables *)
    val hash_symbol : symbol -> int
@@ -167,7 +136,7 @@ sig
    type action
 
    (* For debugging *)
-   val pp_print_action : out_channel -> action -> unit
+   val pp_print_action : action Lm_printf.t
 
    (* For set and table building *)
    val hash_action : action -> int
@@ -2170,7 +2139,7 @@ struct
    let parse_error loc hash run _stack state (v : ivar) =
       let { pda_info = { pda_items = items; pda_next = next;_ }; _ } = run.run_states.(state) in
       let pp_print_ivar = pp_print_ivar hash in
-      let buf = stdstr in
+      let buf = str_formatter in
          fprintf buf "@[<v 0>Syntax error on token %a" pp_print_ivar v;
          fprintf buf "@ @[<v 3>Current state:";
          List.iter (fun item ->
@@ -2186,7 +2155,7 @@ struct
          fprintf buf "@ @[<b 3>The next possible tokens are:";
          IVarSet.iter (fun v -> fprintf buf "@ %a" pp_print_ivar v) next;
          fprintf buf "@]@]";
-         raise (ParseError (loc, flush_stdstr ()))
+         raise (ParseError (loc, Format.flush_str_formatter ()))
 
    (*
     * Execution.

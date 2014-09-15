@@ -5,29 +5,11 @@
  * Type t of buffers.
  *)
 type 'a t = Format.formatter -> 'a  -> unit
-type out_channel = Format.formatter
 
-(*
- * Normal buffers.
- *)
-val stdout : Format.formatter
-val stderr : Format.formatter
-val stdstr : Format.formatter
 
-(*
- * Get the string from the stdstr channel.
- *)
-val flush_stdstr : unit -> string
-
-(*
- * Open new channels.
- *)
 val open_out     : string -> Format.formatter
 val open_out_bin : string -> Format.formatter
 
-(*
- * Simple printing.
- *)
 val output_char    : char t 
 val output_string  : string t 
 
@@ -136,12 +118,6 @@ val set_formatter_out_channel      : Pervasives.out_channel -> unit
 val set_formatter_output_functions : (string -> int -> int -> unit) -> (unit -> unit) -> unit
 val get_formatter_output_functions : unit -> (string -> int -> int -> unit) * (unit -> unit)
 
-val set_all_formatter_output_functions :
-   (string -> int -> int -> unit) ->
-   (unit -> unit) ->
-   (unit -> unit) ->
-   (int -> unit) ->
-   unit
 
 val get_all_formatter_output_functions :
    unit ->
@@ -203,16 +179,6 @@ val pp_set_formatter_out_channel : formatter -> Pervasives.out_channel -> unit
 val pp_set_formatter_output_functions :
    formatter -> (string -> int -> int -> unit) -> (unit -> unit) -> unit
 
-val pp_get_formatter_output_functions :
-   formatter -> unit -> (string -> int -> int -> unit) * (unit -> unit)
-
-val pp_set_all_formatter_output_functions :
-   formatter ->
-   (string -> int -> int -> unit) ->
-   (unit -> unit) ->
-   (unit -> unit) ->
-   (int -> unit) ->
-   unit
 
 val pp_get_all_formatter_output_functions :
    formatter ->
@@ -222,21 +188,6 @@ val pp_get_all_formatter_output_functions :
    (unit -> unit) *
    (int -> unit)
 
-(*
- * Allow the use of the Format modules.
- *)
-val out_channel_of_formatter : Format.formatter -> Format.formatter
-
-(************************************************************************
- * Helper utilities.
- *)
-
 (* Prints a "; "- separated list. *)
 val pp_print_any_list : (formatter -> 'a -> unit) -> formatter -> 'a list -> unit
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

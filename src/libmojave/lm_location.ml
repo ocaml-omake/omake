@@ -78,5 +78,5 @@ let pp_print_location buf (file, start_line, start_char, end_line, end_char) =
       Format.fprintf buf "lines %d:%d-%d:%d" start_line start_char end_line end_char
 
 let string_of_location loc =
-   pp_print_location Lm_printf.stdstr loc;
-   Lm_printf.flush_stdstr ()
+   pp_print_location Format.str_formatter loc;
+   Format.flush_str_formatter ()

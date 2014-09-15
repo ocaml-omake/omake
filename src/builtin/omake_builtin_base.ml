@@ -478,12 +478,12 @@ type try_exp =
  *)
 let object_of_omake_exception venv pos exp =
    let pos =
-      pp_print_pos Lm_printf.stdstr pos;
-      Lm_printf.flush_stdstr ()
+      pp_print_pos Format.str_formatter pos;
+      Format.flush_str_formatter ()
    in
    let exp =
-      Omake_pos.pp_print_exn Lm_printf.stdstr exp;
-      Lm_printf.flush_stdstr ()
+      Omake_pos.pp_print_exn Format.str_formatter exp;
+      Format.flush_str_formatter ()
    in
    let obj = Omake_env.venv_find_object_or_empty venv Omake_var.runtime_exception_var in
    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in
@@ -497,8 +497,8 @@ let object_of_omake_exception venv pos exp =
  *)
 let object_of_uncaught_exception venv pos exn =
    let pos =
-      pp_print_pos Lm_printf.stdstr pos;
-      Lm_printf.flush_stdstr ()
+      pp_print_pos Format.str_formatter pos;
+      Format.flush_str_formatter ()
    in
    let obj = Omake_env.venv_find_object_or_empty venv Omake_var.runtime_exception_var in
    let obj = Omake_env.venv_add_field_internal obj Omake_symbol.pos_sym (ValString pos) in

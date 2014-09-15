@@ -1528,8 +1528,8 @@ let printv_aux venv pos loc nl args =
     let outp, close_flag = Omake_value.out_channel_of_any_value venv pos fd in
     let outx = Omake_env.venv_find_channel venv pos outp in
     let s =
-      Omake_value_print.pp_print_value Lm_printf.stdstr s;
-      Lm_printf.flush_stdstr ()
+      Omake_value_print.pp_print_value Format.str_formatter s;
+      Format.flush_str_formatter ()
     in
     Lm_channel.output_string outx s;
     Lm_channel.output_string outx nl;
@@ -1736,7 +1736,7 @@ struct
 
   let print_value info v =
     flush info;
-    Omake_value_print.pp_print_value (Lm_printf.out_channel_of_formatter info.print_fmt) v
+    Omake_value_print.pp_print_value info.print_fmt v
 
   (*
     * Applications.
