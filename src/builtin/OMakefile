@@ -14,6 +14,7 @@ FILES[] =
     omake_builtin_arith
     omake_builtin_file
     omake_builtin_fun
+    omake_printf
     omake_builtin_io
     omake_builtin_io_fun
     omake_builtin_sys

@@ -3,7 +3,6 @@
 #
 OCAMLINCLUDES[] +=
     ../libmojave
-    ../util
     ../magic
     ../ast
     ../ir
@@ -31,7 +30,6 @@ FILES[] =
 
 OCAML_LIBS[] =
     ../libmojave/lm
-    ../util/util
     ../magic/magic
     ../ast/ast
     ../ir/ir

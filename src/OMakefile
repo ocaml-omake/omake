@@ -20,7 +20,7 @@ LocalOCamlGeneratedFiles(files) =
 #
 # Subdirectories
 #
-.SUBDIRS: clib libmojave util magic
+.SUBDIRS: clib libmojave  magic
 
 LocalOCamlGeneratedFiles(magic/omake_magic.ml)
 
@@ -36,7 +36,6 @@ LocalOCamlGeneratedFiles(env/omake_ast_lex.ml env/omake_ast_parse.mly env/omake_
 MakeRootMakefiles([...])
     clib
     libmojave
-    util
     magic
     ir
     exec
