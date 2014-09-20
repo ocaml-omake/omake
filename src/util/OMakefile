@@ -2,7 +2,6 @@ OCAMLINCLUDES[] +=
     ../libmojave
 
 FILES[] =
-    fmarshal
     ocaml_patch
     omake_printf
     omake_marshal

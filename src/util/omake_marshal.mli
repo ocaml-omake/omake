@@ -1,3 +1,13 @@
+type 'a item =
+  | Bool of bool
+  | Char of char
+  | Code of int
+  | Symbol of int
+  | Int of int
+  | Magic of 'a
+  | Float of float
+  | String of string
+  | List of 'a item list
 
 
 type magic 
@@ -34,18 +44,18 @@ type magic
 
 
 
-type msg = magic Fmarshal.item
+type msg = magic item
 
 exception MarshalError
 
 val marshal_string_list :
-  string list -> 'a Fmarshal.item
+  string list -> 'a item
 val unmarshal_string_list :
-  'a Fmarshal.item -> string list
+  'a item -> string list
 
 val marshal_loc :
   Lm_location.loc ->
-  magic Fmarshal.item
+  magic item
 val unmarshal_loc :
-  magic Fmarshal.item ->
+  magic item ->
   Lm_location.loc

@@ -251,11 +251,12 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
 
     let add_filename_string = Buffer.add_string
 
-    let marshal s =
-      Fmarshal.String s
+    let marshal (s : string) : Omake_marshal.msg  =
+      String s
 
-    let unmarshal = function
-      | Fmarshal.String s -> s
+    let unmarshal (u : Omake_marshal.msg) : string =
+      match u with 
+      | String s -> s
       | _ ->
         raise Omake_marshal.MarshalError
   end
@@ -1202,14 +1203,14 @@ struct
   (*
     * Marshaling.
     *)
-  let marshal_root (root : Lm_filename_util.root) :  Omake_marshal.magic Fmarshal.item=
+  let marshal_root (root : Lm_filename_util.root) :  Omake_marshal.msg =
     match root with
     | NullRoot ->
       Magic NullRootMagic
     | DriveRoot c ->
       List [Magic DriveRootMagic; Char c]
 
-  let unmarshal_root (l : Omake_marshal.magic Fmarshal.item)  =
+  let unmarshal_root (l : Omake_marshal.msg)  =
     match l with
     | Magic NullRootMagic ->
       Lm_filename_util.NullRoot
@@ -1218,17 +1219,17 @@ struct
     | _ ->
       raise Omake_marshal.MarshalError
 
-  let rec marshal dir =
+  let rec marshal (dir : DirHash.t) : Omake_marshal.msg =
     match DirHash.get dir with
       DirRoot root ->
-      Fmarshal.List [Magic Omake_marshal.DirRootMagic; marshal_root root]
+      List [Magic Omake_marshal.DirRootMagic; marshal_root root]
     | DirSub (key, name, parent) ->
       List [Magic DirSubMagic; FileCase.marshal key; String name; marshal parent]
 
-  let rec unmarshal l : DirHash.t =
+  let rec unmarshal (l : Omake_marshal.msg) : DirHash.t =
     let dir : DirElt.t =
       match l with
-      | Fmarshal.List [Magic Omake_marshal.DirRootMagic; root] ->
+      | List [Magic Omake_marshal.DirRootMagic; root] ->
         DirRoot (unmarshal_root root)
       | List [Magic DirSubMagic; key; String name; parent] ->
         DirSub (FileCase.unmarshal key, name, unmarshal parent)
@@ -1514,9 +1515,9 @@ struct
    (*
     * Flags.
     *)
-   let marshal_flag = function
+   let marshal_flag  : node_flag -> Omake_marshal.msg = function
       NodeIsOptional ->
-         Fmarshal.Magic Omake_marshal.NodeIsOptionalMagic
+         Magic Omake_marshal.NodeIsOptionalMagic
     | NodeIsExisting ->
          Magic NodeIsExistingMagic
     | NodeIsSquashed ->
@@ -1524,9 +1525,9 @@ struct
     | NodeIsScanner ->
          Magic NodeIsScannerMagic
 
-  let unmarshal_flag flag =
+  let unmarshal_flag (flag : Omake_marshal.msg) : node_flag =
     match flag with
-    | Fmarshal.Magic Omake_marshal.NodeIsOptionalMagic ->
+    | Magic NodeIsOptionalMagic ->
       NodeIsOptional
     | Magic NodeIsExistingMagic ->
       NodeIsExisting
@@ -1540,10 +1541,10 @@ struct
    (*
     * Marshaling.
     *)
-  let rec marshal node =
+  let rec marshal node : Omake_marshal.msg =
     match NodeHash.get node with
     | NodeFile (dir, name1, name2) ->
-      Fmarshal.List [Magic Omake_marshal.NodeFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
+      List [Magic NodeFileMagic; Dir.marshal dir; FileCase.marshal name1; String name2]
     | NodePhonyGlobal s ->
       List [Magic NodePhonyGlobalMagic; String s]
     | NodePhonyDir (dir, name1, name2) ->
@@ -1553,10 +1554,10 @@ struct
     | NodeFlagged (flag, node) ->
       List [Magic NodeFlaggedMagic; marshal_flag flag; marshal node]
 
-  let rec unmarshal l =
+  let rec unmarshal (l : Omake_marshal.msg) =
     let node =
       match l with
-      | Fmarshal.List [Magic Omake_marshal.NodeFileMagic; dir; name1; String name2] ->
+      | List [Magic Omake_marshal.NodeFileMagic; dir; name1; String name2] ->
         NodeFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
       | List [Magic NodePhonyGlobalMagic; String s] ->
         NodePhonyGlobal s
