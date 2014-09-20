@@ -368,6 +368,9 @@ SRC_util = ..$(slash)src$(slash)util
 fmarshal.ml: $(SRC_util)$(slash)fmarshal.ml
 	$(LN) $(SRC_util)$(slash)fmarshal.ml fmarshal.ml
 
+fmarshal.mli: $(SRC_util)$(slash)fmarshal.mli
+	$(LN) $(SRC_util)$(slash)fmarshal.mli fmarshal.mli
+
 ocaml_patch.mli: $(SRC_util)$(slash)ocaml_patch.mli
 	$(LN) $(SRC_util)$(slash)ocaml_patch.mli ocaml_patch.mli
 
@@ -386,7 +389,7 @@ omake_printf.ml: $(SRC_util)$(slash)omake_printf.ml
 omake_printf.mli: $(SRC_util)$(slash)omake_printf.mli
 	$(LN) $(SRC_util)$(slash)omake_printf.mli omake_printf.mli
 
-ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_marshal.mli omake_printf.ml omake_printf.mli ocaml_patch.ml
+ALLFILES_util = fmarshal.ml fmarshal.mli ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_marshal.mli omake_printf.ml omake_printf.mli ocaml_patch.ml
 
 
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo
