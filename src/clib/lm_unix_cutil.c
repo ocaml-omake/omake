@@ -1,34 +1,5 @@
-/*
- * System info.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
- * @end[license]
- */
+
+#include <string.h>
 #include <stdio.h>
 #include <caml/signals.h>
 #include <caml/mlvalues.h>
@@ -53,6 +24,28 @@
 
 #define FLOCK_LEN       ((unsigned int) ~0 >> 2)
 
+CAMLprim value 
+caml_eff_string_compare(value s1, value s2)
+{
+  mlsize_t len1, len2;
+  int res;
+
+  if (s1 == s2) return Val_int(0);
+  len1 = caml_string_length(s1);
+  len2 = caml_string_length(s2);
+  if(len1 == len2)
+  {
+    return memcmp(String_val(s1), String_val(s2), len1);
+  }
+  else if(len1 > len2)
+  {
+    return Val_int(1);
+  }
+  else 
+  {
+    return Val_int(-1);
+  }
+}
 /*
  * Print the stack pointer for debugging.
  */
