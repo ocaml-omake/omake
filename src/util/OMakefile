@@ -2,37 +2,14 @@ OCAMLINCLUDES[] +=
     ../libmojave
 
 FILES[] =
-    ocaml_patch
     omake_printf
-    omake_marshal
-    omake_handle_table
-
-#
-# Patch file is generated
-#
-GENERATED_FILES[] =
-    ocaml_patch.ml
-
-PATCH_FILE = $(if $(equal $(OSTYPE), Win32), ocaml_patch_win32.ml, ocaml_patch_unix.ml)
-
-ocaml_patch.ml: $(PATCH_FILE)
-    ln-or-cp $< $@
 
 clean:
-    $(CLEAN) $(GENERATED_FILES)
+    $(CLEAN) 
 
 #
 # Library
 #
 MakeOCamlLibrary(util, $(FILES))
 
-########################################################################
-# Generate a Makefile
-#
-MAKEFILE_TEXT += $'''
-ocaml_patch.cmo: ocaml_patch.cmi
-'''
-
-MakeLinkFile(ocaml_patch.ml, ocaml_patch_$'$(win32)'.ml)
-MakeDontLink($(GENERATED_FILES))
 MakeMakefile()

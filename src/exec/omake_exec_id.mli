@@ -14,6 +14,6 @@ val create : unit -> t
 
 val pp_print_pid : t Lm_printf.t
 
-val marshal_id : t -> Omake_marshal.msg
-val unmarshal_id : Omake_marshal.msg -> t
+val marshal_id : t -> Lm_marshal.msg
+val unmarshal_id : Lm_marshal.msg -> t
 

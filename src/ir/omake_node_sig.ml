@@ -53,8 +53,8 @@ sig
    (*
     * Marshaling.
     *)
-   val marshal : t -> Omake_marshal.msg
-   val unmarshal : Omake_marshal.msg -> t
+   val marshal : t -> Lm_marshal.msg
+   val unmarshal : Lm_marshal.msg -> t
 end
 
 (*
@@ -236,8 +236,8 @@ sig
    (*
     * Marshaling.
     *)
-   val marshal : t -> Omake_marshal.msg
-   val unmarshal : Omake_marshal.msg -> t
+   val marshal : t -> Lm_marshal.msg
+   val unmarshal : Lm_marshal.msg -> t
 
    (*
     * An internal representation of a node (optimization for the set of phony nodes)

@@ -179,7 +179,7 @@ and venv_globals =
     venv_mount_info                         : Omake_node.mount_info;
 
     (* Values from handles *)
-    venv_environments                       : venv Omake_handle_table.HandleTable.t;
+    venv_environments                       : venv Lm_handle_table.HandleTable.t;
 
     (* The set of files we have ever read *)
     mutable venv_files                      : Omake_node.NodeSet.t;
@@ -276,12 +276,12 @@ type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.loc ->
   Omake_value_type.value list -> Omake_value_type.keyword_value list -> venv * Omake_value_type.value
 
 type venv_runtime =
-   { venv_channels               : Lm_channel.t Omake_handle_table.IntHandleTable.t;
+   { venv_channels               : Lm_channel.t Lm_handle_table.IntHandleTable.t;
      mutable venv_primitives     : prim_fun_data Lm_symbol.SymbolTable.t
    }
 
 let venv_runtime =
-   { venv_channels       = Omake_handle_table.IntHandleTable.create ();
+   { venv_channels       = Lm_handle_table.IntHandleTable.create ();
      venv_primitives     = Lm_symbol.SymbolTable.empty
    }
 
@@ -555,10 +555,10 @@ let rule_kind = function
  * Handles.
  *)
 let venv_add_environment venv =
-   Omake_handle_table.HandleTable.add venv.venv_inner.venv_globals.venv_environments venv
+   Lm_handle_table.HandleTable.add venv.venv_inner.venv_globals.venv_environments venv
 
 let venv_find_environment venv pos hand =
-   try Omake_handle_table.HandleTable.find venv.venv_inner.venv_globals.venv_environments hand with
+   try Lm_handle_table.HandleTable.find venv.venv_inner.venv_globals.venv_environments hand with
       Not_found ->
          let pos = string_pos "venv_find_environment" pos in
             raise (Omake_value_type.OmakeException (pos, StringError "unbound environment"))
@@ -572,17 +572,17 @@ let venv_find_environment venv pos hand =
  *)
 let venv_add_index_channel index data =
    let channels = venv_runtime.venv_channels in
-   let channel = Omake_handle_table.IntHandleTable.create_handle channels index in
+   let channel = Lm_handle_table.IntHandleTable.create_handle channels index in
       Lm_channel.set_id data index;
-      Omake_handle_table.IntHandleTable.add channels channel data;
+      Lm_handle_table.IntHandleTable.add channels channel data;
       channel
 
 let venv_add_channel _venv data =
    let channels = venv_runtime.venv_channels in
-   let channel = Omake_handle_table.IntHandleTable.new_handle channels in
-   let index = Omake_handle_table.IntHandleTable.int_of_handle channel in
+   let channel = Lm_handle_table.IntHandleTable.new_handle channels in
+   let index = Lm_handle_table.IntHandleTable.int_of_handle channel in
       Lm_channel.set_id data index;
-      Omake_handle_table.IntHandleTable.add channels channel data;
+      Lm_handle_table.IntHandleTable.add channels channel data;
       channel
 
 let add_channel file kind mode binary fd =
@@ -598,8 +598,8 @@ let venv_stderr = venv_add_index_channel 2 (add_channel "<stderr>" Lm_channel.Pi
 let venv_add_formatter_channel _venv fmt =
    let channels = venv_runtime.venv_channels in
    let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
-   let channel = Omake_handle_table.IntHandleTable.new_handle channels in
-   let index = Omake_handle_table.IntHandleTable.int_of_handle channel in
+   let channel = Lm_handle_table.IntHandleTable.new_handle channels in
+   let index = Lm_handle_table.IntHandleTable.int_of_handle channel in
    let reader _s _off _len =
       raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
    in
@@ -609,7 +609,7 @@ let venv_add_formatter_channel _venv fmt =
    in
       Lm_channel.set_id fd index;
       Lm_channel.set_io_functions fd reader writer;
-      Omake_handle_table.IntHandleTable.add channels channel fd;
+      Lm_handle_table.IntHandleTable.add channels channel fd;
       channel
 
 (*
@@ -617,10 +617,10 @@ let venv_add_formatter_channel _venv fmt =
  *)
 let venv_channel_data channel =
    (* Standard channels are always available *)
-   if Omake_handle_table.IntHandleTable.int_of_handle channel <= 2 then
-      Omake_handle_table.IntHandleTable.find_any venv_runtime.venv_channels channel
+   if Lm_handle_table.IntHandleTable.int_of_handle channel <= 2 then
+      Lm_handle_table.IntHandleTable.find_any venv_runtime.venv_channels channel
    else
-      Omake_handle_table.IntHandleTable.find venv_runtime.venv_channels channel
+      Lm_handle_table.IntHandleTable.find venv_runtime.venv_channels channel
 
 (*
  * When a channel is closed, close the buffers too.
@@ -629,7 +629,7 @@ let venv_close_channel _venv _pos channel =
    try
       let fd = venv_channel_data channel in
          Lm_channel.close fd;
-         Omake_handle_table.IntHandleTable.remove venv_runtime.venv_channels channel
+         Lm_handle_table.IntHandleTable.remove venv_runtime.venv_channels channel
    with
       Not_found ->
          (* Fail silently *)
@@ -649,12 +649,12 @@ let venv_find_channel _venv pos channel =
  *)
 let venv_find_channel_by_channel _venv pos fd =
    let index, _, _, _ = Lm_channel.info fd in
-      try Omake_handle_table.IntHandleTable.find_value venv_runtime.venv_channels index fd with
+      try Lm_handle_table.IntHandleTable.find_value venv_runtime.venv_channels index fd with
          Not_found ->
             raise (Omake_value_type.OmakeException (pos, StringError "channel is closed"))
 
 let venv_find_channel_by_id _venv pos index =
-   try Omake_handle_table.IntHandleTable.find_any_handle venv_runtime.venv_channels index with
+   try Lm_handle_table.IntHandleTable.find_any_handle venv_runtime.venv_channels index with
       Not_found ->
          raise (Omake_value_type.OmakeException (pos, StringError "channel is closed"))
 
@@ -1967,7 +1967,7 @@ let create options _dir exec cache =
       venv_exec                       = exec;
       venv_cache                      = cache;
       venv_mount_info                 = mount_info;
-      venv_environments               = Omake_handle_table.HandleTable.create ();
+      venv_environments               = Lm_handle_table.HandleTable.create ();
       venv_files                      = Omake_node.NodeSet.empty;
       venv_directories                = Omake_node.DirTable.empty;
       venv_excluded_directories       = Omake_node.DirSet.empty;

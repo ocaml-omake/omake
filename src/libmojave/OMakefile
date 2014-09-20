@@ -1,9 +1,8 @@
 
 
-########################################################################
-# These are all the files we care about
-#
+
 FILES[] =
+
     lm_printf
     lm_debug
     lm_heap
@@ -41,16 +40,11 @@ FILES[] =
     lm_fs_case_sensitive
     lm_wild
     lm_readline
-
-
+    lm_marshal
+    lm_handle_table
 MakeOCamlLibrary(lm, $(FILES))
 
 clean:
     $(CLEAN) 
 
-#
-# Generate a Makefile
-#
-# MakeLinkFile(lm_thread_pool.ml, $(EXTERNAL)/stdlib/lm_thread_pool_$'$(system)'.ml)
-# MakeLinkFile(lm_thread_core.ml, $(EXTERNAL)/stdlib/lm_thread_core_$'$(system)'.ml)
 MakeMakefile()

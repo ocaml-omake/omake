@@ -3,7 +3,7 @@
 (*
  * Various kinds of handles.
  *)
-type handle_env = Omake_handle_table.HandleTable.handle
+type handle_env = Lm_handle_table.HandleTable.handle
 
 (*
  * I/O channels.
@@ -13,7 +13,7 @@ type channel_mode = Lm_channel.mode =
  | OutChannel
  | InOutChannel
 
-type prim_channel = Omake_handle_table.IntHandleTable.handle
+type prim_channel = Lm_handle_table.IntHandleTable.handle
 
 (*
  * Possible values.

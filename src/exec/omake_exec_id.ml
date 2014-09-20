@@ -26,12 +26,12 @@ let create () =
 (*
  * Marshaling.
  *)
-let marshal_id id : Omake_marshal.msg =
+let marshal_id id : Lm_marshal.msg =
    List [Magic IdMagic; Int id]
 
-let unmarshal_id (l : Omake_marshal.msg) =
+let unmarshal_id (l : Lm_marshal.msg) =
    match l with
    |  List [Magic IdMagic; Int id] ->
        id
    | _ ->
-         raise Omake_marshal.MarshalError
+         raise Lm_marshal.MarshalError
