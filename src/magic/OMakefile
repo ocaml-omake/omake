@@ -9,6 +9,8 @@ OCAMLINCLUDES[] +=
 #
 OCAML_LIBS[] =
     ../libmojave/lm
+OCAML_CLIBS[] =
+    ../clib/clib
 
 MakeOCamlProgram(omake_gen_magic, omake_gen_magic)
 

@@ -362,8 +362,8 @@ ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo
 OCAML_LIBS_omake_gen_magic = lm.cma
 OCAML_OTHER_LIBS_omake_gen_magic = unix.cma
-OCAML_CLIBS_omake_gen_magic =
-OCAML_CCLIBS_omake_gen_magic =
+OCAML_CLIBS_omake_gen_magic = clib$(EXT_LIB)
+OCAML_CCLIBS_omake_gen_magic = -cclib clib$(EXT_LIB)
 
 omake_gen_magic$(EXE): $(CMOFILES_omake_gen_magic) $(OCAML_LIBS_omake_gen_magic) $(OCAML_CLIBS_omake_gen_magic)
 	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake_gen_magic) $(OCAML_OTHER_LIBS_omake_gen_magic) $(THREADSLIB) $(OCAML_LIBS_omake_gen_magic) $(CMOFILES_omake_gen_magic)
