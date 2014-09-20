@@ -35,6 +35,7 @@ THREADSLIB =
 	$(CC) $(CFLAGS) -I"`ocamlc -where`" -c $*.c
 
 
+OCAMLFLAGS = -w -40
 #
 # OCaml configuration
 #

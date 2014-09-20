@@ -280,6 +280,7 @@ THREADSLIB = threads.cma
 '''
 
 private.MAKEFILE_HEAD_COMMON = $'''
+OCAMLFLAGS = -w -40
 #
 # OCaml configuration
 #
