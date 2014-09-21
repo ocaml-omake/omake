@@ -132,8 +132,8 @@ let get_fun_params = List.map get_fun_param
 /*
  * Words.
  */
-%token <Lm_symbol.symbol * Lm_location.loc> TokId
-%token <Lm_symbol.symbol * Lm_location.loc> TokKey
+%token <Lm_symbol.t * Lm_location.loc> TokId
+%token <Lm_symbol.t * Lm_location.loc> TokKey
 %token <Lm_location.loc> TokCatch
 
 /*

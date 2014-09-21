@@ -7,7 +7,7 @@
  *)
 module LexerAction =
 struct
-  type action = Lm_symbol.symbol
+  type action = Lm_symbol.t
   let choose = max
   let pp_print_action = Lm_symbol.pp_print_symbol
 

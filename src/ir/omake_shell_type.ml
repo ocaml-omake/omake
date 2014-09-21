@@ -21,7 +21,7 @@ type 'arg redirect =
 
 type ('exe, 'arg_command, 'arg_other) poly_cmd =
    { cmd_loc     : Lm_location.loc;
-     cmd_env     : (Lm_symbol.symbol * 'arg_other) list;
+     cmd_env     : (Lm_symbol.t * 'arg_other) list;
      cmd_exe     : 'exe;
      cmd_argv    : 'arg_command list;
      cmd_stdin   : 'arg_other redirect;
@@ -37,8 +37,8 @@ type ('exe, 'arg_command, 'arg_other) poly_cmd =
  *)
 type ('arg_apply, 'arg_other, 'apply) poly_apply =
    { apply_loc      : Lm_location.loc;
-     apply_env      : (Lm_symbol.symbol * 'arg_other) list;
-     apply_name     : Lm_symbol.symbol;
+     apply_env      : (Lm_symbol.t * 'arg_other) list;
+     apply_name     : Lm_symbol.t;
      apply_fun      : 'apply;
      apply_args     : 'arg_apply list;
      apply_stdin    : 'arg_other redirect;

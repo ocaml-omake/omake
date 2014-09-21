@@ -36,7 +36,7 @@ type channel =
       channel_fd           : Unix.file_descr option;
       channel_kind         : kind;
       channel_mode         : mode;
-      mutable channel_file : Lm_symbol.symbol;
+      mutable channel_file : Lm_symbol.t;
 
       (* If not channel_binary, then perform win32 line-ending transformation *)
       mutable channel_binary : bool;

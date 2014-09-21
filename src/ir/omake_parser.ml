@@ -7,7 +7,7 @@ module Parser =
 struct
    module ParserArg =
    struct
-      type symbol = Lm_symbol.symbol
+      type symbol = Lm_symbol.t
 
       let to_string = Lm_symbol.to_string
       let pp_print_symbol = Lm_symbol.pp_print_symbol

@@ -112,7 +112,7 @@ and erule_info =
  *)
 and orule =
   { orule_loc      : Lm_location.loc;
-    orule_name     : Lm_symbol.symbol;
+    orule_name     : Lm_symbol.t;
     orule_pattern  : Lm_wild.in_patt;
     orule_sources  : Omake_value_type.source_core list
   }
@@ -239,7 +239,7 @@ and arg_command_line = (venv, Omake_ir.exp, arg_pipe, Omake_value_type.value) Om
 and string_command_inst = (Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_inst
 and string_command_line = (venv, Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.symbol * string) list -> Omake_value_type.value list -> int * venv * Omake_value_type.value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.t * string) list -> Omake_value_type.value list -> int * venv * Omake_value_type.value
 
 and value_cmd    = (unit, Omake_value_type.value list, Omake_value_type.value list) Omake_shell_type.poly_cmd
 and value_apply  = (Omake_value_type.value list, Omake_value_type.value list, apply) Omake_shell_type.poly_apply

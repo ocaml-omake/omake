@@ -65,7 +65,7 @@ type info =
  *)
 type session =
    { (* The current location *)
-     current_file            : Lm_symbol.symbol;
+     current_file            : Lm_symbol.t;
      mutable current_line    : int;
      mutable current_off     : int;
      mutable current_loc     : Lm_location.loc;

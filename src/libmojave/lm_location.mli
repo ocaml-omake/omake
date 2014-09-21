@@ -2,7 +2,7 @@
  * Source file locations.
  *)
 
-open Lm_symbol
+
 
 type loc
 
@@ -20,12 +20,12 @@ val bogus_loc : string -> loc
  * This is the normal way to make a location.
  *    filename, start_line, start_char, end_line, end_char
  *)
-val create_loc : symbol -> int -> int -> int -> int -> loc
+val create_loc : Lm_symbol.t -> int -> int -> int -> int -> loc
 
 (*
  * For marshaling.
  *)
-val dest_loc : loc -> symbol * int * int * int * int
+val dest_loc : loc -> Lm_symbol.t * int * int * int * int
 
 (*
  * Combine two locations.

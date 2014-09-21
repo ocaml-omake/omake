@@ -1,8 +1,4 @@
 (*
- * Debugging tools.
- *)
-
-(*
  * Info about debug variables.
  * The variables themselves are defined in the Lm_debug module.
  *)

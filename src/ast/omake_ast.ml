@@ -1,5 +1,5 @@
 (* Abstract syntax of OMakefiles. *)
-type var = Lm_symbol.symbol
+type var = Lm_symbol.t
 
 (*
  * Shell flags indicating whether a body needs to be read.
@@ -64,7 +64,7 @@ type exp =
   | BodyExp         of exp list * Lm_location.loc
   | ShellExp        of exp * Lm_location.loc
   | CatchExp        of var * var * exp list * Lm_location.loc
-  | ClassExp        of Lm_symbol.symbol list * Lm_location.loc
+  | ClassExp        of Lm_symbol.t list * Lm_location.loc
   | KeyExp          of apply_strategy * string * Lm_location.loc
   | KeyDefExp       of string * define_kind * define_flag * exp * Lm_location.loc
   | KeyDefBodyExp   of string * define_kind * define_flag * exp list * Lm_location.loc

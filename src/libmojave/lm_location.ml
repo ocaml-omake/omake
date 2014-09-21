@@ -11,7 +11,7 @@
  *    filename, start_line, start_char, end_line, end_char
  *)
 (* %%MAGICBEGIN%% *)
-type loc = Lm_symbol.symbol * int * int * int * int
+type loc = Lm_symbol.t * int * int * int * int
 (* %%MAGICEND%% *)
 
 (*

@@ -12,7 +12,7 @@ val sort :
   Omake_build_type.env -> 
   Omake_env.venv ->
   Omake_value_type.pos ->
-  Lm_symbol.symbol ->
+  Lm_symbol.t ->
   Omake_node.Node.t list ->
   Omake_node.Node.t list
 
@@ -20,6 +20,6 @@ val check_sort :
   Omake_build_type.env ->
   Omake_env.venv ->
   Omake_value_type.pos ->
-  Lm_symbol.symbol ->
+  Lm_symbol.t ->
   Omake_node.Node.t list -> unit
 

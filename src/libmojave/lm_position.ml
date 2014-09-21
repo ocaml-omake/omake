@@ -33,7 +33,7 @@ and 'a exn_loc =
   | DebugPos     of 'a pos * 'a pos
   | DebugInt     of int * 'a pos
   | DebugString  of string * 'a pos
-  | DebugSymbol  of Lm_symbol.symbol * 'a pos
+  | DebugSymbol  of Lm_symbol.t * 'a pos
   | DebugDel     of (Format.formatter -> unit) * Lm_location.loc
   | DebugDelExp  of (Format.formatter -> unit) * 'a pos
     (* %%MAGICEND%% *)
@@ -57,7 +57,7 @@ sig
   val pos_pos     : t pos -> t pos -> t pos
   val int_pos     : int -> t pos -> t pos
   val string_pos  : string -> t pos -> t pos
-  val symbol_pos  : Lm_symbol.symbol -> t pos -> t pos
+  val symbol_pos  : Lm_symbol.t -> t pos -> t pos
   val del_pos     : (Format.formatter -> unit) -> Lm_location.loc -> t pos
   val del_exp_pos : (Format.formatter -> unit) -> t pos -> t pos
 

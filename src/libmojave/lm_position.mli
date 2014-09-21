@@ -26,7 +26,7 @@ sig
   val pos_pos     : t pos -> t pos -> t pos
   val int_pos     : int -> t pos -> t pos
   val string_pos  : string -> t pos -> t pos
-  val symbol_pos  : Lm_symbol.symbol -> t pos -> t pos
+  val symbol_pos  : Lm_symbol.t -> t pos -> t pos
   val del_pos     : (Format.formatter -> unit) -> Lm_location.loc -> t pos
   val del_exp_pos : (Format.formatter -> unit) -> t pos -> t pos
 

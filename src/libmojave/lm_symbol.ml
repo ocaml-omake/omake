@@ -3,8 +3,6 @@
  *)
 
 
-(* open Lm_thread. *)
-
 let debug_symbol = ref false
 
 (*
@@ -33,7 +31,7 @@ end;;
 
 module SymbolHash = Lm_hash.MakeHashMarshal (SymbolHashArg);;
 
-type symbol = SymbolHash.t
+type t = SymbolHash.t
 (* %%MAGICEND%% *)
 
 (*
@@ -46,21 +44,21 @@ type symbol = SymbolHash.t
 let empty_var = SymbolHash.create (0, "")
 
 let new_number, make =
-   let count = ref 100 in
-   let lock = Lm_thread.Mutex.create "Lm_symbol_hash" in
-      (fun () ->
-            Lm_thread.Mutex.lock lock;
-            let i = !count in
-               count := succ i;
-               Lm_thread.Mutex.unlock lock;
-               i),
-      (fun s i ->
-         if i >= !count then begin
-            Lm_thread.Mutex.lock lock;
-            count := max (!count) (succ i);
-            Lm_thread.Mutex.unlock lock
-         end;
-         SymbolHash.create (i, s))
+  let count = ref 100 in
+  let lock = Lm_thread.Mutex.create "Lm_symbol_hash" in
+  (fun () ->
+     Lm_thread.Mutex.lock lock;
+     let i = !count in
+     count := succ i;
+     Lm_thread.Mutex.unlock lock;
+     i),
+  (fun s i ->
+     if i >= !count then begin
+       Lm_thread.Mutex.lock lock;
+       count := max (!count) (succ i);
+       Lm_thread.Mutex.unlock lock
+     end;
+     SymbolHash.create (i, s))
 
 (*
  * Get the integer prefix.
@@ -74,57 +72,6 @@ let to_int v =
 let to_string v =
    snd (SymbolHash.get v)
 
-(*
- * Mangle a string so it uses printable characters.
- *)
-(* let is_special s = *)
-(*    let len = String.length s in *)
-(*    let rec search i = *)
-(*       if i = len then *)
-(*          false *)
-(*       else *)
-(*          match s.[i] with *)
-(*             'a'..'z' *)
-(*           | 'A'..'Z' *)
-(*           | '0'..'9' *)
-(*           | '_' *)
-(*           | '.' *)
-(*           | '%' -> *)
-(*                search (succ i) *)
-(*           | _ -> *)
-(*                true *)
-(*    in *)
-(*       search 0 *)
-
-(* let rec buffer_mangle buf s i len = *)
-(*    if len <> 0 then *)
-(*       let c = s.[i] in *)
-(*       let _ = *)
-(*          match c with *)
-(*             'a'..'z' *)
-(*           | 'A'..'Z' *)
-(*           | '0'..'9' *)
-(*           | '_' -> *)
-(*                Buffer.add_char buf c *)
-(*           | _ -> *)
-(*                Buffer.add_char buf '.'; *)
-(*                Buffer.add_string buf (string_of_int (Char.code c)) *)
-(*       in *)
-(*          buffer_mangle buf s (succ i) (pred len) *)
-
-(* let mangle s = *)
-(*    let len = String.length s in *)
-(*    let buf = Buffer.create len in *)
-(*       buffer_mangle buf s 0 len; *)
-(*       Buffer.contents buf *)
-
-
-(*
- * Add a symbol to the table.
- *)
-(* let stop s = *)
-(*    Lm_printf.eprintf "Bogus symbol %s@." s; *)
-(*    false *)
 
 let char0 = Char.code '0'
 
@@ -377,19 +324,19 @@ let rec compare_lists sl1 sl2 =
  *)
 module Base =
 struct
-   type t = symbol
+   type t = SymbolHash.t
    let compare = compare
 end
 
 module PairBase =
 struct
-   type t = symbol * symbol
+   type t = SymbolHash.t * SymbolHash.t
    let compare = compare_pair
 end
 
 module TripleBase =
 struct
-   type t = symbol * symbol * symbol
+   type t = SymbolHash.t * SymbolHash.t * SymbolHash.t 
    let compare = compare_triple
 end
 
@@ -413,7 +360,7 @@ module SymbolTripleIndex = Lm_index.LmMake (TripleBase)
  *)
 module SymbolListCompare =
 struct
-   type t = symbol list
+   type t = SymbolHash.t list
 
    let rec compare l1 l2 =
       match l1, l2 with

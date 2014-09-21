@@ -7,8 +7,8 @@
  * %%MAGICBEGIN%%
  * Last manual IR versioning: 12/09/07 by Aleksey Nogin
  *)
-type var = Lm_symbol.symbol
-type keyword = Lm_symbol.symbol
+type var = Lm_symbol.t
+type keyword = Lm_symbol.t
 type curry_flag = bool
 
 (*
@@ -155,7 +155,7 @@ and exp =
  | SectionExp       of Lm_location.loc * string_exp * exp list * export
 
    (* StaticExp (Lm_location.loc, filename, id, el) *)
- | StaticExp        of Lm_location.loc * Omake_node.Node.t * Lm_symbol.symbol * exp list
+ | StaticExp        of Lm_location.loc * Omake_node.Node.t * Lm_symbol.t * exp list
 
    (* Conditional *)
  | IfExp            of Lm_location.loc * (string_exp * exp list * export) list
@@ -185,7 +185,7 @@ and exp =
  | IncludeExp       of Lm_location.loc * string_exp * string_exp list
 
    (* Return the current object *)
- | ReturnObjectExp  of Lm_location.loc * Lm_symbol.symbol list
+ | ReturnObjectExp  of Lm_location.loc * Lm_symbol.t list
  | ReturnSaveExp    of Lm_location.loc
 
 (*
@@ -195,7 +195,7 @@ and exp =
  *    ir_exp          : the expression
  *)
 type ir =
-   { ir_classnames   : Lm_symbol.symbol list;
+   { ir_classnames   : Lm_symbol.t list;
      ir_vars         : senv;
      ir_exp          : exp
    }

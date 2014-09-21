@@ -24,7 +24,7 @@ val build_string     : penv -> Omake_ast.exp -> Omake_value_type.pos -> penv * O
  *    penv_create (file, pervasives_id)
  *)
 val penv_create        : senv_open_file -> Omake_env.venv -> Omake_node.Node.t -> penv
-val penv_class_names   : penv -> Lm_symbol.symbol list * Omake_ir.senv
+val penv_class_names   : penv -> Lm_symbol.t list * Omake_ir.senv
 val penv_of_vars       : senv_open_file -> Omake_env.venv -> Omake_node.Node.t -> Omake_ir.senv -> penv
 
 (*

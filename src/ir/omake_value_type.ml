@@ -95,7 +95,7 @@ and keyword_param_value = Omake_ir.var * Omake_ir.param * value option
  * We do this so that we can marshal these values.
  * Just before marshaling, all the options are set to None.
  *)
-and prim_fun = Lm_symbol.symbol
+and prim_fun = Lm_symbol.t
 
 (*
  * An object is just an environment.
@@ -164,7 +164,7 @@ type 'a source = Omake_node_sig.node_kind * 'a
  * Exceptions.
  *)
 type item =
-   Symbol        of Lm_symbol.symbol
+   Symbol        of Lm_symbol.t
  | String        of string
  | AstExp        of Omake_ast.exp
  | IrExp         of Omake_ir.exp

@@ -83,7 +83,7 @@ and arg_command_line = (venv, Omake_ir.exp, arg_pipe, Omake_value_type.value) Om
 and string_command_inst = (Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_inst
 and string_command_line = (venv, Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.symbol * string) list -> Omake_value_type.value list -> int * venv * Omake_value_type.value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.t * string) list -> Omake_value_type.value list -> int * venv * Omake_value_type.value
 
 and value_cmd    = (unit, Omake_value_type.value list, Omake_value_type.value list) Omake_shell_type.poly_cmd
 and value_apply  = (Omake_value_type.value list, Omake_value_type.value list, apply) Omake_shell_type.poly_apply
@@ -286,8 +286,8 @@ val venv_with_env        : venv -> Omake_value_type.env -> venv
 (*
  * Static values.
  *)
-val venv_find_static_object    : venv -> Omake_node.Node.t -> Lm_symbol.symbol -> Omake_value_type.obj
-val venv_add_static_object     : venv -> Omake_node.Node.t -> Lm_symbol.symbol -> Omake_value_type.obj -> unit
+val venv_find_static_object    : venv -> Omake_node.Node.t -> Lm_symbol.t -> Omake_value_type.obj
+val venv_add_static_object     : venv -> Omake_node.Node.t -> Lm_symbol.t -> Omake_value_type.obj -> unit
 val venv_include_static_object : venv -> Omake_value_type.obj -> venv
 val venv_save_static_values    : venv -> unit
 
@@ -318,18 +318,18 @@ val venv_add_formatter_channel    : venv -> Format.formatter -> Omake_value_type
  *)
 val venv_empty_object    : Omake_value_type.obj
 val venv_this            : venv -> Omake_value_type.obj
-val venv_current_object  : venv -> Lm_symbol.symbol list -> Omake_value_type.obj
+val venv_current_object  : venv -> Lm_symbol.t list -> Omake_value_type.obj
 val venv_define_object   : venv -> venv
 val venv_with_object     : venv -> Omake_value_type.obj -> venv
 val venv_include_object  : venv -> Omake_value_type.obj -> venv
 val venv_flatten_object  : venv -> Omake_value_type.obj -> venv
-val venv_find_super_field : venv -> Omake_value_type.pos -> Lm_location.loc -> Lm_symbol.symbol -> Lm_symbol.symbol -> Omake_value_type.value
+val venv_find_super_field : venv -> Omake_value_type.pos -> Lm_location.loc -> Lm_symbol.t -> Lm_symbol.t -> Omake_value_type.value
 
 (* ZZZ: this doesn't exist in 0.9.9 *)
 val venv_current_objects : venv -> Omake_value_type.pos -> Omake_ir.var_info -> Omake_value_type.value list
 
-val venv_add_class       : Omake_value_type.obj -> Lm_symbol.symbol -> Omake_value_type.obj
-val venv_instanceof      : Omake_value_type.obj -> Lm_symbol.symbol -> bool
+val venv_add_class       : Omake_value_type.obj -> Lm_symbol.t -> Omake_value_type.obj
+val venv_instanceof      : Omake_value_type.obj -> Lm_symbol.t -> bool
 
 val venv_find_field_path_exn  : venv -> Omake_value_type.path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.path * Omake_value_type.value
 val venv_find_field_path      : venv -> Omake_value_type.path -> Omake_value_type.obj -> Omake_value_type.pos -> Omake_ir.var -> Omake_value_type.path * Omake_value_type.value
