@@ -1223,7 +1223,7 @@ and eval_shell_output venv pos loc e =
       let _ = eval_shell_exp venv pos loc e in
       let len = Unix.lseek fd 0 Unix.SEEK_END in
       let _ = Unix.lseek fd 0 Unix.SEEK_SET in
-      let data = String.create len in
+      let data = Bytes.create len in
       Lm_unix_util.really_read fd data 0 len;
       Success data
     with

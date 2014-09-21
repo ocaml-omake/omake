@@ -1533,7 +1533,7 @@ let copy_string test add_escape esc_length src_length s =
                   copy (esc_index + extra_length) (src_index + 1)
             end
             else begin
-               esc_string.[esc_index] <- c;
+               Bytes.set esc_string esc_index c;
                copy (esc_index + 1) (src_index + 1)
             end
    in
@@ -1562,9 +1562,9 @@ let is_escape_char c =
     | _ ->
          false
 
-let add_single_escape s i c =
-   s.[i] <- '\\';
-   s.[i + 1] <- c;
+let add_single_escape (s : bytes) i c =
+   Bytes.set s i  '\\';
+   Bytes.set s (i + 1) c;
    2
 
 let single_escaped s =

@@ -2759,7 +2759,7 @@ let open_tmpfile (env : Omake_build_type.env) =
 
 let print_summary ?(unlink = true) (env : Omake_build_type.env) =
   let inx = open_in_bin env.env_summary in
-  let buffer = String.create 256 in
+  let buffer = Bytes.create 256 in
   let rec copy () =
     let amount = input inx buffer 0 (String.length buffer) in
     if amount > 0 then begin

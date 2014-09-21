@@ -30,8 +30,8 @@ let unlink_file name =
  * Print all tees.
  *)
 let eprint_file_exn copy name =
-  let buf = String.create 1024 in
-  let fd = Unix.openfile name [Unix.O_RDONLY] 0o000 in
+  let buf = Bytes.create 1024 in
+  let fd = Unix.openfile name [O_RDONLY] 0o000 in
   begin try
     copy buf fd
   with
