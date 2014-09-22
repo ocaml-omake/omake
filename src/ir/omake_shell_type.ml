@@ -20,7 +20,7 @@ type 'arg redirect =
  | RedirectNone
 
 type ('exe, 'arg_command, 'arg_other) poly_cmd =
-   { cmd_loc     : Lm_location.loc;
+   { cmd_loc     : Lm_location.t;
      cmd_env     : (Lm_symbol.t * 'arg_other) list;
      cmd_exe     : 'exe;
      cmd_argv    : 'arg_command list;
@@ -36,7 +36,7 @@ type ('exe, 'arg_command, 'arg_other) poly_cmd =
  * 'apply with be: venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> string list -> int * value
  *)
 type ('arg_apply, 'arg_other, 'apply) poly_apply =
-   { apply_loc      : Lm_location.loc;
+   { apply_loc      : Lm_location.t;
      apply_env      : (Lm_symbol.t * 'arg_other) list;
      apply_name     : Lm_symbol.t;
      apply_fun      : 'apply;
@@ -67,16 +67,16 @@ type ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_group =
    }
 
 and ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe =
-   PipeApply      of Lm_location.loc * ('arg_apply, 'arg_other, 'apply) poly_apply
- | PipeCommand    of Lm_location.loc * ('exe, 'arg_command, 'arg_other) poly_cmd
- | PipeCond       of Lm_location.loc * pipe_op (**)
+   PipeApply      of Lm_location.t * ('arg_apply, 'arg_other, 'apply) poly_apply
+ | PipeCommand    of Lm_location.t * ('exe, 'arg_command, 'arg_other) poly_cmd
+ | PipeCond       of Lm_location.t * pipe_op (**)
       * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
       * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
- | PipeCompose    of Lm_location.loc * bool (**)
+ | PipeCompose    of Lm_location.t * bool (**)
       * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
       * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
- | PipeGroup      of Lm_location.loc * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_group
- | PipeBackground of Lm_location.loc * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
+ | PipeGroup      of Lm_location.t * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_group
+ | PipeBackground of Lm_location.t * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
 
 (*
  * Signals.

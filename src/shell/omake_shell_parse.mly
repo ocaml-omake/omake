@@ -137,24 +137,24 @@ let set_stdout pipe file stderr append =
 /*
  * Terminators
  */
-%token <Lm_location.loc> TokEof
+%token <Lm_location.t> TokEof
 
 /*
  * Indentation tokens are converted in the lexer
  * to TokBegin/TokEnd.
  */
-%token <Omake_value_type.value list * Lm_location.loc> TokValues
-%token <string * Lm_location.loc> TokDefine
-%token <string * Lm_location.loc> TokLeftParen
-%token <string * Lm_location.loc> TokRightParen
-%token <string * Lm_location.loc> TokLessThan
-%token <string * Lm_location.loc> TokGreaterThan
-%token <string * Lm_location.loc> TokGreaterGreaterThan
-%token <string * Lm_location.loc> TokAmp
-%token <string * Lm_location.loc> TokPipe
-%token <string * Lm_location.loc> TokSemiColon
-%token <string * Lm_location.loc> TokAnd
-%token <string * Lm_location.loc> TokOr
+%token <Omake_value_type.value list * Lm_location.t> TokValues
+%token <string * Lm_location.t> TokDefine
+%token <string * Lm_location.t> TokLeftParen
+%token <string * Lm_location.t> TokRightParen
+%token <string * Lm_location.t> TokLessThan
+%token <string * Lm_location.t> TokGreaterThan
+%token <string * Lm_location.t> TokGreaterGreaterThan
+%token <string * Lm_location.t> TokAmp
+%token <string * Lm_location.t> TokPipe
+%token <string * Lm_location.t> TokSemiColon
+%token <string * Lm_location.t> TokAnd
+%token <string * Lm_location.t> TokOr
 
 /*
  * Pipes are right-associative:

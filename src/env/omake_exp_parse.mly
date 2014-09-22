@@ -100,47 +100,47 @@ let get_fun_params = List.map get_fun_param
 /*
  * Characters.
  */
-%token <Lm_location.loc> TokLeftParen
-%token <Lm_location.loc> TokRightParen
-%token <Lm_location.loc> TokLeftBrack
-%token <Lm_location.loc> TokRightBrack
-%token <Lm_location.loc> TokPlus
-%token <Lm_location.loc> TokMinus
-%token <Lm_location.loc> TokStar
-%token <Lm_location.loc> TokSlash
-%token <Lm_location.loc> TokMod
-%token <Lm_location.loc> TokHat
-%token <Lm_location.loc> TokPipe
-%token <Lm_location.loc> TokAmp
-%token <Lm_location.loc> TokLsl
-%token <Lm_location.loc> TokLsr
-%token <Lm_location.loc> TokAsr
-%token <Lm_location.loc> TokAnd
-%token <Lm_location.loc> TokOr
-%token <Lm_location.loc> TokDot
-%token <Lm_location.loc> TokComma
-%token <Lm_location.loc> TokSemi
-%token <Lm_location.loc> TokLe
-%token <Lm_location.loc> TokLt
-%token <Lm_location.loc> TokEq
-%token <Lm_location.loc> TokNeq
-%token <Lm_location.loc> TokGt
-%token <Lm_location.loc> TokGe
-%token <Lm_location.loc> TokColonColon
-%token <Lm_location.loc> TokArrow
+%token <Lm_location.t> TokLeftParen
+%token <Lm_location.t> TokRightParen
+%token <Lm_location.t> TokLeftBrack
+%token <Lm_location.t> TokRightBrack
+%token <Lm_location.t> TokPlus
+%token <Lm_location.t> TokMinus
+%token <Lm_location.t> TokStar
+%token <Lm_location.t> TokSlash
+%token <Lm_location.t> TokMod
+%token <Lm_location.t> TokHat
+%token <Lm_location.t> TokPipe
+%token <Lm_location.t> TokAmp
+%token <Lm_location.t> TokLsl
+%token <Lm_location.t> TokLsr
+%token <Lm_location.t> TokAsr
+%token <Lm_location.t> TokAnd
+%token <Lm_location.t> TokOr
+%token <Lm_location.t> TokDot
+%token <Lm_location.t> TokComma
+%token <Lm_location.t> TokSemi
+%token <Lm_location.t> TokLe
+%token <Lm_location.t> TokLt
+%token <Lm_location.t> TokEq
+%token <Lm_location.t> TokNeq
+%token <Lm_location.t> TokGt
+%token <Lm_location.t> TokGe
+%token <Lm_location.t> TokColonColon
+%token <Lm_location.t> TokArrow
 
 /*
  * Words.
  */
-%token <Lm_symbol.t * Lm_location.loc> TokId
-%token <Lm_symbol.t * Lm_location.loc> TokKey
-%token <Lm_location.loc> TokCatch
+%token <Lm_symbol.t * Lm_location.t> TokId
+%token <Lm_symbol.t * Lm_location.t> TokKey
+%token <Lm_location.t> TokCatch
 
 /*
  * Values.
  */
-%token <int * Lm_location.loc> TokInt
-%token <float * Lm_location.loc> TokFloat
+%token <int * Lm_location.t> TokInt
+%token <float * Lm_location.t> TokFloat
 %token <Omake_ast.exp> TokExp
 
 /*
@@ -165,7 +165,7 @@ let get_fun_params = List.map get_fun_param
  */
 %start ast_exp
 %type <Omake_ast.exp> ast_exp
-%type <Omake_ast.exp * Lm_location.loc> exp
+%type <Omake_ast.exp * Lm_location.t> exp
 
 %%
 

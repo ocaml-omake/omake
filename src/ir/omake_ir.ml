@@ -48,10 +48,10 @@ type var_def_kind =
  * scope, the location, and the variable name.
  *)
 type var_info =
-   VarPrivate        of Lm_location.loc * var
- | VarThis           of Lm_location.loc * var
- | VarVirtual        of Lm_location.loc * var
- | VarGlobal         of Lm_location.loc * var
+   VarPrivate        of Lm_location.t * var
+ | VarThis           of Lm_location.t * var
+ | VarVirtual        of Lm_location.t * var
+ | VarGlobal         of Lm_location.t * var
 
 type param = var_info
 
@@ -77,7 +77,7 @@ type export =
  * A return identifier is a unique id for the function to return from.
  * NOTE: this is a unique string, compared with pointer equality.
  *)
-type return_id = Lm_location.loc * string
+type return_id = Lm_location.t * string
 
 (*
  * Expression that results in a string.
@@ -91,29 +91,29 @@ type return_id = Lm_location.loc * string
  * Internally, we sort them by symbol name, for easy checking.
  *)
 type string_exp =
-   NoneString        of Lm_location.loc
- | IntString         of Lm_location.loc * int
- | FloatString       of Lm_location.loc * float
- | WhiteString       of Lm_location.loc * string
- | ConstString       of Lm_location.loc * string
- | FunString         of Lm_location.loc * keyword_param list * param list * exp list * export
- | ApplyString       of Lm_location.loc * var_info * string_exp list * keyword_arg list
- | SuperApplyString  of Lm_location.loc * var * var * string_exp list * keyword_arg list
- | MethodApplyString of Lm_location.loc * var_info * var list * string_exp list * keyword_arg list
- | SequenceString    of Lm_location.loc * string_exp list
- | ArrayString       of Lm_location.loc * string_exp list
- | ArrayOfString     of Lm_location.loc * string_exp
- | QuoteString       of Lm_location.loc * string_exp list
- | QuoteStringString of Lm_location.loc * char * string_exp list
- | ObjectString      of Lm_location.loc * exp list * export
- | BodyString        of Lm_location.loc * exp list * export
- | ExpString         of Lm_location.loc * exp list * export
- | CasesString       of Lm_location.loc * (var * string_exp * exp list * export) list
- | KeyApplyString    of Lm_location.loc * string
- | VarString         of Lm_location.loc * var_info
- | ThisString        of Lm_location.loc
- | LazyString        of Lm_location.loc * string_exp
- | LetVarString      of Lm_location.loc * var_info * string_exp * string_exp
+   NoneString        of Lm_location.t
+ | IntString         of Lm_location.t * int
+ | FloatString       of Lm_location.t * float
+ | WhiteString       of Lm_location.t * string
+ | ConstString       of Lm_location.t * string
+ | FunString         of Lm_location.t * keyword_param list * param list * exp list * export
+ | ApplyString       of Lm_location.t * var_info * string_exp list * keyword_arg list
+ | SuperApplyString  of Lm_location.t * var * var * string_exp list * keyword_arg list
+ | MethodApplyString of Lm_location.t * var_info * var list * string_exp list * keyword_arg list
+ | SequenceString    of Lm_location.t * string_exp list
+ | ArrayString       of Lm_location.t * string_exp list
+ | ArrayOfString     of Lm_location.t * string_exp
+ | QuoteString       of Lm_location.t * string_exp list
+ | QuoteStringString of Lm_location.t * char * string_exp list
+ | ObjectString      of Lm_location.t * exp list * export
+ | BodyString        of Lm_location.t * exp list * export
+ | ExpString         of Lm_location.t * exp list * export
+ | CasesString       of Lm_location.t * (var * string_exp * exp list * export) list
+ | KeyApplyString    of Lm_location.t * string
+ | VarString         of Lm_location.t * var_info
+ | ThisString        of Lm_location.t
+ | LazyString        of Lm_location.t * string_exp
+ | LetVarString      of Lm_location.t * var_info * string_exp * string_exp
 
 and source_exp = Omake_node_sig.node_kind * string_exp
 
@@ -138,30 +138,30 @@ and rule_command =
 
 and exp =
    (* Definitions *)
-   LetVarExp        of Lm_location.loc * var_info * var list * var_def_kind * string_exp
- | LetFunExp        of Lm_location.loc * var_info * var list * curry_flag * keyword_param list * param list * exp list * export
- | LetObjectExp     of Lm_location.loc * var_info * var list * string_exp * exp list * export
- | LetThisExp       of Lm_location.loc * string_exp
- | LetKeyExp        of Lm_location.loc * string * var_def_kind * string_exp
+   LetVarExp        of Lm_location.t * var_info * var list * var_def_kind * string_exp
+ | LetFunExp        of Lm_location.t * var_info * var list * curry_flag * keyword_param list * param list * exp list * export
+ | LetObjectExp     of Lm_location.t * var_info * var list * string_exp * exp list * export
+ | LetThisExp       of Lm_location.t * string_exp
+ | LetKeyExp        of Lm_location.t * string * var_def_kind * string_exp
 
    (* Applications *)
- | ApplyExp         of Lm_location.loc * var_info * string_exp list * keyword_arg list
- | SuperApplyExp    of Lm_location.loc * var * var * string_exp list * keyword_arg list
- | MethodApplyExp   of Lm_location.loc * var_info * var list * string_exp list * keyword_arg list
- | KeyExp           of Lm_location.loc * string
+ | ApplyExp         of Lm_location.t * var_info * string_exp list * keyword_arg list
+ | SuperApplyExp    of Lm_location.t * var * var * string_exp list * keyword_arg list
+ | MethodApplyExp   of Lm_location.t * var_info * var list * string_exp list * keyword_arg list
+ | KeyExp           of Lm_location.t * string
 
    (* Sequences *)
- | SequenceExp      of Lm_location.loc * exp list
- | SectionExp       of Lm_location.loc * string_exp * exp list * export
+ | SequenceExp      of Lm_location.t * exp list
+ | SectionExp       of Lm_location.t * string_exp * exp list * export
 
-   (* StaticExp (Lm_location.loc, filename, id, el) *)
- | StaticExp        of Lm_location.loc * Omake_node.Node.t * Lm_symbol.t * exp list
+   (* StaticExp (Lm_location.t, filename, id, el) *)
+ | StaticExp        of Lm_location.t * Omake_node.Node.t * Lm_symbol.t * exp list
 
    (* Conditional *)
- | IfExp            of Lm_location.loc * (string_exp * exp list * export) list
+ | IfExp            of Lm_location.t * (string_exp * exp list * export) list
 
    (* Shell command *)
- | ShellExp         of Lm_location.loc * string_exp
+ | ShellExp         of Lm_location.t * string_exp
 
    (*
     * StringExp (loc, s)
@@ -171,9 +171,9 @@ and exp =
     * ReturnBodyExp (loc, e)
     *    Return to here.
     *)
- | StringExp        of Lm_location.loc * string_exp
- | ReturnExp        of Lm_location.loc * string_exp * return_id
- | ReturnBodyExp    of Lm_location.loc * exp list * return_id
+ | StringExp        of Lm_location.t * string_exp
+ | ReturnExp        of Lm_location.t * string_exp * return_id
+ | ReturnBodyExp    of Lm_location.t * exp list * return_id
 
    (*
     * LetOpenExp (loc, v, id, file, link)
@@ -181,12 +181,12 @@ and exp =
     *    file  : name of the file/object to open
     *    link  : link information for the rest of the variables in scope.
     *)
- | OpenExp          of Lm_location.loc * Omake_node.Node.t list
- | IncludeExp       of Lm_location.loc * string_exp * string_exp list
+ | OpenExp          of Lm_location.t * Omake_node.Node.t list
+ | IncludeExp       of Lm_location.t * string_exp * string_exp list
 
    (* Return the current object *)
- | ReturnObjectExp  of Lm_location.loc * Lm_symbol.t list
- | ReturnSaveExp    of Lm_location.loc
+ | ReturnObjectExp  of Lm_location.t * Lm_symbol.t list
+ | ReturnSaveExp    of Lm_location.t
 
 (*
  * The IR stored in a file.

@@ -2,7 +2,6 @@
  * Source locations.
  *)
 
-(* open Lm_printf. *)
 
 (* XXX: TODO: we should switch to using MLast.loc instead *)
 
@@ -11,7 +10,7 @@
  *    filename, start_line, start_char, end_line, end_char
  *)
 (* %%MAGICBEGIN%% *)
-type loc = Lm_symbol.t * int * int * int * int
+type t = Lm_symbol.t * int * int * int * int
 (* %%MAGICEND%% *)
 
 (*

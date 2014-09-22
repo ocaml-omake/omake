@@ -53,7 +53,7 @@ val set_io_functions : t ->
 (* Positioning *)
 val tell            : t -> int
 val seek            : t -> int -> Unix.seek_command -> int
-val loc             : t -> Lm_location.loc
+val loc             : t -> Lm_location.t
 
 (* Check if there is already input in the buffer *)
 val poll          : t -> bool
@@ -92,7 +92,7 @@ sig
    val lex_next      : t -> int
    val lex_pos       : t -> int
    val lex_buffer    : t -> Buffer.t -> unit
-   val lex_loc       : t -> int -> Lm_location.loc
+   val lex_loc       : t -> int -> Lm_location.t
    val bof           : int
    val eof           : int
 end

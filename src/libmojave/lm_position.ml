@@ -26,15 +26,15 @@ let trace_pos =
 type 'a pos = string * 'a exn_loc
 
 and 'a exn_loc =
-  | DebugLoc     of Lm_location.loc
+  | DebugLoc     of Lm_location.t
   | DebugBase    of 'a
   | DebugCons    of 'a * 'a pos
-  | DebugConsLoc of Lm_location.loc * 'a pos
+  | DebugConsLoc of Lm_location.t * 'a pos
   | DebugPos     of 'a pos * 'a pos
   | DebugInt     of int * 'a pos
   | DebugString  of string * 'a pos
   | DebugSymbol  of Lm_symbol.t * 'a pos
-  | DebugDel     of (Format.formatter -> unit) * Lm_location.loc
+  | DebugDel     of (Format.formatter -> unit) * Lm_location.t
   | DebugDelExp  of (Format.formatter -> unit) * 'a pos
     (* %%MAGICEND%% *)
 
@@ -50,19 +50,19 @@ sig
   type t
 
   (* Creating positions *)
-  val loc_exp_pos : Lm_location.loc -> t pos
-  val loc_pos     : Lm_location.loc -> t pos -> t pos
+  val loc_exp_pos : Lm_location.t -> t pos
+  val loc_pos     : Lm_location.t -> t pos -> t pos
   val base_pos    : t -> t pos
   val cons_pos    : t -> t pos -> t pos
   val pos_pos     : t pos -> t pos -> t pos
   val int_pos     : int -> t pos -> t pos
   val string_pos  : string -> t pos -> t pos
   val symbol_pos  : Lm_symbol.t -> t pos -> t pos
-  val del_pos     : (Format.formatter -> unit) -> Lm_location.loc -> t pos
+  val del_pos     : (Format.formatter -> unit) -> Lm_location.t -> t pos
   val del_exp_pos : (Format.formatter -> unit) -> t pos -> t pos
 
   (* Utilities *)
-  val loc_of_pos : t pos -> Lm_location.loc
+  val loc_of_pos : t pos -> Lm_location.t
   val pp_print_pos : t pos Lm_printf.t 
 end
 
@@ -74,7 +74,7 @@ sig
   val name : string
 
   (* Utilities for managing values *)
-  val loc_of_value : t -> Lm_location.loc
+  val loc_of_value : t -> Lm_location.t
   val pp_print_value  : t Lm_printf.t 
 end
 

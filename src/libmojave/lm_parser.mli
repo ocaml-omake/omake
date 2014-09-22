@@ -1,5 +1,5 @@
 open! Lm_printf
-open Lm_location
+
 
 val debug_parse       : bool ref
 val debug_parsegen    : bool ref
@@ -46,7 +46,7 @@ end
 (* Default implementation *)
 module ParserPrecedence : PrecedenceArg
 
-exception ParseError of loc * string
+exception ParseError of Lm_location.t * string
 
 (*
  * The parser is parameterized over symbol and action names.
@@ -85,11 +85,11 @@ sig
 
    (* Grammar operations *)
    type t
-   type ('a, 'b) lexer = 'a -> symbol * loc * 'a * 'b
+   type ('a, 'b) lexer = 'a -> symbol * Lm_location.t * 'a * 'b
    type ('a, 'b) eval =
       'a ->                     (* The argument *)
       action ->                 (* The name of the action *)
-      loc ->                    (* Location of the production *)
+      Lm_location.t ->                    (* Location of the production *)
       'b list ->                (* The arguments to the action *)
       'a * 'b                   (* The result of the semantic action *)
 

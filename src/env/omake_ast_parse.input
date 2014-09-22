@@ -150,54 +150,54 @@ let rule2 multiple target ploc source loc2 body =
 /*
  * Terminators
  */
-%token <Lm_location.loc> TokEof
-%token <Lm_location.loc> TokEol
+%token <Lm_location.t> TokEof
+%token <Lm_location.t> TokEol
 
 /*
  * Whitespace.
  */
-%token <string * Lm_location.loc> TokWhite
+%token <string * Lm_location.t> TokWhite
 
 /*
  * Characters.
  */
-%token <string * Lm_location.loc> TokLeftParen
-%token <string * Lm_location.loc> TokRightParen
-%token <string * Lm_location.loc> TokArrow
-%token <string * Lm_location.loc> TokComma
-%token <string * Lm_location.loc> TokColon
-%token <string * Lm_location.loc> TokDoubleColon
-%token <string * Lm_location.loc> TokNamedColon
-%token <string * Omake_ast.apply_strategy * Lm_location.loc> TokDollar
-%token <string * Lm_location.loc> TokEq
-%token <string * Lm_location.loc> TokArray
-%token <string * Lm_location.loc> TokDot
+%token <string * Lm_location.t> TokLeftParen
+%token <string * Lm_location.t> TokRightParen
+%token <string * Lm_location.t> TokArrow
+%token <string * Lm_location.t> TokComma
+%token <string * Lm_location.t> TokColon
+%token <string * Lm_location.t> TokDoubleColon
+%token <string * Lm_location.t> TokNamedColon
+%token <string * Omake_ast.apply_strategy * Lm_location.t> TokDollar
+%token <string * Lm_location.t> TokEq
+%token <string * Lm_location.t> TokArray
+%token <string * Lm_location.t> TokDot
 
 /*
  * Words.
  */
-%token <string * Lm_location.loc> TokId
-%token <string * Lm_location.loc> TokKey
-%token <string * Lm_location.loc> TokKeyword
-%token <string * Lm_location.loc> TokCatch
-%token <string * Lm_location.loc> TokClass
-%token <string * Lm_location.loc> TokOp
-%token <string * Lm_location.loc> TokInt
-%token <string * Lm_location.loc> TokFloat
-%token <string * Lm_location.loc> TokString
-%token <string * Lm_location.loc> TokBeginQuote
-%token <string * Lm_location.loc> TokEndQuote
-%token <string * Lm_location.loc> TokBeginQuoteString
-%token <string * Lm_location.loc> TokEndQuoteString
-%token <string * Lm_location.loc> TokStringQuote
-%token <Omake_ast.apply_strategy * string * Lm_location.loc> TokVar
-%token <Omake_ast.apply_strategy * string * Lm_location.loc> TokVarQuote
+%token <string * Lm_location.t> TokId
+%token <string * Lm_location.t> TokKey
+%token <string * Lm_location.t> TokKeyword
+%token <string * Lm_location.t> TokCatch
+%token <string * Lm_location.t> TokClass
+%token <string * Lm_location.t> TokOp
+%token <string * Lm_location.t> TokInt
+%token <string * Lm_location.t> TokFloat
+%token <string * Lm_location.t> TokString
+%token <string * Lm_location.t> TokBeginQuote
+%token <string * Lm_location.t> TokEndQuote
+%token <string * Lm_location.t> TokBeginQuoteString
+%token <string * Lm_location.t> TokEndQuoteString
+%token <string * Lm_location.t> TokStringQuote
+%token <Omake_ast.apply_strategy * string * Lm_location.t> TokVar
+%token <Omake_ast.apply_strategy * string * Lm_location.t> TokVarQuote
 
 /*
  * A complete program.
  */
 %start deps
-%type <(Omake_ast.exp * Omake_ast.exp * Lm_location.loc) list> deps
+%type <(Omake_ast.exp * Omake_ast.exp * Lm_location.t) list> deps
 
 %start shell
 %start string

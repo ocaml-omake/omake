@@ -46,8 +46,8 @@ val dir_value_of_value  : Omake_env.venv -> Omake_value_type.pos -> Omake_value_
 val filename_of_value   : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> string
 
 val prim_channel_of_value    : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.prim_channel
-val prim_channel_of_var      : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Omake_value_type.prim_channel
-val channel_of_var           : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Lm_channel.t
+val prim_channel_of_var      : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var_info -> Omake_value_type.prim_channel
+val channel_of_var           : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var_info -> Lm_channel.t
 val channel_of_value         : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Lm_channel.t
 val in_channel_of_any_value  : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.prim_channel * bool
 val out_channel_of_any_value : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.prim_channel * bool
@@ -57,5 +57,5 @@ val is_glob_value_list       : Lm_glob.glob_options -> Omake_value_type.value li
 
 val current_lexer            : Omake_env.venv -> Omake_value_type.pos -> Omake_lexer.Lexer.t
 val current_parser           : Omake_env.venv -> Omake_value_type.pos -> Omake_parser.Parser.t
-val loc_of_value             : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Lm_location.loc
+val loc_of_value             : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Lm_location.t
 

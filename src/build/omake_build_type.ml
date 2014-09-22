@@ -106,7 +106,7 @@ type command =
     command_target                     : Omake_node.Node.t;
     mutable command_effects            : Omake_node.NodeSet.t;
     command_locks                      : Omake_node.NodeSet.t;
-    command_loc                        : Lm_location.loc;
+    command_loc                        : Lm_location.t;
 
     (* Scanners for this command *)
     command_scanner_deps               : Omake_node.NodeSet.t;

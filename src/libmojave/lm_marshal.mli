@@ -54,8 +54,8 @@ val unmarshal_string_list :
   'a item -> string list
 
 val marshal_loc :
-  Lm_location.loc ->
+  Lm_location.t ->
   magic item
 val unmarshal_loc :
   magic item ->
-  Lm_location.loc
+  Lm_location.t

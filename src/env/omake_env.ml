@@ -47,7 +47,7 @@ type command_info =
  * to wild patterns.
  *)
 and irule =
-  { irule_loc        : Lm_location.loc;
+  { irule_loc        : Lm_location.t;
     irule_multiple   : Omake_value_type.rule_multiple;
     irule_targets    : Lm_string_set.StringSet.t option;
     irule_patterns   : Lm_wild.in_patt list;
@@ -63,7 +63,7 @@ and irule =
  * it may have value dependencies.
  *)
 and inrule =
-  { inrule_loc        : Lm_location.loc;
+  { inrule_loc        : Lm_location.t;
     inrule_multiple   : Omake_value_type.rule_multiple;
     inrule_patterns   : Lm_wild.in_patt list;
     inrule_locks      : Omake_value_type.source_core Omake_value_type.source list;
@@ -76,7 +76,7 @@ and inrule =
  * Explicit rules.
  *)
 and erule =
-  { rule_loc          : Lm_location.loc;
+  { rule_loc          : Lm_location.t;
     rule_env          : venv;
     rule_target       : Omake_node.Node.t;
     rule_effects      : Omake_node.NodeSet.t;
@@ -111,7 +111,7 @@ and erule_info =
  * then it also depends on patt2.
  *)
 and orule =
-  { orule_loc      : Lm_location.loc;
+  { orule_loc      : Lm_location.t;
     orule_name     : Lm_symbol.t;
     orule_pattern  : Lm_wild.in_patt;
     orule_sources  : Omake_value_type.source_core list
@@ -123,7 +123,7 @@ and ordering_info = orule list
  * A static rule.
  *)
 and srule =
-  { srule_loc      : Lm_location.loc;
+  { srule_loc      : Lm_location.t;
     srule_static   : bool;
     srule_env      : venv;
     srule_key      : Omake_value_type.value;
@@ -259,7 +259,7 @@ and string_pipe  = (Omake_shell_type.simple_exe, string, Omake_value_type.value,
 (*
  * Error during translation.
  *)
-exception Break             of Lm_location.loc * venv
+exception Break             of Lm_location.t * venv
 
 (*
  * Now the stuff that is really global, not saved in venv.
@@ -272,7 +272,7 @@ end;;
 
 module IntTable = Lm_map.LmMake (IntCompare);;
 
-type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.loc ->
+type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.t ->
   Omake_value_type.value list -> Omake_value_type.keyword_value list -> venv * Omake_value_type.value
 
 type venv_runtime =

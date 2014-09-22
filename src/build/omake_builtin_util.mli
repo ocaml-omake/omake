@@ -9,9 +9,9 @@ open! Omake_build_type
 (*
  * Run-time symbols.
  *)
-val defined_sym : venv -> pos -> Lm_location.loc -> string -> bool
-val get_sym : venv -> pos -> Lm_location.loc -> string -> value
-val add_sym : venv -> pos -> Lm_location.loc -> string -> value -> venv
+val defined_sym : venv -> pos -> Lm_location.t -> string -> bool
+val get_sym : venv -> pos -> Lm_location.t -> string -> value
+val add_sym : venv -> pos -> Lm_location.t -> string -> value -> venv
 
 (*
  * Add a command line variable definition.
@@ -45,7 +45,7 @@ val val_of_bool : bool -> value
  * Unfortunately, we have to specify the environment imperatively.
  *)
 val set_env : env -> unit
-val get_env : pos -> Lm_location.loc -> env
+val get_env : pos -> Lm_location.t -> env
 val is_build_phase : unit -> bool
 
 (*
@@ -57,5 +57,5 @@ val is_leaf_node    : env -> Node.t -> bool
 (*
  * Get the object from a file.
  *)
-val object_of_file : venv -> pos -> Lm_location.loc -> string -> obj
+val object_of_file : venv -> pos -> Lm_location.t -> string -> obj
 

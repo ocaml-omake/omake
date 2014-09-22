@@ -2,7 +2,7 @@
 
 
 
-val loc_of_exp : Omake_ast.exp -> Lm_location.loc
+val loc_of_exp : Omake_ast.exp -> Lm_location.t
 val key_of_exp : Omake_ast.exp -> string
 val scan_body_flag : Omake_ast.body_flag -> Omake_ast.exp -> Omake_ast.body_flag
 val update_body : Omake_ast.exp -> Omake_ast.body_flag -> Omake_ast.exp list -> Omake_ast.exp

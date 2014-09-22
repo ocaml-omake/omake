@@ -33,7 +33,7 @@ type command_info =
  * A rule description.
  *)
 and erule =
-   { rule_loc         : Lm_location.loc;
+   { rule_loc         : Lm_location.t;
      rule_env         : venv;
      rule_target      : Omake_node.Node.t;
      rule_effects     : Omake_node.NodeSet.t;
@@ -61,7 +61,7 @@ and erule_info =
    }
 
 type srule =
-   { srule_loc      : Lm_location.loc;
+   { srule_loc      : Lm_location.t;
      srule_static   : bool;
      srule_env      : venv;
      srule_key      : Omake_value_type.value;
@@ -177,8 +177,8 @@ val venv_add_cache  : venv -> Omake_cache.t -> venv
 (*
  * Add values to environment.
  *)
-val venv_chdir            : venv -> Lm_location.loc -> string -> venv
-val venv_chdir_dir        : venv -> Lm_location.loc -> Omake_node.Dir.t -> venv
+val venv_chdir            : venv -> Lm_location.t -> string -> venv
+val venv_chdir_dir        : venv -> Lm_location.t -> Omake_node.Dir.t -> venv
 val venv_chdir_tmp        : venv -> Omake_node.Dir.t -> venv
 val venv_add_dir          : venv -> unit
 val venv_directories      : venv -> venv Omake_node.DirTable.t
@@ -195,16 +195,16 @@ val venv_nodename         : venv -> Omake_node.Node.t -> string
 val venv_mount       : venv -> Omake_node_sig.mount_option list -> Omake_node.Dir.t -> Omake_node.Dir.t -> venv
 
 val venv_add_var     : venv -> Omake_ir.var_info -> Omake_value_type.value -> venv
-val venv_add_phony   : venv -> Lm_location.loc -> Omake_value_type.target list -> venv
+val venv_add_phony   : venv -> Lm_location.t -> Omake_value_type.target list -> venv
 
-val venv_add_args      : venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.env -> Omake_ir.param list -> Omake_value_type.value list -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> venv
-val venv_with_args     : venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.param list -> Omake_value_type.value list -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> venv
+val venv_add_args      : venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.env -> Omake_ir.param list -> Omake_value_type.value list -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> venv
+val venv_with_args     : venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.param list -> Omake_value_type.value list -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> venv
 
-val venv_add_curry_args : venv ->Omake_value_type.pos -> Lm_location.loc
+val venv_add_curry_args : venv ->Omake_value_type.pos -> Lm_location.t
     -> Omake_value_type.env -> Omake_value_type.param_value list -> Omake_ir.param list -> Omake_value_type.value list
     -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> Omake_value_type.keyword_value list
     -> venv * Omake_value_type.value list * Omake_value_type.keyword_value list
-val venv_add_partial_args : venv -> Omake_value_type.pos -> Lm_location.loc
+val venv_add_partial_args : venv -> Omake_value_type.pos -> Lm_location.t
     -> Omake_value_type.env -> Omake_value_type.param_value list -> Omake_ir.param list -> Omake_value_type.value list
     -> Omake_value_type.keyword_param_value list -> Omake_value_type.keyword_value list -> Omake_value_type.keyword_value list
     -> partial_apply
@@ -217,7 +217,7 @@ val venv_add_match       : venv -> string -> string list -> venv
 val venv_explicit_target : venv -> Omake_node.Node.t -> venv
 val venv_explicit_find   : venv -> Omake_value_type.pos -> Omake_node.Node.t -> erule
 
-val venv_add_rule : venv -> Omake_value_type.pos -> Lm_location.loc ->
+val venv_add_rule : venv -> Omake_value_type.pos -> Lm_location.t ->
    Omake_value_type.rule_multiple ->                     (* multiple, scanner, etc *)
    Omake_value_type.target list ->                       (* targets *)
    Omake_value_type.target list ->                       (* patterns *)
@@ -228,7 +228,7 @@ val venv_add_rule : venv -> Omake_value_type.pos -> Lm_location.loc ->
    Omake_value_type.command list ->                      (* commands *)
    venv * Omake_node.Node.t list
 
-val venv_add_memo_rule : venv -> Omake_value_type.pos -> Lm_location.loc ->
+val venv_add_memo_rule : venv -> Omake_value_type.pos -> Lm_location.t ->
    bool ->                              (* multiple *)
    bool ->                              (* static flag *)
    Omake_value_type.value ->                             (* key *)
@@ -255,7 +255,7 @@ val venv_defined_env : venv -> Omake_ir.var -> bool
  *)
 val venv_options          : venv -> Omake_options.t
 val venv_with_options     : venv -> Omake_options.t -> venv
-val venv_set_options      : venv -> Lm_location.loc -> Omake_value_type.pos -> string list -> venv
+val venv_set_options      : venv -> Lm_location.t -> Omake_value_type.pos -> string list -> venv
 
 (*
  * Values represented with handles.
@@ -272,7 +272,7 @@ val venv_defined              : venv -> Omake_ir.var_info -> bool
 
 val venv_get_var              : venv -> Omake_value_type.pos -> Omake_ir.var_info -> Omake_value_type.value
 
-val venv_find_var             : venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info -> Omake_value_type.value
+val venv_find_var             : venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var_info -> Omake_value_type.value
 val venv_find_var_exn         : venv -> Omake_ir.var_info -> Omake_value_type.value
 val venv_find_object_or_empty : venv -> Omake_ir.var_info -> Omake_value_type.obj
 
@@ -294,7 +294,7 @@ val venv_save_static_values    : venv -> unit
 (*
  * Primitive functions.
  *)
-type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> venv * Omake_value_type.value
+type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> venv * Omake_value_type.value
 
 val venv_add_prim_fun    : venv -> Omake_ir.var -> prim_fun_data -> Omake_value_type.prim_fun
 val venv_apply_prim_fun  : Omake_value_type.prim_fun -> prim_fun_data
@@ -323,7 +323,7 @@ val venv_define_object   : venv -> venv
 val venv_with_object     : venv -> Omake_value_type.obj -> venv
 val venv_include_object  : venv -> Omake_value_type.obj -> venv
 val venv_flatten_object  : venv -> Omake_value_type.obj -> venv
-val venv_find_super_field : venv -> Omake_value_type.pos -> Lm_location.loc -> Lm_symbol.t -> Lm_symbol.t -> Omake_value_type.value
+val venv_find_super_field : venv -> Omake_value_type.pos -> Lm_location.t -> Lm_symbol.t -> Lm_symbol.t -> Omake_value_type.value
 
 (* ZZZ: this doesn't exist in 0.9.9 *)
 val venv_current_objects : venv -> Omake_value_type.pos -> Omake_ir.var_info -> Omake_value_type.value list
@@ -387,9 +387,9 @@ val venv_find_implicit_rules : venv -> Omake_node.Node.t -> erule list
 (*
  * Ordering.
  *)
-val venv_add_orders        : venv -> Lm_location.loc -> Omake_value_type.target list -> venv
+val venv_add_orders        : venv -> Lm_location.t -> Omake_value_type.target list -> venv
 val venv_is_order          : venv -> string -> bool
-val venv_add_ordering_rule : venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var -> Omake_value_type.target -> Omake_value_type.target list -> venv
+val venv_add_ordering_rule : venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var -> Omake_value_type.target -> Omake_value_type.target list -> venv
 val venv_get_ordering_info : venv -> Omake_ir.var -> ordering_info
 val venv_get_ordering_deps : venv -> ordering_info -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t
 
@@ -433,7 +433,7 @@ val squash_object : Omake_value_type.obj -> Omake_value_type.value Lm_symbol.Sym
 (*
  * General exception includes debugging info.
  *)
-exception Break             of Lm_location.loc * venv
+exception Break             of Lm_location.t * venv
 
 (*
  * For debugging.

@@ -67,7 +67,7 @@ sig
     *)
    val lex_string    : t -> int -> string
    val lex_substring : t -> int -> int -> string
-   val lex_loc       : t -> int -> loc
+   val lex_loc       : t -> int ->  Lm_location.t
 end
 
 (*
@@ -112,8 +112,8 @@ sig
    (* Return values from the searchto function *)
    type searchto_info =
       LexEOF
-    | LexSkipped of loc * string
-    | LexMatched of action * loc * string * string * string list
+    | LexSkipped of  Lm_location.t * string
+    | LexMatched of action *  Lm_location.t * string * string * string list
 
    (* The empty lexer accepts the empty language *)
    val empty : t
@@ -157,7 +157,7 @@ sig
     *    lexeme: the entire string that matched
     *    args: the arguments for \(...\) patterns.
     *)
-   val lex : t -> Input.t -> action * loc * string * string list
+   val lex : t -> Input.t -> action *  Lm_location.t * string * string list
 
    (*
     * Search for the first occurrence of a match.
@@ -165,7 +165,7 @@ sig
     *    (action, skipped, matched, args)
     * This will not read past EOF.
     *)
-   val search : t -> Input.t -> (action * loc * string * string * string list) option
+   val search : t -> Input.t -> (action * Lm_location.t * string * string * string list) option
 
    (*
     * The searchto function is similar, but if it doesn't detect a match,

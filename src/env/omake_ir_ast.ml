@@ -137,7 +137,7 @@ end;;
 (*
  * Environment for parsing AST files.
  *)
-type senv_open_file  = string -> Omake_value_type.pos -> Lm_location.loc -> Omake_node.Node.t * Omake_ir.senv
+type senv_open_file  = string -> Omake_value_type.pos -> Lm_location.t -> Omake_node.Node.t * Omake_ir.senv
 
 (*
  * Are we toplevel, or in an object, or a function.
@@ -153,8 +153,8 @@ type context =
  *)
 type export_mode =
    ExportNoneMode
- | ExportAllMode  of Lm_location.loc
- | ExportListMode of Lm_location.loc * Omake_ir.export_item list
+ | ExportAllMode  of Lm_location.t
+ | ExportListMode of Lm_location.t * Omake_ir.export_item list
 
 (*
  * Context environment.  This is strictly scoped,
@@ -208,7 +208,7 @@ type oenv =
  *)
 type genv_lazy =
    { genv_lazy_mode       : bool;
-     genv_lazy_values     : (Lm_location.loc * Omake_ir.string_exp) Lm_symbol.SymbolTable.t;
+     genv_lazy_values     : (Lm_location.t * Omake_ir.string_exp) Lm_symbol.SymbolTable.t;
    }
 
 (*

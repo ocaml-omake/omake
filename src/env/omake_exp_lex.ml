@@ -48,7 +48,7 @@ open Pos;;
  *)
 type lexinfo =
    { mutable lex_exp_list : Omake_ast.exp list;
-     mutable lex_loc      : Lm_location.loc
+     mutable lex_loc      : Lm_location.t
    }
 
 let create_lexinfo loc tokens =

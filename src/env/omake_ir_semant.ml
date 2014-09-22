@@ -29,7 +29,7 @@ type renv =
  *    env_is_tail     : the current expression is in final position
  *)
 type env =
-   { env_warnings      : Lm_location.loc option ref;
+   { env_warnings      : Lm_location.t option ref;
      env_in_function   : Omake_ir.return_id option;
      env_in_cond       : bool;
      env_section_tail  : bool;

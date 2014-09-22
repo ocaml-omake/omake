@@ -96,7 +96,8 @@ struct
       index1 - index2
 
    let map_array f state =
-      Array.mapi f (Array.sub state.int_table 0 (KeyTable.cardinal state.key_table))
+      Array.mapi f
+        (Array.sub state.int_table 0 (KeyTable.cardinal state.key_table))
 
    let fold f x state =
       let len = KeyTable.cardinal state.key_table in

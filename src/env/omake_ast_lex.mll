@@ -68,7 +68,7 @@ type session =
      current_file            : Lm_symbol.t;
      mutable current_line    : int;
      mutable current_off     : int;
-     mutable current_loc     : Lm_location.loc;
+     mutable current_loc     : Lm_location.t;
 
      (* The current input buffer *)
      mutable current_buffer  : string;

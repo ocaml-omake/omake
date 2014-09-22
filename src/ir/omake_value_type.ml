@@ -55,10 +55,10 @@ type value =
   | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * value list * keyword_value list
 
   (* Implicit value dependencies *)
-  | ValMaybeApply  of Lm_location.loc * Omake_ir.var_info
+  | ValMaybeApply  of Lm_location.t * Omake_ir.var_info
 
   (* Variables that are not applications *)
-  | ValVar         of Lm_location.loc * Omake_ir.var_info
+  | ValVar         of Lm_location.t * Omake_ir.var_info
 
   (* Other values *)
   | ValOther       of value_other
@@ -73,7 +73,7 @@ type value =
 and value_other =
   | ValLexer       of Omake_lexer.Lexer.t
   | ValParser      of Omake_parser.Parser.t
-  | ValLocation    of Lm_location.loc
+  | ValLocation    of Lm_location.t
   | ValExitCode    of int
   | ValEnv         of handle_env * Omake_ir.export
 
@@ -125,7 +125,7 @@ type path =
 type command =
   | CommandSection of value * Omake_ir_free_vars.free_vars * Omake_ir.exp list
   (* Name of the section, its free variables, and the expression *)
-  | CommandValue of Lm_location.loc * env * Omake_ir.string_exp
+  | CommandValue of Lm_location.t * env * Omake_ir.string_exp
 
 (*
  * Kinds of rules.
@@ -168,7 +168,7 @@ type item =
  | String        of string
  | AstExp        of Omake_ast.exp
  | IrExp         of Omake_ir.exp
- | Location      of Lm_location.loc
+ | Location      of Lm_location.t
  | Value         of value
  | Error         of omake_error
 
@@ -206,7 +206,7 @@ exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
 exception ExitParentException     of pos * int
-exception Return            of Lm_location.loc * value * Omake_ir.return_id
+exception Return            of Lm_location.t * value * Omake_ir.return_id
 
 (*
  * Omake's internal version of the Invalid_argument
@@ -219,8 +219,8 @@ exception OmakeFatalErr of pos * omake_error
  *)
 module type PosSig =
 sig
-   val loc_exp_pos    : Lm_location.loc -> pos
-   val loc_pos        : Lm_location.loc -> pos -> pos
+   val loc_exp_pos    : Lm_location.t -> pos
+   val loc_pos        : Lm_location.t -> pos -> pos
 
    val ast_exp_pos    : Omake_ast.exp -> pos
    val ir_exp_pos     : Omake_ir.exp -> pos
@@ -234,11 +234,11 @@ sig
    val var_pos        : Omake_ir.var -> pos -> pos
    val error_pos      : omake_error -> pos -> pos
 
-   val del_pos        : (Format.formatter -> unit) -> Lm_location.loc -> pos
+   val del_pos        : (Format.formatter -> unit) -> Lm_location.t -> pos
    val del_exp_pos    : (Format.formatter -> unit) -> pos -> pos
 
    (* Utilities *)
-   val loc_of_pos     : pos -> Lm_location.loc
+   val loc_of_pos     : pos -> Lm_location.t
    val pp_print_pos   : Format.formatter -> pos -> unit
 end
 

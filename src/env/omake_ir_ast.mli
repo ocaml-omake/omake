@@ -7,12 +7,12 @@ type penv
 (*
  * Parse a variable declaration.
  *)
-val parse_declaration : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var list -> Omake_ir.method_name
+val parse_declaration : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var list -> Omake_ir.method_name
 
 (*
  * Environment for parsing AST files.
  *)
-type senv_open_file  = string -> Omake_value_type.pos -> Lm_location.loc -> Omake_node.Node.t * Omake_ir.senv
+type senv_open_file  = string -> Omake_value_type.pos -> Lm_location.t -> Omake_node.Node.t * Omake_ir.senv
 
 (*
  * Internal function for converting string expressions.

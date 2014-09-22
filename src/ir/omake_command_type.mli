@@ -16,7 +16,7 @@ type ('exp, 'argv, 'value)
 type ('venv, 'exp, 'argv, 'value)
     poly_command_line = 
   {
-    command_loc : Lm_location.loc;
+    command_loc : Lm_location.t;
     command_dir : Omake_node.Dir.t;
     command_target :
       Omake_node.Node.t;

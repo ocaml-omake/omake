@@ -1,7 +1,7 @@
 type builtin_fun =
-  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value list -> Omake_value_type.value
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value list -> Omake_value_type.value
 type builtin_kfun =
-  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
 
 type builtin_env_fun = Omake_build_type.env -> builtin_fun
 

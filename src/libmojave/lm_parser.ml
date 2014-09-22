@@ -1,7 +1,7 @@
 open Lm_debug
 open Lm_hash
 open! Lm_printf
-open Lm_location
+
 open Lm_int_set
 
 let debug_parse =
@@ -111,7 +111,7 @@ sig
    module PrecTable   : Lm_map_sig.LmMap with type key = precedence
 end
 
-exception ParseError of loc * string
+exception ParseError of Lm_location.t * string
 
 (*
  * The parser is parameterized over symbol and action names.
@@ -154,11 +154,12 @@ struct
    (*
     * Type of lexing tokens.
     *)
-   type ('a, 'b) lexer = 'a -> Arg.symbol * loc * 'a * 'b
+   type ('a, 'b) lexer = 'a -> 
+     Arg.symbol * Lm_location.t * 'a * 'b
    type ('a, 'b) eval =
       'a ->                     (* The argument *)
       Arg.action ->             (* The name of the action *)
-      loc ->                    (* Location of the production *)
+      Lm_location.t ->                    (* Location of the production *)
       'b list ->                (* The arguments to the action *)
       'a * 'b                   (* The result of the semantic action *)
 
@@ -2104,10 +2105,10 @@ struct
     *)
    let loc_of_stack stack =
       match stack with
-         (_, loc, _) :: _ ->
-            loc
-       | [] ->
-            bogus_loc "null"
+      | (_, loc, _) :: _ ->
+        loc
+      | [] ->
+         Lm_location.bogus_loc "null"
 
    let rec collect_args state args loc1 stack i =
       if i = 0 then
@@ -2115,7 +2116,7 @@ struct
       else
          match stack with
             (state, loc2, arg) :: stack ->
-               collect_args state (arg :: args) (union_loc loc1 loc2) stack (pred i)
+               collect_args state (arg :: args) ( Lm_location.union_loc loc1 loc2) stack (pred i)
           | [] ->
                raise (Invalid_argument "semantic_action: stack is empty")
 

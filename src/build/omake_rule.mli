@@ -29,13 +29,13 @@ val eval_shell   : Omake_env.venv -> Omake_value_type.pos -> (Omake_env.arg_comm
  * The sloppy deps are used for scanner commands to represent the
  * results of the previous scan.
  *)
-val eval_commands : Omake_env.venv -> Lm_location.loc -> Omake_node.Node.t -> Omake_node.NodeSet.t -> Omake_env.command_info list -> Omake_env.arg_command_line list
+val eval_commands : Omake_env.venv -> Lm_location.t -> Omake_node.Node.t -> Omake_node.NodeSet.t -> Omake_env.command_info list -> Omake_env.arg_command_line list
 
 (*
  * Rules and shell expressions.
  *)
 val eval_rule_exp :
-   Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc ->
+   Omake_env.venv -> Omake_value_type.pos -> Lm_location.t ->
    bool ->                      (* multiple (whether the rule was defined with a ::) *)
    Omake_value_type.value ->                     (* targets *)
    Omake_value_type.value ->                     (* patterns *)
@@ -45,7 +45,7 @@ val eval_rule_exp :
    Omake_env.venv * Omake_value_type.value
 
 val eval_memo_rule_exp :
-   Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc ->
+   Omake_env.venv -> Omake_value_type.pos -> Lm_location.t ->
    bool ->                      (* multiple (whether the rule was defined with a ::) *)
    bool ->                      (* static (whether the results should be cached in .omakedb) *)
    Omake_value_type.value ->                     (* key *)
@@ -56,5 +56,5 @@ val eval_memo_rule_exp :
    Omake_value_type.value ->                     (* commands *)
    Omake_env.venv
 
-val eval_shell_exp : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value -> Omake_env.venv * Omake_value_type.value
-val eval_shell_output : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value -> string
+val eval_shell_exp : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value -> Omake_env.venv * Omake_value_type.value
+val eval_shell_output : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value -> string

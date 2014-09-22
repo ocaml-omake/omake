@@ -97,7 +97,7 @@ let lex_tok token loc =
 type lexinfo =
    { mutable lex_tokens : Omake_env.tok list;
      mutable lex_pos    : int;
-     lex_loc            : Lm_location.loc
+     lex_loc            : Lm_location.t
    }
 
 let create_lexinfo loc tokens =

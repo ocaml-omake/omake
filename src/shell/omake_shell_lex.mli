@@ -2,7 +2,7 @@
  * Lex a shell line.
  *)
 open Lm_glob
-open Lm_location
+
 
 open Omake_env
 
@@ -19,6 +19,6 @@ val parse_command_string : string -> simple_exe
  * Construct the pipe from the value.
  *)
 val pipe_of_value : venv ->
-   (venv -> pos -> loc -> string -> (Lm_symbol.t * apply) option) -> glob_options ->
-   pos -> loc -> value -> command_flag list * arg_pipe
+   (venv -> pos -> Lm_location.t -> string -> (Lm_symbol.t * apply) option) -> glob_options ->
+   pos -> Lm_location.t -> value -> command_flag list * arg_pipe
 

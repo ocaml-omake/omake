@@ -44,23 +44,23 @@ val eval_string_exp :
  * Include the file literally.
  *)
 val find_include_file : 
-  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> string -> Omake_node.Node.t
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> string -> Omake_node.Node.t
 
 val eval_open_file : Omake_env.venv -> Omake_ir_ast.senv_open_file
 
 val eval_include_file : 
   Omake_env.venv -> Omake_env.include_scope -> Omake_value_type.pos
-  -> Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv * Omake_value_type.value
+  -> Lm_location.t -> Omake_node.Node.t -> Omake_env.venv * Omake_value_type.value
 
 val include_file : Omake_env.venv -> 
   Omake_env.include_scope -> Omake_value_type.pos ->
-  Lm_location.loc -> Omake_node.Node.t -> Omake_env.venv
+  Lm_location.t -> Omake_node.Node.t -> Omake_env.venv
 
 (*
  * Evaluate a file as if it were an object.
  *)
 val eval_object_file : 
-  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc ->
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.t ->
   Omake_node.Node.t -> Omake_value_type.obj
 
 (*
@@ -100,14 +100,14 @@ val eval_body_exp   :
 val eval_object : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type.value -> Omake_value_type.obj
 
 val eval_find_field : 
-  Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_ir.var_info ->
+  Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var_info ->
   Omake_ir.var list -> Omake_value_type.path * Omake_value_type.obj * Omake_ir.var
 
 val eval_find_method : Omake_env.venv -> Omake_value_type.pos ->
-  Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> Omake_env.venv * Omake_value_type.value
+  Lm_location.t -> Omake_ir.var_info -> Omake_ir.var list -> Omake_env.venv * Omake_value_type.value
 
 val eval_defined_field : Omake_env.venv -> Omake_value_type.pos ->
-  Lm_location.loc -> Omake_ir.var_info -> Omake_ir.var list -> bool
+  Lm_location.t -> Omake_ir.var_info -> Omake_ir.var list -> bool
 
 (*
  * Evaluate a Omake_value_type.value that should be a function.
@@ -136,8 +136,8 @@ val eval_prim_value : Omake_env.venv -> Omake_value_type.pos -> Omake_value_type
 (*
  * Evaluate a function application.
  *)
-val eval_apply : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
-val eval_partial_apply : Omake_env.venv -> Omake_value_type.pos -> Lm_location.loc -> Omake_value_type.value -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
+val eval_apply : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
+val eval_partial_apply : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.value -> Omake_value_type.value list -> Omake_value_type.keyword_value list -> Omake_env.venv * Omake_value_type.value
 
 (*
  * Conversions.

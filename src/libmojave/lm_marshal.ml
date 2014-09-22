@@ -423,12 +423,12 @@ let unmarshal_string_list (l : 'a item) : string list  =
     raise MarshalError
 
 
-let marshal_loc (loc : Lm_location.loc) : msg =
+let marshal_loc (loc : Lm_location.t) : msg =
    let file, sline, schar, eline, echar = Lm_location.dest_loc loc in
    let file = Lm_symbol.to_string file in
    List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar]
 
-let unmarshal_loc (l : msg) : Lm_location.loc =
+let unmarshal_loc (l : msg) : Lm_location.t =
   match l with
   | List [Magic LocationMagic; String file; Int sline; Int schar; Int eline; Int echar] ->
     Lm_location.create_loc (Lm_symbol.add file) sline schar eline echar

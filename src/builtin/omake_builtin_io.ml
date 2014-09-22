@@ -1576,7 +1576,7 @@ struct
   type t =
     { print_venv    : Omake_env.venv;
       print_pos     : Omake_value_type.pos;
-      print_loc     : Lm_location.loc;
+      print_loc     : Lm_location.t;
       print_fmt     : Format.formatter;
       print_fd      : Omake_value_type.prim_channel;
       print_channel : Lm_channel.t

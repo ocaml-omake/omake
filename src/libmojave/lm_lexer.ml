@@ -352,7 +352,7 @@ sig
     *)
    val lex_string    : t -> int -> string
    val lex_substring : t -> int -> int -> string
-   val lex_loc       : t -> int -> Lm_location.loc
+   val lex_loc       : t -> int -> Lm_location.t
 end
 
 module type LexerAction =
@@ -619,8 +619,8 @@ struct
    (* Return values from the searchto function *)
    type searchto_info =
        LexEOF
-     | LexSkipped of Lm_location.loc * string
-     | LexMatched of action * Lm_location.loc * string * string * string list
+     | LexSkipped of Lm_location.t * string
+     | LexMatched of action * Lm_location.t * string * string * string list
 
    (************************************************************************
     * Characters and classes.

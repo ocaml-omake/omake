@@ -1,40 +1,40 @@
 (*
- * Source file locations.
+ * Source file tations.
  *)
 
 
 
-type loc
+type t
 
 (*
  * Comparison.
  *)
-val compare : loc -> loc -> int
+val compare : t -> t -> int
 
 (*
  * Don't use this if you can avoid it.
  *)
-val bogus_loc : string -> loc
+val bogus_loc : string -> t
 
 (*
- * This is the normal way to make a location.
+ * This is the normal way to make a tation.
  *    filename, start_line, start_char, end_line, end_char
  *)
-val create_loc : Lm_symbol.t -> int -> int -> int -> int -> loc
+val create_loc : Lm_symbol.t -> int -> int -> int -> int -> t
 
 (*
  * For marshaling.
  *)
-val dest_loc : loc -> Lm_symbol.t * int * int * int * int
+val dest_loc : t -> Lm_symbol.t * int * int * int * int
 
 (*
- * Combine two locations.
+ * Combine two tations.
  * The resulting span covers both.
  *)
-val union_loc : loc -> loc -> loc
+val union_loc : t -> t -> t
 
 (*
- * Print a file location.
+ * Print a file tation.
  *)
-val pp_print_location : loc Lm_printf.t 
-val string_of_location : loc -> string
+val pp_print_location : t Lm_printf.t 
+val string_of_location : t -> string
