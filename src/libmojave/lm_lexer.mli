@@ -1,5 +1,5 @@
 open! Lm_printf
-open Lm_location
+
 
 (*
  * Debug flags.
@@ -196,13 +196,3 @@ sig
     *)
    val string_match : t -> string -> int -> bool
 end
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
