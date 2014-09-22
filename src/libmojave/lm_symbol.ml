@@ -39,7 +39,7 @@ type t = SymbolHash.t
  * Symbols with a 0 index are interned.
  *)
 
-
+let (eq, compare, hash) = SymbolHash.(equal,compare, hash)
 (* An "empty" variable name *)
 let empty_var = SymbolHash.create (0, "")
 
@@ -55,7 +55,7 @@ let new_number, make =
   (fun s i ->
      if i >= !count then begin
        Lm_thread.Mutex.lock lock;
-       count := max (!count) (succ i);
+       count := max (!count) (i + 1);
        Lm_thread.Mutex.unlock lock
      end;
      SymbolHash.create (i, s))
@@ -77,25 +77,25 @@ let char0 = Char.code '0'
 
 let rec zeros s i =
    (i < 0) || match s.[i] with
-      '1'..'9' -> false
-    | '0' -> zeros s (pred i)
-    | _ -> true
+   | '1'..'9' -> false
+   | '0' -> zeros s (i - 1)
+   | _ -> true
 
 let rec all_digits s i =
    (i<0) || match s.[i] with
-      '0' .. '9' -> all_digits s (pred i)
-    | _ -> false
+   | '0' .. '9' -> all_digits s (i - 1)
+   | _ -> false
 
 let rec pad_with_underscore n s i =
-   if i <= 0 then
-      n > 0
-   else
-      let i = pred i in
-         match s.[i] with
-            '_' -> pad_with_underscore n s i
-          | '0' -> not (zeros s (pred i)) && ((n>0) || not (all_digits s (pred i)))
-          | '1' .. '9' -> (n>0) || not (all_digits s (pred i))
-          | _ -> false
+  if i <= 0 then
+    n > 0
+  else
+    let i =  i - 1 in
+    match s.[i] with
+    | '_' -> pad_with_underscore n s i
+    | '0' -> not (zeros s (i - 1)) && ((n>0) || not (all_digits s (i - 1)))
+    | '1' .. '9' -> (n>0) || not (all_digits s (i - 1))
+    | _ -> false
 
 let add =
    let rec loop s fact n i =
@@ -114,10 +114,6 @@ let add =
    in
       (fun s -> loop s 1 0 (String.length s - 1))
 
-(* let add_mangle s = *)
-(*    add (mangle s) *)
-
-let reintern = SymbolHash.reintern
 
 let is_numeric_symbol v =
    match SymbolHash.get v with
@@ -163,16 +159,16 @@ let new_name v pred =
  * returns non-nil.
  *)
 let new_name_gen v f =
-   let v = to_string v in
-   let rec search i =
-      let nv = make v i in
-         match f nv with
-            Some x ->
-               x
-          | None ->
-               search (succ i)
-   in
-      search 0
+  let v = to_string v in
+  let rec search i =
+    let nv = make v i in
+    match f nv with
+    | Some x ->
+      x
+    | None ->
+      search (i + 1)
+  in
+  search 0
 
 (*
  * Check if the symbol is in the table.
@@ -212,32 +208,29 @@ let rec output_symbol_list out vl =
 exception Has;;
 
 let string_of_ext_symbol v =
-   let i, s = SymbolHash.get v in
-   let has_special_char s =
-      try
-         for i = 0 to String.length s - 1 do
-            let c = Char.lowercase (String.get s i) in
-               if not ((Char.code c >= Char.code 'a' && Char.code c <= Char.code 'z')
-                       || (Char.code c >= Char.code '0' && Char.code c <= Char.code '9')
-                       || c = '_')
-               then
-                  raise Has
-         done;
-         false
-      with
-         Has ->
-            true
-   in
-   let s =
-      if i = 0 then
-         s
-      else
-         Lm_printf.sprintf "%s%d" s i
-   in
-      if has_special_char s then
-         Lm_printf.sprintf "`\"%s\"" s
-      else
-         s
+  let i, s = SymbolHash.get v in
+  let has_special_char s =
+    try
+      for i = 0 to String.length s - 1 do
+        let c = Char.lowercase (String.get s i) in
+        if not ((Char.code c >= Char.code 'a' && Char.code c <= Char.code 'z')
+                || (Char.code c >= Char.code '0' && Char.code c <= Char.code '9')
+                || c = '_')
+        then
+          raise Has
+      done;
+      false
+    with Has -> true  in
+  let s =
+    if i = 0 then
+      s
+    else
+      Lm_printf.sprintf "%s%d" s i
+  in
+  if has_special_char s then
+    Lm_printf.sprintf "`\"%s\"" s
+  else
+    s
 
 let pp_print_ext_symbol buf v =
    Lm_printf.pp_print_string buf (string_of_ext_symbol v)
@@ -268,57 +261,6 @@ let rec pp_print_method_name buf vl =
 
 
 (*
- * Compare for equality.
- *)
-let eq = SymbolHash.equal
-
-let compare = SymbolHash.compare
-
-let hash = SymbolHash.hash
-
-(*
- * Compare pair of symbols for equality.
- *)
-let compare_pair (s1, s2) (s1', s2') =
-   let cmp = compare s1 s1' in
-      if cmp = 0 then
-         compare s2 s2'
-      else
-         cmp
-
-(*
- * Compare triple of symbols for equality.
- *)
-let compare_triple (s1, s2, s3) (s1', s2', s3') =
-   let cmp = compare s1 s1' in
-      if cmp = 0 then
-         let cmp = compare s2 s2' in
-            if cmp = 0 then
-               compare s3 s3'
-            else
-               cmp
-      else
-         cmp
-
-(*
- * Compare lists of symbols for equality.
- *)
-let rec compare_lists sl1 sl2 =
-   match sl1, sl2 with
-      s1 :: sl1, s2 :: sl2 ->
-         let cmp = compare s1 s2 in
-            if cmp = 0 then
-               compare_lists sl1 sl2
-            else
-               cmp
-    | [], [] ->
-         0
-    | [], _ :: _ ->
-         -1
-    | _ :: _, [] ->
-         1
-
-(*
  * Build sets, tables, indices where the keys are symbols,
  * ordered symbol pairs, or orderd symbol triples.
  *)
@@ -328,59 +270,16 @@ struct
    let compare = compare
 end
 
-module PairBase =
-struct
-   type t = SymbolHash.t * SymbolHash.t
-   let compare = compare_pair
-end
-
-module TripleBase =
-struct
-   type t = SymbolHash.t * SymbolHash.t * SymbolHash.t 
-   let compare = compare_triple
-end
 
 module SymbolSet = Lm_set.LmMake (Base)
 module SymbolTable = Lm_map.LmMake (Base)
 module SymbolMTable = Lm_map.LmMakeList (Base)
 module SymbolIndex = Lm_index.LmMake (Base)
 
-module SymbolPairSet = Lm_set.LmMake (PairBase)
-module SymbolPairTable = Lm_map.LmMake (PairBase)
-module SymbolPairMTable = Lm_map.LmMakeList (PairBase)
-module SymbolPairIndex = Lm_index.LmMake (PairBase)
-
-module SymbolTripleSet = Lm_set.LmMake (TripleBase)
-module SymbolTripleTable = Lm_map.LmMake (TripleBase)
-module SymbolTripleMTable = Lm_map.LmMakeList (TripleBase)
-module SymbolTripleIndex = Lm_index.LmMake (TripleBase)
 
 (*
  * Symbol lists are also useful.
  *)
-module SymbolListCompare =
-struct
-   type t = SymbolHash.t list
-
-   let rec compare l1 l2 =
-      match l1, l2 with
-         v1 :: l1, v2 :: l2 ->
-            let cmp = Base.compare v1 v2 in
-               if cmp = 0 then
-                  compare l1 l2
-               else
-                  cmp
-       | [], _ :: _ ->
-            -1
-       | _ :: _, [] ->
-            1
-       | [], [] ->
-            0
-end
-
-module SymbolListSet = Lm_set.LmMake (SymbolListCompare)
-module SymbolListTable = Lm_map.LmMake (SymbolListCompare)
-
 let output_symbol_set out s =
    output_symbol_list out (SymbolSet.to_list s)
 

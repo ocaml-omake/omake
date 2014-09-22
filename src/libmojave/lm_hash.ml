@@ -1,45 +1,10 @@
-(*
- * A "hash-cons" utility.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, Caltech and HRL Laboratories, LLC
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com} @email{nogin@metaprl.org}
- * @end[license]
- *)
-open Lm_printf
-open Lm_thread_core
 
-open Lm_hash_sig
-
-(************************************************************************
+(**
  * A generic hash module to make comparisons faster.
  * This version uses a state for hash-consing.
  *)
-module MakeHash (Arg : HashArgSig)
-: HashSig with type elt = Arg.t =
+module MakeHash (Arg : Lm_hash_sig.HashArgSig)
+: Lm_hash_sig.HashSig with type elt = Arg.t =
 struct
    type elt = Arg.t
 
@@ -50,8 +15,7 @@ struct
    let create x =
       Arg.hash x, x
 
-   let get (_, x) =
-      x
+   let get (_, x) = x
 
    let hash (i, _) =
       i
@@ -68,8 +32,8 @@ end
 (************************************************************************
  * Table-based hashing.
  *)
-module MakeHashCons (Arg : HashArgSig)
-: HashConsSig
+module MakeHashCons (Arg : Lm_hash_sig.HashArgSig)
+: Lm_hash_sig.HashConsSig
   with type elt = Arg.t
   with type hash = MakeHash(Arg).t =
 struct
@@ -186,7 +150,7 @@ let pp_print_stat buf stat =
          hash_collisions = collisions
        } = stat
    in
-      fprintf buf "@[<hv 3>%s: reintern = %d, compare = %d, collisions = %d@]@\n" (**)
+      Format.fprintf buf "@[<hv 3>%s: reintern = %d, compare = %d, collisions = %d@]@\n" (**)
          debug reintern compare collisions
 
 let pp_print_hash_stats buf =
@@ -212,15 +176,15 @@ let pp_print_hash_stats buf =
 module Synchronize : sig
    val synchronize : ('a -> 'b) -> 'a -> 'b
 end = struct
-   let lock_mutex = MutexCore.create "Lm_hash.Synchronize"
+   let lock_mutex = Lm_thread_core.MutexCore.create "Lm_hash.Synchronize"
    let lock_id = ref None
 
    let unsynchronize () =
       lock_id := None;
-      MutexCore.unlock lock_mutex
+      Lm_thread_core.MutexCore.unlock lock_mutex
 
    let synchronize f x =
-      let id = ThreadCore.id (ThreadCore.self ()) in
+      let id = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
          match !lock_id with
             Some id' when id = id' ->
                (*
@@ -230,7 +194,7 @@ end = struct
                 *)
                f x
           | _ ->
-               MutexCore.lock lock_mutex;
+               Lm_thread_core.MutexCore.lock lock_mutex;
                lock_id := Some id;
                try
                   let res = f x in
@@ -242,7 +206,7 @@ end = struct
 end
 
 let synchronize =
-   if ThreadCore.enabled then
+   if Lm_thread_core.ThreadCore.enabled then
       Synchronize.synchronize
    else
       (fun f -> f)
@@ -250,7 +214,7 @@ let synchronize =
 (*
  * Make a hash item.
  *)
-module MakeHashMarshal (Arg : HashMarshalArgSig) =
+module MakeHashMarshal (Arg : Lm_hash_sig.HashMarshalArgSig) =
 struct
    type elt = Arg.t
    type t = elt hash_marshal_item
@@ -388,7 +352,7 @@ end
 type 'a hash_marshal_eq_item = ('a * 'a hash_marshal_item) hash_marshal_item
 (* %%MAGICEND%% *)
 
-module MakeHashMarshalEq (Arg : HashMarshalEqArgSig) =
+module MakeHashMarshalEq (Arg : Lm_hash_sig.HashMarshalEqArgSig) =
 struct
    type elt = Arg.t
    type t = elt hash_marshal_eq_item
@@ -1276,7 +1240,7 @@ let () =
  * Integer hashes.
  *)
 (* %%MAGICBEGIN%% *)
-module HashCode : HashCodeSig =
+module HashCode : Lm_hash_sig.HashCodeSig =
 struct
    type t =
       { mutable hash_digest : int;
@@ -1351,7 +1315,7 @@ end
  * Digest-based hashes.
  *)
 (* %%MAGICBEGIN%% *)
-module HashDigest : HashDigestSig =
+module HashDigest : Lm_hash_sig.HashDigestSig =
 struct
    type t =
       { hash_digest         : int array;
