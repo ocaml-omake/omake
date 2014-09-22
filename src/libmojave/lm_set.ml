@@ -1305,7 +1305,7 @@ struct
         pp_print left
         pp_print right
     | Leaf ->
-      Lm_printf.output_string out "Leaf"
+      Lm_printf.pp_print_string out "Leaf"
   let print = pp_print
 end
 

@@ -38,8 +38,10 @@ type t = SymbolHash.t
  * We no longer use a hashtable.
  * Symbols with a 0 index are interned.
  *)
+let eq = SymbolHash.equal 
+let compare = SymbolHash.compare
+let hash = SymbolHash.hash
 
-let (eq, compare, hash) = SymbolHash.(equal,compare, hash)
 (* An "empty" variable name *)
 let empty_var = SymbolHash.create (0, "")
 
@@ -59,6 +61,12 @@ let new_number, make =
        Lm_thread.Mutex.unlock lock
      end;
      SymbolHash.create (i, s))
+(*
+ * Create a new symbol.
+ * Don't add it to the table.
+ *)
+let new_symbol_string s =
+   SymbolHash.create (new_number (), s)
 
 (*
  * Get the integer prefix.
@@ -86,7 +94,7 @@ let rec all_digits s i =
    | '0' .. '9' -> all_digits s (i - 1)
    | _ -> false
 
-let rec pad_with_underscore n s i =
+let rec pad_with_underscore n s i  : bool  =
   if i <= 0 then
     n > 0
   else
@@ -97,35 +105,30 @@ let rec pad_with_underscore n s i =
     | '1' .. '9' -> (n>0) || not (all_digits s (i - 1))
     | _ -> false
 
-let add =
-   let rec loop s fact n i =
-      if i < 0 then
-         SymbolHash.create (0, s)
-      else
-         match s.[i] with
-            '_' ->
-               make (String.sub s 0 (if pad_with_underscore n s i then i else i + 1)) n
-          | '0' when zeros s (i - 1) ->
-               make (String.sub s 0 (succ i)) n
-          | '0'..'9' as c ->
-               loop s (fact * 10) (n + fact * (Char.code c - char0)) (pred i)
-          | _ ->
-               make (String.sub s 0 (succ i)) n
-   in
-      (fun s -> loop s 1 0 (String.length s - 1))
+
+let rec loop s fact n i : t =
+  if i < 0 then
+    SymbolHash.create (0, s)
+  else
+    match s.[i] with
+      '_' ->
+      make (String.sub s 0 (if pad_with_underscore n s i then i else i + 1)) n
+    | '0' when zeros s (i - 1) ->
+      make (String.sub s 0 (succ i)) n
+    | '0'..'9' as c ->
+      loop s (fact * 10) (n + fact * (Char.code c - char0)) (i - 1)
+    | _ ->
+      make (String.sub s 0 (i + 1)) n
+
+let add s =
+  loop s 1 0 (String.length s - 1)
 
 
 let is_numeric_symbol v =
    match SymbolHash.get v with
-      (0, s) -> all_digits s (String.length s - 1)
-    | _ -> false
+   | (0, s) -> all_digits s (String.length s - 1)
+   | _ -> false
 
-(*
- * Create a new symbol.
- * Don't add it to the table.
- *)
-let new_symbol_string s =
-   SymbolHash.create (new_number (), s)
 
 let new_symbol v =
    new_symbol_string (to_string v)
@@ -146,12 +149,11 @@ let new_symbol_pre pre v =
 let new_name v pred =
    let v = to_string v in
    let rec search i =
-      let nv = make v i in
-         if pred nv then
-            search (succ i)
-         else
-            nv
-   in
+     let nv = make v i in
+     if pred nv then
+       search (succ i)
+     else
+       nv in
       search 0
 
 (*
@@ -176,6 +178,13 @@ let new_name_gen v f =
 let is_interned v =
    to_int v = 0
 
+let dump_symbol fmt v = 
+  let i, s = SymbolHash.get v in
+  Format.fprintf fmt "(%d,%s)" i s
+
+
+exception Has;;
+
 (*
  * Printer.
  * If the symbol is not a defined symbol,
@@ -189,23 +198,6 @@ let string_of_symbol v =
          s
       else
          s ^ string_of_int i
-
-let output_symbol out v =
-   Lm_printf.output_string out (string_of_symbol v)
-
-let rec output_symbol_list out vl =
-   match vl with
-      [v] ->
-         output_symbol out v
-    | v :: vl ->
-         Format.fprintf out "%a, %a" output_symbol v output_symbol_list vl
-    | [] ->
-         ()
-
-(*
- * Print extended symbols. Used in FIR printing.
- *)
-exception Has;;
 
 let string_of_ext_symbol v =
   let i, s = SymbolHash.get v in
@@ -237,6 +229,17 @@ let pp_print_ext_symbol buf v =
 
 let pp_print_symbol buf v =
    Lm_printf.pp_print_string buf (string_of_symbol v)
+let output_symbol out v =
+   Lm_printf.pp_print_string out (string_of_symbol v)
+
+let rec output_symbol_list out vl =
+   match vl with
+      [v] ->
+         output_symbol out v
+    | v :: vl ->
+         Format.fprintf out "%a, %a" output_symbol v output_symbol_list vl
+    | [] ->
+         ()
 
 let rec pp_print_symbol_list buf vl =
    match vl with

@@ -14,10 +14,6 @@ let open_out name =
 
 let open_out_bin name =
   formatter_of_out_channel (open_out_bin name)
- 
-let output_char       = pp_print_char
-let output_string     = pp_print_string
- 
 
 (** Normal printing.*)
 let print_char    = pp_print_char std_formatter
@@ -43,7 +39,7 @@ let rec print_any_list print out l =
       print out h
     | h::t ->
       print out h;
-      output_string out "; ";
+      pp_print_string out "; ";
       print_any_list print out t
     | [] -> ()
 
