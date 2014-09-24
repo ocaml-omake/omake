@@ -6,9 +6,9 @@ include Omake_pos.Make (struct let name = "Omake_builtin" end)
 (*
  * Add a command line variable definition.
  *)
-let add_command_def = Omake_builtin_util.add_command_def
-let command_defs_are_nonempty = Omake_builtin_util.command_defs_are_nonempty
-let venv_add_command_defs = Omake_builtin_util.venv_add_command_defs
+let add_command_def = Omake_build_util.add_command_def
+let command_defs_are_nonempty = Omake_build_util.command_defs_are_nonempty
+let venv_add_command_defs = Omake_build_util.venv_add_command_defs
 
 
 (*
@@ -146,7 +146,7 @@ let venv_add_pervasives venv =
   let loc = Lm_location.bogus_loc "Omake_builtin" in
   let pos = string_pos "venv_add_pervasives" (loc_exp_pos loc) in
   let () = Omake_env.venv_set_pervasives venv in
-  let obj = Omake_builtin_util.object_of_file venv pos loc "Pervasives" in
+  let obj = Omake_build_util.object_of_file venv pos loc "Pervasives" in
   let venv = Omake_env.venv_flatten_object venv obj in
   Omake_env.venv_set_pervasives venv;
   venv

@@ -77,7 +77,7 @@ let dependencies venv pos loc args =
       let nodes = List.map (Omake_eval.file_of_value venv pos) args in
       let  find_deps deps node =
         try
-          let env = Omake_builtin_util.get_env pos loc in
+          let env = Omake_build_util.get_env pos loc in
           let command = Omake_node.NodeTable.find env.env_commands node in
           Omake_node.NodeSet.union deps command.command_build_deps
         with
@@ -95,7 +95,7 @@ let dependencies_all_core test venv pos loc args =
       match args with
          [arg] ->
             let env =
-               try Omake_builtin_util.get_env pos loc with
+               try Omake_build_util.get_env pos loc with
                   Not_found ->
                      raise (Omake_value_type.OmakeException (pos, StringError "this command can only be executed in a rule body"))
             in
@@ -143,7 +143,7 @@ let dependencies_all_core test venv pos loc args =
 let dependencies_all = dependencies_all_core (fun _ -> true)
 let dependencies_proper = 
   dependencies_all_core 
-    (fun command -> not (Omake_builtin_util.is_leaf_command command))
+    (fun command -> not (Omake_build_util.is_leaf_command command))
 
 (*
  * \begin{doc}
@@ -246,7 +246,7 @@ let target_core optional_flag venv pos loc args =
       match args with
          [arg] ->
             let args     = Omake_eval.values_of_value venv pos arg in
-            let env      = Omake_builtin_util.get_env pos loc in
+            let env      = Omake_build_util.get_env pos loc in
             let commands = env.env_commands in
             let targets =
                List.fold_left (fun targets v ->
@@ -313,7 +313,7 @@ let find_build_targets venv pos loc args =
       | tag ->
         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("find-build-targets: unknown option", tag)))
     in
-    let env = Omake_builtin_util.get_env pos loc in
+    let env = Omake_build_util.get_env pos loc in
     let targets =
       Omake_build.command_fold env tag (fun targets command ->
         target_of_command venv pos loc command :: targets) [] in

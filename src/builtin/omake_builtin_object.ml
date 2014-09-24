@@ -14,7 +14,7 @@ let extends_fun venv pos loc args _ =
         ValObject obj ->
         obj
       | v ->
-        Omake_builtin_util.object_of_file venv pos loc (Omake_eval.string_of_value venv pos v)
+        Omake_build_util.object_of_file venv pos loc (Omake_eval.string_of_value venv pos v)
     in
     Omake_env.venv_include_object venv obj
   in

@@ -2022,7 +2022,7 @@ let process_pending env =
  *)
 let is_leaf_file (env : Omake_build_type.env) node =
   if Omake_node.NodeTable.mem env.env_commands node then
-    Omake_builtin_util.is_leaf_node env node
+    Omake_build_util.is_leaf_node env node
   else
     (Omake_node.NodeTable.mem env.env_commands (Omake_node.Node.create_escape NodeOptional node) ||
      Omake_node.NodeTable.mem env.env_commands (Omake_node.Node.create_escape NodeExists node))
@@ -2097,7 +2097,7 @@ and invalidate_event_core env node =
     wait_all env verbose;
     raise (Restart None)
   end else
-    let nodes = if Omake_builtin_util.is_leaf_node env node then Omake_node.NodeSet.singleton node else Omake_node.NodeSet.empty in
+    let nodes = if Omake_build_util.is_leaf_node env node then Omake_node.NodeSet.singleton node else Omake_node.NodeSet.empty in
     let nodes = 
       Omake_node.NodeSet.union nodes 
         (find_parents env (Omake_node.Node.create_escape NodeOptional node)) in
@@ -2349,7 +2349,7 @@ let print_failed_targets (env : Omake_build_type.env) buf =
     Lm_string_set.LexStringMTable.iter (fun _ (command : Omake_build_type.command) ->
       Format.fprintf buf "@\n   @[<v 3>@[<v 3>%a" Omake_node.pp_print_node command.command_target;
       Omake_node.NodeSet.iter (fun dep ->
-        if Omake_node.Node.is_real dep && Omake_builtin_util.is_leaf_node env dep then
+        if Omake_node.Node.is_real dep && Omake_build_util.is_leaf_node env dep then
           Format.fprintf buf "@ depends on: %a" Omake_node.pp_print_node dep) command.command_static_deps;
       Format.fprintf buf "@]";
       Omake_build_tee.format_tee_with_nl buf command;
@@ -2459,7 +2459,7 @@ let create_env exec options cache targets =
         Lm_unix_util.pp_time (now' -. now)
   in
   let env = create exec venv cache summary in
-  Omake_builtin_util.set_env env;
+  Omake_build_util.set_env env;
   env
 
 let rec create_env_loop exec options cache targets =
@@ -2547,7 +2547,7 @@ let load_osh venv options targets =
   (* Create the environment *)
   let exec = Omake_env.venv_exec venv in
   let env = create exec venv cache summary in
-  Omake_builtin_util.set_env env;
+  Omake_build_util.set_env env;
   env
 
 let load venv_opt options targets =

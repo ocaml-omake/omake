@@ -1124,7 +1124,7 @@ let sort_aux sorter venv pos loc args =
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
-   let env = Omake_builtin_util.get_env pos loc in
+   let env = Omake_build_util.get_env pos loc in
       sorter env venv pos name nodes
 
 let sort venv pos loc args =

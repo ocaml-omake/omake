@@ -759,13 +759,13 @@ omake_value.mli: $(SRC_eval)$(slash)omake_value.mli
 ALLFILES_eval = omake_eval.ml omake_eval.mli omake_value.ml omake_value.mli
 
 
-CMOFILES_build = omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_builtin_util.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo
+CMOFILES_build = omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo
 OCAML_LIB_FLAGS_build =
 
 build.cma: $(CMOFILES_build)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_build) -a -o $@ $(CMOFILES_build)
 
-omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_builtin_util.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo omake_rule.cmi omake_build_util.cmi omake_builtin_util.cmi omake_target.cmi omake_builtin.cmi omake_build_tee.cmi omake_build.cmi: magic.cma
+omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo omake_rule.cmi omake_build_util.cmi omake_target.cmi omake_builtin.cmi omake_build_tee.cmi omake_build.cmi: magic.cma
 
 SRC_build = ..$(slash)src$(slash)build
 
@@ -799,12 +799,6 @@ omake_builtin.mli: $(SRC_build)$(slash)omake_builtin.mli
 omake_builtin_type.ml: $(SRC_build)$(slash)omake_builtin_type.ml
 	$(LN) $(SRC_build)$(slash)omake_builtin_type.ml omake_builtin_type.ml
 
-omake_builtin_util.ml: $(SRC_build)$(slash)omake_builtin_util.ml
-	$(LN) $(SRC_build)$(slash)omake_builtin_util.ml omake_builtin_util.ml
-
-omake_builtin_util.mli: $(SRC_build)$(slash)omake_builtin_util.mli
-	$(LN) $(SRC_build)$(slash)omake_builtin_util.mli omake_builtin_util.mli
-
 omake_rule.ml: $(SRC_build)$(slash)omake_rule.ml
 	$(LN) $(SRC_build)$(slash)omake_rule.ml omake_rule.ml
 
@@ -817,16 +811,16 @@ omake_target.ml: $(SRC_build)$(slash)omake_target.ml
 omake_target.mli: $(SRC_build)$(slash)omake_target.mli
 	$(LN) $(SRC_build)$(slash)omake_target.mli omake_target.mli
 
-ALLFILES_build = omake_build.ml omake_build.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin.ml omake_builtin.mli omake_builtin_type.ml omake_builtin_util.ml omake_builtin_util.mli omake_rule.ml omake_rule.mli omake_target.ml omake_target.mli
+ALLFILES_build = omake_build.ml omake_build.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin.ml omake_builtin.mli omake_builtin_type.ml omake_rule.ml omake_rule.mli omake_target.ml omake_target.mli
 
 
-CMOFILES_builtin = omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_printf.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo
+CMOFILES_builtin = omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo
 OCAML_LIB_FLAGS_builtin = -linkall
 
 builtin.cma: $(CMOFILES_builtin)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_builtin) -a -o $@ $(CMOFILES_builtin)
 
-omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_printf.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo omake_builtin_base.cmi omake_builtin_arith.cmi omake_builtin_file.cmi omake_builtin_fun.cmi omake_printf.cmi omake_builtin_io.cmi omake_builtin_io_fun.cmi omake_builtin_sys.cmi omake_builtin_target.cmi omake_builtin_shell.cmi omake_builtin_rule.cmi omake_builtin_test.cmi omake_builtin_object.cmi: magic.cma
+omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo omake_printf.cmi omake_builtin_util.cmi omake_builtin_base.cmi omake_builtin_arith.cmi omake_builtin_file.cmi omake_builtin_fun.cmi omake_builtin_io.cmi omake_builtin_io_fun.cmi omake_builtin_sys.cmi omake_builtin_target.cmi omake_builtin_shell.cmi omake_builtin_rule.cmi omake_builtin_object.cmi omake_builtin_test.cmi: magic.cma
 
 SRC_builtin = ..$(slash)src$(slash)builtin
 
@@ -902,13 +896,19 @@ omake_builtin_test.ml: $(SRC_builtin)$(slash)omake_builtin_test.ml
 omake_builtin_test.mli: $(SRC_builtin)$(slash)omake_builtin_test.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.mli omake_builtin_test.mli
 
+omake_builtin_util.ml: $(SRC_builtin)$(slash)omake_builtin_util.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_util.ml omake_builtin_util.ml
+
+omake_builtin_util.mli: $(SRC_builtin)$(slash)omake_builtin_util.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_util.mli omake_builtin_util.mli
+
 omake_printf.ml: $(SRC_builtin)$(slash)omake_printf.ml
 	$(LN) $(SRC_builtin)$(slash)omake_printf.ml omake_printf.ml
 
 omake_printf.mli: $(SRC_builtin)$(slash)omake_printf.mli
 	$(LN) $(SRC_builtin)$(slash)omake_printf.mli omake_printf.mli
 
-ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli omake_printf.ml omake_printf.mli
+ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli omake_builtin_util.ml omake_builtin_util.mli omake_printf.ml omake_printf.mli
 
 
 CMOFILES_omake = omake_shell.cmo omake_main.cmo
