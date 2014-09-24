@@ -1,7 +1,3 @@
-
-
-
-
 let debug_lex =
    Lm_debug.create_debug (**)
       { debug_name = "lex";
@@ -15,10 +11,6 @@ let debug_lexgen =
         debug_description = "Debug the lexer generator";
         debug_value = false
       }
-
-(************************************************************************
- * Modules.
- *)
 
 (*
  * We simulate the NFA using the normal subset construction.
@@ -38,12 +30,12 @@ struct
     *)
    let rec reset_counter counters i =
       match counters with
-         counter :: counters ->
-            if i = 0 then
-               0 :: counters
-            else
-               counter :: reset_counter counters (pred i)
-       | [] ->
+      | counter :: counters ->
+        if i = 0 then
+          0 :: counters
+        else
+          counter :: reset_counter counters (pred i)
+      | [] ->
             raise (Invalid_argument "reset_counter: illegal counter")
 
    (*
@@ -2739,13 +2731,3 @@ struct
             Failure _ ->
                false
 end
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)

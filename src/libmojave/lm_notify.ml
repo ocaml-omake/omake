@@ -1,41 +1,5 @@
-(*
- * File-change notification services.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004-2007 Mojave Group, Caltifornia Institute of Technology,
- * and HRL Laboratories, LLC
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
- *)
-open Lm_debug
-open Lm_printf
-
-
 let debug_notify =
-   create_debug {
+   Lm_debug.create_debug {
       debug_name = "notify";
       debug_description = "Print the information on FAM events.";
       debug_value = false
@@ -47,13 +11,13 @@ let debug_notify =
 module IntCompare =
 struct
    type t = int
-   let compare = (-)
+   let compare (x : int) (y : int) = Pervasives.compare x y
 end
 
 module StringCompare =
 struct
    type t = string
-   let compare = Pervasives.compare
+   let compare (x : string) (y : string) = Pervasives.compare x y
 end
 
 module IntTable = Lm_map.LmMake (IntCompare)
@@ -65,11 +29,11 @@ module StringTable = Lm_map.LmMake (StringCompare)
 type request = int
 
 type job =
-   { job_dir       : string;
-     job_path      : Lm_filename_util.root * string list;
-     job_recursive : bool;
-     job_request   : request;
-     mutable job_running : bool
+   { dir       : string;
+     path      : Lm_filename_util.root * string list;
+     recursive : bool;
+     request   : request;
+     mutable running : bool
    }
 
 type code =
@@ -153,8 +117,8 @@ let is_path_prefix (root1, path1) (root2, path2) =
 let is_monitored_name requests name =
    let new_path = path_of_name name in
       IntTable.exists (fun _ job ->
-            let { job_path = path;
-                  job_recursive = recursive;
+            let { path = path;
+                  recursive = recursive;
                   _
                 } = job
             in
@@ -169,14 +133,14 @@ let is_monitored_name requests name =
  *)
 let string_of_code code =
    match code with
-      Changed          -> "Changed"
-    | Deleted          -> "Deleted"
-    | StartExecuting   -> "StartExecuting"
-    | StopExecuting    -> "StopExecuting"
-    | Created          -> "Created"
-    | Moved            -> "Moved"
-    | Acknowledge      -> "Acknowledge"
-    | Exists           -> "Exists"
+   | Changed          -> "Changed"
+   | Deleted          -> "Deleted"
+   | StartExecuting   -> "StartExecuting"
+   | StopExecuting    -> "StopExecuting"
+   | Created          -> "Created"
+   | Moved            -> "Moved"
+   | Acknowledge      -> "Acknowledge"
+   | Exists           -> "Exists"
     | EndExist         -> "EndExists"
     | DirectoryChanged -> "DirectoryChanged"
 
@@ -194,11 +158,11 @@ let create () =
       try 
          let fd = notify_fd info in
             if !debug_notify then
-               eprintf "Lm_notify.create: fd = %i@." (Lm_unix_util.int_of_fd fd);
+               Format.eprintf "Lm_notify.create: fd = %i@." (Lm_unix_util.int_of_fd fd);
             Some fd
       with Failure _ ->
          if !debug_notify then
-            eprintf "Lm_notify.create: no fd @.";
+            Format.eprintf "Lm_notify.create: no fd @.";
          None
    in
       { notify_info     = info;
@@ -232,14 +196,14 @@ let monitor notify dir recursive =
    let name = name_of_dir dir in
       if not (is_monitored_name requests name) then begin
          if !debug_notify then
-            eprintf "Lm_notify.monitor: %s, recursive: %b@." name recursive;
+            Format.eprintf "Lm_notify.monitor: %s, recursive: %b@." name recursive;
          let request = notify_monitor_directory info dir recursive in
          let job =
-            { job_dir       = dir;
-              job_path      = path_of_name name;
-              job_recursive = recursive;
-              job_running   = true;
-              job_request   = request
+            { dir       = dir;
+              path      = path_of_name name;
+              recursive = recursive;
+              running   = true;
+              request   = request
             }
          in
          let dirs = StringTable.add dirs name request in
@@ -265,10 +229,10 @@ let suspend notify dir =
             raise (Invalid_argument "suspend_dir")
    in
    let job = IntTable.find requests request in
-      if job.job_running then
+      if job.running then
          begin
-            notify_suspend info job.job_request;
-            job.job_running <- false
+            notify_suspend info job.request;
+            job.running <- false
          end
 
 let suspend_all notify =
@@ -278,10 +242,10 @@ let suspend_all notify =
        } = notify
    in
       IntTable.iter (fun _ job ->
-            if job.job_running then
+            if job.running then
                begin
-                  notify_suspend info job.job_request;
-                  job.job_running <- false
+                  notify_suspend info job.request;
+                  job.running <- false
                end) requests
 
 let resume notify dir =
@@ -298,10 +262,10 @@ let resume notify dir =
             raise (Invalid_argument "resume_dir")
    in
    let job = IntTable.find requests request in
-      if not job.job_running then
+      if not job.running then
          begin
-            notify_resume info job.job_request;
-            job.job_running <- true
+            notify_resume info job.request;
+            job.running <- true
          end
 
 let resume_all notify =
@@ -311,10 +275,10 @@ let resume_all notify =
        } = notify
    in
       IntTable.iter (fun _ job ->
-            if not job.job_running then
+            if not job.running then
                begin
-                  notify_resume info job.job_request;
-                  job.job_running <- true
+                  notify_resume info job.request;
+                  job.running <- true
                end) requests
 
 (*
@@ -334,7 +298,7 @@ let cancel notify dir =
             raise (Invalid_argument "cancel_dir")
    in
    let job = IntTable.find requests request in
-      notify_cancel info job.job_request;
+      notify_cancel info job.request;
       notify.notify_dirs <- StringTable.remove dirs dir;
       notify.notify_requests <- IntTable.remove requests request
 
@@ -354,42 +318,36 @@ let cancel_all notify =
 let pending notify =
    let pending = notify_pending notify.notify_info in
       if !debug_notify then
-         eprintf "Lm_notify.pending: %s@." (if pending then "true" else "false");
+         Format.eprintf "Lm_notify.pending: %s@." (if pending then "true" else "false");
       pending
 
 (*
  * Get the next event.
  *)
 let next_event notify =
-   if !debug_notify then
-      eprintf "Lm_notify.next_event: starting@.";
-   let { ne_request = request;
-         ne_name = name;
-         ne_code = code
-       } = notify_next_event notify.notify_info
-   in
-   if !debug_notify then
-      eprintf "Lm_notify.next_event: received event for name %s, code %s@." name (string_of_code code);
-   let job =
-      try IntTable.find notify.notify_requests request with
-         Not_found ->
-            raise (Invalid_argument "Lm_notify.next_event: unknown request")
-   in
-   let filename =
-      if Filename.is_relative name then
-         Filename.concat job.job_dir name
-      else
-         name
-   in
-      if !debug_notify then
-         eprintf "Lm_notify.next_event: filename is %s@." filename;
-      { notify_code = code;
-        notify_name = filename
-      }
+  if !debug_notify then
+    Format.eprintf "Lm_notify.next_event: starting@.";
+  let { ne_request = request;
+        ne_name = name;
+        ne_code = code
+      } = notify_next_event notify.notify_info
+  in
+  if !debug_notify then
+    Format.eprintf "Lm_notify.next_event: received event for name %s, code %s@." name (string_of_code code);
+  let job =
+    try IntTable.find notify.notify_requests request with
+      Not_found ->
+      raise (Invalid_argument "Lm_notify.next_event: unknown request")
+  in
+  let filename =
+    if Filename.is_relative name then
+      Filename.concat job.dir name
+    else
+      name
+  in
+  if !debug_notify then
+    Format.eprintf "Lm_notify.next_event: filename is %s@." filename;
+  { notify_code = code;
+    notify_name = filename
+  }
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

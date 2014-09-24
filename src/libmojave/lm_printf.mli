@@ -10,8 +10,6 @@ type 'a t = Format.formatter -> 'a  -> unit
 val open_out     : string -> Format.formatter
 val open_out_bin : string -> Format.formatter
 
-(* val output_char    : char t  *)
-(* val output_string  : string t  *)
 
 (*
  * These functions are bad style for functional programs.
