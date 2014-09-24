@@ -1,6 +1,5 @@
 OCAMLINCLUDES[] +=
     ../libmojave
-    ../util
     ../exec
     ../magic
     ../ast
