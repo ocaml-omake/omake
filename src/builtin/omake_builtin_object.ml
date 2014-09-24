@@ -1,5 +1,5 @@
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_object" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_object" end)
 
 
 (*
@@ -957,7 +957,7 @@ let compare_fun _ pos loc args =
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
   in
-  Omake_value_type.ValInt (Omake_value_type.ValueCompare.compare x y)
+  Omake_value_type.ValInt (Omake_value_util.ValueCompare.compare x y)
 
 (*
  * Printable location.

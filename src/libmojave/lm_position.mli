@@ -14,9 +14,22 @@ type 'a pos
  * MakePos in each file where Name.name is set
  * to the name of the module.
  *)
-module type PosSig =
+
+
+module MakePos (Name :
 sig
   type t
+
+  (* This is the name of the module where the position info is created *)
+  val name : string
+
+  (* Utilities for managing values *)
+  val loc_of_t : t -> Lm_location.t
+  val pp_print_t : t Lm_printf.t 
+end
+) : 
+sig
+  type t = Name.t
 
   (* Creating positions *)
   val loc_exp_pos : Lm_location.t -> t pos
@@ -35,17 +48,4 @@ sig
   val pp_print_pos  : t pos Lm_printf.t 
 end
 
-module type NameSig =
-sig
-  type t
-
-  (* This is the name of the module where the position info is created *)
-  val name : string
-
-  (* Utilities for managing values *)
-  val loc_of_value : t -> Lm_location.t
-  val pp_print_value : t Lm_printf.t 
-end
-
-module MakePos (Name : NameSig) : PosSig with type t = Name.t
 

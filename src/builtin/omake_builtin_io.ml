@@ -6,7 +6,7 @@
  * \end{doc}
  *)
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_io" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_io" end)
 
 (*
  * Table of variables.
@@ -1574,7 +1574,7 @@ let eprintvln venv pos loc args =
 module Args =
 struct
   type t =
-    { print_venv    : Omake_env.venv;
+    { print_venv    : Omake_env.t;
       print_pos     : Omake_value_type.pos;
       print_loc     : Lm_location.t;
       print_fmt     : Format.formatter;
@@ -1582,7 +1582,7 @@ struct
       print_channel : Lm_channel.t
     }
 
-  type value = Omake_value_type.value
+  type value = Omake_value_type.t
 
   (*
     * Create the buffers and channels.

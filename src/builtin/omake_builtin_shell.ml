@@ -7,7 +7,7 @@
  * \section{Basic builtin functions}
  * \end{doc}
  *)
-include Omake_pos.MakePos (struct let name = "Omake_builtin_io" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_io" end)
 
 
 (*

@@ -1,36 +1,30 @@
-open Lm_printf
-
-open Lm_location
-
-
 open Omake_env
-open Omake_pos
 open Omake_symbol
 open Omake_value_type
 open Omake_value_print
 
-include Omake_pos.MakePos (struct let name = "Omake_exn_print" end);;
+module Pos= Omake_pos.Make (struct let name = "Omake_exn_print" end);;
 
 
 (*
  * Other exception.
  *)
 let pp_print_other_exn buf exn =
-   match exn with
-      Unix.Unix_error (errno, f, arg) ->
-         fprintf buf "@[<v 3>%s(%s): %s@]" (**)
-            f arg (Unix.error_message errno)
-    | Sys_error s ->
-         fprintf buf "@[<v 3>Sys_error: %s@]" s
-    | Sys.Break ->
-         fprintf buf "@[<v 3>Break@]"
-    | Failure s ->
-         fprintf buf "Failure: %s" s
-    | Invalid_argument s ->
-         fprintf buf "Invalid argument: %s" s
-    | exn ->
-         fprintf buf "@[<v 3>%s@]" (**)
-            (Printexc.to_string exn)
+  match exn with
+  | Unix.Unix_error (errno, f, arg) ->
+    Format.fprintf buf "@[<v 3>%s(%s): %s@]" (**)
+      f arg (Unix.error_message errno)
+  | Sys_error s ->
+    Format.fprintf buf "@[<v 3>Sys_error: %s@]" s
+  | Sys.Break ->
+    Format.fprintf buf "@[<v 3>Break@]"
+  | Failure s ->
+    Format.fprintf buf "Failure: %s" s
+  | Invalid_argument s ->
+    Format.fprintf buf "Invalid argument: %s" s
+  | exn ->
+    Format.fprintf buf "@[<v 3>%s@]" (**)
+      (Printexc.to_string exn)
 
 let pp_print_obj_err buf obj =
    if venv_defined_field_internal obj message_sym then
@@ -40,8 +34,8 @@ let pp_print_obj_err buf obj =
             begin match Lm_string_util.split "\n" s with
                [] -> ()
              | s :: sl ->
-                  pp_print_string buf s;
-                  List.iter (fun s -> pp_force_newline buf (); pp_print_string buf s) sl
+                  Format.pp_print_string buf s;
+                  List.iter (fun s -> Format.pp_force_newline buf (); Format.pp_print_string buf s) sl
             end
        | v ->
             pp_print_value buf v
@@ -52,67 +46,67 @@ let pp_print_obj_err buf obj =
  * Exception printer.
  *)
 let pp_print_return_id buf (loc, s) =
-   fprintf buf "%s (%a)" s pp_print_location loc
+   Format.fprintf buf "%s (%a)" s Lm_location.pp_print_location loc
 
 let pp_print_exn buf exn =
    match exn with
       OmakeException (pos, exn) ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
-            pp_print_pos pos
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
+            Pos.pp_print_pos pos
             pp_print_exn exn
     | OmakeFatalErr (pos, exn) ->
-         fprintf buf "@[<v 3>*** omake fatal error:@ %a@ %a@]" (**)
-            pp_print_pos pos
+         Format.fprintf buf "@[<v 3>*** omake fatal error:@ %a@ %a@]" (**)
+            Pos.pp_print_pos pos
             pp_print_exn exn
     | UncaughtException (pos, exn) ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
-            pp_print_pos pos
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
+            Pos.pp_print_pos pos
             pp_print_other_exn exn
     | RaiseException (pos, obj) ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@ @[<v3>Uncaught Exception:@ %a@]@]" (**)
-            pp_print_pos pos
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@ @[<v3>Uncaught Exception:@ %a@]@]" (**)
+            Pos.pp_print_pos pos
             pp_print_obj_err obj
     | OmakeFatal s ->
-         fprintf buf "@[<v 3>*** omake fatal error:@ %s@]" s
+         Format.fprintf buf "@[<v 3>*** omake fatal error:@ %s@]" s
     | ExitParentException (pos, code)
     | ExitException (pos, code) ->
-         fprintf buf "@[<v 3>*** omake %s:@ %a@ early exit(%i) requested by an omake file@]" (**)
+         Format.fprintf buf "@[<v 3>*** omake %s:@ %a@ early exit(%i) requested by an omake file@]" (**)
             (if code = 0 then "warning" else "error")
-            pp_print_pos pos
+            Pos.pp_print_pos pos
             code
     | Return (loc, _, id) ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@ uncaught return from %a@]" (**)
-            pp_print_location loc
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@ uncaught return from %a@]" (**)
+            Lm_location.pp_print_location loc
             pp_print_return_id id
     | exn ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn
 
 (*
  * If one of these exceptions occurs during process creation,
  * treat it as a command failure.
  *)
 let is_shell_exn exn =
-   match exn with
-      OmakeException _
-    | OmakeFatalErr _
-    | OmakeFatal _
-    | UncaughtException _
-    | RaiseException _
-    | Unix.Unix_error _
-    | Sys_error _
-    | Failure _
-    | Invalid_argument _
-    | Return _ ->
-         true
-    | _ ->
-         false
+  match exn with
+  | OmakeException _
+  | OmakeFatalErr _
+  | OmakeFatal _
+  | UncaughtException _
+  | RaiseException _
+  | Unix.Unix_error _
+  | Sys_error _
+  | Failure _
+  | Invalid_argument _
+  | Return _ ->
+    true
+  | _ ->
+    false
 
 (*
  * Exception handler.
  *)
 let catch f x =
    try f x with
-      OmakeException _
+   | OmakeException _
     | OmakeFatalErr _
     | OmakeFatal _
     | UncaughtException _
@@ -120,16 +114,10 @@ let catch f x =
     | Unix.Unix_error _
     | Sys_error _
     | Return _ as exn ->
-         eprintf "%a@." pp_print_exn exn;
+         Format.eprintf "%a@." pp_print_exn exn;
          exit Omake_state.exn_error_code
     | ExitParentException (_, code)
     | ExitException (_, code) as exn ->
-         eprintf "%a@." pp_print_exn exn;
+         Format.eprintf "%a@." pp_print_exn exn;
          exit code
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

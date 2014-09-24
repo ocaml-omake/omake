@@ -10,14 +10,14 @@ open Lm_string_set
 
 open Omake_env
 open Omake_var
-open Omake_pos
+
 open Omake_node
 open Omake_value
 
 
 open Omake_value_type
 
-module Pos = MakePos (struct let name = "Omake_shell_job" end)
+module Pos = Omake_pos.Make (struct let name = "Omake_shell_job" end)
 open Pos;;
 
 (*

@@ -20,17 +20,17 @@ type prim_channel = Lm_int_handle_table.handle
  * Someday we may want to include rules and functions.
  * For the function, the obj is the static scope.
  *)
-type value =
-  |ValNone
+type t =
+  | ValNone
   | ValInt         of int
   | ValFloat       of float
-  | ValSequence    of value list
-  | ValArray       of value list
+  | ValSequence    of t list
+  | ValArray       of t list
   | ValWhite       of string
   | ValString      of string
   | ValData        of string
-  | ValQuote       of value list
-  | ValQuoteString of char * value list
+  | ValQuote       of t list
+  | ValQuoteString of char * t list
   | ValRules       of Omake_node.Node.t list
   | ValNode        of Omake_node.Node.t
   | ValDir         of Omake_node.Dir.t
@@ -42,7 +42,7 @@ type value =
   (* Raw expressions *)
   | ValStringExp   of env * Omake_ir.string_exp
   | ValBody        of Omake_ir.exp list * Omake_ir.export
-  | ValCases       of (Omake_ir.var * value * Omake_ir.exp list * Omake_ir.export) list
+  | ValCases       of (Omake_ir.var * t * Omake_ir.exp list * Omake_ir.export) list
 
   (* Functions *)
   | ValFun         of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
@@ -52,9 +52,9 @@ type value =
   | ValPrim        of Omake_ir.arity * bool * Omake_ir.apply_empty_strategy * prim_fun
 
   (* The args, kargs are kept in -reverse- order *)
-  | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * value list * keyword_value list
+  | ValPrimCurry   of Omake_ir.arity * bool * prim_fun * t list * keyword_value list
 
-  (* Implicit value dependencies *)
+  (* Implicit t dependencies *)
   | ValMaybeApply  of Lm_location.t * Omake_ir.var_info
 
   (* Variables that are not applications *)
@@ -67,7 +67,7 @@ type value =
   | ValDelayed     of value_delayed ref
 
 (*
- * Put all the other stuff here, to keep the primary value type
+ * Put all the other stuff here, to keep the primary t type
  * smaller.
  *)
 and value_other =
@@ -78,17 +78,17 @@ and value_other =
   | ValEnv         of handle_env * Omake_ir.export
 
 and value_delayed =
-    ValValue of value
+  | ValValue of t
 
   (* Value in a static block *)
-  | ValStaticApply of value * Omake_ir.var
+  | ValStaticApply of t * Omake_ir.var
 
 (*
  * Arguments have an optional keyword.
  *)
-and param_value = Omake_ir.param * value
-and keyword_value = Omake_ir.var * value
-and keyword_param_value = Omake_ir.var * Omake_ir.param * value option
+and param_value = Omake_ir.param * t
+and keyword_value = Omake_ir.var * t
+and keyword_param_value = Omake_ir.var * Omake_ir.param * t option
 
 (*
  * Primitives are option refs.
@@ -100,9 +100,9 @@ and prim_fun = Lm_symbol.t
 (*
  * An object is just an environment.
  *)
-and obj = value Lm_symbol.SymbolTable.t
-and env = value Lm_symbol.SymbolTable.t
-and map = (value, value) Lm_map.tree
+and obj = t Lm_symbol.SymbolTable.t
+and env = t Lm_symbol.SymbolTable.t
+and map = (t, t) Lm_map.tree
 (* %%MAGICEND%% *)
 
 (************************************************************************
@@ -123,7 +123,7 @@ type path =
  * for various kinds of commands.
  *)
 type command =
-  | CommandSection of value * Omake_ir_free_vars.free_vars * Omake_ir.exp list
+  | CommandSection of t * Omake_ir_free_vars.free_vars * Omake_ir.exp list
   (* Name of the section, its free variables, and the expression *)
   | CommandValue of Lm_location.t * env * Omake_ir.string_exp
 
@@ -131,21 +131,21 @@ type command =
  * Kinds of rules.
  *)
 type rule_multiple =
-   RuleSingle
- | RuleMultiple
- | RuleScannerSingle
- | RuleScannerMultiple
+  | RuleSingle
+  | RuleMultiple
+  | RuleScannerSingle
+  | RuleScannerMultiple
 
 type rule_kind =
-   RuleNormal
- | RuleScanner
+  | RuleNormal
+  | RuleScanner
 
 (*
- * A target value that represents a node in a rule.
+ * A target t that represents a node in a rule.
  *)
 type target =
-   TargetNode of Omake_node.Node.t
- | TargetString of string
+  | TargetNode of Omake_node.Node.t
+  | TargetString of string
 
 (*
  * A source is either
@@ -164,18 +164,18 @@ type 'a source = Omake_node_sig.node_kind * 'a
  * Exceptions.
  *)
 type item =
-   Symbol        of Lm_symbol.t
- | String        of string
- | AstExp        of Omake_ast.exp
- | IrExp         of Omake_ir.exp
- | Location      of Lm_location.t
- | Value         of value
- | Error         of omake_error
+  | Symbol        of Lm_symbol.t
+  | String        of string
+  | AstExp        of Omake_ast.exp
+  | IrExp         of Omake_ir.exp
+  | Location      of Lm_location.t
+  | Value         of t
+  | Error         of omake_error
 
 and pos = item Lm_position.pos
 
 and omake_error =
-  |  SyntaxError        of string
+  | SyntaxError        of string
   | StringError        of string
   | StringAstError     of string * Omake_ast.exp
   | StringStringError  of string * string
@@ -184,7 +184,7 @@ and omake_error =
   | StringVarError     of string * Omake_ir.var
   | StringIntError     of string * int
   | StringMethodError  of string * Omake_ir.var list
-  | StringValueError   of string * value
+  | StringValueError   of string * t
   | StringTargetError  of string * target
   | LazyError          of (Format.formatter -> unit)
   | UnboundVar         of Omake_ir.var
@@ -195,7 +195,7 @@ and omake_error =
   | ArityMismatch      of Omake_ir.arity * int
   | NotImplemented     of string
   | UnboundKey         of string
-  | UnboundValue       of value
+  | UnboundValue       of t
   | NullCommand
 
 (*
@@ -206,162 +206,11 @@ exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
 exception ExitParentException     of pos * int
-exception Return            of Lm_location.t * value * Omake_ir.return_id
+exception Return            of Lm_location.t * t * Omake_ir.return_id
 
 (*
  * Omake's internal version of the Invalid_argument
  *)
 exception OmakeFatal of string
 exception OmakeFatalErr of pos * omake_error
-
-(*
- * Position printer.
- *)
-module type PosSig =
-sig
-   val loc_exp_pos    : Lm_location.t -> pos
-   val loc_pos        : Lm_location.t -> pos -> pos
-
-   val ast_exp_pos    : Omake_ast.exp -> pos
-   val ir_exp_pos     : Omake_ir.exp -> pos
-   val var_exp_pos    : Omake_ir.var -> pos
-   val string_exp_pos : string -> pos
-   val value_exp_pos  : value -> pos
-
-   val string_pos     : string -> pos -> pos
-   val pos_pos        : pos -> pos -> pos
-   val int_pos        : int -> pos -> pos
-   val var_pos        : Omake_ir.var -> pos -> pos
-   val error_pos      : omake_error -> pos -> pos
-
-   val del_pos        : (Format.formatter -> unit) -> Lm_location.t -> pos
-   val del_exp_pos    : (Format.formatter -> unit) -> pos -> pos
-
-   (* Utilities *)
-   val loc_of_pos     : pos -> Lm_location.t
-   val pp_print_pos   : Format.formatter -> pos -> unit
-end
-
-(************************************************************************
- * Basic values and functions.
- *)
-
-(*
- * Empty object.
- *)
-let empty_obj = Lm_symbol.SymbolTable.empty
-
-(*
- * Get the class identifiers from the object.
- *)
-let class_sym = Lm_symbol.add "$class"
-
-let venv_get_class obj =
-   match Lm_symbol.SymbolTable.find obj class_sym with
-   |   ValClass table -> table
-   | _ -> Lm_symbol.SymbolTable.empty 
-   | exception Not_found -> Lm_symbol.SymbolTable.empty 
-
-(************************************************************************
- * Value table.
- *)
-module ValueCompare =
-struct
-   type t = value
-
-   (*
-    * Check for simple values.
-    * Arrays cannot be nested.
-    *)
-   let check_simple pos v =
-      match v with
-         ValNone
-       | ValInt _
-       | ValFloat _
-       | ValData _
-       | ValNode _
-       | ValDir _
-       | ValOther (ValLocation _)
-       | ValOther (ValExitCode _)
-       | ValVar _ ->
-            ()
-       | _ ->
-            raise (OmakeException (pos, StringValueError ("illegal Map key", v)))
-
-   let check pos v =
-      (match v with
-          ValArray vl ->
-             List.iter (check_simple pos) vl
-        | _ ->
-             check_simple pos v);
-      v
-
-   (*
-    * Compare two simple values.
-    *)
-   let tag = function
-      ValNone                  -> 0
-    | ValInt _                 -> 1
-    | ValFloat _               -> 2
-    | ValArray _               -> 3
-    | ValData _                -> 4
-    | ValNode _                -> 5
-    | ValDir _                 -> 6
-    | ValOther (ValExitCode _) -> 7
-    | ValOther (ValLocation _) -> 8
-    | ValVar _                 -> 9
-    | _ ->
-         raise (Invalid_argument "ValueCompare: value not supported")
-
-   let rec compare v1 v2 =
-      match v1, v2 with
-         ValNone, ValNone ->
-            0
-       | ValInt i1, ValInt i2
-       | ValOther (ValExitCode i1), ValOther (ValExitCode i2) ->
-            if i1 < i2 then
-               -1
-            else if i1 > i2 then
-               1
-            else
-               0
-       | ValFloat x1, ValFloat x2 ->
-            if x1 < x2 then
-               -1
-            else if x1 > x2 then
-               1
-            else
-               0
-       | ValArray a1, ValArray a2 ->
-            compare_list a1 a2
-       | ValData s1, ValData s2 ->
-            Pervasives.compare s1 s2
-       | ValNode node1, ValNode node2 ->
-            Omake_node.Node.compare node1 node2
-       | ValDir dir1, ValDir dir2 ->
-            Omake_node.Dir.compare dir1 dir2
-       | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
-            Lm_location.compare loc1 loc2
-       | ValVar (_, v1), ValVar (_, v2) ->
-            Omake_ir_util.VarInfoCompare.compare v1 v2
-       | _ ->
-            tag v1 - tag v2
-
-   and compare_list l1 l2 =
-      match l1, l2 with
-         v1 :: l1, v2 :: l2 ->
-            let cmp = compare v1 v2 in
-               if cmp = 0 then
-                  compare_list l1 l2
-               else
-                  cmp
-       | [], [] ->
-            0
-       | [], _ :: _ ->
-            -1
-       | _ :: _, [] ->
-            1
-end;;
-
-module ValueTable = Lm_map.LmMakeRec (ValueCompare);;
 

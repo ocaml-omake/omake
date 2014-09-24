@@ -1,4 +1,4 @@
-include Omake_pos.MakePos (struct let name = "Omake_builtin_sys" end);;
+include Omake_pos.Make (struct let name = "Omake_builtin_sys" end);;
 
 
 (************************************************************************

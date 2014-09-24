@@ -13,9 +13,6 @@ let trace_pos =
       debug_value = false
     }
 
-(************************************************************************
- * TYPES
- ************************************************************************)
 
 (*
  * We include the name of the module where
@@ -26,62 +23,30 @@ let trace_pos =
 type 'a pos = string * 'a exn_loc
 
 and 'a exn_loc =
-  | DebugLoc     of Lm_location.t
-  | DebugBase    of 'a
-  | DebugCons    of 'a * 'a pos
-  | DebugConsLoc of Lm_location.t * 'a pos
-  | DebugPos     of 'a pos * 'a pos
-  | DebugInt     of int * 'a pos
-  | DebugString  of string * 'a pos
-  | DebugSymbol  of Lm_symbol.t * 'a pos
-  | DebugDel     of (Format.formatter -> unit) * Lm_location.t
-  | DebugDelExp  of (Format.formatter -> unit) * 'a pos
+  | Loc     of Lm_location.t
+  | Base    of 'a
+  | Cons    of 'a * 'a pos
+  | ConsLoc of Lm_location.t * 'a pos
+  | Pos     of 'a pos * 'a pos
+  | Int     of int * 'a pos
+  | String  of string * 'a pos
+  | Symbol  of Lm_symbol.t * 'a pos
+  | Del     of (Format.formatter -> unit) * Lm_location.t
+  | DelExp  of (Format.formatter -> unit) * 'a pos
     (* %%MAGICEND%% *)
 
-(*
- * Module for creating positions.
- * You have to specify the name of the module
- * where the exception are being created: use
- * MakePos in each file where Name.name is set
- * to the name of the module.
- *)
-module type PosSig =
-sig
-  type t
-
-  (* Creating positions *)
-  val loc_exp_pos : Lm_location.t -> t pos
-  val loc_pos     : Lm_location.t -> t pos -> t pos
-  val base_pos    : t -> t pos
-  val cons_pos    : t -> t pos -> t pos
-  val pos_pos     : t pos -> t pos -> t pos
-  val int_pos     : int -> t pos -> t pos
-  val string_pos  : string -> t pos -> t pos
-  val symbol_pos  : Lm_symbol.t -> t pos -> t pos
-  val del_pos     : (Format.formatter -> unit) -> Lm_location.t -> t pos
-  val del_exp_pos : (Format.formatter -> unit) -> t pos -> t pos
-
-  (* Utilities *)
-  val loc_of_pos : t pos -> Lm_location.t
-  val pp_print_pos : t pos Lm_printf.t 
-end
-
-module type NameSig =
-sig
+module MakePos (Name : sig
   type t
 
   (* This is the name of the module where the position info is created *)
   val name : string
 
   (* Utilities for managing values *)
-  val loc_of_value : t -> Lm_location.t
-  val pp_print_value  : t Lm_printf.t 
+  val loc_of_t : t -> Lm_location.t
+  val pp_print_t  : t Lm_printf.t 
 end
-
-
-module MakePos (Name : NameSig) =
+) =
 struct
-  open Name
 
   type t = Name.t
 
@@ -90,18 +55,18 @@ struct
     *)
   let rec loc_of_pos (_, pos) =
     match pos with
-    | DebugLoc loc
-    | DebugDel (_, loc)
-    | DebugConsLoc (loc, _) ->
+    | Loc loc
+    | Del (_, loc)
+    | ConsLoc (loc, _) ->
       loc
-    | DebugBase x ->
-      loc_of_value x
-    | DebugCons (_, pos)
-    | DebugPos (_, pos)
-    | DebugInt (_, pos)
-    | DebugString (_, pos)
-    | DebugSymbol (_, pos)
-    | DebugDelExp (_, pos) ->
+    | Base x ->
+      Name.loc_of_t x
+    | Cons (_, pos)
+    | Pos (_, pos)
+    | Int (_, pos)
+    | String (_, pos)
+    | Symbol (_, pos)
+    | DelExp (_, pos) ->
       loc_of_pos pos
 
   (*
@@ -109,39 +74,39 @@ struct
     *)
   let rec pp_print_pos buf (name, e) =
     match e with
-    | DebugLoc _ ->
+    | Loc _ ->
       ()
 
-    | DebugBase x ->
-      Format.fprintf buf "@ %s.%a" name pp_print_value x
+    | Base x ->
+      Format.fprintf buf "@ %s.%a" name Name.pp_print_t x
 
-    | DebugCons (x, pos) ->
+    | Cons (x, pos) ->
       pp_print_pos buf pos;
-      Format.fprintf buf "@ /%s.%a" name pp_print_value x
+      Format.fprintf buf "@ /%s.%a" name Name.pp_print_t x
 
-    | DebugConsLoc (_, pos) ->
+    | ConsLoc (_, pos) ->
       pp_print_pos buf pos
 
-    | DebugPos (pos1, pos2) ->
+    | Pos (pos1, pos2) ->
       Format.fprintf buf "@ @[<v 3>Called from: %s%a@]%a" (**)
         name
         pp_print_pos pos1
         pp_print_pos pos2
 
-    | DebugString (s, pos) ->
+    | String (s, pos) ->
       Format.fprintf buf "%a@ /%s.%s" pp_print_pos pos name s
 
-    | DebugInt (i, pos) ->
+    | Int (i, pos) ->
       Format.fprintf buf "%a@ %s.%d" pp_print_pos pos name i
 
-    | DebugSymbol (v, pos) ->
+    | Symbol (v, pos) ->
 
       Format.fprintf buf "%a@ %s.%a" pp_print_pos pos name Lm_symbol.output_symbol v
 
-    | DebugDel (f, _) ->
+    | Del (f, _) ->
       Format.fprintf buf "@ %t" f
 
-    | DebugDelExp (f, pos) ->
+    | DelExp (f, pos) ->
 
       Format.fprintf buf "%a@ %t" pp_print_pos pos f
 
@@ -159,69 +124,69 @@ struct
     *)
   let loc_exp_pos loc =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.%a@." name Lm_location.pp_print_location loc;
-    name, DebugLoc loc
+      Format.eprintf "Lm_trace: %s.%a@." Name.name Lm_location.pp_print_location loc;
+    Name.name, Loc loc
 
   let loc_pos loc pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.loc@." name;
-    name, DebugConsLoc (loc, pos)
+      Format.eprintf "Lm_trace: %s.loc@." Name.name;
+    Name.name, ConsLoc (loc, pos)
 
   let base_pos x =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.base@." name;
-    name, DebugBase x
+      Format.eprintf "Lm_trace: %s.base@." Name.name;
+    Name.name, Base x
 
   let pos_pos pos1 pos2 =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.pos@." name;
+      Format.eprintf "Lm_trace: %s.pos@." Name.name;
     if !debug_pos then
-      name, DebugPos (pos1, pos2)
+      Name.name, Pos (pos1, pos2)
     else
       pos2
 
   let cons_pos x pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.cons@." name;
+      Format.eprintf "Lm_trace: %s.cons@." Name.name;
     if !debug_pos then
-      name, DebugCons (x, pos)
+      Name.name, Cons (x, pos)
     else
       pos
 
   let int_pos i pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.int: %d@." name i;
+      Format.eprintf "Lm_trace: %s.int: %d@." Name.name i;
     if !debug_pos then
-      name, DebugInt (i, pos)
+      Name.name, Int (i, pos)
     else
       pos
 
   let string_pos s pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.string: %s@." name s;
+      Format.eprintf "Lm_trace: %s.string: %s@." Name.name s;
     if !debug_pos then
-      name, DebugString (s, pos)
+      Name.name, String (s, pos)
     else
       pos
 
   let symbol_pos v pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.symbol: %a@." name Lm_symbol.output_symbol v;
+      Format.eprintf "Lm_trace: %s.symbol: %a@." Name.name Lm_symbol.output_symbol v;
     if !debug_pos then
-      name, DebugSymbol (v, pos)
+      Name.name, Symbol (v, pos)
     else
       pos
 
   let del_pos f loc =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.delayed@." name;
-    name, DebugDel (f, loc)
+      Format.eprintf "Lm_trace: %s.delayed@." Name.name;
+    Name.name, Del (f, loc)
 
   let del_exp_pos f pos =
     if !trace_pos then
-      Format.eprintf "Lm_trace: %s.delayed@." name;
+      Format.eprintf "Lm_trace: %s.delayed@." Name.name;
     if !debug_pos then
-      name, DebugDelExp (f, pos)
+      Name.name, DelExp (f, pos)
     else
       pos
 end

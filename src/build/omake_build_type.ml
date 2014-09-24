@@ -101,7 +101,7 @@ type command_body =
  *        is blocked
  *)
 type command =
-  { command_venv                       : Omake_env.venv;
+  { command_venv                       : Omake_env.t;
     mutable command_state              : command_state;
     command_target                     : Omake_node.Node.t;
     mutable command_effects            : Omake_node.NodeSet.t;
@@ -159,13 +159,13 @@ type env_wl =
   }
 
 type env =
-  { env_venv                       : Omake_env.venv;
+  { env_venv                       : Omake_env.t;
     env_cwd                        : Omake_node.Dir.t;
     env_cache                      : Omake_cache.t;
     env_exec                       : Omake_env.exec;
     mutable env_explicit_deps      : (Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t) Omake_node.NodeTable.t;
     env_explicit_targets           : Omake_env.erule Omake_node.NodeTable.t;
-    env_explicit_directories       : Omake_env.venv Omake_node.DirTable.t;
+    env_explicit_directories       : Omake_env.t Omake_node.DirTable.t;
     mutable env_includes           : Omake_cache_type.digest Omake_node.NodeTable.t;
 
     (* Build state *)
@@ -200,6 +200,6 @@ type env =
  *)
 type explicit_rule =
   | ExplicitTarget of Omake_env.erule
-  | ExplicitDirectory of Omake_env.venv
+  | ExplicitDirectory of Omake_env.t
   | ExplicitNone
 

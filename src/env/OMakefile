@@ -15,7 +15,7 @@ FILES[] =
     omake_ir_ast
     omake_ir_semant
     omake_command_digest
-
+    # omake_env_util
 #
 # The yacc parser file is generated
 #

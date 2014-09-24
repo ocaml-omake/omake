@@ -1,5 +1,5 @@
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin" end)
+include Omake_pos.Make (struct let name = "Omake_builtin" end)
 
 (* let object_sym = Lm_symbol.add "Object" *)
 

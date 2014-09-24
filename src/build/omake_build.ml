@@ -1,5 +1,5 @@
 
-include Omake_pos.MakePos (struct let name = "Omake_build" end);;
+include Omake_pos.Make (struct let name = "Omake_build" end);;
 
 exception BuildExit of int
 
@@ -2403,7 +2403,7 @@ let print_restart options reason =
 let create_env exec options cache targets =
   let venv = Omake_env.create options "." exec cache in
   let venv = Omake_builtin.venv_add_command_defs venv in
-  let targets_value : Omake_value_type.value =
+  let targets_value : Omake_value_type.t =
     ValArray (List.map (fun v -> Omake_value_type.ValData v) targets) in
   let venv = Omake_env.venv_add_var venv Omake_var.targets_var targets_value in
   let venv = Omake_builtin.venv_add_builtins venv in
@@ -2414,7 +2414,7 @@ let create_env exec options cache targets =
     Pervasives.close_out outx;
     summary
   in
-  let summary_value : Omake_value_type.value = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
+  let summary_value : Omake_value_type.t = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
   let venv = Omake_env.venv_add_var venv Omake_var.build_summary_var summary_value in
 
   (* Ignore match errors *)
@@ -2541,7 +2541,7 @@ let load_osh venv options targets =
     Pervasives.close_out outx;
     summary
   in
-  let summary_value : Omake_value_type.value = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
+  let summary_value : Omake_value_type.t = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
   let venv = Omake_env.venv_add_var venv Omake_var.build_summary_var summary_value in
 
   (* Create the environment *)

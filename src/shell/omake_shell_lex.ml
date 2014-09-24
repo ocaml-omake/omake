@@ -4,7 +4,7 @@
 open Lm_printf
 
 open Omake_env
-open Omake_pos
+
 open Omake_eval
 open Omake_value_type
 open Omake_shell_type
@@ -12,7 +12,7 @@ open Omake_shell_parse
 open Omake_value_print
 open Omake_command_type
 
-module Pos = MakePos (struct let name = "Omake_shell_lex" end);;
+module Pos = Omake_pos.Make (struct let name = "Omake_shell_lex" end);;
 open Pos;;
 
 (************************************************************************

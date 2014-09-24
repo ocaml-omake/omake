@@ -1,5 +1,5 @@
 
-include Omake_pos.MakePos (struct let name = "Omake_build_util" end)
+include Omake_pos.Make (struct let name = "Omake_build_util" end)
 
 
 (*

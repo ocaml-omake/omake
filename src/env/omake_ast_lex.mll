@@ -7,7 +7,7 @@
 
 {
 
-include Omake_pos.MakePos (struct let name = "Omake_ast_lex" end)
+include Omake_pos.Make (struct let name = "Omake_ast_lex" end)
 
 
 let debug_lex =

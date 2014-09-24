@@ -7,7 +7,7 @@ type penv
 (*
  * Parse a variable declaration.
  *)
-val parse_declaration : Omake_env.venv -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var list -> Omake_ir.method_name
+val parse_declaration : Omake_env.t -> Omake_value_type.pos -> Lm_location.t -> Omake_ir.var list -> Omake_ir.method_name
 
 (*
  * Environment for parsing AST files.
@@ -23,9 +23,9 @@ val build_string     : penv -> Omake_ast.exp -> Omake_value_type.pos -> penv * O
  * Create a parsing environment for the given file.
  *    penv_create (file, pervasives_id)
  *)
-val penv_create        : senv_open_file -> Omake_env.venv -> Omake_node.Node.t -> penv
+val penv_create        : senv_open_file -> Omake_env.t -> Omake_node.Node.t -> penv
 val penv_class_names   : penv -> Lm_symbol.t list * Omake_ir.senv
-val penv_of_vars       : senv_open_file -> Omake_env.venv -> Omake_node.Node.t -> Omake_ir.senv -> penv
+val penv_of_vars       : senv_open_file -> Omake_env.t -> Omake_node.Node.t -> Omake_ir.senv -> penv
 
 (*
  * Compile an AST program.

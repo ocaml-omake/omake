@@ -1,5 +1,5 @@
 
-include Omake_pos.MakePos (struct let name = "Omake_ir_ast" end)
+include Omake_pos.Make (struct let name = "Omake_ir_ast" end)
 
 
 (************************************************************************
@@ -186,7 +186,7 @@ type senv =
      senv_export_mode    : export_mode;
 
      (* The current environment *)
-     senv_venv           : Omake_env.venv
+     senv_venv           : Omake_env.t
    }
 
 (*

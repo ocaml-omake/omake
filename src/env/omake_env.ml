@@ -1,42 +1,11 @@
-(*
- * The environment for evaluating programs.
- *)
-
-module Pos = Omake_pos.MakePos (struct let name = "Omake_env" end)
-open Pos
-
-(*
- * Debugging.
- *)
-let debug_scanner =
-   Lm_debug.create_debug (**)
-      { debug_name = "scanner";
-        debug_description = "Display debugging information for scanner selection";
-        debug_value = false
-      }
-
-(*
- * Debugging.
- *)
-let debug_implicit =
-   Lm_debug.create_debug (**)
-      { debug_name = "implicit";
-        debug_description = "Display debugging information for implicit rule selection";
-        debug_value = false
-      }
-
-(*
- * Debug file database (.omc files).
- *)
-let debug_db = Lm_db.debug_db
 
 (*
  * Command lists have source arguments.
  *)
 type command_info =
-  { command_env     : venv;
+  { command_env     : t;
     command_sources : Omake_node.Node.t list;
-    command_values  : Omake_value_type.value list;
+    command_values  : Omake_value_type.t list;
     command_body    : Omake_value_type.command list
   }
 
@@ -54,7 +23,7 @@ and irule =
     irule_locks      : Omake_value_type.source_core Omake_value_type.source list;
     irule_sources    : Omake_value_type.source_core Omake_value_type.source list;
     irule_scanners   : Omake_value_type.source_core Omake_value_type.source list;
-    irule_values     : Omake_value_type.value list;
+    irule_values     : Omake_value_type.t list;
     irule_body       : Omake_value_type.command list
   }
 
@@ -69,7 +38,7 @@ and inrule =
     inrule_locks      : Omake_value_type.source_core Omake_value_type.source list;
     inrule_sources    : Omake_value_type.source_core Omake_value_type.source list;
     inrule_scanners   : Omake_value_type.source_core Omake_value_type.source list;
-    inrule_values     : Omake_value_type.value list
+    inrule_values     : Omake_value_type.t list
   }
 
 (*
@@ -77,7 +46,7 @@ and inrule =
  *)
 and erule =
   { rule_loc          : Lm_location.t;
-    rule_env          : venv;
+    rule_env          : t;
     rule_target       : Omake_node.Node.t;
     rule_effects      : Omake_node.NodeSet.t;
     rule_locks        : Omake_node.NodeSet.t;
@@ -100,7 +69,7 @@ and erule_info =
   { explicit_targets         : erule Omake_node.NodeTable.t;
     explicit_deps            : (Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t) Omake_node.NodeTable.t;   (* locks, sources, scanners *)
     explicit_rules           : erule Omake_node.NodeMTable.t;
-    explicit_directories     : venv Omake_node.DirTable.t
+    explicit_directories     : t Omake_node.DirTable.t
   }
 
 (*
@@ -119,16 +88,13 @@ and orule =
 
 and ordering_info = orule list
 
-(*
- * A static rule.
- *)
 and srule =
   { srule_loc      : Lm_location.t;
     srule_static   : bool;
-    srule_env      : venv;
-    srule_key      : Omake_value_type.value;
+    srule_env      : t;
+    srule_key      : Omake_value_type.t;
     srule_deps     : Omake_node.NodeSet.t;
-    srule_vals     : Omake_value_type.value list;
+    srule_vals     : Omake_value_type.t list;
     srule_exp      : Omake_ir.exp
   }
 
@@ -147,7 +113,7 @@ and static_info =
  * Each function has its own static scope.
  * The dynamic scope comes from the caller.
  *)
-and venv =
+and t =
   { venv_dynamic        : Omake_value_type.env;
     venv_this           : Omake_value_type.obj;
     venv_static         : Omake_value_type.env;
@@ -179,13 +145,13 @@ and venv_globals =
     venv_mount_info                         : Omake_node.mount_info;
 
     (* Values from handles *)
-    venv_environments                       : venv Lm_handle_table.t;
+    venv_environments                       : t Lm_handle_table.t;
 
     (* The set of files we have ever read *)
     mutable venv_files                      : Omake_node.NodeSet.t;
 
     (* Save the environment for each directory in the project *)
-    mutable venv_directories                : venv Omake_node.DirTable.t;
+    mutable venv_directories                : t Omake_node.DirTable.t;
     mutable venv_excluded_directories       : Omake_node.DirSet.t;
 
     (* All the phony targets we have ever generated *)
@@ -201,7 +167,7 @@ and venv_globals =
     mutable venv_orders                     : Lm_string_set.StringSet.t;
 
     (* Static rules *)
-    mutable venv_memo_rules                 : static_info Omake_value_type.ValueTable.t;
+    mutable venv_memo_rules                 : static_info Omake_value_util.ValueTable.t;
 
     (* Cached values for files *)
     mutable venv_ir_files                   : Omake_ir.ir Omake_node.NodeTable.t;
@@ -226,63 +192,47 @@ and venv_globals =
 and pid =
     InternalPid of int
   | ExternalPid of int
-  | ResultPid of int * venv * Omake_value_type.value
+  | ResultPid of int * t * Omake_value_type.t
 
-and exec = (arg_command_line, pid, Omake_value_type.value) Omake_exec.Exec.t
+and exec = (arg_command_line, pid, Omake_value_type.t) Omake_exec.Exec.t
 
 (*
  * Execution service.
  *)
-and arg_command_inst = (Omake_ir.exp, arg_pipe, Omake_value_type.value) Omake_command_type.poly_command_inst
-and arg_command_line = (venv, Omake_ir.exp, arg_pipe, Omake_value_type.value) Omake_command_type.poly_command_line
+and arg_command_inst = (Omake_ir.exp, arg_pipe, Omake_value_type.t) Omake_command_type.poly_command_inst
+and arg_command_line = (t, Omake_ir.exp, arg_pipe, Omake_value_type.t) Omake_command_type.poly_command_line
 
-and string_command_inst = (Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_inst
-and string_command_line = (venv, Omake_ir.exp, string_pipe, Omake_value_type.value) Omake_command_type.poly_command_line
+and string_command_inst = (Omake_ir.exp, string_pipe, Omake_value_type.t) Omake_command_type.poly_command_inst
+and string_command_line = (t, Omake_ir.exp, string_pipe, Omake_value_type.t) Omake_command_type.poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.t * string) list -> Omake_value_type.value list -> int * venv * Omake_value_type.value
+and apply        = t -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (Lm_symbol.t * string) list -> Omake_value_type.t list -> int * t * Omake_value_type.t
 
-and value_cmd    = (unit, Omake_value_type.value list, Omake_value_type.value list) Omake_shell_type.poly_cmd
-and value_apply  = (Omake_value_type.value list, Omake_value_type.value list, apply) Omake_shell_type.poly_apply
-and value_group  = (unit, Omake_value_type.value list, Omake_value_type.value list, Omake_value_type.value list, apply) Omake_shell_type.poly_group
-and value_pipe   = (unit, Omake_value_type.value list, Omake_value_type.value list, Omake_value_type.value list, apply) Omake_shell_type.poly_pipe
+and value_cmd    = (unit, Omake_value_type.t list, Omake_value_type.t list) Omake_shell_type.poly_cmd
+and value_apply  = (Omake_value_type.t list, Omake_value_type.t list, apply) Omake_shell_type.poly_apply
+and value_group  = (unit, Omake_value_type.t list, Omake_value_type.t list, Omake_value_type.t list, apply) Omake_shell_type.poly_group
+and value_pipe   = (unit, Omake_value_type.t list, Omake_value_type.t list, Omake_value_type.t list, apply) Omake_shell_type.poly_pipe
 
 and arg_cmd      = (Omake_command_type.arg Omake_shell_type.cmd_exe, Omake_command_type.arg, Omake_command_type.arg) Omake_shell_type.poly_cmd
-and arg_apply    = (Omake_value_type.value, Omake_command_type.arg, apply) Omake_shell_type.poly_apply
-and arg_group    = (Omake_command_type.arg Omake_shell_type.cmd_exe, Omake_command_type.arg, Omake_value_type.value, Omake_command_type.arg, apply) Omake_shell_type.poly_group
-and arg_pipe     = (Omake_command_type.arg Omake_shell_type.cmd_exe, Omake_command_type.arg, Omake_value_type.value, Omake_command_type.arg, apply) Omake_shell_type.poly_pipe
+and arg_apply    = (Omake_value_type.t, Omake_command_type.arg, apply) Omake_shell_type.poly_apply
+and arg_group    = (Omake_command_type.arg Omake_shell_type.cmd_exe, Omake_command_type.arg, Omake_value_type.t, Omake_command_type.arg, apply) Omake_shell_type.poly_group
+and arg_pipe     = (Omake_command_type.arg Omake_shell_type.cmd_exe, Omake_command_type.arg, Omake_value_type.t, Omake_command_type.arg, apply) Omake_shell_type.poly_pipe
 
 and string_cmd   = (Omake_shell_type.simple_exe, string, string) Omake_shell_type.poly_cmd
-and string_apply = (Omake_value_type.value, string, apply) Omake_shell_type.poly_apply
-and string_group = (Omake_shell_type.simple_exe, string, Omake_value_type.value, string, apply) Omake_shell_type.poly_group
-and string_pipe  = (Omake_shell_type.simple_exe, string, Omake_value_type.value, string, apply) Omake_shell_type.poly_pipe
+and string_apply = (Omake_value_type.t, string, apply) Omake_shell_type.poly_apply
+and string_group = (Omake_shell_type.simple_exe, string, Omake_value_type.t, string, apply) Omake_shell_type.poly_group
+and string_pipe  = (Omake_shell_type.simple_exe, string, Omake_value_type.t, string, apply) Omake_shell_type.poly_pipe
 
 (*
  * Error during translation.
  *)
-exception Break             of Lm_location.t * venv
+exception Break             of Lm_location.t * t
 
-(*
- * Now the stuff that is really global, not saved in venv.
- *)
-module IntCompare =
-struct
-   type t = int
-   let compare = (-)
-end;;
-
-module IntTable = Lm_map.LmMake (IntCompare);;
-
-type prim_fun_data = venv -> Omake_value_type.pos -> Lm_location.t ->
-  Omake_value_type.value list -> Omake_value_type.keyword_value list -> venv * Omake_value_type.value
+type prim_fun_data = t -> Omake_value_type.pos -> Lm_location.t ->
+  Omake_value_type.t list -> Omake_value_type.keyword_value list -> t * Omake_value_type.t
 
 type venv_runtime =
    { venv_channels               : Lm_channel.t Lm_int_handle_table.t;
      mutable venv_primitives     : prim_fun_data Lm_symbol.SymbolTable.t
-   }
-
-let venv_runtime =
-   { venv_channels       = Lm_int_handle_table.create ();
-     venv_primitives     = Lm_symbol.SymbolTable.empty
    }
 
 (*
@@ -291,7 +241,7 @@ let venv_runtime =
 type lexer = string -> int -> int -> int option
 
 type tok =
-   TokString of Omake_value_type.value
+   TokString of Omake_value_type.t
  | TokToken  of string
  | TokGroup  of tok list
 
@@ -307,8 +257,27 @@ type include_scope =
  * Full and partial applications.
  *)
 type partial_apply =
-   FullApply    of venv * Omake_value_type.value list * Omake_value_type.keyword_value list
+   FullApply    of t * Omake_value_type.t list * Omake_value_type.keyword_value list
  | PartialApply of Omake_value_type.env * Omake_value_type.param_value list * Omake_value_type.keyword_param_value list * Omake_ir.param list * Omake_value_type.keyword_value list
+
+
+let venv_runtime :  venv_runtime =
+   { venv_channels       = Lm_int_handle_table.create ();
+     venv_primitives     = Lm_symbol.SymbolTable.empty
+   }
+
+
+(*
+ * Now the stuff that is really global, not saved in venv.
+ *)
+module IntCompare =
+struct
+   type t = int
+   let compare = (-)
+end;;
+
+module IntTable = Lm_map.LmMake (IntCompare);;
+
 
 (************************************************************************
  * Access to the globals.
@@ -320,28 +289,28 @@ let venv_globals venv =
 (*
  * Map functions.
  *)
-let check_map_key = Omake_value_type.ValueCompare.check
+let check_map_key = Omake_value_util.ValueCompare.check
 
-let venv_map_empty = Omake_value_type.ValueTable.empty
+let venv_map_empty = Omake_value_util.ValueTable.empty
 
 let venv_map_add map pos v1 v2 =
-   Omake_value_type.ValueTable.add map (check_map_key pos v1) v2
+   Omake_value_util.ValueTable.add map (check_map_key pos v1) v2
 
 let venv_map_remove map pos v1 =
-   Omake_value_type.ValueTable.remove map (check_map_key pos v1)
+   Omake_value_util.ValueTable.remove map (check_map_key pos v1)
 
 let venv_map_find map pos v =
-   try Omake_value_type.ValueTable.find map (check_map_key pos v) with
+   try Omake_value_util.ValueTable.find map (check_map_key pos v) with
       Not_found ->
          raise (Omake_value_type.OmakeException (pos, UnboundValue v))
 
 let venv_map_mem map pos v =
-   Omake_value_type.ValueTable.mem map (check_map_key pos v)
+   Omake_value_util.ValueTable.mem map (check_map_key pos v)
 
-let venv_map_iter   = Omake_value_type.ValueTable.iter
-let venv_map_map    = Omake_value_type.ValueTable.mapi
-let venv_map_fold   = Omake_value_type.ValueTable.fold
-let venv_map_length = Omake_value_type.ValueTable.cardinal
+let venv_map_iter   = Omake_value_util.ValueTable.iter
+let venv_map_map    = Omake_value_util.ValueTable.mapi
+let venv_map_fold   = Omake_value_util.ValueTable.fold
+let venv_map_length = Omake_value_util.ValueTable.cardinal
 
 (************************************************************************
  * Printing.
@@ -437,7 +406,7 @@ let pp_print_simple_exe buf exe =
 module PrintString =
 struct
    type arg_command = string
-   type arg_apply   = Omake_value_type.value
+   type arg_apply   = Omake_value_type.t
    type arg_other   = string
    type exe         = Omake_shell_type.simple_exe
 
@@ -469,7 +438,7 @@ let pp_print_string_command_lines = PrintStringCommand.pp_print_command_lines
 module PrintArg =
 struct
    type arg_command = Omake_command_type.arg
-   type arg_apply   = Omake_value_type.value
+   type arg_apply   = Omake_value_type.t
    type arg_other   = arg_command
    type exe         = arg_command Omake_shell_type.cmd_exe
 
@@ -556,16 +525,16 @@ let rule_kind = function
  *)
 let venv_add_environment venv =
    Lm_handle_table.add venv.venv_inner.venv_globals.venv_environments venv
-
+module Pos= Omake_pos.Make (struct let name = "Omake_env" end)
 let venv_find_environment venv pos hand =
-   try Lm_handle_table.find venv.venv_inner.venv_globals.venv_environments hand with
-      Not_found ->
-         let pos = string_pos "venv_find_environment" pos in
-            raise (Omake_value_type.OmakeException (pos, StringError "unbound environment"))
+  try Lm_handle_table.find venv.venv_inner.venv_globals.venv_environments hand with
+    Not_found ->
+    let pos = Pos.string_pos "venv_find_environment" pos in
+    raise (Omake_value_type.OmakeException (pos, StringError "unbound environment"))
 
 (************************************************************************
  * Channels.
- *)
+*)
 
 (*
  * Add a channel slot.
@@ -639,7 +608,7 @@ let venv_close_channel _venv _pos channel =
  * Get the channel.
  *)
 let venv_find_channel _venv pos channel =
-   let pos = string_pos "venv_find_in_channel" pos in
+   let pos = Pos.string_pos "venv_find_in_channel" pos in
       try venv_channel_data channel with
          Not_found ->
             raise (Omake_value_type.OmakeException (pos, StringError "channel is closed"))
@@ -668,6 +637,24 @@ let venv_find_channel_by_id _venv pos index =
 let venv_add_prim_fun _venv name data =
    venv_runtime.venv_primitives <- Lm_symbol.SymbolTable.add venv_runtime.venv_primitives name data;
    name
+let debug_scanner =
+   Lm_debug.create_debug (**)
+      { debug_name = "scanner";
+        debug_description = "Display debugging information for scanner selection";
+        debug_value = false
+      }
+
+let debug_implicit =
+   Lm_debug.create_debug (**)
+      { debug_name = "implicit";
+        debug_description = "Display debugging information for implicit rule selection";
+        debug_value = false
+      }
+
+(*
+ * Debug file database (.omc files).
+ *)
+let debug_db = Lm_db.debug_db
 
 (*
  * Look up the primitive value if we haven't seen it already.
@@ -676,7 +663,7 @@ let venv_apply_prim_fun name venv pos loc args =
    let f =
       try Lm_symbol.SymbolTable.find venv_runtime.venv_primitives name with
          Not_found ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, UnboundVar name))
+            raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, UnboundVar name))
    in
       f venv pos loc args
 
@@ -770,7 +757,7 @@ let venv_add_phony venv loc names =
         let name =
           match name with
             Omake_value_type.TargetNode _ ->
-            raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringError ".PHONY arguments should be names"))
+            raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringError ".PHONY arguments should be names"))
           | TargetString s ->
             s
         in
@@ -806,7 +793,7 @@ sig
     * can't be found.
     * The implementation will make sure all the locking/unlocking is done properly.
     *)
-   val read        : venv -> Omake_node.Node.t -> (in_handle -> 'a) -> 'a
+   val read        : t -> Omake_node.Node.t -> (in_handle -> 'a) -> 'a
    val rewrite     : in_handle -> (out_handle -> 'a) -> 'a
 
    (*
@@ -831,7 +818,7 @@ end
 module type InternalStaticSig =
 sig
    include StaticSig
-   val write       : venv -> Omake_node.Node.t -> (out_handle -> 'a) -> 'a
+   val write       : t -> Omake_node.Node.t -> (out_handle -> 'a) -> 'a
 
    val find_values : in_handle -> Omake_value_type.obj Lm_symbol.SymbolTable.t
    val add_values  : out_handle -> Omake_value_type.obj Lm_symbol.SymbolTable.t -> unit
@@ -843,16 +830,16 @@ struct
    (*
     * A .omc file.
     *)
-   type t =
+   type handle =
       { db_file         : Unix.file_descr option;
         db_name         : Omake_node.Node.t;
         db_digest       : string;
-        db_env          : venv;
+        db_env          : t;
         db_flush_ir     : bool;
         db_flush_static : bool
       }
-   type in_handle = t
-   type out_handle = t
+   type in_handle = handle
+   type out_handle = handle
 
    (*
     * Tags for the various kinds of entries.
@@ -1110,14 +1097,14 @@ let venv_find_var_exn venv v =
 let venv_get_var venv pos v =
    try venv_find_var_exn venv v with
       Not_found ->
-         let pos = string_pos "venv_get_var" pos in
+         let pos = Pos.string_pos "venv_get_var" pos in
             raise (Omake_value_type.OmakeException (pos, UnboundVarInfo v))
 
 let venv_find_var venv pos loc v =
    try venv_find_var_exn venv v with
       Not_found ->
-         let pos = string_pos "venv_find_var" (loc_pos loc pos) in
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, UnboundVarInfo v))
+         let pos = Pos.string_pos "venv_find_var" (Pos.loc_pos loc pos) in
+            raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, UnboundVarInfo v))
 
 let venv_find_object_or_empty venv v =
    try
@@ -1204,7 +1191,7 @@ let venv_add_args venv pos loc static params args keywords kargs =
    let len2 = List.length args in
    let () =
       if len1 <> len2 then
-         raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
+         raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
    in
       List.fold_left2 venv_add_var venv params args
 
@@ -1363,13 +1350,13 @@ let venv_defined_env venv v =
 let venv_options venv =
    venv.venv_inner.venv_options
 
-let venv_with_options venv (options : Omake_options.t)  : venv =
+let venv_with_options venv (options : Omake_options.t)  : t =
    { venv with venv_inner = { venv.venv_inner with venv_options = options } }
 
 let venv_set_options_aux venv loc pos argv =
    let argv = Array.of_list argv in
    let add_unknown _options s =
-      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
+      raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringStringError ("unknown option", s)))
    in
    let options_spec =
       Lm_arg.StrictOptions, (**)
@@ -1380,7 +1367,7 @@ let venv_set_options_aux venv loc pos argv =
       try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown
           "Generic system builder" with
         Lm_arg.BogusArg s ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
+            raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringError s))
    in
       venv_with_options venv options
 
@@ -1483,7 +1470,7 @@ let venv_find_field_path_exn _venv path obj _pos v =
 let venv_find_field_path venv path obj pos v =
    try venv_find_field_path_exn venv path obj pos v with
       Not_found ->
-         let pos = string_pos "venv_find_field_path" pos in
+         let pos = Pos.string_pos "venv_find_field_path" pos in
             raise (Omake_value_type.OmakeException (pos, UnboundFieldVar (obj, v)))
 
 (*
@@ -1495,20 +1482,20 @@ let venv_find_field_exn _venv obj _pos v =
 let venv_find_field venv obj pos v =
    try venv_find_field_exn venv obj pos v with
       Not_found ->
-         let pos = string_pos "venv_find_field" pos in
+         let pos = Pos.string_pos "venv_find_field" pos in
             raise (Omake_value_type.OmakeException (pos, UnboundFieldVar (obj, v)))
 
 (*
  * Super fields come from the class.
  *)
 let venv_find_super_field venv pos loc v1 v2 =
-   let table = Omake_value_type.venv_get_class venv.venv_this in
+   let table = Omake_value_util.venv_get_class venv.venv_this in
       try
          let obj = Lm_symbol.SymbolTable.find table v1 in
             venv_find_field_exn venv obj pos v2
       with
          Not_found ->
-            let pos = string_pos "venv_find_super_field" (loc_pos loc pos) in
+            let pos = Pos.string_pos "venv_find_super_field" (Pos.loc_pos loc pos) in
                raise (Omake_value_type.OmakeException (pos, StringVarError ("unbound super var", v2)))
 
 (*
@@ -1526,7 +1513,7 @@ let venv_find_field_internal_exn = Lm_symbol.SymbolTable.find
 let venv_find_field_internal obj pos v =
    try Lm_symbol.SymbolTable.find obj v with
       Not_found ->
-         let pos = string_pos "venv_find_field_internal" pos in
+         let pos = Pos.string_pos "venv_find_field_internal" pos in
             raise (Omake_value_type.OmakeException (pos, UnboundFieldVar (obj, v)))
 
 let venv_object_fold_internal = Lm_symbol.SymbolTable.fold
@@ -1548,9 +1535,9 @@ let venv_defined_field venv obj v =
  * Add a class to an object.
  *)
 let venv_add_class obj v =
-   let table = Omake_value_type.venv_get_class obj in
+   let table = Omake_value_util.venv_get_class obj in
    let table = Lm_symbol.SymbolTable.add table v obj in
-      Lm_symbol.SymbolTable.add obj Omake_value_type.class_sym (ValClass table)
+      Lm_symbol.SymbolTable.add obj Omake_value_util.class_sym (ValClass table)
 
 (*
  * Execute a method in an object.
@@ -1570,18 +1557,18 @@ let venv_define_object venv =
  * Add the class to the current object.
  *)
 let venv_instanceof obj s =
-   Lm_symbol.SymbolTable.mem (Omake_value_type.venv_get_class obj) s
+   Lm_symbol.SymbolTable.mem (Omake_value_util.venv_get_class obj) s
 
 (*
  * Include the fields in the given class.
  * Be careful to merge classnames.
  *)
 let venv_include_object_aux obj1 obj2 =
-   let table1 = Omake_value_type.venv_get_class obj1 in
-   let table2 = Omake_value_type.venv_get_class obj2 in
+   let table1 = Omake_value_util.venv_get_class obj1 in
+   let table2 = Omake_value_util.venv_get_class obj2 in
    let table = Lm_symbol.SymbolTable.fold Lm_symbol.SymbolTable.add table1 table2 in
    let obj1 = Lm_symbol.SymbolTable.fold Lm_symbol.SymbolTable.add obj1 obj2 in
-      Lm_symbol.SymbolTable.add obj1 Omake_value_type.class_sym (ValClass table)
+      Lm_symbol.SymbolTable.add obj1 Omake_value_util.class_sym (ValClass table)
 
 let venv_include_object venv obj2 =
    let obj = venv_include_object_aux venv.venv_this obj2 in
@@ -1614,9 +1601,9 @@ let venv_current_object venv classnames =
   if classnames = [] then
     obj
   else
-    let table = Omake_value_type.venv_get_class obj in
+    let table = Omake_value_util.venv_get_class obj in
     let table = List.fold_left (fun table v -> Lm_symbol.SymbolTable.add table v obj) table classnames in
-    Lm_symbol.SymbolTable.add obj Omake_value_type.class_sym (ValClass table)
+    Lm_symbol.SymbolTable.add obj Omake_value_util.class_sym (ValClass table)
 
 (*
  * ZZZ: this will go away in 0.9.9.
@@ -1769,10 +1756,10 @@ let compile_wild_pattern _venv pos loc target =
   match target with
   | Omake_value_type.TargetString s when Lm_wild.is_wild s ->
     if Lm_string_util.contains_any s Lm_filename_util.separators then
-      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("filename pattern is a path", s)));
+      raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringStringError ("filename pattern is a path", s)));
     Lm_wild.compile_in s
   | _ ->
-    raise (Omake_value_type.OmakeException (loc_pos loc pos, StringTargetError ("patterns must be wildcards", target)))
+    raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringTargetError ("patterns must be wildcards", target)))
 
 (*
  * Compile a source.
@@ -1793,10 +1780,10 @@ let compile_source venv (kind, s) =
 let compile_implicit3_target pos loc = function
   |Omake_value_type.TargetString s ->
     if Lm_string_util.contains_any s Lm_filename_util.separators then
-      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("target of a 3-place rule is a path", s)));
+      raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringStringError ("target of a 3-place rule is a path", s)));
     s
   | target ->
-    raise (Omake_value_type.OmakeException (loc_pos loc pos, StringTargetError ("target of a 3-place rule is not a simple string", target)))
+    raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringTargetError ("target of a 3-place rule is not a simple string", target)))
 
 (*
  * Perform a wild substitution on a source.
@@ -1866,7 +1853,7 @@ let venv_save_explicit_rules venv loc erules =
                               Format.fprintf buf "@ `%a'" Omake_node.pp_print_node erule.rule_target) erules;
                         Format.fprintf buf "@]"
                      in
-                        raise (Omake_value_type.OmakeException (loc_exp_pos loc, LazyError print_error))
+                        raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, LazyError print_error))
                in
                   rules
           | _ ->
@@ -1977,7 +1964,7 @@ let create options _dir exec cache =
       venv_explicit_targets           = Omake_node.NodeTable.empty;
       venv_ordering_rules             = [];
       venv_orders                     = Lm_string_set.StringSet.empty;
-      venv_memo_rules                 = Omake_value_type.ValueTable.empty;
+      venv_memo_rules                 = Omake_value_util.ValueTable.empty;
       venv_pervasives_obj             = Lm_symbol.SymbolTable.empty;
       venv_pervasives_vars            = Lm_symbol.SymbolTable.empty;
       venv_ir_files                   = Omake_node.NodeTable.empty;
@@ -2275,7 +2262,7 @@ let venv_files venv =
  * Add a null rule.
  *)
 let venv_add_implicit_deps venv pos loc multiple patterns locks sources scanners values =
-   let pos = string_pos "venv_add_implicit_deps" pos in
+   let pos = Pos.string_pos "venv_add_implicit_deps" pos in
    let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
    let locks = List.map (compile_source venv) locks in
    let sources = List.map (compile_source venv) sources in
@@ -2318,7 +2305,7 @@ let venv_add_implicit_rule venv loc multiple targets patterns locks sources scan
  * Add an 2-place implicit rule.
  *)
 let venv_add_implicit2_rule venv pos loc multiple patterns locks sources scanners values body =
-   let pos = string_pos "venv_add_implicit2_rule" pos in
+   let pos = Pos.string_pos "venv_add_implicit2_rule" pos in
    let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
    let locks = List.map (compile_source venv) locks in
    let sources = List.map (compile_source venv) sources in
@@ -2333,7 +2320,7 @@ let venv_add_implicit2_rule venv pos loc multiple patterns locks sources scanner
  * Add an explicit rule.
  *)
 let venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values body =
-   let _pos = string_pos "venv_add_explicit_rules" pos in
+   let _pos = Pos.string_pos "venv_add_explicit_rules" pos in
    let target_args = List.map (venv_intern_rule_target venv multiple) targets in
    let lock_args = List.map (intern_source venv) locks in
    let source_args = List.map (intern_source venv) sources in
@@ -2365,7 +2352,7 @@ let venv_add_explicit_rules venv pos loc multiple targets locks sources scanners
  * Add a 3-place rule (automatically implicit).
  *)
 let venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources scanners values body =
-   let pos = string_pos "venv_add_implicit3_rule" pos in
+   let pos = Pos.string_pos "venv_add_implicit3_rule" pos in
    let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
    let locks = List.map (compile_source venv) locks in
    let sources = List.map (compile_source venv) sources in
@@ -2378,7 +2365,7 @@ let venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources
           | None -> check_target target patterns
          end
     | [] ->
-         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("bad match", target)))
+         raise (Omake_value_type.OmakeException (Pos.loc_pos loc pos, StringStringError ("bad match", target)))
    in
    let () = List.iter (fun target -> check_target target patterns) targets in
       if Lm_debug.debug debug_implicit then
@@ -2395,7 +2382,7 @@ let rec is_implicit loc = function
       let imp1 = target_is_wild target in
       let imp2 = is_implicit loc targets in
          if imp1 <> imp2 then
-            raise (Omake_value_type.OmakeException (loc_exp_pos loc, (**)
+            raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, (**)
                StringError "Rule contains an illegal mixture of implicit (pattern) targets and explicit ones"))
          else
             imp1
@@ -2405,10 +2392,10 @@ let rec is_implicit loc = function
  * A 2-place rule is implicit if the targets do not contain a %. 3-place rules are always implicit.
  *)
 let venv_add_rule venv pos loc multiple targets patterns locks sources scanners values commands =
-   let pos = string_pos "venv_add_rule" pos in
+   let pos = Pos.string_pos "venv_add_rule" pos in
       try match targets, patterns, commands with
          [], [], _ ->
-            raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringError "invalid null rule"))
+            raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringError "invalid null rule"))
        | _, [], [] ->
             if is_implicit loc targets then
                venv_add_implicit_deps venv pos loc multiple targets locks sources scanners values
@@ -2421,12 +2408,12 @@ let venv_add_rule venv pos loc multiple targets patterns locks sources scanners 
                venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values commands
        | _ ->
             if not (is_implicit loc patterns) then
-               raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringError "3-place rule does not contain patterns"))
+               raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringError "3-place rule does not contain patterns"))
             else
                venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources scanners values commands
       with
          Failure err ->
-            raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringError err))
+            raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringError err))
 
 (*
  * Flush the explicit list.
@@ -2484,7 +2471,7 @@ let multiple_print_error errors buf =
 
 let raise_multiple_error errors =
    let _, loc = Omake_node.NodeMTable.choose errors in
-      raise (Omake_value_type.OmakeException (loc_exp_pos loc, LazyError (multiple_print_error errors)))
+      raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, LazyError (multiple_print_error errors)))
 
 (*
  * Get the explicit rules.  Build a table indexed by target.
@@ -2729,7 +2716,8 @@ let venv_add_orders venv loc targets =
       let name =
         match target with
         | Omake_value_type.TargetNode _ ->
-          raise (Omake_value_type.OmakeException (loc_exp_pos loc, StringTargetError (".ORDER should be a name", target)))
+          raise (Omake_value_type.OmakeException 
+                   (Pos.loc_exp_pos loc, StringTargetError (".ORDER should be a name", target)))
         | TargetString s ->
           s
       in
@@ -2748,7 +2736,7 @@ let venv_is_order venv name =
  * Add an ordering rule.
  *)
 let venv_add_ordering_rule venv pos loc name pattern sources =
-   let pos = string_pos "venv_add_ordering_deps" pos in
+   let pos = Pos.string_pos "venv_add_ordering_deps" pos in
    let pattern = compile_wild_pattern venv pos loc pattern in
    let sources = List.map (compile_source_core venv) sources in
    let orule =
@@ -2829,7 +2817,7 @@ let venv_add_memo_rule venv _pos loc _multiple is_static key vars sources values
       let _, v = Omake_ir_util.var_of_var_info info in
       venv_add_var venv info (ValDelayed (ref (Omake_value_type.ValStaticApply (key, v))))) venv vars
   in
-  globals.venv_memo_rules <- Omake_value_type.ValueTable.add globals.venv_memo_rules key (StaticRule srule);
+  globals.venv_memo_rules <- Omake_value_util.ValueTable.add globals.venv_memo_rules key (StaticRule srule);
   venv
 
 (*
@@ -2837,10 +2825,10 @@ let venv_add_memo_rule venv _pos loc _multiple is_static key vars sources values
  *)
 let venv_set_static_info venv key v =
    let globals = venv_globals venv in
-      globals.venv_memo_rules <- Omake_value_type.ValueTable.add globals.venv_memo_rules key v
+      globals.venv_memo_rules <- Omake_value_util.ValueTable.add globals.venv_memo_rules key v
 
 let venv_find_static_info venv pos key =
-   try Omake_value_type.ValueTable.find venv.venv_inner.venv_globals.venv_memo_rules key with
+   try Omake_value_util.ValueTable.find venv.venv_inner.venv_globals.venv_memo_rules key with
       Not_found ->
          raise (Omake_value_type.OmakeException (pos, StringValueError ("Static section not defined", key)))
 

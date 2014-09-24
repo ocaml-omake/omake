@@ -4,7 +4,7 @@
  * \end{doc}
  *)
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_arith" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_arith" end)
 
 
 (*
@@ -129,7 +129,7 @@ let unary op_int op_float venv pos loc args =
 
 let arith id_int op_int op_float venv pos loc args =
   let pos = string_pos "arith" pos in
-  let collect (i : Omake_value_type.value) arg : Omake_value_type.value =
+  let collect (i : Omake_value_type.t) arg : Omake_value_type.t =
     match i, Omake_value.number_of_value venv pos arg with
     | ValInt i, ValInt arg ->
       ValInt (op_int i arg)
@@ -186,7 +186,7 @@ let arith id_int op_int op_float venv pos loc args =
  *)
 let compare op_int op_float venv pos loc args =
   let pos = string_pos "arith" pos in
-  let rec collect (i : Omake_value_type.value) args =
+  let rec collect (i : Omake_value_type.t) args =
     match args with
     | arg :: args ->
       let arg = Omake_value.number_of_value venv pos arg in

@@ -8,7 +8,7 @@
  * \end{doc}
  *)
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_base" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_base" end)
 
 
 (*
@@ -257,7 +257,7 @@ let or_fun venv pos _ args =
  * \end{verbatim}
  * \end{doc}
  *)
-let empty_val : Omake_value_type.value = ValSequence []
+let empty_val : Omake_value_type.t = ValSequence []
 
 let if_fun venv pos loc args =
    let pos = string_pos "if" pos in
@@ -376,7 +376,7 @@ let rec eval_match_cases2 compare venv pos loc s cases =
   | [] ->
     venv, ValNone
 
-let eval_match_exp compare venv pos loc (args : Omake_value_type.value list) kargs =
+let eval_match_exp compare venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "eval_match_exp" pos in
   match args, kargs with
     [cases; arg], [] ->
@@ -469,7 +469,7 @@ let match_fun =
  * Temporary type for evaluating try blocks.
  *)
 type try_exp =
-  |  TrySuccessExp of  (Omake_env.venv * Omake_value_type.value) 
+  |  TrySuccessExp of  (Omake_env.t * Omake_value_type.t) 
   | TryFailureExp of Omake_value_type.pos * Omake_value_type.obj * exn
 
 (*
@@ -482,7 +482,7 @@ let object_of_omake_exception venv pos exp =
       Format.flush_str_formatter ()
    in
    let exp =
-      Omake_pos.pp_print_exn Format.str_formatter exp;
+      Omake_value_print.pp_print_exn Format.str_formatter exp;
       Format.flush_str_formatter ()
    in
    let obj = Omake_env.venv_find_object_or_empty venv Omake_var.runtime_exception_var in
@@ -808,7 +808,7 @@ let defined_env venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let getenv venv pos loc (args : Omake_value_type.value list) : Omake_value_type.value =
+let getenv venv pos loc (args : Omake_value_type.t list) : Omake_value_type.t =
   let pos = string_pos "getenv" pos in
   let arg, def =
     match args with
@@ -926,7 +926,7 @@ let unsetenv venv pos loc args kargs =
  *
  * \end{doc}
  *)
-let get_registry venv pos loc (args : Omake_value_type.value list) : Omake_value_type.value =
+let get_registry venv pos loc (args : Omake_value_type.t list) : Omake_value_type.t =
   let pos = string_pos "get-registry" pos in
   let hkey, key, field, def =
     match args with
@@ -1070,7 +1070,7 @@ let setvar venv pos loc args kargs =
  * preserved literally.
  * \end{doc}
 *)
-let array_fun venv pos _ args : Omake_value_type.value =
+let array_fun venv pos _ args : Omake_value_type.t =
    let pos = string_pos "array" pos in
    let args =
       List.fold_left (fun args arg ->
@@ -1157,7 +1157,7 @@ let split_fun venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let concat_fun venv pos loc args : Omake_value_type.value =
+let concat_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "concat" pos in
   match args with
   |[sep; arg] ->
@@ -1183,7 +1183,7 @@ let concat_fun venv pos loc args : Omake_value_type.value =
  * For example, the expression \verb+$(length a  b "c d")+ evaluates to 3.
  * \end{doc}
  *)
-let length_fun venv pos loc args : Omake_value_type.value =
+let length_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "length" pos in
   match args with
   | [arg] ->
@@ -1326,7 +1326,7 @@ let rec nth_tl l i =
 let sub l off len =
    nth_hd [] (nth_tl l off) len
 
-let nth_hd_fun venv pos loc args : Omake_value_type.value =
+let nth_hd_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "nth-hd" pos in
   match args with
   | [i; arg] ->
@@ -1339,7 +1339,7 @@ let nth_hd_fun venv pos loc args : Omake_value_type.value =
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let nth_tl_fun venv pos loc args : Omake_value_type.value =
+let nth_tl_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "nth-tl" pos in
   match args with
   | [i; arg] ->
@@ -1352,7 +1352,7 @@ let nth_tl_fun venv pos loc args : Omake_value_type.value =
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let subrange_fun venv pos loc args : Omake_value_type.value =
+let subrange_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "subrange" pos in
   match args with
     [off; len; arg] ->
@@ -1381,7 +1381,7 @@ let subrange_fun venv pos loc args : Omake_value_type.value =
  * For example, the expression \verb+$(rev a "b c" d)+ evaluates to \verb+d "b c" a+.
  * \end{doc}
  *)
-let rev_fun venv pos loc args : Omake_value_type.value =
+let rev_fun venv pos loc args : Omake_value_type.t =
   let pos = string_pos "rev" pos in
   match args with
   | [arg] ->
@@ -1424,7 +1424,7 @@ let rev_fun venv pos loc args : Omake_value_type.value =
  * is significant.
  * \end{doc}
  *)
-let string venv pos loc args : Omake_value_type.value =
+let string venv pos loc args : Omake_value_type.t =
   let pos = string_pos "string" pos in
   match args with
   | [arg] ->
@@ -1448,7 +1448,7 @@ let string venv pos loc args : Omake_value_type.value =
  * is equivalent to \verb+$(string-length $(string sequence))+.
  * \end{doc}
  *)
-let string_length venv pos loc args : Omake_value_type.value =
+let string_length venv pos loc args : Omake_value_type.t =
   let pos = string_pos "string-length" pos in
   match args with
   | [arg] ->
@@ -1607,7 +1607,7 @@ let id_single_escaped s =
       else
          copy_string id_is_escape id_add_quote esc_length src_length s
 
-let any_escaped escaped venv pos loc args : Omake_value_type.value =
+let any_escaped escaped venv pos loc args : Omake_value_type.t =
   let pos = string_pos "string-escaped" pos in
   match args with
     [arg] ->
@@ -1692,7 +1692,7 @@ let encode_uri = any_escaped Lm_string_util.encode_hex_name
  * \verb+"abc"+.
  * \end{doc}
  *)
-let quote venv pos loc args : Omake_value_type.value =
+let quote venv pos loc args : Omake_value_type.t =
   let pos = string_pos "quote" pos in
   match args with
   | [arg] ->
@@ -1716,7 +1716,7 @@ let quote venv pos loc args : Omake_value_type.value =
  * a command-line parse can separate the string back into its components.
  * \end{doc}
  *)
-let quote_argv venv pos loc args : Omake_value_type.value =
+let quote_argv venv pos loc args : Omake_value_type.t =
   let pos = string_pos "quote-argv" pos in
   match args with
     [arg] ->
@@ -1742,7 +1742,7 @@ let quote_argv venv pos loc args : Omake_value_type.value =
  * inside sequence elements is preserved literally.
  * \end{doc}
  *)
-let html_string venv pos loc args : Omake_value_type.value =
+let html_string venv pos loc args : Omake_value_type.t =
   let pos = string_pos "html-string" pos in
   match args with
     [arg] ->
@@ -1772,7 +1772,7 @@ let html_string venv pos loc args : Omake_value_type.value =
  * For example, \verb+$(addsuffix .c, a b "c d")+ evaluates to \verb+a.c b.c "c d".c+.
  * \end{doc}
  *)
-let addsuffix venv pos loc args : Omake_value_type.value =
+let addsuffix venv pos loc args : Omake_value_type.t =
   let pos = string_pos "addsuffix" pos in
   match args with
   | [suffix; arg] ->
@@ -1802,7 +1802,7 @@ let addsuffix venv pos loc args : Omake_value_type.value =
  * For example, \verb+$(mapsuffix .c, a b "c d")+ evaluates to \verb+a .c b .c "c d" .c+.
  * \end{doc}
  *)
-let mapsuffix venv pos loc args : Omake_value_type.value =
+let mapsuffix venv pos loc args : Omake_value_type.t =
   let pos = string_pos "mapsuffixe" pos in
   match args with
   | [suffix; arg] ->
@@ -1837,7 +1837,7 @@ let mapsuffix venv pos loc args : Omake_value_type.value =
  * \verb+$(addprefixes prefixes, sequence)+ is roughly equivalent to \verb+$(addsuffixes sequence, prefixes)+.
  * \end{doc}
  *)
-let addsuffixes venv pos loc args : Omake_value_type.value =
+let addsuffixes venv pos loc args : Omake_value_type.t =
   let pos = string_pos "addsuffixes" pos in
   match args with
   | [suffix; arg] ->
@@ -1849,7 +1849,7 @@ let addsuffixes venv pos loc args : Omake_value_type.value =
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let addprefixes venv pos loc args : Omake_value_type.value =
+let addprefixes venv pos loc args : Omake_value_type.t =
   let pos = string_pos "addprefixes" pos in
   match args with
   | [prefixes; arg] -> 
@@ -2003,7 +2003,7 @@ let replacesuffixes venv pos loc args =
  * For example, \verb+$(addprefix foo/, a b "c d")+ evaluates to \verb+foo/a foo/b foo/"c d"+.
  * \end{doc}
  *)
-let addprefix venv pos loc args : Omake_value_type.value =
+let addprefix venv pos loc args : Omake_value_type.t =
   let pos = string_pos "addprefix" pos in
   match args with
   |[prefix; arg] ->
@@ -2033,7 +2033,7 @@ let addprefix venv pos loc args : Omake_value_type.value =
  * For example, \verb+$(mapprefix foo, a b "c d")+ expands to \verb+foo a foo b foo "c d"+.
  * \end{doc}
  *)
-let mapprefix venv pos loc args : Omake_value_type.value =
+let mapprefix venv pos loc args : Omake_value_type.t =
   let pos = string_pos "mapprefix" pos in
   match args with
   | [prefix; arg] ->
@@ -2062,7 +2062,7 @@ let mapprefix venv pos loc args : Omake_value_type.value =
  * has the same number of elements as the argument sequence.
  * \end{doc}
  *)
-let add_wrapper venv pos loc args : Omake_value_type.value =
+let add_wrapper venv pos loc args : Omake_value_type.t =
   let pos = string_pos "add-wrapper" pos in
   match args with
   | [prefix; suffix; arg] ->
@@ -2088,7 +2088,7 @@ let add_wrapper venv pos loc args : Omake_value_type.value =
  * For example, \verb+$(set z y z "m n" w a)+ expands to \verb+"m n" a w y z+.
  * \end{doc}
  *)
-let set venv pos loc args : Omake_value_type.value =
+let set venv pos loc args : Omake_value_type.t =
   let pos = string_pos "set" pos in
   match args with
   | [files] ->
@@ -2119,7 +2119,7 @@ let set venv pos loc args : Omake_value_type.value =
  * while \verb+$(mem m n, y z "m n" w a)+ evaluates to \verb+false+.
  * \end{doc}
  *)
-let mem venv pos loc args : Omake_value_type.value =
+let mem venv pos loc args : Omake_value_type.t =
   let pos = string_pos "mem" pos in
   match args with
   | [s; set] ->
@@ -2151,7 +2151,7 @@ let mem venv pos loc args : Omake_value_type.value =
  * \verb+a b a+.
  * \end{doc}
  *)
-let intersection venv pos loc args : Omake_value_type.value =
+let intersection venv pos loc args : Omake_value_type.t =
   let pos = string_pos "intersection" pos in
   let rec intersect l = function
     | h :: t ->
@@ -2227,7 +2227,7 @@ let intersects venv pos loc args =
  * \verb+c e+.
  * \end{doc}
  *)
-let set_diff venv pos loc args : Omake_value_type.value =
+let set_diff venv pos loc args : Omake_value_type.t =
   let pos = string_pos "set_diff" pos in
   let rec diff l = function
     | h :: t ->
@@ -2280,7 +2280,7 @@ let compile_patterns venv _ pos patterns =
   in
   f patterns
 
-let filter venv pos loc args : Omake_value_type.value =
+let filter venv pos loc args : Omake_value_type.t =
   let pos = string_pos "filter" pos in
   match args with
   | [patterns; arg] ->
@@ -2309,7 +2309,7 @@ let filter venv pos loc args : Omake_value_type.value =
  * For example \verb+$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)+ evaluates to \verb+x.o y.o+.
  * \end{doc}
  *)
-let filter_out venv pos loc args : Omake_value_type.value =
+let filter_out venv pos loc args : Omake_value_type.t =
   let pos = string_pos "filter-out" pos in
   match args with
   | [patterns; arg] ->
@@ -2495,7 +2495,7 @@ let shell venv pos loc args =
    let args = Omake_eval.values_of_value venv pos (ValString s) in
       Omake_value.concat_array args
 
-let shella venv pos loc args : Omake_value_type.value =
+let shella venv pos loc args : Omake_value_type.t =
   let s = shell_aux venv pos loc args in
   let len = String.length s in
   let buf = Buffer.create 32 in
@@ -2563,7 +2563,7 @@ let shell_code venv pos loc args =
  * special form (see Section~\ref{section:export}).
  * \end{doc}
  *)
-let export venv pos loc (args : Omake_value_type.value list) kargs =
+let export venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "export" pos in
   match args, kargs with
   |[ValOther (ValEnv (hand, export))], [] ->

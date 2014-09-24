@@ -102,11 +102,11 @@ val find_result_sloppy : t -> key -> Omake_node.Node.t -> Omake_cache_type.memo_
  * Similar functions for values. The bool flag indicates whether we want a static value.
  *)
 val find_value : 
-  t -> Omake_value_type.value -> bool -> Omake_node.NodeSet.t -> 
+  t -> Omake_value_type.t -> bool -> Omake_node.NodeSet.t -> 
   Omake_command_type.command_digest -> Omake_value_type.obj
 
 val add_value : 
-  t -> Omake_value_type.value -> bool -> Omake_node.NodeSet.t -> Omake_command_type.command_digest -> Omake_cache_type.memo_obj_result -> unit
+  t -> Omake_value_type.t -> bool -> Omake_node.NodeSet.t -> Omake_command_type.command_digest -> Omake_cache_type.memo_obj_result -> unit
 
 (*
  * Printing.

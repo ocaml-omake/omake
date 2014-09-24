@@ -5,7 +5,7 @@
  * \section{First-class functions}
  * \end{doc}
  *)
-include Omake_pos.MakePos (struct let name = "Omake_builtin_fun" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_fun" end)
 
 
 (*

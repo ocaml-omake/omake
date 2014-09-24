@@ -1,6 +1,6 @@
 (*  Rule evaluation. *)
 
-include Omake_pos.MakePos (struct let name = "Omake_rule" end);;
+include Omake_pos.Make (struct let name = "Omake_rule" end);;
 
 
 type 'a result =
@@ -29,11 +29,11 @@ sig
 
    (* Create a buffer *)
    val create : 
-     Omake_env.venv -> Omake_node.Node.t -> 
-     Omake_value_type.value -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> t
+     Omake_env.t -> Omake_node.Node.t -> 
+     Omake_value_type.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> Omake_node.NodeSet.t -> t
 
    (* Projections *)
-   val target : t -> Omake_node.Node.t * Omake_value_type.value
+   val target : t -> Omake_node.Node.t * Omake_value_type.t
 
    (* Adding to the buffer *)
    val add_command  : t -> Omake_value_type.command -> t
@@ -43,7 +43,7 @@ sig
    val add_deps     : t -> Omake_node.NodeSet.t -> t
 
    (* Block operations *)
-   val enter  : t -> Omake_env.venv -> Omake_node.Node.t list -> Omake_value_type.value list -> resume * t
+   val enter  : t -> Omake_env.t -> Omake_node.Node.t list -> Omake_value_type.t list -> resume * t
    val resume : t -> resume -> t
 
    (* Get the final info *)
@@ -57,23 +57,23 @@ struct
     *)
    type t =
       { buf_target   : Omake_node.Node.t;
-        buf_core     : Omake_value_type.value;
+        buf_core     : Omake_value_type.t;
         buf_locks    : Omake_node.NodeSet.t;
         buf_effects  : Omake_node.NodeSet.t;
         buf_deps     : Omake_node.NodeSet.t;
         buf_scanners : Omake_node.NodeSet.t;
 
         (* The state that is being collected *)
-        buf_env      : Omake_env.venv;
+        buf_env      : Omake_env.t;
         buf_sources  : Omake_node.Node.t list;
-        buf_values   : Omake_value_type.value list;
+        buf_values   : Omake_value_type.t list;
         buf_commands : Omake_value_type.command list;
 
         (* The buffers that have already been collected *)
         buf_info     : Omake_env.command_info list
       }
 
-   type resume = Omake_env.venv * Omake_node.Node.t list * Omake_value_type.value list
+   type resume = Omake_env.t * Omake_node.Node.t list * Omake_value_type.t list
 
    (*
     * Create a new command buffer.
@@ -323,7 +323,7 @@ let expand_rule erule =
       _
     } ->
     if commands_are_computed commands then
-      let core : Omake_value_type.value =
+      let core : Omake_value_type.t =
         match core with
         | Some s ->
           ValData s
@@ -565,7 +565,7 @@ let find_alias_exn shell_obj venv pos loc exe =
     let venv   = Omake_env.venv_add_var venv Omake_var.stdin_var  (ValChannel (InChannel,  stdin)) in
     let venv   = Omake_env.venv_add_var venv Omake_var.stdout_var (ValChannel (OutChannel, stdout)) in
     let venv   = Omake_env.venv_add_var venv Omake_var.stderr_var (ValChannel (OutChannel, stderr)) in
-    let v : Omake_value_type.value     = ValArray argv in
+    let v : Omake_value_type.t     = ValArray argv in
     let () =
       if !Omake_eval.debug_eval then
         Format.eprintf "normalize_apply: evaluating internal function@."
@@ -641,7 +641,7 @@ let find_alias_of_env venv pos =
 (*
  * Get the target string if there is a single one.
  *)
-let target_of_value venv pos (v : Omake_value_type.value) =
+let target_of_value venv pos (v : Omake_value_type.t) =
   match v with
   | ValNode node ->
     Omake_value_type.TargetNode node
@@ -1044,12 +1044,12 @@ and eval_rule venv loc target sources sloppy_deps values commands =
   let venv         = Omake_env.venv_add_var venv Omake_var.star_var (ValData root) in
   let venv         = Omake_env.venv_add_var venv Omake_var.gt_var   (ValData root') in
   let venv         = Omake_env.venv_add_var venv Omake_var.at_var   (ValNode target) in
-  let source_all : Omake_value_type.value   = ValArray (List.map (fun v -> Omake_value_type.ValNode v) sources) in
+  let source_all : Omake_value_type.t   = ValArray (List.map (fun v -> Omake_value_type.ValNode v) sources) in
   let source_names = List.map (Omake_env.venv_nodename venv) sources in
   let source_set   = List.fold_left Lm_string_set.LexStringSet.add Lm_string_set.LexStringSet.empty source_names in
   let source_set   = Lm_string_set.LexStringSet.to_list source_set in
   let source_set   = Omake_value_type.ValArray (List.map (fun s -> Omake_value_type.ValData s) source_set) in
-  let source : Omake_value_type.value =
+  let source : Omake_value_type.t =
     match sources with
     | source :: _ -> ValNode source
     | [] -> ValNone

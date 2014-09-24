@@ -138,8 +138,8 @@ type cache =
      mutable cache_nodes             : node_memo Omake_node.NodeTable.t;
      mutable cache_lstats            : Unix.LargeFile.stats option Omake_node.NodeTable.t;
      mutable cache_info              : Omake_cache_type.memo_deps cache_info array;
-     mutable cache_static_values     : Omake_value_type.obj memo Omake_value_type.ValueTable.t;
-     mutable cache_memo_values       : Omake_value_type.obj memo Omake_value_type.ValueTable.t;
+     mutable cache_static_values     : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
+     mutable cache_memo_values       : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
      mutable cache_file_stat_count   : int;  (* only succeessful stats are counted *)
      mutable cache_digest_count      : int;
 
@@ -157,7 +157,7 @@ type cache =
 type cache_save =
    { save_cache_nodes        : node_memo Omake_node.NodeTable.t;
      save_cache_info         : Omake_cache_type.memo_deps memo Omake_node.NodeTable.t array;
-     save_cache_value        : Omake_value_type.obj memo Omake_value_type.ValueTable.t
+     save_cache_value        : Omake_value_type.obj memo Omake_value_util.ValueTable.t
    }
 (* %%MAGICEND%% *)
 
@@ -253,8 +253,8 @@ let create () =
    { cache_nodes           = Omake_node.NodeTable.empty;
      cache_lstats          = Omake_node.NodeTable.empty;
      cache_info            = [||];
-     cache_static_values   = Omake_value_type.ValueTable.empty;
-     cache_memo_values     = Omake_value_type.ValueTable.empty;
+     cache_static_values   = Omake_value_util.ValueTable.empty;
+     cache_memo_values     = Omake_value_util.ValueTable.empty;
      cache_file_stat_count = 0;
      cache_digest_count    = 0;
      cache_dirs            = Omake_node.DirTable.empty;
@@ -343,7 +343,7 @@ let cache_of_save options save =
    in
    let cache_values =
       if Omake_options.opt_flush_static options then
-         Omake_value_type.ValueTable.empty
+         Omake_value_util.ValueTable.empty
       else
          save.save_cache_value
    in
@@ -1036,7 +1036,7 @@ let find_result_sloppy cache key target =
  * Get the memo entry from the key.
  *)
 let get_value cache key is_static =
-   Omake_value_type.ValueTable.find (if is_static then cache.cache_static_values else cache.cache_memo_values) key
+   Omake_value_util.ValueTable.find (if is_static then cache.cache_static_values else cache.cache_memo_values) key
 
 (*
  * Find a memo from the deps and commands.
@@ -1078,9 +1078,9 @@ let add_value cache key is_static deps commands result =
       }
    in
       if is_static then
-         cache.cache_static_values <- Omake_value_type.ValueTable.add cache.cache_static_values key memo
+         cache.cache_static_values <- Omake_value_util.ValueTable.add cache.cache_static_values key memo
       else
-         cache.cache_memo_values <- Omake_value_type.ValueTable.add cache.cache_memo_values key memo
+         cache.cache_memo_values <- Omake_value_util.ValueTable.add cache.cache_memo_values key memo
 
 (************************************************************************
  * Directory listings.

@@ -9,7 +9,7 @@
  *
  *)
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_file" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_file" end)
 
 
 (*
@@ -102,7 +102,7 @@ let dir venv pos loc args =
  * the temporary directory.
  * \end{doc}
  *)
-let tmpfile venv pos loc args : Omake_value_type.value =
+let tmpfile venv pos loc args : Omake_value_type.t =
   let pos = string_pos "tmpfile" pos in
   let prefix, suffix =
     match args with
@@ -274,7 +274,7 @@ let rootname venv pos loc args =
  * to the directories \verb+dir1/dir2 /etc /+.
  * \end{doc}
  *)
-let dirof venv pos loc args : Omake_value_type.value =
+let dirof venv pos loc args : Omake_value_type.t =
   let pos = string_pos "dirof" pos in
   match args with
     [arg] ->
@@ -1175,7 +1175,7 @@ let compare_dir_node dir1 node =
       else
          cmp
 
-let compare_val_nodes (node1 : Omake_value_type.value)  (node2 : Omake_value_type.value) =
+let compare_val_nodes (node1 : Omake_value_type.t)  (node2 : Omake_value_type.t) =
   match node1, node2 with
   | ValDir dir, ValNode node ->
     compare_dir_node dir node
@@ -1463,7 +1463,7 @@ let ls venv pos loc args =
  * \end{description}
  * \end{doc}
  *)
-let subdirs venv pos loc args : Omake_value_type.value =
+let subdirs venv pos loc args : Omake_value_type.t =
   let pos = string_pos "subdirs" pos in
   let option, arg =
     match args with

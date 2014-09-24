@@ -8,7 +8,7 @@
  *       return statements.
  *)
 
-include Omake_pos.MakePos (struct let name = "Omake_ir_semant" end)
+include Omake_pos.Make (struct let name = "Omake_ir_semant" end)
 
 
 (*

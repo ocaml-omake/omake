@@ -118,7 +118,7 @@ let rec pp_print_value buf v =
     pp_print_env buf env
   | ValMap map ->
     Format.fprintf buf "@[<hv 3>map";
-    Omake_value_type.ValueTable.iter (fun v e -> Format.fprintf buf "@ %a@ = %a" pp_print_value v pp_print_value e) map;
+    Omake_value_util.ValueTable.iter (fun v e -> Format.fprintf buf "@ %a@ = %a" pp_print_value v pp_print_value e) map;
     Format.fprintf buf "@]"
   | ValChannel (InChannel, _) ->
     Format.fprintf buf "<channel> : InChannel"
@@ -184,8 +184,8 @@ and pp_print_value_list buf vl =
 (*    pp_print_keyword_args buf (pp_print_normal_args buf true args) kargs *)
 
 and pp_print_env buf env =
-  let tags = Omake_value_type.venv_get_class env in
-  let env = Lm_symbol.SymbolTable.remove env Omake_value_type.class_sym in
+  let tags = Omake_value_util.venv_get_class env in
+  let env = Lm_symbol.SymbolTable.remove env Omake_value_util.class_sym in
   Format.fprintf buf "@[<v 3>@[<hv 3>class";
   Lm_symbol.SymbolTable.iter 
     (fun v _ -> Format.fprintf buf "@ %a" 
@@ -278,3 +278,70 @@ and pp_print_simple_arg_list buf vl =
     Lm_printf.pp_print_char buf ' ';
     pp_print_simple_arg_list buf vl
 
+
+let rec pp_print_item buf (x  : Omake_value_type.item ) =
+  match x  with
+  | AstExp e ->
+    Omake_ast_print.pp_print_exp buf e
+  | IrExp e -> Omake_ir_print.pp_print_exp buf e
+  | Location _ -> ()
+
+  | Symbol v ->
+    Lm_symbol.pp_print_symbol buf v
+  | String s ->
+    Lm_printf.pp_print_string buf s
+  | Value v ->
+    pp_print_value buf v
+  | Error e ->
+    pp_print_exn buf e
+
+and pp_print_exn buf (x : Omake_value_type.omake_error )= 
+  match x with 
+  | SyntaxError s ->
+    Format.fprintf buf "syntax error: %s" s
+  | StringAstError (s, e) ->
+    Format.fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
+  | StringError s ->
+    Lm_printf.pp_print_string buf s
+  | StringIntError (s, i) ->
+    Format.fprintf buf "%s: %d" s i
+  | StringStringError (s1, s2) ->
+    Format.fprintf buf "%s: %s" s1 s2
+  | StringVarError (s, v) ->
+    Format.fprintf buf "%s: %a" s Lm_symbol.pp_print_symbol v
+  | StringMethodError (s, v) ->
+    Format.fprintf buf "%s: %a" s Lm_symbol.pp_print_method_name v
+  | StringDirError (s, n)->
+    Format.fprintf buf "%s: %a" s Omake_node.pp_print_dir n
+  | StringNodeError (s, n)->
+    Format.fprintf buf "%s: %a" s Omake_node.pp_print_node n
+  | StringValueError (s, v) ->
+    Format.fprintf buf "@[<hv 3>%s:@ %a@]" s pp_print_value v
+  | StringTargetError (s, t) ->
+    Format.fprintf buf "%s: %a" s pp_print_target t
+  | LazyError printer ->
+    printer buf
+  | UnboundVar v ->
+    Format.fprintf buf "unbound variable: %a" Lm_symbol.pp_print_symbol v
+  | UnboundVarInfo v ->
+    Format.fprintf buf "unbound variable: %a" Omake_ir_print.pp_print_var_info v
+  | UnboundKey v ->
+    Format.fprintf buf "unbound key: %s" v
+  | UnboundValue v ->
+    Format.fprintf buf "unbound value: %a" pp_print_value v
+  | UnboundFun v ->
+    Format.fprintf buf "unbound function: %a" Lm_symbol.pp_print_symbol v
+  | UnboundMethod vl ->
+    Format.fprintf buf "unbound method: %a" Lm_symbol.pp_print_method_name vl
+  | UnboundFieldVar (obj, v) ->
+    Format.fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" Lm_symbol.pp_print_symbol v;
+    Lm_symbol.SymbolTable.iter (fun v _ ->
+      Format.fprintf buf "@ %a" Lm_symbol.pp_print_symbol v) (Omake_value_util.venv_get_class obj);
+    Format.fprintf buf "@]@]"
+  | ArityMismatch (len1, len2) ->
+    Format.fprintf buf "arity mismatch: expected %a args, got %d" 
+      Omake_ir_print.pp_print_arity len1 len2
+  | NotImplemented s ->
+    Format.fprintf buf "not implemented: %s" s
+  | NullCommand ->
+    Lm_printf.pp_print_string buf "invalid null command"

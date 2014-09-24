@@ -2,10 +2,12 @@
 val pp_print_target           : Omake_value_type.target Lm_printf.t
 val pp_print_wild_list        : Lm_wild.in_patt list Lm_printf.t 
 val pp_print_source_list      : ('a * Omake_value_type.source_core) list Lm_printf.t 
-val pp_print_value            : Omake_value_type.value Lm_printf.t
-val pp_print_simple_value     : Omake_value_type.value Lm_printf.t
-val pp_print_value_list       : Omake_value_type.value list Lm_printf.t
+val pp_print_value            : Omake_value_type.t Lm_printf.t
+val pp_print_simple_value     : Omake_value_type.t Lm_printf.t
+val pp_print_value_list       : Omake_value_type.t list Lm_printf.t
 val pp_print_path             : Omake_value_type.path Lm_printf.t
+val pp_print_item : Omake_value_type.item Lm_printf.t
+val pp_print_exn : Omake_value_type.omake_error Lm_printf.t 
 
 (* Helpers, used in printing and for $(Fun.arity) function *)
 val fun_arity : 

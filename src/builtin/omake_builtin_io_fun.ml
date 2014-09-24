@@ -85,7 +85,7 @@
  *)
 
 
-include Omake_pos.MakePos (struct let name = "Omake_builtin_io_fun" end)
+include Omake_pos.Make (struct let name = "Omake_builtin_io_fun" end)
 
 
 let debug_parsing =
@@ -454,7 +454,7 @@ let scan_options venv pos loc options =
 (*
  * The arguments.
  *)
-let scan_args venv pos loc (args : Omake_value_type.value list) =
+let scan_args venv pos loc (args : Omake_value_type.t list) =
    let pos = string_pos "scan_args" pos in
    let cases, options, files =
       match args with
@@ -706,7 +706,7 @@ let rec awk_eval_cases venv pos loc break line cases =
 (*
  * The arguments.
  *)
-let awk_args venv pos loc (args : Omake_value_type.value list) =
+let awk_args venv pos loc (args : Omake_value_type.t list) =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases] ->
@@ -716,7 +716,7 @@ let awk_args venv pos loc (args : Omake_value_type.value list) =
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
-let awk_option_args venv pos loc (args : Omake_value_type.value list) =
+let awk_option_args venv pos loc (args : Omake_value_type.t list) =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases] ->
@@ -1479,7 +1479,7 @@ let lex_search venv pos loc args _ =
 (*
  * Add a lexer clause.
  *)
-let lex_rule venv pos loc (args : Omake_value_type.value list) kargs =
+let lex_rule venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "lex-rule" pos in
   match args, kargs with
     [_; action; _; pattern; _; ValBody (body, export)], [] ->
@@ -1806,7 +1806,7 @@ let find_action_name venv loc =
 (*
  * Add a parser clause.
  *)
-let parse_rule venv pos loc (args : Omake_value_type.value list) kargs =
+let parse_rule venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "parse-rule" pos in
   let action, head, rhs, options, body, export =
     match args, kargs with

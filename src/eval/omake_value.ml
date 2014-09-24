@@ -1,6 +1,6 @@
 
 
-include Omake_pos.MakePos (struct let name = "Omake_value" end)
+include Omake_pos.Make (struct let name = "Omake_value" end)
 
 
 (*
@@ -37,7 +37,7 @@ let add_object_value obj x =
 (*
  * Concatenate.
  *)
-let concat_array (xs : Omake_value_type.value list) : Omake_value_type.value = 
+let concat_array (xs : Omake_value_type.t list) : Omake_value_type.t = 
   match xs with 
   | [ValWhite s]
   | [ValString s] ->
@@ -49,7 +49,7 @@ let concat_array (xs : Omake_value_type.value list) : Omake_value_type.value =
   | vl ->
     ValArray vl
 
-let concat_strings  xs : Omake_value_type.value = 
+let concat_strings  xs : Omake_value_type.t = 
   match xs with  
   | [s] ->
     ValData s
@@ -489,7 +489,7 @@ let out_channel_of_any_value venv pos v =
 (*
  * Check whether the value has any glob characters in it.
  *)
-let rec is_glob_value options (v : Omake_value_type.value) =
+let rec is_glob_value options (v : Omake_value_type.t) =
   match v with
   |  ValString s ->
     Lm_glob.is_glob_string options s

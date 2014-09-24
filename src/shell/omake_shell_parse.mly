@@ -32,12 +32,12 @@
 open Lm_location
 
 
-open Omake_pos
+
 open Omake_shell_type
 
 open Omake_value_type
 
-module Pos = MakePos (struct let name = "Omake_shell_parse" end)
+module Pos = Omake_pos.Make (struct let name = "Omake_shell_parse" end)
 
 
 (*
@@ -143,7 +143,7 @@ let set_stdout pipe file stderr append =
  * Indentation tokens are converted in the lexer
  * to TokBegin/TokEnd.
  */
-%token <Omake_value_type.value list * Lm_location.t> TokValues
+%token <Omake_value_type.t list * Lm_location.t> TokValues
 %token <string * Lm_location.t> TokDefine
 %token <string * Lm_location.t> TokLeftParen
 %token <string * Lm_location.t> TokRightParen

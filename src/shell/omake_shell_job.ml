@@ -9,17 +9,17 @@ open Lm_symbol
 
 open Omake_var
 open Omake_env
-open Omake_pos
+
 open Omake_node_sig
 open Omake_node
 open Omake_value
-(* open Omake_symbol *)
+
 open Omake_shell_sys
 open Omake_shell_type
 open Omake_value_type
 open! Omake_shell_sys_type
 
-include MakePos (struct let name = "Omake_shell_job" end)
+include Omake_pos.Make (struct let name = "Omake_shell_job" end)
 
 
 module IntCompare =
@@ -55,9 +55,9 @@ type subjob_cond =
    }
 
 and subjob_exp =
-   SubjobProcess of pid * venv
+   SubjobProcess of pid * Omake_env.t
  | SubjobPipe of subjob_exp * subjob_exp
- | SubjobFinished of job_status * venv
+ | SubjobFinished of job_status * Omake_env.t
  | SubjobCond of subjob_exp * subjob_cond
 
 (*

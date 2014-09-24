@@ -25,13 +25,13 @@
 %{
 open Lm_location
 
-open Omake_pos
+
 open Omake_ast
 open Omake_symbol
 open Omake_ast_util
 open Omake_value_type
 
-module Pos = MakePos (struct let name = "Omake_exp_parse" end)
+module Pos = Omake_pos.Make (struct let name = "Omake_exp_parse" end)
 open Pos;;
 
 (*

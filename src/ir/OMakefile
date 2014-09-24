@@ -1,6 +1,5 @@
 OCAMLINCLUDES[] +=
     ../libmojave
-    ../util
     ../exec
     ../magic
     ../ast
@@ -22,6 +21,8 @@ FILES[] =
     omake_parser
     omake_value_type
     omake_command_type
+
+    omake_value_util
     omake_value_print
     omake_pos
     omake_shell_type

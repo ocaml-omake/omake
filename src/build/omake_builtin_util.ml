@@ -5,7 +5,7 @@ open Lm_location
 
 open Omake_ir
 open Omake_env
-open Omake_pos
+
 open Omake_eval
 
 open Omake_node
@@ -16,7 +16,7 @@ open Omake_value_type
 open Omake_build_type
 open! Omake_symbol
 
-module Pos = MakePos (struct let name = "Omake_builtin" end)
+module Pos = Omake_pos.Make (struct let name = "Omake_builtin" end)
 open Pos
 
 (************************************************************************
@@ -197,18 +197,11 @@ let is_leaf_node env node =
  * Extend an object with another.
  * The argument may be a file or an object.
  *)
-let object_of_file venv pos loc s =
-   let pos  = string_pos "extends" pos in
-   let node = find_include_file venv pos loc s in
-      try venv_find_object_file_exn venv node with
-         Not_found ->
-            let obj = eval_object_file venv pos loc node in
-               venv_add_object_file venv node obj;
-               obj
-
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
+let object_of_file venv pos loc s : Omake_value_type.obj =
+  let pos  = string_pos "extends" pos in
+  let node = find_include_file venv pos loc s in
+  try venv_find_object_file_exn venv node with
+    Not_found ->
+    let obj = eval_object_file venv pos loc node in
+    venv_add_object_file venv node obj;
+    obj

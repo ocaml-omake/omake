@@ -1,6 +1,6 @@
 (*  Utilities on targets. *)
 
-include Omake_pos.MakePos (struct let name = "Omake_target" end)
+include Omake_pos.Make (struct let name = "Omake_target" end)
 
 (*  Target exists or is phony. *)
 let target_exists_or_is_phony cache target =
