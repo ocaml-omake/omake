@@ -2,7 +2,6 @@
 
 
 FILES[] =
-
     lm_printf
     lm_debug
     lm_heap
@@ -42,6 +41,7 @@ FILES[] =
     lm_readline
     lm_marshal
     lm_handle_table
+    lm_int_handle_table
 MakeOCamlLibrary(lm, $(FILES))
 
 clean:

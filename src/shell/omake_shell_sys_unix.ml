@@ -1,38 +1,7 @@
 (*
  * System calls.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
- * @end[license]
  *)
-open Lm_printf
 
-
-
-open! Omake_exn_print
 open Omake_shell_type
 open Omake_shell_sys_type
 
@@ -202,7 +171,7 @@ let create_thread info =
                   code
              | exn ->
                   let () =
-                     try eprintf "%a@." pp_print_exn exn with _ -> ()
+                     try Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn with _ -> ()
                   in
                      Omake_state.exn_error_code
          in
@@ -226,10 +195,10 @@ let create_process info =
        } = info
    in
 (*
-      eprintf "@[<v 3>";
+      Format.eprintf "@[<v 3>";
       Array.iter (fun s ->
-            eprintf "@ %s" s) argv;
-      eprintf "@]@.";
+            Format.eprintf "@ %s" s) argv;
+      Format.eprintf "@]@.";
  *)
    let pid = Unix.fork () in
       if pid = 0 then
