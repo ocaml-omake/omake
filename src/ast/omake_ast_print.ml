@@ -20,10 +20,10 @@ let print_location =
  *)
 let pp_print_strategy buf (s : Omake_ast.apply_strategy) =
   match s with
-  | LazyApply -> Lm_printf.pp_print_char buf '\''
-  | EagerApply -> Lm_printf.pp_print_char buf ','
+  | LazyApply -> Format.pp_print_char buf '\''
+  | EagerApply -> Format.pp_print_char buf ','
   | NormalApply -> ()
-  | CommandApply -> Lm_printf.pp_print_char buf '#'
+  | CommandApply -> Format.pp_print_char buf '#'
 
 (*
  * Definitions.
@@ -33,14 +33,14 @@ let pp_print_define_kind buf (flag : Omake_ast.define_kind) =
   | DefineString ->
     ()
   | DefineArray ->
-    Lm_printf.pp_print_string buf "[]"
+    Format.pp_print_string buf "[]"
 
 let pp_print_define_flag buf (flag : Omake_ast.define_flag) =
   let s =
     match flag with
     | DefineNormal -> "="
     | DefineAppend -> "+=" in
-  Lm_printf.pp_print_string buf s
+  Format.pp_print_string buf s
 
 (*
  * Print an expression.
@@ -50,7 +50,7 @@ let rec pp_print_exp buf (e : Omake_ast.exp)=
     Format.fprintf buf "<%a>" pp_print_location (Omake_ast_util.loc_of_exp e);
   match e with
   | NullExp _ ->
-    Lm_printf.pp_print_string buf "<null>"
+    Format.pp_print_string buf "<null>"
   | IntExp (i, _) ->
     Format.fprintf buf "(int %d)" i
   | FloatExp (x, _) ->
@@ -223,7 +223,7 @@ and pp_print_exp_list buf commands =
 (* and pp_print_exp_option buf e_opt = *)
 (*   match e_opt with *)
 (*   | Some e -> pp_print_exp buf e *)
-(*   | None -> Lm_printf.pp_print_string buf "<none>" *)
+(*   | None -> Format.pp_print_string buf "<none>" *)
 
 and pp_print_table_exp buf source =
   Format.fprintf buf "@[<hv 0>@[<hv 3>{";
@@ -246,7 +246,7 @@ let rec pp_print_simple_exp buf (e : Omake_ast.exp) =
   if !print_location then
     Format.fprintf buf "<%a>" pp_print_location (Omake_ast_util.loc_of_exp e);
   match e with
-  | NullExp _ -> Lm_printf.pp_print_string buf "<null>"
+  | NullExp _ -> Format.pp_print_string buf "<null>"
   | IntExp (i, _) ->
     Format.fprintf buf "%d" i
   | FloatExp (x, _) ->
@@ -257,7 +257,7 @@ let rec pp_print_simple_exp buf (e : Omake_ast.exp) =
   | StringFloatExp (s, _)
   | StringWhiteExp (s, _)
   | StringOtherExp (s, _)
-  | StringKeywordExp (s, _) ->    Lm_printf.pp_print_string buf s
+  | StringKeywordExp (s, _) ->    Format.pp_print_string buf s
   | QuoteExp (el, _) ->
     Format.fprintf buf "$'%a'" pp_print_simple_exp_list el
   | QuoteStringExp (c, el, _) ->

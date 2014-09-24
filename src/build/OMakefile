@@ -1,6 +1,5 @@
 OCAMLINCLUDES[] +=
     ../libmojave
-    ../util
     ../magic
     ../ir
     ../env

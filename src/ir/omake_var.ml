@@ -136,9 +136,3 @@ let create_numeric_var =
    in
       get
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)
