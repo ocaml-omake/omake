@@ -25,10 +25,8 @@ type output_flag =
  *)
 type setting 
 
-(*
- * The basic make flags.
- *)
-type t = private
+
+type t = 
   { job_count            : int;
     remote_servers       : (string * int) list;
     terminate_on_error   : setting;

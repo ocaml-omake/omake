@@ -315,7 +315,7 @@ let find_build_targets venv pos loc args =
     in
     let env = Omake_build_util.get_env pos loc in
     let targets =
-      Omake_build.command_fold env tag (fun targets command ->
+      Omake_build_util.command_fold env tag (fun targets command ->
         target_of_command venv pos loc command :: targets) [] in
     Omake_value.concat_array targets
   | _ ->

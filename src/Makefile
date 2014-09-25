@@ -759,13 +759,13 @@ omake_value.mli: $(SRC_eval)$(slash)omake_value.mli
 ALLFILES_eval = omake_eval.ml omake_eval.mli omake_value.ml omake_value.mli
 
 
-CMOFILES_build = omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo
+CMOFILES_build = omake_rule.cmo omake_build_type.cmo omake_build_tee.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build.cmo
 OCAML_LIB_FLAGS_build =
 
 build.cma: $(CMOFILES_build)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_build) -a -o $@ $(CMOFILES_build)
 
-omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build_tee.cmo omake_build.cmo omake_rule.cmi omake_build_util.cmi omake_target.cmi omake_builtin.cmi omake_build_tee.cmi omake_build.cmi: magic.cma
+omake_rule.cmo omake_build_type.cmo omake_build_tee.cmo omake_build_util.cmo omake_builtin_type.cmo omake_target.cmo omake_builtin.cmo omake_build.cmo omake_rule.cmi omake_build_tee.cmi omake_build_util.cmi omake_target.cmi omake_builtin.cmi omake_build.cmi: magic.cma
 
 SRC_build = ..$(slash)src$(slash)build
 

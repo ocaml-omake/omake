@@ -85,18 +85,14 @@ let set_job_count_and_servers_opt opts cnt srvs =
 
 let get_job_count (s : string) : int * (string * int) list = 
   let set_job (job_count, remote_servers) job =
-    try
-      let index = String.index job '=' in
-      let len = String.length job in
-      let machine = String.sub job 0 index in
-      let count = String.sub job (index + 1) (len - index - 1) in
+    match Lm_string_util.bi_split '=' job with 
+    | (machine,count) -> 
       let count =
         try int_of_string count with
           Failure _ -> 1
       in
       job_count, (machine, count) :: remote_servers
-    with
-      Not_found ->
+    | exception Not_found -> 
       try int_of_string job, remote_servers with
         Failure _ ->
         job_count, (job, 1) :: remote_servers

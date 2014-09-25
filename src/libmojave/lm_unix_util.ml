@@ -199,3 +199,37 @@ external flock : Unix.file_descr -> flock_command -> unit = "lm_flock"
  * help find file descriptor leaks.
  *)
 let openfile = Unix.openfile
+
+
+(*
+ * Directory listing.
+ *)
+let  list_directory dir =
+  let dirx =
+    try Some (Unix.opendir dir) with
+      Unix.Unix_error _ ->
+      None
+  in
+  match dirx with
+    None ->
+    []
+  | Some dirx ->
+    let rec list entries =
+      let name =
+        try Some (Unix.readdir dirx) with
+          Unix.Unix_error _
+        | End_of_file ->
+          None
+      in
+      match name with
+        Some "."
+      | Some ".." ->
+        list entries
+      | Some name ->
+        list (Filename.concat dir name :: entries)
+      | None ->
+        entries
+    in
+    let entries = list [] in
+    Unix.closedir dirx;
+    entries

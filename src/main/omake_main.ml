@@ -132,14 +132,14 @@ let spec =
 (*
  * Main program.
  *)
-let main options =
+let main (options : Omake_options.t) =
   begin 
     Sys.catch_break true ;
     (if Sys.os_type <> "Win32" then
        Sys.set_signal Sys.sigpipe Signal_ignore );
     let path = Omake_main_util.chroot () in
     Omake_build.build options 
-      (if Omake_options.opt_cd_root options then
+      (if  options.cd_root then
          "."
        else
          path)

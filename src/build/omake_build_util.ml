@@ -267,3 +267,381 @@ let sort_aux sorter env venv pos name nodes =
  *)
 let check_sort = sort_aux check_sort
 let sort = sort_aux dfs_sort
+
+
+
+
+
+
+
+(*
+ * Get the list pointer for a node class.
+ *)
+let command_tag : Omake_build_type.command_state -> Omake_build_type.command_tag = function
+  | CommandIdle            -> CommandIdleTag
+  | CommandInitial         -> CommandInitialTag
+  | CommandScanBlocked     -> CommandScanBlockedTag
+  | CommandScannedPending  -> CommandScannedPendingTag
+  | CommandScanned         -> CommandScannedTag
+  | CommandBlocked         -> CommandBlockedTag
+  | CommandReady           -> CommandReadyTag
+  | CommandPending         -> CommandPendingTag
+  | CommandRunning _       -> CommandRunningTag
+  | CommandSucceeded _     -> CommandSucceededTag
+  | CommandFailed _        -> CommandFailedTag
+
+let get_worklist_command (wl : Omake_build_type.env_wl)
+    (x : Omake_build_type.command_tag) = 
+  match x with 
+  | CommandIdleTag           -> wl.env_idle_wl
+  | CommandInitialTag        -> wl.env_initial_wl
+  | CommandScanBlockedTag    -> wl.env_scan_blocked_wl
+  | CommandScannedPendingTag -> wl.env_scanned_pending_wl
+  | CommandScannedTag        -> wl.env_scanned_wl
+  | CommandBlockedTag        -> wl.env_blocked_wl
+  | CommandReadyTag          -> wl.env_ready_wl
+  | CommandPendingTag        -> wl.env_pending_wl
+  | CommandRunningTag        -> wl.env_running_wl
+  | CommandSucceededTag      -> wl.env_succeeded_wl
+  | CommandFailedTag         -> wl.env_failed_wl
+
+let command_worklist (env : Omake_build_type.env) state =
+  get_worklist_command env.env_current_wl state
+
+(*
+ * Worklist creation.
+ *)
+let create_wl () : Omake_build_type.env_wl=
+  { env_idle_wl            = ref None;
+    env_initial_wl         = ref None;
+    env_scan_blocked_wl    = ref None;
+    env_scanned_pending_wl = ref None;
+    env_scanned_wl         = ref None;
+    env_blocked_wl         = ref None;
+    env_ready_wl           = ref None;
+    env_pending_wl         = ref None;
+    env_running_wl         = ref None;
+    env_succeeded_wl       = ref None;
+    env_failed_wl          = ref None
+  }
+
+(*
+ * Check if a command succeeded.
+ *)
+let command_succeeded (command : Omake_build_type.command) =
+  match command with
+  | { command_state = CommandSucceeded _; _ } ->
+    true
+  | _ ->
+    false
+(*
+ * Test for empty.
+ *)
+let command_list_is_empty env state =
+  let l = command_worklist env state in
+  match !l with
+  | Some _ -> false
+  | None -> true
+
+(*
+ * Get the head of a list.
+ *)
+let command_list_head env state =
+  let l = command_worklist env state in
+  match !l with
+    Some command -> command
+  | None -> raise (Invalid_argument "command_list_head")
+
+
+(*
+ * Iterate through the node list.
+ *)
+let command_iter env state f =
+  let rec iter (command_opt : Omake_build_type.command option) =
+    match command_opt with
+    | Some command ->
+      let next = !(command.command_succ) in
+      f command;
+      iter next
+    | None ->
+      ()
+  in
+  iter (!(command_worklist env state))
+
+
+(*
+ * Fold through the command list.
+ *)
+let command_fold env state f x =
+  let rec fold x (command : Omake_build_type.command option) =
+    match command with
+    | Some command ->
+      let next = !(command.command_succ) in
+      let x = f x command in
+      fold x next
+    | None ->
+      x
+  in
+  let x = fold x (!(command_worklist env state)) in
+  if env.env_main_wl == env.env_current_wl then
+    x
+  else
+    fold x (!(get_worklist_command env.env_main_wl state))
+
+(*
+ * Existential test.
+ *)
+let command_exists env state f x =
+  let rec exists (command : Omake_build_type.command option) =
+    match command with
+    | Some command ->
+      let next = !(command.command_succ) in
+      f command || exists next
+    | None ->
+      x
+  in
+  exists (!(command_worklist env state))
+
+(*
+ * Find a particular command.
+ *)
+let command_find env state f =
+  let rec find (command : Omake_build_type.command option) =
+    match command with
+    | Some command ->
+      if f command then
+        command
+      else
+        find (!(command.command_succ))
+    | None ->
+      raise Not_found
+  in
+  find (!(command_worklist env state))
+
+(*
+ * Test for empty.
+ *)
+let command_list_is_empty env state =
+  let l = command_worklist env state in
+  match !l with
+  | Some _ -> false
+  | None -> true
+
+(*
+ * Get the head of a list.
+ *)
+let command_list_head env state =
+  let l = command_worklist env state in
+  match !l with
+    Some command -> command
+  | None -> raise (Invalid_argument "command_list_head")
+
+
+let pp_print_command_state buf (state : Omake_build_type.command_state)  =
+  match state with
+  | CommandIdle                      -> Lm_printf.pp_print_string buf "idle"
+  | CommandInitial                   -> Lm_printf.pp_print_string buf "initial"
+  | CommandScanBlocked               -> Lm_printf.pp_print_string buf "scan-blocked"
+  | CommandScannedPending            -> Lm_printf.pp_print_string buf "scanned-pending"
+  | CommandScanned                   -> Lm_printf.pp_print_string buf "scanned"
+  | CommandBlocked                   -> Lm_printf.pp_print_string buf "blocked"
+  | CommandPending                   -> Lm_printf.pp_print_string buf "pending"
+  | CommandReady                     -> Lm_printf.pp_print_string buf "ready"
+  | CommandRunning (pid, None)       -> Format.fprintf buf "running(%a)" Omake_exec_id.pp_print_pid pid
+  | CommandRunning (pid, Some name)  -> Format.fprintf buf "scanning(%a, %s)" Omake_exec_id.pp_print_pid pid name
+  | CommandSucceeded _               -> Lm_printf.pp_print_string buf "succeeded"
+  | CommandFailed code               -> Format.fprintf buf "failed(%d)" code
+
+(* let pp_print_command_opt buf (command_opt : Omake_build_type.command option) = *)
+(*   match command_opt with *)
+(*   | Some { command_target = target; *)
+(*            command_state = state; _} ->  *)
+(*     Format.fprintf buf "%a[%a]" Omake_node.pp_print_node target pp_print_command_state state *)
+(*   | None -> *)
+(*     Lm_printf.pp_print_string buf "<none>" *)
+
+let pp_print_command buf (command : Omake_build_type.command) =
+  match command with 
+    { command_target       = target;
+      command_effects      = effects;
+      command_locks        = locks;
+      command_state        = state;
+      command_scanner_deps = scanner_deps;
+      command_build_deps   = build_deps;
+      command_blocked      = blocked;
+      _
+    } -> 
+    Format.fprintf buf "@[<v 3>%a[%a],@ @[<b 3>effects =%a@]@ @[<b 3>locks =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>blocked =%a@]@]" (**)
+      Omake_node.pp_print_node target
+      pp_print_command_state state
+      Omake_node.pp_print_node_set effects
+      Omake_node.pp_print_node_set locks
+      Omake_node.pp_print_node_set scanner_deps
+      Omake_node.pp_print_node_set build_deps
+      Omake_node.pp_print_node_list blocked
+
+let pp_print_node_states (env : Omake_build_type.env) buf nodes =
+  Omake_node.NodeSet.iter (fun target ->
+    try
+      let command = Omake_node.NodeTable.find env.env_commands target(* find_command env target *) in
+      Format.fprintf buf "@ %a(%a)" (**)
+        Omake_node.pp_print_node target
+        pp_print_command_state command.command_state
+    with
+      Not_found ->
+      Omake_node.pp_print_node buf target) nodes
+
+
+let print_stats (env : Omake_build_type.env) message start_time =
+  match env with { 
+    env_venv = venv;
+    env_cache = cache;
+    env_scan_count = scan_count;
+    env_scan_exec_count = scan_exec_count;
+    env_rule_count = rule_count;
+    env_rule_exec_count = rule_exec_count;
+    _
+  } -> 
+    let stat_count, digest_count = Omake_cache.stats cache in
+    let total_time = Unix.gettimeofday () -. start_time in
+    let options = Omake_env.venv_options venv in
+    Omake_exec_print.print_leaving_current_directory options;
+    if Omake_options.opt_print_status options then begin
+      if message <> "done" then begin
+        let total = Omake_node.NodeTable.cardinal env.env_commands - env.env_optional_count in
+        Lm_printf.printf "*** omake: %i/%i targets are up to date@." env.env_succeeded_count total
+      end;
+      Lm_printf.printf "*** omake: %s (%a, %d/%d scans, %d/%d rules, %d/%d digests)@." (**)
+        message Lm_unix_util.pp_time total_time
+        scan_exec_count scan_count
+        rule_exec_count rule_count
+        digest_count stat_count
+    end
+(*
+ * All of the commands in the Blocked queue are deadlocked.
+ *)
+
+let print_deadlock_exn env buf state =
+  (* Inconsistency *)
+  let failwith_inconsistency (command : Omake_build_type.command) =
+    match command with { command_target       = target;
+                         command_state        = state;
+                         command_effects      = effects;
+                         command_scanner_deps = scanner_deps;
+                         command_static_deps  = static_deps;
+                         command_build_deps   = build_deps;
+                         command_loc          = loc;
+                         _
+                       } -> 
+      Format.fprintf buf "@[<v 3>*** omake: inconsistent state %a@ state = %a@ @[<b 3>effects =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>static deps = %a@]@." (**)
+        Omake_node.pp_print_node target
+        pp_print_command_state state
+        (pp_print_node_states env) effects
+        (pp_print_node_states env) build_deps
+        (pp_print_node_states env) scanner_deps
+        (pp_print_node_states env) static_deps;
+      raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("failed on target", target)))
+  in
+
+  (* Deadlock *)
+  let failwith_deadlock loc target marked =
+    let rec print_marked marked =
+      match marked with
+        mark :: marked ->
+        Format.fprintf buf "*** omake: is a dependency of %a@." Omake_node.pp_print_node mark;
+        if not (Omake_node.Node.equal mark target) then
+          print_marked marked
+      | [] ->
+        Format.fprintf buf "*** omake: not deadlocked!@."
+    in
+    Format.fprintf buf "*** omake: deadlock on %a@." Omake_node.pp_print_node target;
+    print_marked marked;
+    raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("failed on target", target)))
+  in
+
+  (*
+   * Find the deadlock.
+   *)
+  let rec print marked (command : Omake_build_type.command) =
+    match command with { command_target = target;
+                         command_loc = loc;
+                         _
+                       } -> 
+
+      (*
+     * Find the first dependency that has not been built.
+     *)
+      let rec search deps' =
+        match deps' with
+          dep :: deps ->
+          let command =
+            try
+              let command = Omake_node.NodeTable.find env.env_commands dep (* find_command env dep *) in
+              if command_succeeded command then
+                None
+              else
+                Some command
+            with
+              Not_found ->
+              Format.fprintf buf "*** omake: Do not know how to build \"%a\" required for \"%a\"@." Omake_node.pp_print_node dep Omake_node.pp_print_node target;
+              raise (Failure "blocked")
+          in
+          (match command with
+            Some dep ->
+            dep
+          | None ->
+            search deps)
+        | [] ->
+          (* All deps have succeeded; this is an inconsistent state *)
+          failwith_inconsistency command
+      in
+      (* Detect deadlock *)
+      if List.exists (fun node -> Omake_node.Node.equal node target) marked then
+        failwith_deadlock loc target marked;
+
+      (* Otherwise, search for first unsatisfied dependency *)
+      let deps =
+        Omake_node.NodeSet.union (**)
+          (Omake_node.NodeSet.union command.command_build_deps command.command_scanner_deps)
+          command.command_static_deps
+      in
+      print (target :: marked) (search (Omake_node.NodeSet.to_list deps))
+  in
+  print [] (command_list_head env state)
+
+
+let print_deadlock env buf state =
+  try print_deadlock_exn env buf state with
+    Omake_value_type.OmakeException _
+  | Failure _ as exn ->
+    Format.fprintf buf "%a@." Omake_exn_print.pp_print_exn exn
+
+(*
+ * Print the failed commands.
+ *)
+let print_failed_targets (env : Omake_build_type.env) buf =
+  if Omake_options.opt_print_status (Omake_env.venv_options env.env_venv) then begin
+    Format.fprintf buf "*** omake: targets were not rebuilt because of errors:";
+    (* We use table to get an alphabetical order here - see http://bugzilla.metaprl.org/show_bug.cgi?id=621 *)
+    let table = ref Lm_string_set.LexStringMTable.empty in
+    let add_command (command : Omake_build_type.command) =
+      table := Lm_string_set.LexStringMTable.add !table (Omake_node.Node.absname command.command_target) command
+    in
+    let () = command_iter env CommandFailedTag add_command in
+    Lm_string_set.LexStringMTable.iter (fun _ (command : Omake_build_type.command) ->
+      Format.fprintf buf "@\n   @[<v 3>@[<v 3>%a" Omake_node.pp_print_node command.command_target;
+      Omake_node.NodeSet.iter (fun dep ->
+        if Omake_node.Node.is_real dep && is_leaf_node env dep then
+          Format.fprintf buf "@ depends on: %a" Omake_node.pp_print_node dep) command.command_static_deps;
+      Format.fprintf buf "@]";
+      Omake_build_tee.format_tee_with_nl buf command;
+      Format.fprintf buf "@]") !table;
+    Format.fprintf buf "@."
+  end
+
+let print_failed env buf state =
+  if not (command_list_is_empty env CommandFailedTag) then
+    print_failed_targets env buf
+  else
+    print_deadlock env buf state
+

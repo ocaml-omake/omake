@@ -8,14 +8,6 @@ val debug_deps     : bool ref
  *)
 val save_interval  : float ref
 
-(*
- * Examining the state.
- * Note that in a non-standard build phase (such as .DUILD_SUCCESS),
- * this function will process _both_ the phase-specific worklist and the main worklist.
- *)
-val command_fold   : 
-    Omake_build_type.env -> Omake_build_type.command_tag -> 
-      ('a -> Omake_build_type.command -> 'a) -> 'a -> 'a
 
 (*
  * Build the system.
