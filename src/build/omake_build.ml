@@ -1523,7 +1523,7 @@ let execute_rule
             Lm_printf.printf "updating %a@." Omake_node.pp_print_node target;
           save_and_finish_rule_success env command
         end
-        else if Omake_options.opt_dry_run options then begin
+        else if  options.dry_run then begin
           if Omake_options.opt_print_command options <> EvalNever then
             List.iter (fun command ->
               if not (List.mem Omake_command_type.QuietFlag command.Omake_command_type.command_flags) then
@@ -1645,7 +1645,7 @@ let save_aux (env : Omake_build_type.env) =
  * Save to the .omakedb.
  *)
 let save env =
-  if not (Omake_options.opt_dry_run (env_options env)) then
+  if not (env_options env).dry_run then
     try save_aux env with
       Sys_error _ as exn ->
       Format.eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn)
@@ -2169,160 +2169,30 @@ let rec main_loop env progress =
     Omake_exec_print.progress_flush ()
   end
 
-(*
- * Print statistics.
- *)
-
-(************************************************************************
- * Main build command.
-*)
-
-(*
- * Take a lock to prevent multiple builds from competing.
- *)
-let copy_to_stderr fd =
-  let inx = Unix.in_channel_of_descr fd in
-  let rec loop () =
-    let line = input_line inx in
-    Format.eprintf "%s@." line;
-    loop ()
-  in
-  try loop () with
-    End_of_file ->
-    ()
-
-let wait_for_lock, unlock_db =
-  let name = Omake_state.db_name ^ ".lock" in
-  let save_fd = ref None in
-  let unlock_db () =
-    match !save_fd with
-      None ->
-      ()
-    | Some fd ->
-      let () =
-        (* XXX: JYH: this is bad style.
-         * Under what circumstances will this fail?
-         * BTW, don't use wildcard exception patterns please:/ *)
-        try Omake_shell_sys.close_fd fd with
-          Unix.Unix_error _ ->
-          ()
-      in
-      save_fd := None
-  in
-  let wait_for_lock () =
-    unlock_db ();
-    let fd =
-      try Lm_unix_util.openfile name [Unix.O_RDWR; Unix.O_CREAT] 0o666 with
-        Unix.Unix_error _ ->
-        raise (Failure ("project lock file is not writable: " ^ name))
-    in
-    let () =
-      (*
-       * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
-       * .omakedb locking is only convenience, not safety, so it's not a huge problem.
-       * But may be we should implement a "sloppy" locking as well - see
-       * also the mailing list discussions:
-       *    - http://lists.metaprl.org/pipermail/omake/2005-November/thread.html#744
-       *    - http://lists.metaprl.org/pipermail/omake-devel/2005-November/thread.html#122
-       *)
-      try
-        (* Try for a lock first, and report it if the file is locked *)
-        try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
-          Unix.Unix_error (Unix.EAGAIN, _, _) ->
-          Format.eprintf "*** omake: the project is currently locked.@.";
-          (try copy_to_stderr fd with _ -> ());
-
-          (* Unfortunately, we have to poll, since OCaml doesn't allow ^C during the lock request *)
-          let rec poll col =
-            let col =
-              if col >= 40 then begin
-                if col = 40 then Format.eprintf "@.";
-                Format.eprintf "*** omake: waiting for project lock: .@?";
-                0
-              end
-              else begin
-                Format.eprintf ".@?";
-                succ col
-              end
-            in
-            Unix.sleep 1;
-            try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
-              Unix.Unix_error (Unix.EAGAIN, _, _) ->
-              poll col
-          in
-          poll 1000
-      with
-        (*
-         * XXX: When lockf is not supported, we just print a warning and keep going.
-         *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
-         *)
-        Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
-        Format.eprintf "*** omake WARNING: Can not lock the project database file .omakedb:\
-                        \t%s. Will proceed anyway.\
-                        \tWARNING: Be aware that simultaneously running more than one instance\
-                        \t\tof OMake on the same project is not recommended.  It may\
-                        \t\tresult in some OMake instances failing to record their\
-                        \t\tprogress in the database@."
-          (Unix.error_message err)
-      | Unix.Unix_error (err, _, _) ->
-        raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))
-      | Failure err ->
-        raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ err))
-    in
-    Omake_shell_sys.set_close_on_exec fd;
-    save_fd := Some fd;
-    (* Print the message to the lock file  *)
-    try
-      ignore (Unix.lseek fd 0 Unix.SEEK_SET);
-      Lm_unix_util.ftruncate fd;
-      let outx = Unix.out_channel_of_descr fd in
-      Printf.fprintf outx "*** omake: the project was last locked by %s:%d.\n" (Unix.gethostname ()) (Unix.getpid ());
-      Pervasives.flush outx
-    with
-      Unix.Unix_error _
-    | Sys_error _
-    | Failure _ ->
-      ()
-  in
-  wait_for_lock, unlock_db
-
+let build_target env print (target : Omake_node.NodeTable.key ) =
 (*
  * We want to build the target string.
  * Create or find a command to build it.
  *)
-let build_target_command env target =
-  try
-    let command = find_command env target in
-    start_command env command
-  with
-    Not_found ->
-    let name = Omake_node.Node.fullname target in
-    let loc = Lm_location.bogus_loc name in
-    let pos = Pos.string_pos "build_target" (Pos.loc_exp_pos loc) in
-    build_command env pos loc target
+  (try
+     let command = find_command env target in
+     start_command env command
+   with
+     Not_found ->
+     let name = Omake_node.Node.fullname target in
+     let loc = Lm_location.bogus_loc name in
+     let pos = Pos.string_pos "build_target" (Pos.loc_exp_pos loc) in
+     build_command env pos loc target);
+  if print then print_node_dependencies env target
 
-(*
- * Catch the dependency printer.
- *)
-let build_target env print target =
-  (* Generate the command *)
-  build_target_command env target;
-
-  (* Add the print flag *)
-  if print then
-    print_node_dependencies env target
-
-(*
- * Make the targets.
- *)
+(**  Make the targets. *)
 let make (env : Omake_build_type.env) =
   let now = Unix.gettimeofday () in
-  let progress = {
+  main_loop env {
     ps_count = env.env_succeeded_count;
     ps_progress =  now +. prompt_interval;
     ps_save = now +. !save_interval;
-  } in
-  main_loop env progress
+  }
 
 (*
  * Wait for notifications.
@@ -2342,9 +2212,9 @@ let notify_wait (env : Omake_build_type.env) =
     Format.eprintf "*** omake: polling for filesystem changes@.";
     save env;
     ignore (Omake_cache.stat_changed env.env_cache db_node);
-    unlock_db ();
+    Omake_build_util.unlock_db ();
     loop false;
-    wait_for_lock ();
+    Omake_build_util.wait_for_lock ();
     if Omake_cache.stat_changed env.env_cache db_node then
       raise (Restart (Some "another OMake process have modified the build DB"));
     if Omake_options.opt_print_status (env_options env) then
@@ -2423,8 +2293,8 @@ let build_phase (env : Omake_build_type.env) target =
 (*
  * Build command line targets.
  *)
-let rec build_targets env save_flag start_time parallel print ?(summary = true) targets =
-  let options = env_options env in
+let rec build_targets (env : Omake_build_type.env) save_flag start_time parallel print ?(summary = true) targets =
+  let options : Omake_options.t = env_options env in
   let () =
     try
       let begin_success =
@@ -2463,15 +2333,12 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
           if parallel || Omake_options.opt_parallel options then begin
             (* Add commands to build the targets *)
             List.iter (build_target env print) targets;
-
             (* Build *)
             make env
           end
           else begin
             (* Make them in order *)
-            List.iter (fun target ->
-              build_target env print target;
-              make env) targets
+            List.iter (fun target -> build_target env print target; make env) targets
           end;
       in
       if summary then begin
@@ -2480,7 +2347,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
         print_summary env
       end
     with
-      Sys_error _
+    | Sys_error _
     | Omake_value_type.ExitException _
     | Omake_value_type.ExitParentException _
     | Omake_value_type.OmakeException _
@@ -2502,7 +2369,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
         let reason = notify_wait_omakefile env in
         raise (Restart reason)
       end
-      else if Omake_options.opt_osh options then
+      else if  options.osh then
         env.env_error_code <- Omake_state.exn_error_code
       else begin
         close env;
@@ -2535,26 +2402,25 @@ and build_on_error env save_flag _ parallel print targets options error_code =
 (*
  * Notification loop.
  *)
-let rec notify_loop env options targets =
+let rec notify_loop env (options : Omake_options.t) targets =
   begin try
-    notify_wait env
-  with Sys.Break ->
-    Format.eprintf "*** omake: Received Break signal, exiting@.";
-    raise (BuildExit 0)
+      notify_wait env
+    with Sys.Break ->
+      Format.eprintf "*** omake: Received Break signal, exiting@.";
+      raise (BuildExit 0)
   end;
 
   (* Build the targets again *)
   let start_time = Unix.gettimeofday () in
-  build_targets env true start_time false (Omake_options.opt_print_dependencies options) targets;
+  build_targets env true start_time false options.print_dependencies targets;
   Omake_build_util.print_stats env "done" start_time;
   notify_loop env options targets
 
 (**  Start the core build. *)
-let build_core (env : Omake_build_type.env) dir start_time options targets =
+let build_core (env : Omake_build_type.env) dir start_time (options : Omake_options.t) targets =
   (* First, build all the included files *)
   let changed =
-    if Omake_options.opt_dry_run options then
-      false
+    if  options.dry_run then false
     else
       let includes = Omake_node.NodeTable.fold (fun includes node _ -> node :: includes) [] env.env_includes in
       let _ = build_targets env false start_time true false ~summary:false includes in
@@ -2569,14 +2435,14 @@ let build_core (env : Omake_build_type.env) dir start_time options targets =
     end
   in
 
-  let venv = env.env_venv in
+  let venv : Omake_env.t = env.env_venv in
   let venv = Omake_env.venv_chdir_tmp venv dir in
   let targets = List.map (Omake_env.venv_intern venv PhonyOK) targets in
   let () = 
     List.iter (fun s -> print_node_dependencies env (Omake_env.venv_intern venv PhonyOK s))
-      (Omake_options.opt_show_dependencies options) in
+      options.show_dependencies in
   let options = env_options env in
-  build_targets env true start_time false (Omake_options.opt_print_dependencies options) targets;
+  build_targets env true start_time false options.print_dependencies  targets;
   Omake_build_util.print_stats env "done" start_time;
 
   (* Polling loop *)
@@ -2588,10 +2454,10 @@ let build_core (env : Omake_build_type.env) dir start_time options targets =
   close env
 
 (**  Main builder. *)
-let rec build_time start_time venv_opt options dir_name targets =
-  let env = load venv_opt options targets in
+let rec build_time start_time venv_opt (options : Omake_options.t) dir_name targets =
+  let env : Omake_build_type.env = load venv_opt options targets in
   let dir_name =
-    if Omake_options.opt_project options then "."
+    if options.project  then "."
     else dir_name  in
   let dir = Omake_node.Dir.chdir env.env_cwd dir_name in
 
@@ -2608,7 +2474,7 @@ let rec build_time start_time venv_opt options dir_name targets =
    * what it is doing.
    *)
   let () =
-    if venv_opt = None && not (Omake_options.opt_project options || Omake_node.DirTable.mem env.env_explicit_directories dir) then begin
+    if venv_opt = None && not ( options.project || Omake_node.DirTable.mem env.env_explicit_directories dir) then begin
       Format.eprintf "*** omake: the current directory %s@." (Omake_node.Dir.absname dir);
       Format.eprintf "*** omake: is not part of the root project in %s@." (Omake_node.Dir.absname env.env_cwd);
       raise (BuildExit 1)
@@ -2621,11 +2487,8 @@ let rec build_time start_time venv_opt options dir_name targets =
     build_time start_time venv_opt options dir_name targets
   in
   try build_core env  dir start_time options targets with
-    Restart reason ->
-    restart reason
-  | Sys.Break as exn ->
-    close env;
-    save env;
+  | Restart reason -> restart reason
+  | Sys.Break as exn -> close env; save env;
     Format.eprintf "%a@." Omake_exn_print.pp_print_exn exn;
     raise (BuildExit Omake_state.exn_error_code)
   | exn when Omake_options.opt_poll options && restartable_exn exn ->
@@ -2636,11 +2499,12 @@ let rec build_time start_time venv_opt options dir_name targets =
 let build options dir_name targets =
   try
     Omake_shell_sys.set_interactive false;
-    wait_for_lock ();
+    Omake_build_util.wait_for_lock ();
     build_time (Unix.gettimeofday ()) None options dir_name targets
   with
     BuildExit code ->
     Pervasives.exit code
+
 
 let build_fun venv targets =
   let options = Omake_env.venv_options venv in
@@ -2648,7 +2512,7 @@ let build_fun venv targets =
   Unix.chdir dir;
   Omake_node.Dir.reset_cwd ();
   try
-    wait_for_lock ();
+    Omake_build_util.wait_for_lock ();
     build_time (Unix.gettimeofday ()) (Some venv) options "." targets;
     true
   with

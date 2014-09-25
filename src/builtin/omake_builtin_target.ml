@@ -442,7 +442,7 @@ let memo_rule_fun venv pos loc args kargs =
  *)
 let build venv pos loc args =
   let pos = string_pos "build" pos in
-  if not (Omake_options.opt_osh (Omake_env.venv_options venv)) then
+  if not (Omake_env.venv_options venv).osh then
     raise (Omake_value_type.OmakeException (pos, StringError "build can be called only from osh"));
   match args with
     [arg] ->

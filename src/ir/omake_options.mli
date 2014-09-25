@@ -83,10 +83,10 @@ val opt_remote_servers : t -> (string * int) list
 val opt_terminate_on_error : t -> bool
 val opt_poll : t -> bool
 val opt_poll_on_done : t -> bool
-val opt_osh : t -> bool
+
 val set_osh_opt : t -> t
 
-val opt_dry_run : t -> bool
+
 val opt_print_dir : t -> bool
 val opt_print_status : t -> bool
 val opt_print_exit : t -> bool
@@ -94,8 +94,8 @@ val opt_print_progress : t -> bool
 val opt_touch_only : t -> bool
 val opt_flush_cache : t -> bool
 val opt_flush_dependencies : t -> bool
-val opt_print_dependencies : t -> bool
-val opt_show_dependencies : t -> string list
+
+
 val opt_all_dependencies : t -> bool
 val opt_verbose_dependencies : t -> bool
 val opt_cd_root : t -> bool

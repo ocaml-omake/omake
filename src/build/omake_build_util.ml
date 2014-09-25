@@ -645,3 +645,115 @@ let print_failed env buf state =
   else
     print_deadlock env buf state
 
+
+
+(** [TODO]
+  Take a lock to prevent multiple builds from competing.
+ *)
+let copy_to_stderr fd =
+  let inx = Unix.in_channel_of_descr fd in
+  let rec loop () =
+    let line = input_line inx in
+    Format.eprintf "%s@." line;
+    loop ()
+  in
+  try loop () with
+    End_of_file ->
+    ()
+
+let wait_for_lock, unlock_db =
+  let name = Omake_state.db_name ^ ".lock" in
+  let save_fd = ref None in
+  let unlock_db () =
+    match !save_fd with
+    | None -> ()
+    | Some fd ->
+      let () =
+        (* XXX: JYH: this is bad style.
+         * Under what circumstances will this fail?
+         * BTW, don't use wildcard exception patterns please:/ *)
+        try Omake_shell_sys.close_fd fd with
+          Unix.Unix_error _ ->
+          () in
+      save_fd := None
+  in
+  let wait_for_lock () =
+    unlock_db ();
+    let fd =
+      try Lm_unix_util.openfile name [O_RDWR; O_CREAT] 0o666 with
+        Unix.Unix_error _ ->
+        raise (Failure ("project lock file is not writable: " ^ name))
+    in
+    let () =
+      (*
+       * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
+       * .omakedb locking is only convenience, not safety, so it's not a huge problem.
+       * But may be we should implement a "sloppy" locking as well - see
+       * also the mailing list discussions:
+       *    - http://lists.metaprl.org/pipermail/omake/2005-November/thread.html#744
+       *    - http://lists.metaprl.org/pipermail/omake-devel/2005-November/thread.html#122
+       *)
+      try
+        (* Try for a lock first, and report it if the file is locked *)
+        try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
+          Unix.Unix_error (Unix.EAGAIN, _, _) ->
+          Format.eprintf "*** omake: the project is currently locked.@.";
+          (try copy_to_stderr fd with _ -> ());
+
+          (* Unfortunately, we have to poll, since OCaml doesn't allow ^C during the lock request *)
+          let rec poll col =
+            let col =
+              if col >= 40 then begin
+                if col = 40 then Format.eprintf "@.";
+                Format.eprintf "*** omake: waiting for project lock: .@?";
+                0
+              end
+              else begin
+                Format.eprintf ".@?";
+                succ col
+              end
+            in
+            Unix.sleep 1;
+            try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
+              Unix.Unix_error (Unix.EAGAIN, _, _) ->
+              poll col
+          in
+          poll 1000
+      with
+        (*
+         * XXX: When lockf is not supported, we just print a warning and keep going.
+         *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
+         *)
+        Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
+        Format.eprintf "*** omake WARNING: Can not lock the project database file .omakedb:\
+                        \t%s. Will proceed anyway.\
+                        \tWARNING: Be aware that simultaneously running more than one instance\
+                        \t\tof OMake on the same project is not recommended.  It may\
+                        \t\tresult in some OMake instances failing to record their\
+                        \t\tprogress in the database@."
+          (Unix.error_message err)
+      | Unix.Unix_error (err, _, _) ->
+        raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))
+      | Failure err ->
+        raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ err))
+    in
+    Omake_shell_sys.set_close_on_exec fd;
+    save_fd := Some fd;
+    (* Print the message to the lock file  *)
+    try
+      ignore (Unix.lseek fd 0 Unix.SEEK_SET);
+      Lm_unix_util.ftruncate fd;
+      let outx = Unix.out_channel_of_descr fd in
+      Printf.fprintf outx "*** omake: the project was last locked by %s:%d.\n" (Unix.gethostname ()) (Unix.getpid ());
+      Pervasives.flush outx
+    with
+      Unix.Unix_error _
+    | Sys_error _
+    | Failure _ ->
+      ()
+  in
+  wait_for_lock, unlock_db
+
+(*
+ * Catch the dependency printer.
+ *)

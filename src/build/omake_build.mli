@@ -9,9 +9,8 @@ val debug_deps     : bool ref
 val save_interval  : float ref
 
 
-(*
- * Build the system.
- *)
 val build : Omake_options.t -> string -> string list -> unit
+
+(** Used in osh *)
 val build_fun : Omake_env.t -> string list -> bool
 

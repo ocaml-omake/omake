@@ -106,8 +106,6 @@ let set_job_count (options : t) (s: string) : t   =
   set_job_count_and_servers_opt options (max  1 job_count) remote_servers 
 
 
-let opt_dry_run opts =
-   opts.dry_run
 
 let set_dry_run_opt opts flag =
    { opts with dry_run = flag }
@@ -172,14 +170,10 @@ let opt_flush_dependencies opts =
 let set_flush_dependencies_opt opts flag =
    { opts with flush_dependencies = flag }
 
-let opt_print_dependencies opts =
-   opts.print_dependencies
 
 let set_print_dependencies_opt opts flag =
    { opts with print_dependencies = flag }
 
-let opt_show_dependencies opts =
-   opts.show_dependencies
 
 let add_show_dependency_opt opts dep =
    { opts with show_dependencies = dep :: opts.show_dependencies }

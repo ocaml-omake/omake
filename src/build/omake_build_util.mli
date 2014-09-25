@@ -110,3 +110,6 @@ val command_fold   :
     Omake_build_type.env -> Omake_build_type.command_tag -> 
       ('a -> Omake_build_type.command -> 'a) -> 'a -> 'a
 
+
+val wait_for_lock : unit -> unit
+val unlock_db : unit -> unit
