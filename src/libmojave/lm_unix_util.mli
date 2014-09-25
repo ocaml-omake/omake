@@ -84,6 +84,6 @@ val flock : Unix.file_descr -> flock_command -> unit
  *)
 val getpwents : unit -> Unix.passwd_entry list
 
-
+val finally : 'a -> ('a -> 'b) -> ('a -> 'c) -> 'b
 (** TODO: using [Sys.readdir] instead *)
 val list_directory : string -> string list

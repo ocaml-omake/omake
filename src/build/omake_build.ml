@@ -1924,7 +1924,7 @@ let print_restart options reason =
   if Omake_options.opt_print_status options then
     let reason =
       match reason with
-        None -> "a configuration file changed"
+      | None -> "a configuration file changed"
       | Some reason -> reason
     in
     Lm_printf.printf "*** omake: %s, restarting@." reason
@@ -2039,8 +2039,6 @@ let load_omake options targets =
 let load_osh venv options targets =
   (* Replace the cache *)
   let cache =
-    match
-      (* Load cache from the db file *)
       try
         let inx = open_in_bin Omake_state.db_name in
         let cache =
@@ -2050,21 +2048,19 @@ let load_osh venv options targets =
             raise exn
         in
         close_in inx;
-        Some cache
+        cache
       with
-        Unix.Unix_error _
-      | End_of_file
-      | Sys_error _
-      | Failure _ ->
-        None
-    with
-      None -> Omake_cache.create ()
-    | Some cache -> cache
+      |  Unix.Unix_error _
+      |  End_of_file 
+      |  Sys_error _ 
+      |Failure _ -> Omake_cache.create ()
   in
   let venv = Omake_env.venv_add_cache venv cache in
 
   (* Add the targets *)
-  let targets_value = Omake_value_type.ValArray (List.map (fun v -> Omake_value_type.ValData v) targets) in
+  let targets_value : Omake_value_type.t =
+    ValArray 
+      (List.map (fun v -> (ValData v : Omake_value_type.t )) targets) in
   let venv = Omake_env.venv_add_var venv Omake_var.targets_var targets_value in
 
   (* Add the summary file *)
@@ -2073,7 +2069,8 @@ let load_osh venv options targets =
     Pervasives.close_out outx;
     summary
   in
-  let summary_value : Omake_value_type.t = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
+  let summary_value : Omake_value_type.t = 
+    ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
   let venv = Omake_env.venv_add_var venv Omake_var.build_summary_var summary_value in
 
   (* Create the environment *)
@@ -2089,38 +2086,9 @@ let load venv_opt options targets =
   | None ->
     load_omake options targets
 
-let rec main_loop env progress =
-  if Lm_debug.debug debug_build then begin
-    Format.eprintf "@[<hv 3>Initial:";
-    Omake_build_util.command_iter env CommandInitialTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>ScanBlocked:";
-    Omake_build_util.command_iter env CommandScanBlockedTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>Blocked:";
-    Omake_build_util.command_iter env CommandBlockedTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>Ready:";
-    Omake_build_util.command_iter env CommandReadyTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>Running:";
-    Omake_build_util.command_iter env CommandRunningTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>Succeeded:";
-    Omake_build_util.command_iter env CommandSucceededTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-    Format.eprintf "@[<hv 3>Failed:";
-    Omake_build_util.command_iter env CommandFailedTag (fun command ->
-      Format.eprintf "@ %a" Omake_build_util.pp_print_command command);
-    Format.eprintf "@]@.";
-  end;
-
+let rec main_loop env (progress : prompt_state) =
+  if Lm_debug.debug debug_build then 
+    Omake_build_util.eprint_env env ;
   let progress =
     let flushed = Omake_exec_print.progress_flushed () in
     if flushed || progress.ps_count <> env.env_succeeded_count then
@@ -2169,22 +2137,6 @@ let rec main_loop env progress =
     Omake_exec_print.progress_flush ()
   end
 
-let build_target env print (target : Omake_node.NodeTable.key ) =
-(*
- * We want to build the target string.
- * Create or find a command to build it.
- *)
-  (try
-     let command = find_command env target in
-     start_command env command
-   with
-     Not_found ->
-     let name = Omake_node.Node.fullname target in
-     let loc = Lm_location.bogus_loc name in
-     let pos = Pos.string_pos "build_target" (Pos.loc_exp_pos loc) in
-     build_command env pos loc target);
-  if print then print_node_dependencies env target
-
 (**  Make the targets. *)
 let make (env : Omake_build_type.env) =
   let now = Unix.gettimeofday () in
@@ -2198,11 +2150,14 @@ let make (env : Omake_build_type.env) =
  * Wait for notifications.
  *)
 let notify_wait (env : Omake_build_type.env) =
-  match env with { env_exec = exec;
-                   env_venv = venv;
-                   _
-                 } -> 
-    let db_node = Omake_env.venv_intern_cd venv PhonyProhibited (Omake_node.Dir.cwd ()) Omake_state.db_name in
+  match env with 
+    { env_exec = exec;
+      env_venv = venv;
+      _
+    } -> 
+    let db_node = 
+      Omake_env.venv_intern_cd venv PhonyProhibited 
+        (Omake_node.Dir.cwd ()) Omake_state.db_name in
     let rec loop found =
       if not found || Omake_exec.Exec.pending exec then
         let event = Omake_exec.Exec.next_event exec in
@@ -2259,6 +2214,20 @@ let print_summary ?(unlink = true) (env : Omake_build_type.env) =
   if unlink then
     unlink_file env.env_summary
 
+(**  Create or find a command to build it. *)
+let build_target env (print : bool) (target : Omake_node.NodeTable.key ) : unit =
+  (try
+     let command = find_command env target in
+     start_command env command
+   with
+     Not_found ->
+     let name = Omake_node.Node.fullname target in
+     let loc = Lm_location.bogus_loc name in
+     let pos = Pos.string_pos "build_target" (Pos.loc_exp_pos loc) in
+     build_command env pos loc target);
+  if print then print_node_dependencies env target
+
+
 (*
  * Worklist switching.
  *
@@ -2267,7 +2236,7 @@ let print_summary ?(unlink = true) (env : Omake_build_type.env) =
  * main build, and also so that we ignore the main build
  * when executing phases.
  *)
-let build_phase (env : Omake_build_type.env) target =
+let build_phase (env : Omake_build_type.env) target : bool =
   let code = env.env_error_code in
   let restore_wl () =
     env.env_current_wl <- env.env_main_wl;
@@ -2276,19 +2245,14 @@ let build_phase (env : Omake_build_type.env) target =
     Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
     Queue.clear env.env_pending_events
   in
-  try
-    env.env_current_wl <- Omake_build_util.create_wl ();
-    env.env_error_code <- 0;
-    build_target env false target;
-    invalidate_children env (Omake_node.NodeSet.singleton target);
-    make env;
-    let success = Omake_build_util.command_list_is_empty env CommandFailedTag in
-    restore_wl();
-    success
-  with
-    exn ->
-    restore_wl();
-    raise exn
+  Lm_unix_util.finally () (function () -> 
+      env.env_current_wl <- Omake_build_util.create_wl ();
+      env.env_error_code <- 0;
+      build_target env false target;
+      invalidate_children env (Omake_node.NodeSet.singleton target);
+      make env;
+      Omake_build_util.command_list_is_empty env CommandFailedTag
+    ) restore_wl
 
 (*
  * Build command line targets.

@@ -645,7 +645,37 @@ let print_failed env buf state =
   else
     print_deadlock env buf state
 
-
+let eprint_env env = 
+  begin 
+    Format.eprintf "@[<hv 3>Initial:";
+    command_iter env CommandInitialTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>ScanBlocked:";
+    command_iter env CommandScanBlockedTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>Blocked:";
+    command_iter env CommandBlockedTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>Ready:";
+    command_iter env CommandReadyTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>Running:";
+    command_iter env CommandRunningTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>Succeeded:";
+    command_iter env CommandSucceededTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+    Format.eprintf "@[<hv 3>Failed:";
+    command_iter env CommandFailedTag (fun command ->
+      Format.eprintf "@ %a" pp_print_command command);
+    Format.eprintf "@]@.";
+  end
 
 (** [TODO]
   Take a lock to prevent multiple builds from competing.

@@ -113,3 +113,5 @@ val command_fold   :
 
 val wait_for_lock : unit -> unit
 val unlock_db : unit -> unit
+
+val eprint_env : Omake_build_type.env -> unit
