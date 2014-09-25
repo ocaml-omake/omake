@@ -1,12 +1,12 @@
 
-include  Omake_pos.Make (struct let name = "Omake_main" end);;
+module Pos =   Omake_pos.Make (struct let name = "Omake_main" end);;
 
 
 let debug_hash = ref false
 
 let print_hash_stats () =
   if !debug_hash then
-    Lm_printf.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
+    Format.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
 
 (* List of targets to build. *)
 let targets = ref []
@@ -26,17 +26,19 @@ let install_force = ref false
 (*
  * Add an random argument.
  *)
+
+
 let add_unknown options s =
-  let () =
-    try
-      let i = String.index s '=' in
-      let l = String.length s in
-      let v = String.sub s 0 i in
-      let x = String.sub s (succ i) (l - i - 1) in
-      Omake_builtin.add_command_def v x
-    with
-      Not_found -> add_target s in
-  options, !shell_flag
+  begin
+    ( match String.index s '=' with
+      | i -> 
+        let l = String.length s in
+        let v = String.sub s 0 i in
+        let x = String.sub s (i + 1) (l - i - 1) in
+        Omake_build_util.add_command_def v x
+      | exception Not_found -> add_target s );
+    options, !shell_flag
+  end
 
 (*
  * Arguments.
@@ -148,22 +150,23 @@ let spec =
    ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
     "Run as a remote server";]])
 
-(* let concat = *)
-(*   let buf = Buffer.create 17 in *)
-(*   let concat sl = *)
-(*     if sl = [] then *)
-(*       Filename.dir_sep *)
-(*     else *)
-(*       let _ = *)
-(*         List.iter (fun s -> *)
-(*           Buffer.add_string buf Filename.dir_sep; *)
-(*           Buffer.add_string buf s) sl *)
-(*       in *)
-(*       let s = Buffer.contents buf in *)
-(*       Buffer.clear buf; *)
-(*       s *)
-(*   in *)
-(*   concat *)
+
+let rec search start cwd len  i =
+  if i < start then
+    raise (Omake_value_type.OmakeFatal 
+             ("can not find " ^ Omake_state.makeroot_name ^ " or " ^ Omake_state.makeroot_short_name))
+  else if cwd.[i] = '/' || cwd.[i] = '\\' then
+    (* Maybe file is in this directory *)
+    let dir = String.sub cwd 0 i in
+    if Sys.file_exists (Filename.concat dir Omake_state.makeroot_name)
+    || Sys.file_exists (Filename.concat dir Omake_state.makeroot_short_name)
+    then
+      let rest = String.sub cwd (i + 1) (len - i - 1) in
+      dir, rest
+    else
+      search start cwd len (i - 1)
+  else
+    search start cwd len (i - 1)
 
 (*
  * Find the outermost OMakeroot.
@@ -174,35 +177,20 @@ let chroot () =
       Unix.getcwd ()
     with
       Unix.Unix_error _ ->
-        Lm_printf.eprintf "*** omake: fatal error: current directory does not exist@.";
+        Format.eprintf "*** omake: fatal error: current directory does not exist@.";
         exit 1  in
   let len = String.length cwd in
   let start = Lm_filename_util.drive_skip cwd in
-  let rec search i =
-    if i < start then
-      raise (Omake_value_type.OmakeFatal ("can not find " ^ Omake_state.makeroot_name ^ " or " ^ Omake_state.makeroot_short_name))
-    else if cwd.[i] = '/' || cwd.[i] = '\\' then
-      (* Maybe file is in this directory *)
-      let dir = String.sub cwd 0 i in
-      if Sys.file_exists (Filename.concat dir Omake_state.makeroot_name)
-    || Sys.file_exists (Filename.concat dir Omake_state.makeroot_short_name)
-      then
-        let rest = String.sub cwd (succ i) (len - i - 1) in
-        dir, rest
-      else
-        search (i - 1)
-    else
-      search (i - 1)
-  in
+
   let dir, rest =
     if Sys.file_exists (Filename.concat cwd Omake_state.makeroot_name) || Sys.file_exists
       (Filename.concat cwd Omake_state.makeroot_short_name) then
       cwd, "."
     else
-      search (len - 1)
+      search start cwd len (len - 1)
   in
   if rest <> "." then
-    Lm_printf.eprintf "*** omake: changing directory to %s@." dir;
+    Format.eprintf "*** omake: changing directory to %s@." dir;
   Unix.chdir dir;
   Omake_node.Dir.reset_cwd ();
   rest
@@ -242,7 +230,7 @@ let main_remote cwd options =
   let venv  = Omake_builtin.venv_add_builtins venv in
 
   (* Shell evaluator *)
-  let pos = string_exp_pos "main_remote" in
+  let pos = Pos.string_exp_pos "main_remote" in
   let shell = Omake_rule.eval_shell venv pos in
   Omake_exec_remote.main shell options
 
