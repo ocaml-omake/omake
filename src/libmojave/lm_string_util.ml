@@ -431,31 +431,35 @@ let quotes = "\"'"
  * returns
  *   ["foo"; "bar"; ""; "ba??z"]
 *)
-  let split delims str =
-let strlen = String.length str in
-  
+let split delims str =
+  let strlen = String.length str in
   (* Find the next split index *)
-    let rec next_split pos =
-      if pos = strlen then
-    strlen
-      else
+  let rec next_split pos =
+    if pos = strlen then
+      strlen
+    else
       let c = String.get str pos in
-        if contains delims c then
-      pos
-        else
-  next_split (pos + 1)
-in
-  
-  (* Build the list *)
-    let rec str_split pos =
-    let pos_end = next_split pos in
-      if pos_end = strlen then
-    [String.sub str pos (pos_end - pos)]
+      if contains delims c then
+        pos
       else
-  (String.sub str pos (pos_end - pos)) :: (str_split (pos_end + 1))
-  in
-str_split 0
+        next_split (pos + 1)  in
 
+  (* Build the list *)
+  let rec str_split pos =
+    let pos_end = next_split pos in
+    if pos_end = strlen then
+      [String.sub str pos (pos_end - pos)]
+    else
+      (String.sub str pos (pos_end - pos)) :: (str_split (pos_end + 1))
+  in
+  str_split 0
+
+let bi_split c s = 
+  let i =  String.index s c in
+  let l = String.length s in
+  let v = String.sub s 0 i in
+  let x = String.sub s (i + 1) (l - i - 1) in
+  (v, x)
  (*
  * Split a string str into a list of substrings.
  * The string is split on any character in delims.  Quotations
@@ -467,72 +471,72 @@ str_split 0
  * returns
  *   ["foo"; "bar"; "ba??z"]
 *)
-  let tokens_fold f x quotes delims str =
-let strlen = String.length str in
-  
+let tokens_fold f x quotes delims str =
+  let strlen = String.length str in
+
   (* Skip white space *)
-    let rec skip_split pos =
-      if pos = strlen then
-    strlen
-      else
+  let rec skip_split pos =
+    if pos = strlen then
+      strlen
+    else
       let c = str.[pos] in
-        if contains delims c then
-      skip_split (succ pos)
-        else
-  pos
-in
-   
+      if contains delims c then
+        skip_split (succ pos)
+      else
+        pos
+  in
+
     (*
     * Find the next split index.
   *)
-    let rec next_split pos =
-      if pos = strlen then
-    strlen
-      else
+  let rec next_split pos =
+    if pos = strlen then
+      strlen
+    else
       let c = str.[pos] in
-        if contains delims c then
-      pos
-        else if contains quotes c then
-      next_quote (succ pos)
-        else
-next_split (succ pos)
-  
-    and next_quote pos =
-      if pos = strlen then
-    strlen
+      if contains delims c then
+        pos
+      else if contains quotes c then
+        next_quote (succ pos)
       else
+        next_split (succ pos)
+
+  and next_quote pos =
+    if pos = strlen then
+      strlen
+    else
       let c = str.[pos] in
-        if contains quotes c then
-      next_split (succ pos)
-        else if c = '\\' && pos < pred strlen then
-      next_quote (pos + 2)
-        else
-  next_quote (succ pos)
-in
-  
+      if contains quotes c then
+        next_split (succ pos)
+      else if c = '\\' && pos < pred strlen then
+        next_quote (pos + 2)
+      else
+        next_quote (succ pos)
+  in
+
   (* Build the list *)
-    let rec str_split x pos =
-      if pos = strlen then
-    x
-      else
+  let rec str_split x pos =
+    if pos = strlen then
+      x
+    else
       let pos_end = next_split pos in
       let x = f x str pos (pos_end - pos) in
-  str_split x (skip_split pos_end)
+      str_split x (skip_split pos_end)
   in
-str_split x (skip_split 0)
+  str_split x (skip_split 0)
 
  (*
  * Default token processor.
 *)
-  let tokens quotes delims str =
-    let l =
-        tokens_fold (fun l s off len ->
-  String.sub s off len :: l) [] quotes delims str
+let tokens quotes delims str =
+  let l =
+    tokens_fold (fun l s off len ->
+        String.sub s off len :: l) [] quotes delims str
   in
-List.rev l
+  List.rev l
 
-  let tokens_std s =
-tokens quotes white s
+let tokens_std s =
+  tokens quotes white s
 
  (*
  * This is a somewhat optimized form of the above,
@@ -541,253 +545,253 @@ tokens quotes white s
  * For simple parsing, all the tokens_wrap_* functions are the same,
  * and the lexer is a dummy.
 *)
-    type 'a tokens_prefix =
-  NoPrefix
+type 'a tokens_prefix =
+    NoPrefix
   | WordPrefix of 'a list
-| QuotePrefix of char * 'a list
+  | QuotePrefix of char * 'a list
 
-  type 'a tokens =
-    { tokens_lexer         : (string -> int -> int -> int option);
+type 'a tokens =
+  { tokens_lexer         : (string -> int -> int -> int option);
     tokens_wrap_string   : (string -> 'a);
     tokens_wrap_data     : (string -> 'a);
     tokens_wrap_token    : (string -> 'a);
     tokens_group         : ('a list -> 'a);
     tokens_list          : 'a list;
-  tokens_prefix        : 'a tokens_prefix
-}
+    tokens_prefix        : 'a tokens_prefix
+  }
 
-  let tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group =
-    let group toks =
-      match toks with
-    []    -> wrap_data ""
+let tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group =
+  let group toks =
+    match toks with
+      []    -> wrap_data ""
     | [tok] -> tok
-  | toks  -> group (List.rev toks)
+    | toks  -> group (List.rev toks)
   in
-    { tokens_lexer         = lexer;
+  { tokens_lexer         = lexer;
     tokens_wrap_string   = wrap_string;
     tokens_wrap_data     = wrap_data;
     tokens_wrap_token    = wrap_token;
     tokens_group         = group;
     tokens_list          = [];
-  tokens_prefix        = NoPrefix
-}
+    tokens_prefix        = NoPrefix
+  }
 
-  let tokens_create wrap group =
-tokens_create_lexer ~lexer:(fun _ _ _ -> None) ~wrap_string:wrap ~wrap_data:wrap ~wrap_token:wrap ~group:group
+let tokens_create wrap group =
+  tokens_create_lexer ~lexer:(fun _ _ _ -> None) ~wrap_string:wrap ~wrap_data:wrap ~wrap_token:wrap ~group:group
 
  (*
  * Get the tokens list.
 *)
-  let tokens_flush info =
-        let { tokens_group  = group;
+let tokens_flush info =
+  let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
-      _
-  } = info
+        _
+      } = info
   in
-    let tokens =
-      match prefix with
+  let tokens =
+    match prefix with
       NoPrefix ->
-    tokens
+      tokens
     | WordPrefix prefix
-      | QuotePrefix (_, prefix) ->
-  group prefix :: tokens
+    | QuotePrefix (_, prefix) ->
+      group prefix :: tokens
   in
-List.rev tokens
+  List.rev tokens
 
  (*
  * End the current word.
 *)
-  let tokens_break info =
-        let { tokens_group  = group;
+let tokens_break info =
+  let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
-      _
-  } = info
+        _
+      } = info
   in
-    match prefix with
+  match prefix with
     NoPrefix ->
-  info
+    info
   | WordPrefix prefix
-    | QuotePrefix (_, prefix) ->
-                { info with tokens_list   = group prefix :: tokens;
-    tokens_prefix = NoPrefix
-}
+  | QuotePrefix (_, prefix) ->
+    { info with tokens_list   = group prefix :: tokens;
+                tokens_prefix = NoPrefix
+    }
 
  (*
  * Add a value directly.
  * This also performs a break.
 *)
-  let tokens_atomic info x =
-        let { tokens_group  = group;
+let tokens_atomic info x =
+  let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
-      _
-  } = info
+        _
+      } = info
   in
-    match prefix with
+  match prefix with
     NoPrefix ->
-                { info with tokens_list   = x :: tokens;
-    tokens_prefix = NoPrefix
-  }
+    { info with tokens_list   = x :: tokens;
+                tokens_prefix = NoPrefix
+    }
   | WordPrefix prefix
-    | QuotePrefix (_, prefix) ->
-                { info with tokens_list   = x :: group prefix :: tokens;
-    tokens_prefix = NoPrefix
-}
+  | QuotePrefix (_, prefix) ->
+    { info with tokens_list   = x :: group prefix :: tokens;
+                tokens_prefix = NoPrefix
+    }
 
  (*
  * Add an value that might be unwrapped.
  * The value is unwrapped only if it is not surrounded by whitespace.
 *)
-  let tokens_add info x =
-    match info.tokens_prefix with
+let tokens_add info x =
+  match info.tokens_prefix with
     NoPrefix ->
-  { info with tokens_prefix = WordPrefix [x] }
-    | WordPrefix prefix ->
-  { info with tokens_prefix = WordPrefix (x :: prefix) }
-    | QuotePrefix (c, prefix) ->
-{ info with tokens_prefix = QuotePrefix (c, x :: prefix) }
+    { info with tokens_prefix = WordPrefix [x] }
+  | WordPrefix prefix ->
+    { info with tokens_prefix = WordPrefix (x :: prefix) }
+  | QuotePrefix (c, prefix) ->
+    { info with tokens_prefix = QuotePrefix (c, x :: prefix) }
 
  (*
  * Insert literal data.
  * The data is not scanned for whitespace.
 *)
-  let tokens_data info s =
-tokens_add info (info.tokens_wrap_data s)
+let tokens_data info s =
+  tokens_add info (info.tokens_wrap_data s)
 
  (*
  * Scan the string for whitespace.
 *)
-  let tokens_string info s =
+let tokens_string info s =
   let len = String.length s in
   let wrap = info.tokens_wrap_string in
-    let wrap_prefix prefix s off len =
-      if len <> 0 then
-    wrap (String.sub s off len) :: prefix
-      else
-  prefix
-in
-  
+  let wrap_prefix prefix s off len =
+    if len <> 0 then
+      wrap (String.sub s off len) :: prefix
+    else
+      prefix
+  in
+
   (* Scanning whitespace *)
-    let rec scan_white tokens i =
-      if i = len then
-                  { info with tokens_list = tokens;
-      tokens_prefix = NoPrefix
-    }
-      else
-        match String.unsafe_get s i with
+  let rec scan_white tokens i =
+    if i = len then
+      { info with tokens_list = tokens;
+                  tokens_prefix = NoPrefix
+      }
+    else
+      match String.unsafe_get s i with
         ' ' | '\t' | '\n' | '\r' | '\012' ->
-      scan_white tokens (succ i)
-        | '"' | '\'' as c ->
-      scan_quote tokens [] c i (succ i)
-        | '\\' ->
-      scan_word tokens [] i (i + 2)
-        | _ ->
-scan_word tokens [] i (succ i)
-  
+        scan_white tokens (succ i)
+      | '"' | '\'' as c ->
+        scan_quote tokens [] c i (succ i)
+      | '\\' ->
+        scan_word tokens [] i (i + 2)
+      | _ ->
+        scan_word tokens [] i (succ i)
+
   (* Scanning a quoted word *)
-    and scan_quote tokens prefix delim start i =
-      if i >= len then
+  and scan_quote tokens prefix delim start i =
+    if i >= len then
       let head = wrap_prefix prefix s start (len - start) in
-                  { info with tokens_list = tokens;
-      tokens_prefix = QuotePrefix (delim, head)
-    }
-      else
+      { info with tokens_list = tokens;
+                  tokens_prefix = QuotePrefix (delim, head)
+      }
+    else
       let c = String.unsafe_get s i in
-        match c with
+      match c with
         '"' | '\'' when c = delim ->
-      scan_word tokens prefix start (succ i)
-        | '\\' ->
-      scan_quote tokens prefix delim start (i + 2)
-        | _ ->
-scan_quote tokens prefix delim start (succ i)
-  
+        scan_word tokens prefix start (succ i)
+      | '\\' ->
+        scan_quote tokens prefix delim start (i + 2)
+      | _ ->
+        scan_quote tokens prefix delim start (succ i)
+
   (* Scanning a word *)
-    and scan_word tokens prefix start i =
-      if i >= len then
+  and scan_word tokens prefix start i =
+    if i >= len then
       let prefix = wrap_prefix prefix s start (len - start) in
-                  { info with tokens_list = tokens;
-      tokens_prefix = WordPrefix prefix
-    }
-      else
-        match String.unsafe_get s i with
+      { info with tokens_list = tokens;
+                  tokens_prefix = WordPrefix prefix
+      }
+    else
+      match String.unsafe_get s i with
         ' ' | '\t' | '\n' | '\r' | '\012' ->
         let head = wrap_prefix prefix s start (i - start) in
         let head_tok = info.tokens_group head in
-      scan_white (head_tok :: tokens) (succ i)
-        | '"' | '\'' as c ->
-      scan_quote tokens prefix c start (succ i)
-        | '\\' ->
-      scan_word tokens prefix start (i + 2)
-        | _ ->
-scan_word tokens prefix start (succ i)
-  
+        scan_white (head_tok :: tokens) (succ i)
+      | '"' | '\'' as c ->
+        scan_quote tokens prefix c start (succ i)
+      | '\\' ->
+        scan_word tokens prefix start (i + 2)
+      | _ ->
+        scan_word tokens prefix start (succ i)
+
   in
-    if len = 0 then
-  info
-    else
-          let { tokens_list = tokens;
+  if len = 0 then
+    info
+  else
+    let { tokens_list = tokens;
           tokens_prefix = prefix;
-        _
-    } = info
+          _
+        } = info
     in
-      match prefix with
+    match prefix with
       NoPrefix ->
-    scan_white tokens 0
-      | WordPrefix prefix ->
-    scan_word tokens prefix 0 0
-      | QuotePrefix (c, prefix) ->
-scan_quote tokens prefix c 0 0
+      scan_white tokens 0
+    | WordPrefix prefix ->
+      scan_word tokens prefix 0 0
+    | QuotePrefix (c, prefix) ->
+      scan_quote tokens prefix c 0 0
 
  (*
  * Yet another tokenizer, where we allow for special tokens.
  * This is used, for example, in shell parsing, where some
  * unquoted sequences like && are special.
 *)
-    type buf_token =
-  BufWhite
+type buf_token =
+    BufWhite
   | BufQuote of char
   | BufBackslash
   | BufChar
-| BufToken of int
+  | BufToken of int
 
-  let buffer_get_quoted s i =
-    match String.unsafe_get s i with
+let buffer_get_quoted s i =
+  match String.unsafe_get s i with
     ' ' | '\t' | '\n' | '\r' | '\012' ->
-  BufWhite
-    | '"' | '\'' as c ->
-  BufQuote c
-    | '\\' ->
-  BufBackslash
-    | _ ->
-BufChar
+    BufWhite
+  | '"' | '\'' as c ->
+    BufQuote c
+  | '\\' ->
+    BufBackslash
+  | _ ->
+    BufChar
 
-  let buffer_get_token lexer s i len =
-    match String.unsafe_get s i with
+let buffer_get_token lexer s i len =
+  match String.unsafe_get s i with
     ' ' | '\t' | '\n' | '\r' | '\012' ->
-  BufWhite
-    | '"' | '\'' as c ->
-  BufQuote c
-    | '\\' ->
-  BufBackslash
-    | _ ->
-      match lexer s i len with
+    BufWhite
+  | '"' | '\'' as c ->
+    BufQuote c
+  | '\\' ->
+    BufBackslash
+  | _ ->
+    match lexer s i len with
       Some i ->
-    BufToken i
-      | None ->
-BufChar
+      BufToken i
+    | None ->
+      BufChar
 
-  let tokens_lex info s =
-        let { tokens_lexer       = lexer;
+let tokens_lex info s =
+  let { tokens_lexer       = lexer;
         tokens_wrap_string = wrap_string;
         tokens_wrap_data   = wrap_data;
         tokens_wrap_token  = wrap_token;
         tokens_group       = group;
-      _
-  } = info
+        _
+      } = info
   in
-let len = String.length s in
+  let len = String.length s in
   
   (* Don't add empty strings *)
     let wrap_data_prefix prefix s off len =
@@ -955,7 +959,7 @@ end
       if len_s - i < 2 || (s.[i] = '-' && s.[i + 1] = '-') then
     l
       else
-split l (i + 2)
+        split l (i + 2)
   
   (* Skip to the first delimiter *)
     and skip_start i =

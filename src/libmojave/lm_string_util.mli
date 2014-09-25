@@ -76,6 +76,9 @@ val split : string -> string -> string list
  *)
 val split_string : string -> string -> string list
 
+
+(** raise Not_found *)
+val bi_split : char -> string -> (string * string)
 (*
  * Split a string based on a MIME string delimiter.
  * This is similar to the above, but the delimiter is

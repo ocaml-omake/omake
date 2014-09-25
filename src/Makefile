@@ -911,7 +911,7 @@ omake_printf.mli: $(SRC_builtin)$(slash)omake_printf.mli
 ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli omake_builtin_util.ml omake_builtin_util.mli omake_printf.ml omake_printf.mli
 
 
-CMOFILES_omake = omake_shell.cmo omake_main.cmo
+CMOFILES_omake = omake_main_util.cmo omake_shell.cmo omake_main.cmo
 OCAML_LIBS_omake = lm.cma magic.cma ast.cma ir.cma env.cma exec.cma eval.cma shell.cma build.cma builtin.cma
 OCAML_OTHER_LIBS_omake = unix.cma
 OCAML_CLIBS_omake = clib$(EXT_LIB)
@@ -920,7 +920,7 @@ OCAML_CCLIBS_omake = -cclib clib$(EXT_LIB)
 omake$(EXE): $(CMOFILES_omake) $(OCAML_LIBS_omake) $(OCAML_CLIBS_omake)
 	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake) $(OCAML_OTHER_LIBS_omake) $(THREADSLIB) $(OCAML_LIBS_omake) $(CMOFILES_omake)
 
-omake_shell.cmo omake_main.cmo omake_shell.cmi omake_main.cmi: magic.cma
+omake_main_util.cmo omake_shell.cmo omake_main.cmo omake_shell.cmi omake_main.cmi: magic.cma
 
 SRC_main = ..$(slash)src$(slash)main
 
@@ -930,13 +930,16 @@ omake_main.ml: $(SRC_main)$(slash)omake_main.ml
 omake_main.mli: $(SRC_main)$(slash)omake_main.mli
 	$(LN) $(SRC_main)$(slash)omake_main.mli omake_main.mli
 
+omake_main_util.ml: $(SRC_main)$(slash)omake_main_util.ml
+	$(LN) $(SRC_main)$(slash)omake_main_util.ml omake_main_util.ml
+
 omake_shell.ml: $(SRC_main)$(slash)omake_shell.ml
 	$(LN) $(SRC_main)$(slash)omake_shell.ml omake_shell.ml
 
 omake_shell.mli: $(SRC_main)$(slash)omake_shell.mli
 	$(LN) $(SRC_main)$(slash)omake_shell.mli omake_shell.mli
 
-ALLFILES_main = omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli
+ALLFILES_main = omake_main.ml omake_main.mli omake_main_util.ml omake_shell.ml omake_shell.mli
 
 ALLFILES = $(ALLFILES_clib) $(ALLFILES_libmojave) $(ALLFILES_magic) $(ALLFILES_ir) $(ALLFILES_exec) $(ALLFILES_ast) $(ALLFILES_env) $(ALLFILES_shell) $(ALLFILES_eval) $(ALLFILES_build) $(ALLFILES_builtin) $(ALLFILES_main)
 

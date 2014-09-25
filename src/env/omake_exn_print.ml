@@ -105,19 +105,19 @@ let is_shell_exn exn =
  * Exception handler.
  *)
 let catch f x =
-   try f x with
-   | OmakeException _
-    | OmakeFatalErr _
-    | OmakeFatal _
-    | UncaughtException _
-    | RaiseException _
-    | Unix.Unix_error _
-    | Sys_error _
-    | Return _ as exn ->
-         Format.eprintf "%a@." pp_print_exn exn;
-         exit Omake_state.exn_error_code
-    | ExitParentException (_, code)
-    | ExitException (_, code) as exn ->
-         Format.eprintf "%a@." pp_print_exn exn;
-         exit code
+  try f x with
+  | OmakeException _
+  | OmakeFatalErr _
+  | OmakeFatal _
+  | UncaughtException _
+  | RaiseException _
+  | Unix.Unix_error _
+  | Sys_error _
+  | Return _ as exn ->
+    Format.eprintf "%a@." pp_print_exn exn;
+    exit Omake_state.exn_error_code
+  | ExitParentException (_, code)
+  | ExitException (_, code) as exn ->
+    Format.eprintf "%a@." pp_print_exn exn;
+    exit code
 

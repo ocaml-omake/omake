@@ -14,17 +14,10 @@ OCAMLINCLUDES[] +=
     ../builtin
 
 #
-# Helper programs
-#
-OCAML_LIBS[] =
-    ../libmojave/lm
-
-
-
-#
 # Main programs
 #
 FILES[] =
+    omake_main_util
     omake_shell
     omake_main
 

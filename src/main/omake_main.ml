@@ -1,18 +1,12 @@
 
-module Pos =   Omake_pos.Make (struct let name = "Omake_main" end);;
+
 
 
 let debug_hash = ref false
 
-let print_hash_stats () =
-  if !debug_hash then
-    Format.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
-
 (* List of targets to build. *)
 let targets = ref []
 
-let add_target s =
-  targets := s :: !targets
 
 
 let server_flag = ref None
@@ -22,23 +16,6 @@ let command_string = ref None
 let install_flag = ref false
 let install_subdirs = ref false
 let install_force = ref false
-
-(*
- * Add an random argument.
- *)
-
-
-let add_unknown options s =
-  begin
-    ( match String.index s '=' with
-      | i -> 
-        let l = String.length s in
-        let v = String.sub s 0 i in
-        let x = String.sub s (i + 1) (l - i - 1) in
-        Omake_build_util.add_command_def v x
-      | exception Not_found -> add_target s );
-    options, !shell_flag
-  end
 
 (*
  * Arguments.
@@ -151,96 +128,42 @@ let spec =
     "Run as a remote server";]])
 
 
-let rec search start cwd len  i =
-  if i < start then
-    raise (Omake_value_type.OmakeFatal 
-             ("can not find " ^ Omake_state.makeroot_name ^ " or " ^ Omake_state.makeroot_short_name))
-  else if cwd.[i] = '/' || cwd.[i] = '\\' then
-    (* Maybe file is in this directory *)
-    let dir = String.sub cwd 0 i in
-    if Sys.file_exists (Filename.concat dir Omake_state.makeroot_name)
-    || Sys.file_exists (Filename.concat dir Omake_state.makeroot_short_name)
-    then
-      let rest = String.sub cwd (i + 1) (len - i - 1) in
-      dir, rest
-    else
-      search start cwd len (i - 1)
-  else
-    search start cwd len (i - 1)
-
-(*
- * Find the outermost OMakeroot.
- *)
-let chroot () =
-  let cwd =
-    try
-      Unix.getcwd ()
-    with
-      Unix.Unix_error _ ->
-        Format.eprintf "*** omake: fatal error: current directory does not exist@.";
-        exit 1  in
-  let len = String.length cwd in
-  let start = Lm_filename_util.drive_skip cwd in
-
-  let dir, rest =
-    if Sys.file_exists (Filename.concat cwd Omake_state.makeroot_name) || Sys.file_exists
-      (Filename.concat cwd Omake_state.makeroot_short_name) then
-      cwd, "."
-    else
-      search start cwd len (len - 1)
-  in
-  if rest <> "." then
-    Format.eprintf "*** omake: changing directory to %s@." dir;
-  Unix.chdir dir;
-  Omake_node.Dir.reset_cwd ();
-  rest
 
 (*
  * Main program.
  *)
 let main options =
-  let () = Sys.catch_break true in
-  let () =
-    if Sys.os_type <> "Win32" then
-      Sys.set_signal Sys.sigpipe Sys.Signal_ignore in
-  let path = chroot () in
-  Omake_build.build options 
-    (if Omake_options.opt_cd_root options then
-        "."
-      else
-        path)
-    (match !targets with
-    | [] -> [".DEFAULT"]
-    | l -> List.rev l)(* targets *);
-  print_hash_stats ()
-
-(*
- * Main for remote execution.
- *)
-let main_remote cwd options =
-  (* Set up the environment *)
-  Unix.chdir cwd;
-  Omake_node.Dir.reset_cwd ();
-  let cwd   = Omake_node.Dir.cwd () in
-  let exec  = Omake_exec.Exec.create cwd options in
-  let cache = Omake_cache.create () in
-  let venv  = Omake_env.create options "." exec cache in
-  let venv  = Omake_builtin.venv_add_command_defs venv in
-  let venv  = Omake_env.venv_add_var venv Omake_var.targets_var (ValString (String.concat " " !targets)) in
-  let venv  = Omake_builtin.venv_add_builtins venv in
-
-  (* Shell evaluator *)
-  let pos = Pos.string_exp_pos "main_remote" in
-  let shell = Omake_rule.eval_shell venv pos in
-  Omake_exec_remote.main shell options
+  begin 
+    Sys.catch_break true ;
+    (if Sys.os_type <> "Win32" then
+       Sys.set_signal Sys.sigpipe Signal_ignore );
+    let path = Omake_main_util.chroot () in
+    Omake_build.build options 
+      (if Omake_options.opt_cd_root options then
+         "."
+       else
+         path)
+      (match !targets with
+       | [] -> [".DEFAULT"]
+       | l -> List.rev l);
+    if !debug_hash then 
+    Omake_main_util.print_hash_stats ()
+  end
 
 let _ =
-  (* If the executable is named osh, set the shell flag *)
-  let () =
-    let exe = Lm_filename_util.root (Filename.basename (Sys.argv.(0))) in
-    if exe = "osh" then
-      shell_flag := true
+  let add_unknown options s =
+    begin
+      ( match Lm_string_util.bi_split  '=' s  with
+        | (v,x) -> 
+          Omake_build_util.add_command_def v x
+        | exception Not_found -> targets := s :: !targets);
+      options, !shell_flag
+    end
   in
+  let exe = Lm_filename_util.root (Filename.basename (Sys.argv.(0))) in
+  let () = 
+    if exe = "osh" then
+      shell_flag := true in
 
   (* Parse all the options *)
   let options = Omake_options.default_options in
@@ -250,24 +173,20 @@ let _ =
       let argv = Array.of_list (Sys.argv.(0) :: Lm_string_util.tokens_std s) in
       Lm_arg.fold_argv argv spec options add_unknown header
     with
-      Not_found
-    | Lm_arg.UsageError ->
-      options
+    | Not_found | Lm_arg.UsageError -> options
   in
   let options =
     try Lm_arg.fold spec options add_unknown header with
-      Lm_arg.UsageError ->
-      exit 0
-    | Lm_arg.BogusArg (s) ->
+    | Lm_arg.UsageError -> exit 0
+    | Lm_arg.BogusArg s ->
       Lm_arg.usage spec header;
       Lm_printf.eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
-      exit 3
-  in
+      exit 3  in
   Lm_thread_core.debug_mutex := !Lm_thread_pool.debug_thread;
   Lm_thread.debug_lock := !Lm_thread_pool.debug_thread;
   (* Run it *)
   match !server_flag with
-  | Some cwd -> main_remote cwd options
+  | Some cwd -> Omake_main_util.main_remote cwd options !targets 
   | None ->
     if !shell_flag then
       Omake_shell.shell options !command_string (List.rev !targets)
@@ -279,5 +198,5 @@ let _ =
     else if Omake_options.opt_allow_exceptions options then
       main options
     else
-      Omake_exn_print.catch main options
+      Omake_exn_print.catch main options (* Main entry point *)
 

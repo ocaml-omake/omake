@@ -6,7 +6,7 @@
  * short form is not ambiguous.
  *
  *)
-open! Lm_printf
+(* open! Lm_printf. *)
 
 
 (***  Basic Specifications  ***)
@@ -420,13 +420,13 @@ let usage opt_width spec =
             (* Display information on a single option. *)
             (if String.length opt > opt_width then
                (* option name too long to fit on one line *)
-               printf "@ %s@ %*s" opt opt_width ""
+               Lm_printf.printf "@ %s@ %*s" opt opt_width ""
             else
-               printf "@ %-*s" opt_width opt);
+               Lm_printf.printf "@ %-*s" opt_width opt);
             (if is_invertable_option opt spec then
-               printf "*:  "
+               Lm_printf.printf "*:  "
             else
-               printf " :  ");
+               Lm_printf.printf " :  ");
             print_doc_string (opt_width + 7) doc) spec
 
 let usage_length (opt, spec, _) =
@@ -440,19 +440,19 @@ let usage (mode, spec) usage_msg =
       0 spec
    in
    let opt_width = min opt_max_length ((max 80 Lm_termsize.stdout_width) / 3 - 7) in
-   printf "@[<v 0>%s." usage_msg;
+   Lm_printf.printf "@[<v 0>%s." usage_msg;
    List.iter (fun (section, spec) ->
-      printf "@ @ @[<v 3>%s:" section;
+      Lm_printf.printf "@ @ @[<v 3>%s:" section;
       usage opt_width spec;
-      printf "@]") spec;
+      Lm_printf.printf "@]") spec;
    (match mode with
        StrictOptions ->
           ()
      | MultiLetterOptions ->
-          printf "@ Single-letter options may be concatenated as part of a single option.");
+          Lm_printf.printf "@ Single-letter options may be concatenated as part of a single option.");
    (if List.exists (fun (_, spec) -> List.exists (fun (opt, spec, _) -> is_invertable_option opt spec) spec) spec then
-      printf "@ @ (*) Prefix the option with \"--no\" to disable.");
-   printf "@]@."
+      Lm_printf.printf "@ @ (*) Prefix the option with \"--no\" to disable.");
+   Lm_printf.printf "@]@."
 
 
 (***  Option Processing  ***)
@@ -519,8 +519,7 @@ let fold_argv argv (mode_info, spec_info) arg default usage_msg =
   (* Set the current mode *)
   let mode =
     match mode_info with
-      StrictOptions ->
-      StrictMode
+    | StrictOptions -> StrictMode
     | MultiLetterOptions ->
       MultiLetterMode
   in
