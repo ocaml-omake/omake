@@ -23,6 +23,8 @@ FILES[] =
     lm_string_set
     lm_hash_sig
     lm_hash
+    lm_hash_cons
+    lm_hash_code
     lm_symbol
     lm_location
     lm_position
@@ -42,6 +44,8 @@ FILES[] =
     lm_marshal
     lm_handle_table
     lm_int_handle_table
+
+
 MakeOCamlLibrary(lm, $(FILES))
 
 clean:

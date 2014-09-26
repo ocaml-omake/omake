@@ -13,7 +13,7 @@ module DirSet : Lm_set_sig.LmSet with type elt = Dir.t
 
 module DirTable : Lm_map_sig.LmMap with type key = Dir.t
 
-module DirListHash : Lm_hash_sig.HashMarshalSig with type elt = Dir.t list
+module DirListHash : Lm_hash.HashMarshalSig with type elt = Dir.t list
 module DirListSet   : Lm_set_sig.LmSet with type elt = DirListHash.t
 module DirListTable : Lm_map_sig.LmMap with type key = DirListHash.t
 

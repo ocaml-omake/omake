@@ -78,7 +78,7 @@ struct
    let debug = "NfaState"
 
    let hash (s, counters) =
-      Lm_hash.hash_int_list (s lxor 0x2c18c4d5) counters
+      Lm_hash_code.hash_int_list (s lxor 0x2c18c4d5) counters
 
    let compare ((s1, counters1) : t) ((s2, counters2) : t) =
       if s1 < s2 then
@@ -86,11 +86,11 @@ struct
       else if s1 > s2 then
          1
       else
-         Lm_hash.compare_int_list
+         Lm_hash_code.compare_int_list
            counters1 counters2
 end;;
 
-module NfaState = Lm_hash.MakeHashCons (NfaStateArg);;
+module NfaState = Lm_hash_cons.MakeHashCons (NfaStateArg);;
 module NfaStateSet = Lm_set.LmMake (NfaState);;
 module NfaStateTable = Lm_map.LmMake (NfaState);;
 
@@ -152,10 +152,10 @@ struct
    let debug = "DfaState"
 
    let hash state =
-      let buf = Lm_hash.HashCode.create () in
-         Lm_hash.HashCode.add_int buf 0x0affb3d4;
-         List.iter (fun state -> Lm_hash.HashCode.add_int buf (NfaState.hash state)) state;
-         Lm_hash.HashCode.code buf
+      let buf = Lm_hash_code.HashCode.create () in
+         Lm_hash_code.HashCode.add_int buf 0x0affb3d4;
+         List.iter (fun state -> Lm_hash_code.HashCode.add_int buf (NfaState.hash state)) state;
+         Lm_hash_code.HashCode.code buf
 
    let rec compare l1 l2 =
       match l1, l2 with
@@ -174,7 +174,7 @@ struct
 end;;
 
 module DfaState = 
-  Lm_hash.MakeHashCons (DfaStateArg);;
+  Lm_hash_cons.MakeHashCons (DfaStateArg);;
 module DfaStateTable = Lm_map.LmMake (DfaState);;
 
 module IntCompare =

@@ -1,66 +1,116 @@
 
-(************************************************************************
- * A basic table for adding a hash code to every element.
- * Nothing else is done, so comparisons are still slow.
- * This table is safe to marshal.
- *)
-module MakeHash (Arg : Lm_hash_sig.HashArgSig) : Lm_hash_sig.HashSig with type elt = Arg.t;;
+(** Marshalable version.
 
-(**
-   Table-based hash-consing.
-   Items are represented by their indexes into a table.
+   This takes a slightly different approach, wrapping the value in
+   a triple of a hash code and a dummy ref cell.  During marshaling,
+   the cell will point somewhere else, so we know that the value
+   must be reinterned.  The hash codes are preseved across
+   marshaling.
 
-   This is the fastest implementation, but it is not safe to marshal
-   unless you also marshal the table.
-
-   If you need a version that is safe to marshal, consider using the
-   HashMarshal below.  It is only slightly slower.
- *)
-module MakeHashCons (Arg : Lm_hash_sig.HashArgSig)
-: Lm_hash_sig.HashConsSig
-  with type elt = Arg.t
-  with type hash = MakeHash(Arg).t
-
-(************************************************************************
- * Marshalable version.
- *
- * This takes a slightly different approach, wrapping the value in
- * a triple of a hash code and a dummy ref cell.  During marshaling,
- * the cell will point somewhere else, so we know that the value
- * must be reinterned.  The hash codes are preseved across
- * marshaling.
- *
- * BUG: we break abstraction here a little because
- * it is hard to define the type recursively otherwise.
+   BUG: we break abstraction here a little because
+   it is hard to define the type recursively otherwise.
  *)
 type 'a hash_marshal_item
+
 type 'a hash_marshal_eq_item
+
+module type MARSHAL = 
+sig
+  type t
+
+  (* For debugging *)
+  val debug : string
+
+  (* The client needs to provide hash and comparison functions *)
+  val hash : t -> int
+  val compare : t -> t -> int
+  val reintern : t -> t
+end
+
+
+module type MARSHAL_EQ = 
+sig
+   type t
+
+   (* For debugging *)
+   val debug : string
+
+   (*
+    * The client needs to provide the hash and the two comparison functions.
+    *)
+   val fine_hash      : t -> int
+   val fine_compare   : t -> t -> int
+
+   val coarse_hash    : t -> int
+   val coarse_compare : t -> t -> int
+
+   (* Rehash the value *)
+   val reintern       : t -> t
+
+end
+
+(*
+ * This is what we get.
+ *)
+module type HashMarshalSig =
+sig
+   type elt
+   type t
+
+   (* Creation *)
+   val create   : elt -> t
+
+   (* The intern function fails with Not_found if the node does not already exist *)
+   val intern   : elt -> t
+
+   (* Destructors *)
+   val get      : t -> elt
+   val hash     : t -> int
+
+   (* Comparison *)
+   val equal    : t -> t -> bool
+   val compare  : t -> t -> int
+
+   (* Rehash the value *)
+   val reintern : t -> t
+end
+
+
+module type HashMarshalEqSig =
+sig
+   include HashMarshalSig (* The default equality is the coarse one *)
+
+   val fine_hash    : t -> int
+   val fine_compare : t -> t -> int
+   val fine_equal   : t -> t -> bool
+end
 
 (*
  * Make a hash item.
  *)
-module MakeHashMarshal (Arg : Lm_hash_sig.HashMarshalArgSig)
-: Lm_hash_sig.HashMarshalSig
+module MakeHashMarshal (Arg : MARSHAL)
+: HashMarshalSig
    with type elt = Arg.t
    with type t = Arg.t hash_marshal_item
 
-(**  A variant with two equalities (see Lm_hash_sig for detail) *)
-module MakeHashMarshalEq (Arg : Lm_hash_sig.HashMarshalEqArgSig)
-: Lm_hash_sig.HashMarshalEqSig
+(**  A variant with two equalities (see Lm_hash_sig for detail)
+     Here we assume that the argument type has two notions of equality:
+     - A strong equality ("idenitity"). Two strongly equal items are considered
+     identical and should be coalesced during cons-hashing.
+     - A weak equality ("equivalence"). The weakly equal items should be
+     considered equivalent for the purposes of sets and tables, but they may
+     have some individual representational characteristics that should be
+     preserved.
+
+     An example of this is filenames on case-insensitive case-preserving
+     filesystems. Here the strong equality is the normal string equality
+     (ensures case preservation) and the weak equality is the equality of the
+     canonical (e.g. lowercase) representations (ensures case insensitivity).
+ *)
+module MakeHashMarshalEq (Arg : MARSHAL_EQ)
+: HashMarshalEqSig
    with type elt = Arg.t
    with type t = Arg.t hash_marshal_eq_item
 
 val pp_print_hash_stats : Format.formatter -> unit
 
-(************************************************************************
- * Better-than-usual hashes.
- *)
-module HashCode : Lm_hash_sig.HashCodeSig
-module HashDigest : Lm_hash_sig.HashDigestSig
-
-(************************************************************************
- * Helper functions.
- *)
-val hash_combine : int -> int -> int
-val hash_int_list : int -> int list -> int
-val compare_int_list : int list -> int list -> int

@@ -20,7 +20,7 @@ and FileCase : sig
    type t
    val create              : DirHash.t -> string -> t
    val compare             : t -> t -> int
-   val add_filename        : Lm_hash.HashCode.t -> t -> unit
+   val add_filename        : Lm_hash_code.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> Lm_marshal.msg
    val unmarshal           : Lm_marshal.msg -> t
@@ -109,7 +109,7 @@ end   =
 
     let compare = Lm_string_util.string_compare
 
-    let add_filename = Lm_hash.HashCode.add_string
+    let add_filename = Lm_hash_code.HashCode.add_string
 
     let add_filename_string = Buffer.add_string
 
@@ -129,7 +129,7 @@ end   =
 (*
  * Sets and tables.
  *)
-and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
+and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t =
   struct
     type t = DirElt.t
 
@@ -140,20 +140,20 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
       | DirRoot root ->
         Hashtbl.hash root
       | DirSub (_, raw_name, parent) ->
-        let buf = Lm_hash.HashCode.create () in
-        Lm_hash.HashCode.add_int buf (DirHash.hash parent);
-        Lm_hash.HashCode.add_string buf raw_name;
-        Lm_hash.HashCode.code buf
+        let buf = Lm_hash_code.HashCode.create () in
+        Lm_hash_code.HashCode.add_int buf (DirHash.hash parent);
+        Lm_hash_code.HashCode.add_string buf raw_name;
+        Lm_hash_code.HashCode.code buf
 
     let coarse_hash (x : t)  =
       match x with 
       | DirRoot root ->
         Hashtbl.hash root
       | DirSub (name, _, parent) ->
-        let buf = Lm_hash.HashCode.create () in
-        Lm_hash.HashCode.add_int buf (DirHash.hash parent);
+        let buf = Lm_hash_code.HashCode.create () in
+        Lm_hash_code.HashCode.add_int buf (DirHash.hash parent);
         FileCase.add_filename buf name;
-        Lm_hash.HashCode.code buf
+        Lm_hash_code.HashCode.code buf
 
     let fine_compare (dir1 : t) (dir2 : t) =
       match dir1, dir2 with
@@ -200,7 +200,7 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
 (* %%MAGICBEGIN%% *)
 
 and DirHash :  sig 
-  include Lm_hash_sig.HashMarshalEqSig
+  include Lm_hash.HashMarshalEqSig
   with type elt = DirElt.t
   with type t = DirElt.t Lm_hash.hash_marshal_eq_item
   val abs_dir_name : t -> string
@@ -238,15 +238,15 @@ and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHa
 (* %%MAGICEND%% *)
 
 let hash f l =
-  let buf = Lm_hash.HashCode.create () in
-  List.iter (fun dir -> Lm_hash.HashCode.add_int buf (f dir)) l;
-  Lm_hash.HashCode.code buf
+  let buf = Lm_hash_code.HashCode.create () in
+  List.iter (fun dir -> Lm_hash_code.HashCode.add_int buf (f dir)) l;
+  Lm_hash_code.HashCode.code buf
 
 
 (*
  * Lists of directories.
  *)
-module rec DirListCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirHash.t list =
+module rec DirListCompare : Lm_hash.MARSHAL_EQ with type t = DirHash.t list =
 struct
   type t = DirHash.t list
 
@@ -276,7 +276,7 @@ struct
   let reintern l = Lm_list_util.smap DirHash.reintern l
 end
 
-and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = DirHash.t list 
+and DirListHash : Lm_hash.HashMarshalEqSig with type elt = DirHash.t list 
   =
   Lm_hash.MakeHashMarshalEq (DirListCompare);;
 
@@ -313,8 +313,7 @@ type node_elt =
 (* %%MAGICEND%% *)
 
 module rec NodeCompare :
-sig
-   include Lm_hash_sig.HashMarshalEqArgSig with type t = node_elt
+sig include Lm_hash.MARSHAL_EQ with type t = node_elt
    (* Include the default "compare" for the PreNodeSet *)
    val compare : t -> t -> int
 end
@@ -338,7 +337,7 @@ struct
     | CodeNodeIsScanner
 
    let add_code buf (code : code) =
-      Lm_hash.HashCode.add_bits buf (Obj.magic code)
+      Lm_hash_code.HashCode.add_bits buf (Obj.magic code)
 
    let add_flag_code buf code =
       let code =
@@ -355,9 +354,9 @@ struct
          add_code buf code
 
    module MakeNodeOps (Arg : sig
-      val add_dir : Lm_hash.HashCode.t -> DirHash.t -> unit
-      val add_node : Lm_hash.HashCode.t -> NodeHash.t -> unit
-      val add_filename : Lm_hash.HashCode.t -> FileCase.t -> string -> unit
+      val add_dir : Lm_hash_code.HashCode.t -> DirHash.t -> unit
+      val add_node : Lm_hash_code.HashCode.t -> NodeHash.t -> unit
+      val add_filename : Lm_hash_code.HashCode.t -> FileCase.t -> string -> unit
       val filename_compare : FileCase.t -> string -> FileCase.t -> string -> int
       val node_compare : NodeHash.t -> NodeHash.t -> int
       val dir_compare : DirHash.t -> DirHash.t -> int
@@ -374,7 +373,7 @@ struct
                add_code buf CodeEnd
           | NodePhonyGlobal name ->
                add_code buf CodeNodePhonyGlobal;
-               Lm_hash.HashCode.add_string buf name;
+               Lm_hash_code.HashCode.add_string buf name;
                add_code buf CodeEnd
           | NodePhonyDir (dir, name, raw_name) ->
                add_code buf CodeNodePhonyDir;
@@ -388,7 +387,7 @@ struct
                add_code buf CodeSpace;
                add_filename buf key raw_name;
                add_code buf CodeSpace;
-               Lm_hash.HashCode.add_string buf name;
+               Lm_hash_code.HashCode.add_string buf name;
                add_code buf CodeEnd
           | NodeFlagged (flag, node) ->
                add_code buf CodeNodeFlagged;
@@ -398,9 +397,9 @@ struct
                add_code buf CodeEnd
 
       let hash node =
-         let buf = Lm_hash.HashCode.create () in
+         let buf = Lm_hash_code.HashCode.create () in
             add_node buf node;
-            Lm_hash.HashCode.code buf
+            Lm_hash_code.HashCode.code buf
 
       let compare_flags flag1 flag2 =
          match flag1, flag2 with
@@ -482,10 +481,10 @@ struct
    module Ops =
       MakeNodeOps (struct
          let add_dir buf dir =
-            Lm_hash.HashCode.add_int buf (DirHash.hash dir )
+            Lm_hash_code.HashCode.add_int buf (DirHash.hash dir )
 
          let add_node buf node =
-            Lm_hash.HashCode.add_int buf (NodeHash.hash node)
+            Lm_hash_code.HashCode.add_int buf (NodeHash.hash node)
 
          let add_filename buf name _raw_name =
             FileCase.add_filename buf name
@@ -504,13 +503,13 @@ struct
    module FineOps =
       MakeNodeOps (struct
          let add_dir buf dir =
-            Lm_hash.HashCode.add_int buf (DirHash.fine_hash dir )
+            Lm_hash_code.HashCode.add_int buf (DirHash.fine_hash dir )
 
          let add_node buf node =
-            Lm_hash.HashCode.add_int buf (NodeHash.fine_hash node)
+            Lm_hash_code.HashCode.add_int buf (NodeHash.fine_hash node)
 
          let add_filename buf _name raw_name =
-            Lm_hash.HashCode.add_string buf raw_name
+            Lm_hash_code.HashCode.add_string buf raw_name
 
          let filename_compare _name1 raw_name1 _name2 raw_name2 =
             String.compare raw_name1 raw_name2
@@ -558,7 +557,7 @@ end
 
 (* %%MAGICBEGIN%% *)
 and NodeHash :
-   Lm_hash_sig.HashMarshalEqSig
+   Lm_hash.HashMarshalEqSig
    with type elt = node_elt
    with type t = node_elt Lm_hash.hash_marshal_eq_item
 =

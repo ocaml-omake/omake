@@ -1,32 +1,26 @@
-open Lm_debug
-open Lm_hash
-open! Lm_printf
-
-open Lm_int_set
-
 let debug_parse =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "parse";
         debug_description = "Debug the parseer";
         debug_value = false
       }
 
 let debug_parsegen =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "parsegen";
         debug_description = "Debug the parser generator";
         debug_value = false
       }
 
 let debug_parsetiming =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "parsetiming";
         debug_description = "Display timing statistics for the parser generator";
         debug_value = false
       }
 
 let debug_parse_conflict_is_warning =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "parse_conflict_is_warning";
         debug_description = "Do not abort on grammar conflicts";
         debug_value = false
@@ -56,7 +50,7 @@ let pp_print_assoc buf assoc =
        | NoneAssoc ->
             "none"
    in
-      pp_print_string buf s
+      Format.pp_print_string buf s
 
 (************************************************************************
  * Tools for profiling.
@@ -76,7 +70,7 @@ let time_print debug t1 t2 =
       let diff_total = now3 -. now2 in
       let diff_utime = t3.Unix.tms_utime -. t2.Unix.tms_utime in
       let diff_stime = t3.Unix.tms_stime -. t2.Unix.tms_stime in
-         eprintf "Time: %2.2f real %2.2f user %2.2f sys; %2.2f real %2.2f user %2.2f sys (%s)@." (**)
+         Format.eprintf "Time: %2.2f real %2.2f user %2.2f sys; %2.2f real %2.2f user %2.2f sys (%s)@." (**)
             diff_total diff_utime diff_stime total utime stime debug;
          now3, t3
    else
@@ -175,12 +169,12 @@ struct
       let compare = Arg.compare_symbol
    end;;
 
-   module Var = MakeHash (VarArg);;
+   module Var = Lm_hash_cons.MakeHash (VarArg);;
    module VarSet    = Lm_set.LmMake (Var);;
    module VarTable  = Lm_map.LmMake (Var);;
    module VarMTable = Lm_map.LmMakeList (Var);;
 
-   module IVar = MakeHashCons (VarArg);;
+   module IVar = Lm_hash_cons.MakeHashCons (VarArg);;
    module IVarSet = Lm_set.LmMake (IVar);;
    module IVarTable = Lm_map.LmMake (IVar);;
    module IVarMTable = Lm_map.LmMakeList (IVar);;
@@ -200,10 +194,10 @@ struct
       let compare = Arg.compare_action
    end;;
 
-   module Action = MakeHash (ActionArg);;
+   module Action = Lm_hash_cons.MakeHash (ActionArg);;
    module ActionSet = Lm_set.LmMake (Action);;
 
-   module IAction = MakeHashCons (ActionArg);;
+   module IAction = Lm_hash_cons.MakeHashCons (ActionArg);;
    module IActionSet = Lm_set.LmMake (IAction);;
 
    type action = Action.t
@@ -228,7 +222,7 @@ struct
     *)
    let ivar_list_hash hash vars =
       List.fold_left (fun hash v ->
-            hash_combine hash (IVar.hash v)) hash vars
+            Lm_hash_code.hash_combine hash (IVar.hash v)) hash vars
 
    let rec ivar_list_compare vars1 vars2 =
       match vars1, vars2 with
@@ -259,7 +253,7 @@ struct
                _
              } = item
          in
-         let hash = hash_combine (IVar.hash name) (IAction.hash action) in
+         let hash = Lm_hash_code.hash_combine (IVar.hash name) (IAction.hash action) in
          let hash = ivar_list_hash hash left in
          let hash = ivar_list_hash hash right in
             hash
@@ -298,7 +292,7 @@ struct
                cmp
    end
 
-   module ProdItem      = MakeHashCons (ProdItemArg);;
+   module ProdItem      = Lm_hash_cons.MakeHashCons (ProdItemArg);;
    module ProdItemSet   = Lm_set.LmMake (ProdItem);;
    module ProdItemTable = Lm_map.LmMake (ProdItem);;
 
@@ -327,13 +321,13 @@ struct
        *)
       let hash state =
          ProdItemSet.fold (fun hash item ->
-               hash_combine hash (ProdItem.hash item)) 0 state.info_state_items
+               Lm_hash_code.hash_combine hash (ProdItem.hash item)) 0 state.info_state_items
 
       let compare state1 state2 =
          ProdItemSet.compare state1.info_state_items state2.info_state_items
    end;;
 
-   module State = MakeHashCons (StateArg);;
+   module State = Lm_hash_cons.MakeHashCons (StateArg);;
    module StateSet = Lm_set.LmMake (State);;
    module StateTable = Lm_map.LmMake (State);;
 
@@ -347,7 +341,7 @@ struct
       let debug = "StateItem"
 
       let hash (state, item) =
-         hash_combine (State.hash state) (ProdItem.hash item)
+         Lm_hash_code.hash_combine (State.hash state) (ProdItem.hash item)
 
       let compare (state1, item1) (state2, item2) =
          let cmp = ProdItem.compare item1 item2 in
@@ -357,7 +351,7 @@ struct
                cmp
    end;;
 
-   module StateItem = MakeHashCons (StateItemArg);;
+   module StateItem = Lm_hash_cons.MakeHashCons (StateItemArg);;
    module StateItemSet = Lm_set.LmMake (StateItem);;
    module StateItemTable = Lm_map.LmMake (StateItem);;
 
@@ -543,15 +537,15 @@ struct
       Arg.pp_print_symbol buf (Var.get v)
 
    let  pp_print_vars buf vl =
-      List.iter (fun v -> fprintf buf " %a" pp_print_var v) vl
+      List.iter (fun v -> Format.fprintf buf " %a" pp_print_var v) vl
 
    (* let pp_print_var_set buf s = *)
    (*    VarSet.iter (fun v -> *)
-   (*          fprintf buf "@ %a" pp_print_var v) s *)
+   (*          Format.fprintf buf "@ %a" pp_print_var v) s *)
 
    (* let pp_print_var_table buf table = *)
    (*    VarTable.iter (fun v s -> *)
-   (*          fprintf buf "@ @[<b 3>%a:%a@]" (\**\) *)
+   (*          Format.fprintf buf "@ @[<b 3>%a:%a@]" (\**\) *)
    (*             pp_print_var v *)
    (*             pp_print_var_set s) table *)
 
@@ -565,15 +559,15 @@ struct
       Arg.pp_print_symbol buf (IVar.get hash.hash_ivar_state v)
 
    let  pp_print_ivars hash buf vl =
-      List.iter (fun v -> fprintf buf " %a" (pp_print_ivar hash) v) vl
+      List.iter (fun v -> Format.fprintf buf " %a" (pp_print_ivar hash) v) vl
 
    let pp_print_ivar_set hash buf s =
       IVarSet.iter (fun v ->
-            fprintf buf "@ %a" (pp_print_ivar hash) v) s
+            Format.fprintf buf "@ %a" (pp_print_ivar hash) v) s
 
    let pp_print_ivar_table hash buf table =
       IVarTable.iter (fun v s ->
-            fprintf buf "@ @[<b 3>%a:%a@]" (**)
+            Format.fprintf buf "@ @[<b 3>%a:%a@]" (**)
                (pp_print_ivar hash) v
                (pp_print_ivar_set hash) s) table
 
@@ -587,7 +581,7 @@ struct
             prod_right  = right
           } = item
       in
-         fprintf buf "@[<v 3>%a ::=%a [%a, %a]@]" (**)
+         Format.fprintf buf "@[<v 3>%a ::=%a [%a, %a]@]" (**)
             pp_print_var name
             pp_print_vars right
             pp_print_action action
@@ -600,30 +594,30 @@ struct
             gram_start_symbols = starts
           } = gram
       in
-         fprintf buf "@[<v 3>Grammar:";
+         Format.fprintf buf "@[<v 3>Grammar:";
          VarTable.iter (fun v pre ->
-               fprintf buf "@ prec %a = %a" (**)
+               Format.fprintf buf "@ prec %a = %a" (**)
                   pp_print_var v
                   (Precedence.pp_print_prec prec_table) pre) precs;
          VarSet.iter (fun v ->
-               fprintf buf "@ start %a" pp_print_var v) starts;
+               Format.fprintf buf "@ start %a" pp_print_var v) starts;
          VarMTable.iter_all (fun _ prods ->
-               List.iter (fun prod -> fprintf buf "@ %a" (pp_print_prod gram) prod) prods) prods;
-         fprintf buf "@]"
+               List.iter (fun prod -> Format.fprintf buf "@ %a" (pp_print_prod gram) prod) prods) prods;
+         Format.fprintf buf "@]"
 
    let pp_print_pda_action hash buf action =
       match action with
          ReduceAction (action, _, _) ->
-            fprintf buf "reduce %a" (pp_print_iaction hash) action
+            Format.fprintf buf "reduce %a" (pp_print_iaction hash) action
        | GotoAction state ->
-            fprintf buf "goto %d" state
+            Format.fprintf buf "goto %d" state
        | ErrorAction ->
-            pp_print_string buf "error"
+            Format.pp_print_string buf "error"
        
 
    (* let pp_print_pda_actions info buf actions = *)
    (*    IVarTable.iter (fun v action -> *)
-   (*          fprintf buf "@ %a: %a" (pp_print_ivar info) v (pp_print_pda_action info) action) actions *)
+   (*          Format.fprintf buf "@ %a: %a" (pp_print_ivar info) v (pp_print_pda_action info) action) actions *)
 
    let pp_print_prod_item_core info buf item =
       let { prod_item_action = action;
@@ -634,7 +628,7 @@ struct
           } = item
       in
       let hash = info.info_hash in
-         fprintf buf "%a ::=%a .%a (%a)" (**)
+         Format.fprintf buf "%a ::=%a .%a (%a)" (**)
             (pp_print_ivar hash) name
             (pp_print_ivars hash) (List.rev left)
             (pp_print_ivars hash) right
@@ -645,13 +639,13 @@ struct
 
    let pp_print_prod_item_set info buf items =
       ProdItemSet.iter (fun item ->
-            fprintf buf "@ %a" (pp_print_prod_item info) item) items
+            Format.fprintf buf "@ %a" (pp_print_prod_item info) item) items
 
    let pp_print_state info buf state =
       let { info_state_items = items; _ } = State.get info.info_hash.hash_state_state state in
-         eprintf "@[<v 3>State %d" (State.hash state);
+         Format.eprintf "@[<v 3>State %d" (State.hash state);
          pp_print_prod_item_set info buf items;
-         eprintf "@]"
+         Format.eprintf "@]"
 
    (* let pp_print_info_item info buf info_item = *)
    (*    let { info_hash = hash; *)
@@ -664,7 +658,7 @@ struct
    (*          _ *)
    (*        } = info_item *)
    (*    in *)
-   (*       fprintf buf "@[<v 3>State %d:" index; *)
+   (*       Format.fprintf buf "@[<v 3>State %d:" index; *)
    (*       Array.iter (fun entry -> *)
    (*             let { prop_state_item = state_item; *)
    (*                   prop_vars = lookahead; *)
@@ -672,8 +666,8 @@ struct
    (*                 } = entry *)
    (*             in *)
    (*             let _, prod_item = StateItem.get hash_state_item state_item in *)
-   (*                fprintf buf "@ @[<hv 3>%a@ @[<b 2>#%a@]@]" (pp_print_prod_item info) prod_item (pp_print_ivar_set hash) lookahead) entries; *)
-   (*       fprintf buf "@]" *)
+   (*                Format.fprintf buf "@ @[<hv 3>%a@ @[<b 2>#%a@]@]" (pp_print_prod_item info) prod_item (pp_print_ivar_set hash) lookahead) entries; *)
+   (*       Format.fprintf buf "@]" *)
 
    let pp_print_info buf info =
       let { info_grammar = gram;
@@ -683,17 +677,17 @@ struct
             _
           } = info
       in
-         fprintf buf "@[<v 0>%a" pp_print_grammar gram;
-         fprintf buf "@ @[<b 3>Nullable:%a@]" (pp_print_ivar_set hash) nullable;
-         fprintf buf "@ @[<v 3>First:%a@]" (pp_print_ivar_table hash) first;
-         fprintf buf "@]"
+         Format.fprintf buf "@[<v 0>%a" pp_print_grammar gram;
+         Format.fprintf buf "@ @[<b 3>Nullable:%a@]" (pp_print_ivar_set hash) nullable;
+         Format.fprintf buf "@ @[<v 3>First:%a@]" (pp_print_ivar_table hash) first;
+         Format.fprintf buf "@]"
 
    let pp_print_lookahead hash buf look =
       match look with
          LookAheadConst set ->
-            fprintf buf "@[<b 3>const%a@]" (pp_print_ivar_set hash) set
+            Format.fprintf buf "@[<b 3>const%a@]" (pp_print_ivar_set hash) set
        | LookAheadProp set ->
-            fprintf buf "@[<b 3>prop%a@]" (pp_print_ivar_set hash) set
+            Format.fprintf buf "@[<b 3>prop%a@]" (pp_print_ivar_set hash) set
 
    (*
     * Print a transition table.
@@ -702,10 +696,10 @@ struct
       let pp_print_ivar = pp_print_ivar info.info_hash in
       let pp_print_prod_item_set = pp_print_prod_item_set info in
          IVarTable.iter (fun v delta ->
-               fprintf buf "@ @[<v 3>%a ->" pp_print_ivar v;
+               Format.fprintf buf "@ @[<v 3>%a ->" pp_print_ivar v;
                IVarTable.iter (fun v item ->
-                     fprintf buf "@ @[<v 3>%a ->%a@]" pp_print_ivar v pp_print_prod_item_set item) delta;
-               fprintf buf "@]") delta
+                     Format.fprintf buf "@ @[<v 3>%a ->%a@]" pp_print_ivar v pp_print_prod_item_set item) delta;
+               Format.fprintf buf "@]") delta
 
    (*
     * Print the lookahead table.
@@ -715,10 +709,10 @@ struct
       let pp_print_ivar = pp_print_ivar hash in
       let pp_print_lookahead = pp_print_lookahead hash in
          IVarTable.iter (fun v table ->
-            fprintf buf "@ @[<v 3>%a ->" pp_print_ivar v;
+            Format.fprintf buf "@ @[<v 3>%a ->" pp_print_ivar v;
                IVarTable.iter (fun v look ->
-                     fprintf buf "@ %a -> %a" pp_print_ivar v pp_print_lookahead look) table;
-               fprintf buf "@]") table
+                     Format.fprintf buf "@ %a -> %a" pp_print_ivar v pp_print_lookahead look) table;
+               Format.fprintf buf "@]") table
 
    (************************************************************************
     * Grammar construction.
@@ -929,12 +923,12 @@ struct
     *)
    let union_grammar gram1 gram2 =
       if !debug_parsegen then
-         eprintf "@[<v 3>Grammar union:@ @[<hv 3>Grammar1:@ %a@]@ @[<hv 3>Grammar2:@ %a@]@]@." (**)
+         Format.eprintf "@[<v 3>Grammar union:@ @[<hv 3>Grammar1:@ %a@]@ @[<hv 3>Grammar2:@ %a@]@]@." (**)
             pp_print_grammar gram1
             pp_print_grammar gram2;
       let changed, gram = union_grammar gram1 gram2 in
          if !debug_parsegen then
-            eprintf "@[<v 3>Grammar union %b:@ %a@]@." (**)
+            Format.eprintf "@[<v 3>Grammar union %b:@ %a@]@." (**)
                changed pp_print_grammar gram;
          changed, gram
 
@@ -1224,7 +1218,7 @@ struct
       in
       let () =
          if !debug_parsegen then
-            eprintf "@[<v 3>Head table:@ @[<v 3>Delta:%a@]@ @[<v 3>Lookahead:%a@]@]@." (**)
+            Format.eprintf "@[<v 3>Head table:@ @[<v 3>Delta:%a@]@ @[<v 3>Lookahead:%a@]@]@." (**)
                (pp_print_delta info) delta_table
                (pp_print_look_table info) look_table
       in
@@ -1232,7 +1226,7 @@ struct
       let look_table = build_lookaheads info look_table in
       let () =
          if !debug_parsegen then
-            eprintf "@[<v 3>Closed lookahead:%a@]@." (**)
+            Format.eprintf "@[<v 3>Closed lookahead:%a@]@." (**)
                (pp_print_look_table info) look_table
       in
       let now = time_print "Lookaheads" start now in
@@ -1370,7 +1364,7 @@ struct
    let build_state_table info =
       let () =
          if !debug_parsegen then
-            eprintf "@[<hv 3>Grammar:@ %a@]@." pp_print_info info
+            Format.eprintf "@[<hv 3>Grammar:@ %a@]@." pp_print_info info
       in
       let start_table, unexamined =
          IVarSet.fold (fun (start_table, unexamined) start ->
@@ -1695,7 +1689,7 @@ struct
       let now = time_print "Propagation table" start now in
       let () =
          if !debug_parsetiming then
-            eprintf "Propagate: %d entries, %d edges@." (Array.length prop_table) (List.length prop_edges)
+            Format.eprintf "Propagate: %d entries, %d edges@." (Array.length prop_table) (List.length prop_edges)
       in
       let () = set_start_lookahead info prop_table start_table in
       let now = time_print "Start state lookaheads" start now in
@@ -1707,7 +1701,7 @@ struct
       let now = time_print "Fixpoint" start now in
       let () =
          if !debug_parsetiming then
-            eprintf "Fixpoint in %d iterations@." !fixpoint_count
+            Format.eprintf "Fixpoint in %d iterations@." !fixpoint_count
       in
 
       (* Reconstruct the tables *)
@@ -1887,12 +1881,12 @@ struct
       let pp_print_ivar = pp_print_ivar hash in
       let pp_print_iaction = pp_print_iaction hash in
       let reduce_core = ProdItem.get hash_prod_item reduce_item in
-         eprintf "shift/reduce conflict on %a: shift %d, reduce %a@." (**)
+         Format.eprintf "shift/reduce conflict on %a: shift %d, reduce %a@." (**)
             pp_print_ivar v
             (State.hash shift_state)
             pp_print_iaction reduce_core.prod_item_action;
          if not !debug_parsegen then
-            eprintf "%a@." (pp_print_state info) state;
+            Format.eprintf "%a@." (pp_print_state info) state;
          if not !debug_parse_conflict_is_warning then
             raise (Invalid_argument "Lm_parser.shift_reduce_conflict\n\tset MP_DEBUG=parse_conflict_is_warning to ignore this error")
 
@@ -1902,12 +1896,12 @@ struct
       let pp_print_ivar = pp_print_ivar hash in
       let pp_print_iaction = pp_print_iaction hash in
       let reduce_core = ProdItem.get hash_prod_item reduce_item in
-         eprintf "reduce/reduce conflict on %a: reduce %a, reduce %a@." (**)
+         Format.eprintf "reduce/reduce conflict on %a: reduce %a, reduce %a@." (**)
             pp_print_ivar v
             pp_print_iaction reduce_core.prod_item_action
             pp_print_iaction action;
          if not !debug_parsegen then
-            eprintf "%a@." (pp_print_state info) state;
+            Format.eprintf "%a@." (pp_print_state info) state;
          if not !debug_parse_conflict_is_warning then
             raise (Invalid_argument "Lm_parser.reduce_reduce_conflict:\n\tset MP_DEBUG=parse_conflict_is_warning to ignore this error")
 
@@ -2125,12 +2119,12 @@ struct
       let state, loc, args, stack = collect_args state [] loc stack tokens in
       let () =
          if !debug_parse then
-            eprintf "Calling action %a@." (pp_print_iaction hash) action
+            Format.eprintf "Calling action %a@." (pp_print_iaction hash) action
       in
       let arg, value = eval arg (IAction.get hash.hash_iaction_state action) loc args in
       let () =
          if !debug_parse then
-            eprintf "Called action %a@." (pp_print_iaction hash) action
+            Format.eprintf "Called action %a@." (pp_print_iaction hash) action
       in
          state, arg, loc, value, stack
 
@@ -2140,22 +2134,22 @@ struct
    let parse_error loc hash run _stack state (v : ivar) =
       let { pda_info = { pda_items = items; pda_next = next;_ }; _ } = run.run_states.(state) in
       let pp_print_ivar = pp_print_ivar hash in
-      let buf = str_formatter in
-         fprintf buf "@[<v 0>Syntax error on token %a" pp_print_ivar v;
-         fprintf buf "@ @[<v 3>Current state:";
+      let buf = Format.str_formatter in
+         Format.fprintf buf "@[<v 0>Syntax error on token %a" pp_print_ivar v;
+         Format.fprintf buf "@ @[<v 3>Current state:";
          List.iter (fun item ->
                let { pda_item_left = left;
                      pda_item_right = right
                    } = item
                in
-                  fprintf buf "@ @[<b 3>";
-                  Lm_list_util.rev_iter (fun v -> fprintf buf "@ %a" pp_print_ivar v) left;
-                  fprintf buf "@ .";
-                  List.iter (fun v -> fprintf buf "@ %a" pp_print_ivar v) right;
-                  fprintf buf "@]") items;
-         fprintf buf "@ @[<b 3>The next possible tokens are:";
-         IVarSet.iter (fun v -> fprintf buf "@ %a" pp_print_ivar v) next;
-         fprintf buf "@]@]";
+                  Format.fprintf buf "@ @[<b 3>";
+                  Lm_list_util.rev_iter (fun v -> Format.fprintf buf "@ %a" pp_print_ivar v) left;
+                  Format.fprintf buf "@ .";
+                  List.iter (fun v -> Format.fprintf buf "@ %a" pp_print_ivar v) right;
+                  Format.fprintf buf "@]") items;
+         Format.fprintf buf "@ @[<b 3>The next possible tokens are:";
+         IVarSet.iter (fun v -> Format.fprintf buf "@ %a" pp_print_ivar v) next;
+         Format.fprintf buf "@]@]";
          raise (ParseError (loc, Format.flush_str_formatter ()))
 
    (*
@@ -2180,11 +2174,11 @@ struct
             with
                GotoAction new_state ->
                   if !debug_parse then
-                     eprintf "State %d: token %a: shift %d@." state (pp_print_ivar hash) v new_state;
+                     Format.eprintf "State %d: token %a: shift %d@." state (pp_print_ivar hash) v new_state;
                   pda_no_lookahead arg ((state, loc, x) :: stack) new_state
              | ReduceAction (action, name, tokens) ->
                   if !debug_parse then
-                     eprintf "State %d: reduce %a@." state (pp_print_iaction hash) action;
+                     Format.eprintf "State %d: reduce %a@." state (pp_print_iaction hash) action;
                   let state, arg, loc, x, stack = semantic_action hash run.run_eval arg action stack state tokens in
                      pda_goto_lookahead arg stack (state, loc, x) name tok
              | ErrorAction ->
@@ -2194,7 +2188,7 @@ struct
          let state, loc, _x = state_loc_x in
          let () =
             if !debug_parse then
-               eprintf "State %d: Goto lookahead: production %a@." (**)
+               Format.eprintf "State %d: Goto lookahead: production %a@." (**)
                   state (pp_print_ivar hash) name
          in
          let action =
@@ -2205,26 +2199,26 @@ struct
             match action with
                GotoAction new_state ->
                   if !debug_parse then
-                     eprintf "State %d: production %a: goto %d (lookahead %a)@." (**)
+                     Format.eprintf "State %d: production %a: goto %d (lookahead %a)@." (**)
                         state (pp_print_ivar hash) name
                         new_state (pp_print_ivar hash) (fst3 tok);
                   let stack = state_loc_x :: stack in
                      pda_lookahead arg stack new_state tok
              | ErrorAction
              | ReduceAction _ ->
-                  eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
+                  Format.eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
                   raise (Invalid_argument "pda_goto_lookahead: illegal action")
 
       and pda_no_lookahead arg stack state =
          match run.run_states.(state).pda_reduce with
             ReduceNow (action, name, tokens) ->
                if !debug_parse then
-                  eprintf "State %d: ReduceNow: %a@." state (pp_print_iaction hash) action;
+                  Format.eprintf "State %d: ReduceNow: %a@." state (pp_print_iaction hash) action;
                let state, arg, loc, x, stack = semantic_action hash run.run_eval arg action stack state tokens in
                   pda_goto_no_lookahead arg stack (state, loc, x) name
           | ReduceAccept (action, _, tokens) ->
                if !debug_parse then
-                  eprintf "State %d: ReduceAccept: %a@." state (pp_print_iaction hash) action;
+                  Format.eprintf "State %d: ReduceAccept: %a@." state (pp_print_iaction hash) action;
                let _, arg, _, x, _ = semantic_action hash run.run_eval arg action stack state tokens in
                   arg, x
           | ReduceNone ->
@@ -2232,7 +2226,7 @@ struct
                let v = IVar.create hash.hash_ivar_state v in
                let () =
                   if !debug_parse then
-                     eprintf "State %d: Read token: %a@." state (pp_print_ivar hash) v
+                     Format.eprintf "State %d: Read token: %a@." state (pp_print_ivar hash) v
                in
                   pda_lookahead arg stack state (v, loc, x)
 
@@ -2246,13 +2240,13 @@ struct
             match action with
                GotoAction new_state ->
                   if !debug_parse then
-                     eprintf "State %d: production %a: goto %d (no lookahead)@." (**)
+                     Format.eprintf "State %d: production %a: goto %d (no lookahead)@." (**)
                         state (pp_print_ivar hash) name new_state;
                   let stack = (state, loc, x) :: stack in
                      pda_no_lookahead arg stack new_state
              | ErrorAction
              | ReduceAction _ ->
-                  eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
+                  Format.eprintf "pda_goto_no_lookahead: illegal action: %a@." (pp_print_pda_action hash) action;
                   raise (Invalid_argument "pda_goto_no_lookahead")
       in
          pda_no_lookahead arg [] start
@@ -2397,7 +2391,7 @@ struct
     *)
    type precedence = int
 
-   module PrecTable = IntTable;;
+   module PrecTable = Lm_int_set.IntTable;;
    type t = (assoc * int) PrecTable.t
 
    (*
@@ -2477,15 +2471,5 @@ struct
     *)
    let pp_print_prec table buf pre =
       let assoc, prio = PrecTable.find table pre in
-         fprintf buf "%a, %d" pp_print_assoc assoc prio
+         Format.fprintf buf "%a, %d" pp_print_assoc assoc prio
 end
-
-(*!
- * @docoff
- *
- * -*-
- * Local Variables:
- * Caml-master: "compile"
- * End:
- * -*-
- *)
