@@ -1,26 +1,23 @@
 
-open Lm_hash_sig
-
 (************************************************************************
  * A basic table for adding a hash code to every element.
  * Nothing else is done, so comparisons are still slow.
  * This table is safe to marshal.
  *)
-module MakeHash (Arg : HashArgSig)
-: HashSig with type elt = Arg.t;;
+module MakeHash (Arg : Lm_hash_sig.HashArgSig) : Lm_hash_sig.HashSig with type elt = Arg.t;;
 
-(************************************************************************
- * Table-based hash-consing.
- * Items are represented by their indexes into a table.
- *
- * This is the fastest implementation, but it is not safe to marshal
- * unless you also marshal the table.
- *
- * If you need a version that is safe to marshal, consider using the
- * HashMarshal below.  It is only slightly slower.
+(**
+   Table-based hash-consing.
+   Items are represented by their indexes into a table.
+
+   This is the fastest implementation, but it is not safe to marshal
+   unless you also marshal the table.
+
+   If you need a version that is safe to marshal, consider using the
+   HashMarshal below.  It is only slightly slower.
  *)
-module MakeHashCons (Arg : HashArgSig)
-: HashConsSig
+module MakeHashCons (Arg : Lm_hash_sig.HashArgSig)
+: Lm_hash_sig.HashConsSig
   with type elt = Arg.t
   with type hash = MakeHash(Arg).t
 
@@ -42,16 +39,14 @@ type 'a hash_marshal_eq_item
 (*
  * Make a hash item.
  *)
-module MakeHashMarshal (Arg : HashMarshalArgSig)
-: HashMarshalSig
+module MakeHashMarshal (Arg : Lm_hash_sig.HashMarshalArgSig)
+: Lm_hash_sig.HashMarshalSig
    with type elt = Arg.t
    with type t = Arg.t hash_marshal_item
 
-(*
- * A variant with two equalities (see Lm_hash_sig for detail)
- *)
-module MakeHashMarshalEq (Arg : HashMarshalEqArgSig)
-: HashMarshalEqSig
+(**  A variant with two equalities (see Lm_hash_sig for detail) *)
+module MakeHashMarshalEq (Arg : Lm_hash_sig.HashMarshalEqArgSig)
+: Lm_hash_sig.HashMarshalEqSig
    with type elt = Arg.t
    with type t = Arg.t hash_marshal_eq_item
 
@@ -60,8 +55,8 @@ val pp_print_hash_stats : Format.formatter -> unit
 (************************************************************************
  * Better-than-usual hashes.
  *)
-module HashCode : HashCodeSig
-module HashDigest : HashDigestSig
+module HashCode : Lm_hash_sig.HashCodeSig
+module HashDigest : Lm_hash_sig.HashDigestSig
 
 (************************************************************************
  * Helper functions.
