@@ -194,7 +194,7 @@ and exp =
  *    ir_vars         : variables defined by this file
  *    ir_exp          : the expression
  *)
-type ir =
+type t =
    { ir_classnames   : Lm_symbol.t list;
      ir_vars         : senv;
      ir_exp          : exp

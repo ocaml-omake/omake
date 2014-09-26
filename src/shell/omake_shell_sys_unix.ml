@@ -1,15 +1,14 @@
 (*
  * System calls.
  *)
-
-open Omake_shell_type
-open Omake_shell_sys_type
-
 (*
  * These functions are directly exported.
  *)
-external ext_set_tty_pgrp   : pgrp -> unit                = "omake_shell_sys_set_tty_pgrp"
-external ext_setpgid        : pid -> pid -> unit          = "omake_shell_sys_setpgid"
+external ext_set_tty_pgrp : 
+  Omake_shell_sys_type.pgrp -> unit = "omake_shell_sys_set_tty_pgrp"
+external ext_setpgid : 
+  Omake_shell_sys_type.pid ->
+  Omake_shell_sys_type.pid -> unit = "omake_shell_sys_setpgid"
 
 let interact = ref (Lm_readline.isatty ())
 
@@ -55,32 +54,30 @@ let do_close_on_fork () =
    FdSet.iter Unix.close !close_on_fork;
    close_on_fork := FdSet.empty
 
-(*
- * Send a signal to a process.
- *)
+(**  Send a signal to a process. *)
 let signo_of_signal = function
-   SigAbrt -> Sys.sigabrt
- | SigAlrm -> Sys.sigalrm
- | SigFPE  -> Sys.sigfpe
- | SigHup  -> Sys.sighup
- | SigIll  -> Sys.sigill
- | SigInt  -> Sys.sigint
- | SigKill -> Sys.sigkill
- | SigPipe -> Sys.sigpipe
- | SigQuit -> Sys.sigquit
- | SigSegv -> Sys.sigsegv
- | SigTerm -> Sys.sigterm
- | SigUsr1 -> Sys.sigusr1
- | SigUsr2 -> Sys.sigusr2
- | SigChld -> Sys.sigchld
- | SigCont -> Sys.sigcont
- | SigStop -> Sys.sigstop
- | SigTstp -> Sys.sigtstp
- | SigTtin -> Sys.sigttin
- | SigTtou -> Sys.sigttou
- | SigVTAlrm -> Sys.sigvtalrm
- | SigProf   -> Sys.sigprof
- | SigNum i  -> i
+  | Omake_shell_type.SigAbrt -> Sys.sigabrt
+  | SigAlrm -> Sys.sigalrm
+  | SigFPE  -> Sys.sigfpe
+  | SigHup  -> Sys.sighup
+  | SigIll  -> Sys.sigill
+  | SigInt  -> Sys.sigint
+  | SigKill -> Sys.sigkill
+  | SigPipe -> Sys.sigpipe
+  | SigQuit -> Sys.sigquit
+  | SigSegv -> Sys.sigsegv
+  | SigTerm -> Sys.sigterm
+  | SigUsr1 -> Sys.sigusr1
+  | SigUsr2 -> Sys.sigusr2
+  | SigChld -> Sys.sigchld
+  | SigCont -> Sys.sigcont
+  | SigStop -> Sys.sigstop
+  | SigTstp -> Sys.sigtstp
+  | SigTtin -> Sys.sigttin
+  | SigTtou -> Sys.sigttou
+  | SigVTAlrm -> Sys.sigvtalrm
+  | SigProf   -> Sys.sigprof
+  | SigNum i  -> i
 
 let kill pgrp signal =
    Unix.kill pgrp (signo_of_signal signal)
@@ -137,7 +134,7 @@ let dup stdin stdout stderr =
  * This actually creates a process on Unix.
  *)
 let create_thread info =
-   let { create_thread_stdin = stdin;
+   let { Omake_shell_sys_type.create_thread_stdin = stdin;
          create_thread_stdout = stdout;
          create_thread_stderr = stderr;
          create_thread_pgrp = pgrp;
@@ -183,44 +180,39 @@ let create_thread info =
  * Create a process.
  *)
 let create_process info =
-   let { create_process_stdin = stdin;
-         create_process_stdout = stdout;
-         create_process_stderr = stderr;
-         create_process_pgrp = pgrp;
-         create_process_dir = dir;
-         create_process_env = env;
-         create_process_exe = exe;
-         create_process_argv = argv;
-         create_process_background = bg
-       } = info
-   in
+  match info with 
+    {Omake_shell_sys_type.create_process_stdin = stdin;
+     create_process_stdout = stdout;
+     create_process_stderr = stderr;
+     create_process_pgrp = pgrp;
+     create_process_dir = dir;
+     create_process_env = env;
+     create_process_exe = exe;
+     create_process_argv = argv;
+     create_process_background = bg
+    }  -> 
+
 (*
       Format.eprintf "@[<v 3>";
       Array.iter (fun s ->
             Format.eprintf "@ %s" s) argv;
       Format.eprintf "@]@.";
  *)
-   let pid = Unix.fork () in
-      if pid = 0 then
-         try
-            let () =
-               if pgrp = 0 then
-                  let pid = Unix.getpid () in
-                     setpgid pid pid;
-                     if not bg then
-                        set_tty_pgrp pgrp;
-            in
-               dup stdin stdout stderr;
-               Unix.handle_unix_error Unix.chdir dir;
-               Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
-         with _ ->
-            exit Omake_state.exn_error_code
-      else
-         pid
+    let pid = Unix.fork () in
+    if pid = 0 then
+      try
+        let () =
+          if pgrp = 0 then
+            let pid = Unix.getpid () in
+            setpgid pid pid;
+            if not bg then
+              set_tty_pgrp pgrp;
+        in
+        dup stdin stdout stderr;
+        Unix.handle_unix_error Unix.chdir dir;
+        Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
+      with _ ->
+        exit Omake_state.exn_error_code
+    else
+      pid
 
-(*
- * -*-
- * Local Variables:
- * End:
- * -*-
- *)

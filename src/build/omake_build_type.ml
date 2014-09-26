@@ -4,37 +4,37 @@
  *)
 let magic_number = ""
 
-(*
- * A command corresponds to a rule,
- * where all variables have been resolved.
- *
- * A command can be in several states:
- *    Idle: the command is not currently used
- *    Initial: the command needs to be processed
- *    ScanBlocked: the command can't be scanned until
- *       the scanner dependencies have been built
- *    ScannedPending: the scanner dependencies have been
- *       satisfied, but the scan is blocked because the
- *       effects of this command have not been scanned yet.
- *    Scanned: the command has been scanned, and all
- *       effects have been scanned too
- *    Blocked: the command can't be run until all of its
- *       dependencies are built
- *    Ready: all dependencies have been satisfied, and the
- *       command is ready to run
- *    Pending: command is ready to run, but it conflicts
- *       with another job that is Running, so it has
- *       to wait
- *    Running (pid, file): the command is running, with the given pid.
- *       If this is a scanner, the output is being saved in the file
- *    Succeeded deps: the command succeeded.  If this is a scanner
- *       the deps are a table of the dependencies.
- *    Failed code: the command failed with the given non-zero exit code.
- *
- * As a command is processed, it passes through each of these states
- * in the given order, with the following exceptions:
- *    - The CommandScannedPending may be skipped
- *    - Only one of the Succeeded or Failed states is assigned
+(**
+  A command corresponds to a rule,
+  where all variables have been resolved.
+ 
+  A command can be in several states:
+     Idle: the command is not currently used
+     Initial: the command needs to be processed
+     ScanBlocked: the command can't be scanned until
+        the scanner dependencies have been built
+     ScannedPending: the scanner dependencies have been
+        satisfied, but the scan is blocked because the
+        effects of this command have not been scanned yet.
+     Scanned: the command has been scanned, and all
+        effects have been scanned too
+     Blocked: the command can't be run until all of its
+        dependencies are built
+     Ready: all dependencies have been satisfied, and the
+        command is ready to run
+     Pending: command is ready to run, but it conflicts
+        with another job that is Running, so it has
+        to wait
+     Running (pid, file): the command is running, with the given pid.
+        If this is a scanner, the output is being saved in the file
+     Succeeded deps: the command succeeded.  If this is a scanner
+        the deps are a table of the dependencies.
+     Failed code: the command failed with the given non-zero exit code.
+ 
+  As a command is processed, it passes through each of these states
+  in the given order, with the following exceptions:
+     - The CommandScannedPending may be skipped
+     - Only one of the Succeeded or Failed states is assigned
  *)
 type command_state =
   | CommandIdle
@@ -50,7 +50,7 @@ type command_state =
   | CommandFailed of int
 
 type command_tag =
-    CommandIdleTag
+  | CommandIdleTag
   | CommandInitialTag
   | CommandScanBlockedTag
   | CommandScannedPendingTag
@@ -158,15 +158,19 @@ type env_wl =
     env_failed_wl                  : command option ref
   }
 
-type env =
+type t =
   { env_venv                       : Omake_env.t;
     env_cwd                        : Omake_node.Dir.t;
     env_cache                      : Omake_cache.t;
     env_exec                       : Omake_env.exec;
-    mutable env_explicit_deps      : (Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t) Omake_node.NodeTable.t;
-    env_explicit_targets           : Omake_env.erule Omake_node.NodeTable.t;
-    env_explicit_directories       : Omake_env.t Omake_node.DirTable.t;
-    mutable env_includes           : Omake_cache_type.digest Omake_node.NodeTable.t;
+    mutable env_explicit_deps      : 
+      (Omake_node.NodeSet.t * Omake_node.NodeSet.t * Omake_node.NodeSet.t) Omake_node.NodeTable.t;
+    env_explicit_targets           : 
+      Omake_env.erule Omake_node.NodeTable.t;
+    env_explicit_directories       : 
+      Omake_env.t Omake_node.DirTable.t;
+    mutable env_includes           : 
+      Omake_cache_type.digest Omake_node.NodeTable.t;
 
     (* Build state *)
     mutable env_commands           : command Omake_node.NodeTable.t;

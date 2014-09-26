@@ -3,7 +3,7 @@ type builtin_fun =
 type builtin_kfun =
   Omake_env.t -> Omake_value_type.pos -> Lm_location.t -> Omake_value_type.t list -> Omake_value_type.keyword_value list -> Omake_env.t * Omake_value_type.t
 
-type builtin_env_fun = Omake_build_type.env -> builtin_fun
+type builtin_env_fun = Omake_build_type.t -> builtin_fun
 
 type builtin_object_info = string * Omake_ir.var * Omake_value_type.t
 

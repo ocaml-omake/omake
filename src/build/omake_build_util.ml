@@ -17,7 +17,7 @@ let is_leaf_command
   && Omake_node.NodeSet.is_empty build_deps
   && (lines = CommandNone)
 
-let is_leaf_node (env : Omake_build_type.env)  node =
+let is_leaf_node (env : Omake_build_type.t)  node =
   try is_leaf_command (Omake_node.NodeTable.find env.env_commands node) with
     Not_found -> false
 
@@ -157,7 +157,7 @@ let command_deps venv orules domain deps =
  * Build the subgraph, including only those nodes that we actually
  * care about.
  *)
-let build_subgraph (env : Omake_build_type.env) venv pos orules domain =
+let build_subgraph (env : Omake_build_type.t) venv pos orules domain =
    Omake_node.NodeTable.fold (fun graph node i ->
          try
             let command = Omake_node.NodeTable.find env.env_commands node in
@@ -305,7 +305,7 @@ let get_worklist_command (wl : Omake_build_type.env_wl)
   | CommandSucceededTag      -> wl.env_succeeded_wl
   | CommandFailedTag         -> wl.env_failed_wl
 
-let command_worklist (env : Omake_build_type.env) state =
+let command_worklist (env : Omake_build_type.t) state =
   get_worklist_command env.env_current_wl state
 
 (*
@@ -480,7 +480,7 @@ let pp_print_command buf (command : Omake_build_type.command) =
       Omake_node.pp_print_node_set build_deps
       Omake_node.pp_print_node_list blocked
 
-let pp_print_node_states (env : Omake_build_type.env) buf nodes =
+let pp_print_node_states (env : Omake_build_type.t) buf nodes =
   Omake_node.NodeSet.iter (fun target ->
     try
       let command = Omake_node.NodeTable.find env.env_commands target(* find_command env target *) in
@@ -492,7 +492,7 @@ let pp_print_node_states (env : Omake_build_type.env) buf nodes =
       Omake_node.pp_print_node buf target) nodes
 
 
-let print_stats (env : Omake_build_type.env) message start_time =
+let print_stats (env : Omake_build_type.t) message start_time =
   match env with { 
     env_venv = venv;
     env_cache = cache;
@@ -619,7 +619,7 @@ let print_deadlock env buf state =
 (*
  * Print the failed commands.
  *)
-let print_failed_targets (env : Omake_build_type.env) buf =
+let print_failed_targets (env : Omake_build_type.t) buf =
   if Omake_options.opt_print_status (Omake_env.venv_options env.env_venv) then begin
     Format.fprintf buf "*** omake: targets were not rebuilt because of errors:";
     (* We use table to get an alphabetical order here - see http://bugzilla.metaprl.org/show_bug.cgi?id=621 *)
@@ -787,3 +787,73 @@ let wait_for_lock, unlock_db =
 (*
  * Catch the dependency printer.
  *)
+
+
+
+let close (env : Omake_build_type.t) =
+  Omake_node.NodeTable.iter 
+    (fun _ command -> Omake_build_tee.unlink_tee command) env.env_commands;
+  Omake_exec.Exec.close env.env_exec;
+  Lm_unix_util.try_unlink_file env.env_summary
+
+
+
+(*
+let env_options (env : Omake_build_type.t) =
+  Omake_env.venv_options env.env_venv
+
+
+let pid = Unix.getpid () (* this is the PID of the main thread *)
+
+(*
+ * Save the cache and environment to a file.
+ *)
+let save_aux (env : Omake_build_type.t) =
+  (* Only the "master" thread should be saving the DB *)
+  if (pid <> Unix.getpid ()) then begin
+    Format.eprintf "@[<hv3>*** OMake Internal ERROR:@ Slave thread %i trying to save db opened by the master thread %i@]@." (Unix.getpid ()) pid;
+    raise (Invalid_argument "Internal error: Slave thread trying to save the OMake DB")
+  end;
+
+  (* Save the static values *)
+  let () = Omake_env.venv_save_static_values env.env_venv in
+
+  (* Save the .omakedb *)
+  let cache = env.env_cache in
+
+  (* We want the name to be fairly unique in case locking had failed us. *)
+  let db_tmp = Lm_printf.sprintf ".#%s.%s.%i" Omake_state.db_name (Unix.gethostname ()) pid in
+
+  (* Marshal the state to the output file *)
+  let outx = Pervasives.open_out_bin db_tmp in
+  let includes =
+    Omake_node.NodeTable.fold (fun includes node _ ->
+      Omake_node.NodeSet.add includes node) Omake_node.NodeSet.empty env.env_includes
+  in
+  let targets = Omake_node.NodeSet.singleton Omake_cache.env_target in
+  try
+    Omake_cache.add cache Omake_cache.env_fun
+      Omake_cache.env_target targets includes None (MemoSuccess Omake_node.NodeTable.empty);
+    Omake_cache.to_channel outx cache;
+    close_out outx;
+    Unix.rename db_tmp Omake_state.db_name
+  with
+    Unix.Unix_error (errno, name, arg) ->
+    Format.eprintf "*** omake: failure during saving: %s: %s(%s)@." (Unix.error_message errno) name arg;
+    close_out outx;
+    unlink_file db_tmp
+  | Sys_error _
+  | Failure _ as exn ->
+    Format.eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn);
+    close_out outx;
+    unlink_file db_tmp
+
+(*
+ * Save to the .omakedb.
+ *)
+let save env =
+  if not (env_options env).dry_run then
+    try save_aux env with
+      Sys_error _ as exn ->
+      Format.eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn)
+*)

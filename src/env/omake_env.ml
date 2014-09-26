@@ -170,7 +170,7 @@ and venv_globals =
     mutable venv_memo_rules                 : static_info Omake_value_util.ValueTable.t;
 
     (* Cached values for files *)
-    mutable venv_ir_files                   : Omake_ir.ir Omake_node.NodeTable.t;
+    mutable venv_ir_files                   : Omake_ir.t Omake_node.NodeTable.t;
     mutable venv_object_files               : Omake_value_type.obj Omake_node.NodeTable.t;
 
     (* Cached values for static sections *)
@@ -799,16 +799,16 @@ sig
    (*
     * Fetch the two kinds of entries.
     *)
-   val find_ir     : in_handle -> Omake_ir.ir
+   val find_ir     : in_handle -> Omake_ir.t
    val find_object : in_handle -> Omake_value_type.obj
 
-   val get_ir      : out_handle -> Omake_ir.ir
+   val get_ir      : out_handle -> Omake_ir.t
    val get_object  : out_handle -> Omake_value_type.obj
 
    (*
     * Add the two kinds of entries.
     *)
-   val add_ir      : out_handle -> Omake_ir.ir -> unit
+   val add_ir      : out_handle -> Omake_ir.t -> unit
    val add_object  : out_handle -> Omake_value_type.obj -> unit
 end
 
@@ -1344,10 +1344,7 @@ let venv_unsetenv venv v =
 let venv_defined_env venv v =
    Lm_symbol.SymbolTable.mem venv.venv_inner.venv_environ v
 
-(*
- * Options.
- *)
-let venv_options venv =
+let venv_options (venv : t) : Omake_options.t =
    venv.venv_inner.venv_options
 
 let venv_with_options venv (options : Omake_options.t)  : t =

@@ -1,6 +1,5 @@
 OCAMLINCLUDES[] +=
     ../libmojave
-    ../util
     ../ast
     ../ir
     ../env
@@ -16,9 +15,6 @@ FILES[] =
 
 MakeOCamlLibrary(shell, $(FILES))
 
-#
-# Generated files
-#
 GENERATED_FILES[] =
     omake_shell_parse.mli
     omake_shell_parse.ml

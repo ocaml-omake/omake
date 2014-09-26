@@ -55,6 +55,16 @@ let finally x f  action =
   | v -> action x; v 
 
 
+let with_file_fmt (file : string) (action : Format.formatter -> 'a) : 'a =
+  let outx =
+    Pervasives.open_out_gen [Open_wronly; Open_binary; Open_creat; Open_append]
+      0o600 file in
+  let buf = Format.formatter_of_out_channel outx in
+  match action buf with 
+  | exception e -> close_out outx ; raise e 
+  | v -> close_out outx ; v 
+
+
 let need_close fd f = 
   match f fd with 
   | exception e -> Unix.close fd ; raise e 
@@ -233,3 +243,8 @@ let  list_directory dir =
     let entries = list [] in
     Unix.closedir dirx;
     entries
+
+(**  Unlink a file, no errors. *)
+let try_unlink_file  filename =
+  try Unix.unlink filename with
+    Unix.Unix_error _ -> ()

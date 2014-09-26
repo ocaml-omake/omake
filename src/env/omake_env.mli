@@ -356,8 +356,8 @@ val venv_object_fold_internal     : ('a -> Omake_ir.var -> Omake_value_type.t ->
 
 val venv_add_included_file    : t -> Omake_node.Node.t -> t
 val venv_is_included_file     : t -> Omake_node.Node.t -> bool
-val venv_find_ir_file_exn     : t -> Omake_node.Node.t -> Omake_ir.ir
-val venv_add_ir_file          : t -> Omake_node.Node.t -> Omake_ir.ir -> unit
+val venv_find_ir_file_exn     : t -> Omake_node.Node.t -> Omake_ir.t
+val venv_add_ir_file          : t -> Omake_node.Node.t -> Omake_ir.t -> unit
 val venv_find_object_file_exn : t -> Omake_node.Node.t -> Omake_value_type.obj
 val venv_add_object_file      : t -> Omake_node.Node.t -> Omake_value_type.obj -> unit
 
@@ -475,16 +475,16 @@ sig
    (*
     * Fetch the two kinds of entries.
     *)
-   val find_ir     : in_handle -> Omake_ir.ir
+   val find_ir     : in_handle -> Omake_ir.t
    val find_object : in_handle -> Omake_value_type.obj
 
-   val get_ir      : out_handle -> Omake_ir.ir
+   val get_ir      : out_handle -> Omake_ir.t
    val get_object  : out_handle -> Omake_value_type.obj
 
    (*
     * Add the two kinds of entries.
     *)
-   val add_ir      : out_handle -> Omake_ir.ir -> unit
+   val add_ir      : out_handle -> Omake_ir.t -> unit
    val add_object  : out_handle -> Omake_value_type.obj -> unit
 end
 

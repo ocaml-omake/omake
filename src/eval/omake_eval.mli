@@ -72,7 +72,7 @@ val compile : Omake_env.t -> unit
 (*
  * Passes the IR thru Omake_ir_semant.build_prog, printing it if print_ir is enabled.
  *)
-val postprocess_ir : Omake_env.t -> Omake_ir.ir -> Omake_ir.ir
+val postprocess_ir : Omake_env.t -> Omake_ir.t -> Omake_ir.t
 
 (*
  * Evaluate a dependency file.

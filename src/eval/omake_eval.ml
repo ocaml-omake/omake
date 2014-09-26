@@ -214,7 +214,7 @@ let arity_apply_args ( arity : Omake_ir.arity ) args1 args2 =
 (************************************************************************
  * Compiling utilities.
 *)
-let postprocess_ir venv ( ir : Omake_ir.ir) =
+let postprocess_ir venv ( ir : Omake_ir.t) =
   let () =
     if Lm_debug.debug print_ir then
       Format.eprintf "@[<v 3>IR1:@ %a@]@." 
@@ -227,10 +227,11 @@ let postprocess_ir venv ( ir : Omake_ir.ir) =
   in
   ir
 
-(*
- * Parse and evaluate a file.
- *)
-let rec parse_ir venv scope node =
+(**  Parse and evaluate a file. *)
+let rec parse_ir 
+    (venv : Omake_env.t) 
+    (scope : Omake_env.include_scope) 
+    (node : Omake_node.Node.t) : Omake_ir.t =
   let filename = Omake_node.Node.fullname node in
   let ast = Omake_ast_lex.parse_ast filename in
   let () =
@@ -372,7 +373,7 @@ and find_include_file venv pos loc filename =
 and open_ir venv filename pos loc =
   let pos = string_pos "open_ir" pos in
   let source = find_include_file venv pos loc filename in
-  let ir  : Omake_ir.ir = compile_ir venv Omake_env.IncludePervasives pos loc source in
+  let ir  : Omake_ir.t = compile_ir venv Omake_env.IncludePervasives pos loc source in
   if !print_ir then begin
     Format.eprintf "@[<v 3>Vars: %a" Omake_node.pp_print_node source;
     Lm_symbol.SymbolTable.iter (fun v info ->

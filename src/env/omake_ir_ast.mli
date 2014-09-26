@@ -31,6 +31,6 @@ val penv_of_vars       : senv_open_file -> Omake_env.t -> Omake_node.Node.t -> O
  * Compile an AST program.
  *)
 val compile_string   : penv -> Omake_ast.exp -> Omake_value_type.pos -> penv * Omake_ir.string_exp
-val compile_exp      : penv -> Omake_ast.exp        -> penv * Omake_ir.ir
-val compile_exp_list : penv -> Omake_ast.exp list   -> penv * Omake_ir.ir
-val compile_prog     : penv -> Omake_ast.prog       -> penv * Omake_ir.ir
+val compile_exp      : penv -> Omake_ast.exp        -> penv * Omake_ir.t
+val compile_exp_list : penv -> Omake_ast.exp list   -> penv * Omake_ir.t
+val compile_prog     : penv -> Omake_ast.prog       -> penv * Omake_ir.t
