@@ -1,4 +1,12 @@
-(* Abstract representation of files. *)
+(** This is the base part of the build system.
+   Each file in the system is represented as a node.
+   Node may be virtual: the node may exist before the file
+   does.  For each file, we maintain stat and MD5 information
+   (if they exist).
+    This case [in-]sensitivity of file names is a complex issue.
+    We make the type abstract so we don't make a mistake.
+ *)
+
 module Dir : Omake_node_sig.DirSig
 
 module DirSet : Lm_set_sig.LmSet with type elt = Dir.t
@@ -44,3 +52,4 @@ val pp_print_node_list : Node.t list Lm_printf.t
 val pp_print_node_table : 'a NodeTable.t Lm_printf.t 
 val pp_print_node_set_table : NodeSet.t NodeTable.t Lm_printf.t
 val pp_print_node_set_table_opt : NodeSet.t NodeTable.t option Lm_printf.t
+

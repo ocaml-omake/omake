@@ -1,175 +1,37 @@
-(*
- * This is the base part of the build system.
- * Each file in the system is represented as a node.
- * Node may be virtual: the node may exist before the file
- * does.  For each file, we maintain stat and MD5 information
- * (if they exist).
- *)
 
-(************************************************************************
- * This case [in-]sensitivity of file names is a complex issue.
- * We make the type abstract so we don't make a mistake.
+(*
+ * Internally, we represent pathnames as absolute paths.
+ * We keep a hashed integer for quick equality testing.
+ *    dir_root : the root of this name
+ *    dir_key  : the path in canonical form (lowercase on Windows)
+ *    dir_name : the actual path will full capitalization
  *)
-module type FileCaseSig =
-sig
+(* %%MAGICBEGIN%% *)
+module rec DirElt :
+  sig
+    type t =
+      | DirRoot of Lm_filename_util.root
+      | DirSub of FileCase.t * string * DirHash.t
+  end
+= DirElt
+(* %%MAGICEND%% *)
+
+and FileCase : sig
    type t
-   type dir
-   val create              : dir -> string -> t
+   val create              : DirHash.t -> string -> t
    val compare             : t -> t -> int
    val add_filename        : Lm_hash.HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> Lm_marshal.msg
    val unmarshal           : Lm_marshal.msg -> t
-end;;
-
-
-(* Test whether stats are equal enough that we think that it's the same file.
-*)
-let stats_equal (stat1 : Unix.LargeFile.stats) (stat2 : Unix.LargeFile.stats) =
-  stat1.st_dev = stat2.st_dev
-  && stat1.st_ino = stat2.st_ino
-  && stat1.st_kind = stat2.st_kind
-  && stat1.st_rdev = stat2.st_rdev
-  && stat1.st_nlink = stat2.st_nlink
-  && stat1.st_size = stat2.st_size
-  && stat1.st_mtime = stat2.st_mtime
-  && stat1.st_ctime = stat2.st_ctime
-
-(* Toggle the case of the name.
-   Raises Not_found if the name contains no alphabetic letters.
-*)
-let rec toggle_name_case name len i : string  =
-  if i = len then
-    raise Not_found
-  else
-    match name.[i] with
-    | 'A'..'Z'
-    | '\192' .. '\214'
-    | '\216' .. '\222' ->
-      String.lowercase name
-    | 'a'..'z'
-    | '\224' .. '\246'
-    | '\248' .. '\254' ->
-      String.uppercase name
-    | _ ->
-      toggle_name_case name len (i+ 1)
-
-(* Stat, does not fail. *)
-let do_stat absname =
-  try Some (Unix.LargeFile.lstat absname) with
-    Unix.Unix_error _ ->
-    None
-
-    (*
-    * Unlink, does not fail.
-    *)
-let do_unlink absname =
-  try Unix.unlink absname with
-    Unix.Unix_error _ ->
-    ()
-
-(* Create a file, raising Unix_error if the file can't be created. *)
-let do_create absname =
-  Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
-
-(*
-Given two filenames that differ only in case,
-stat them both.  If the stats are different,
-the directory is on a case-sensitive fs.
-
-XXX: try to detect race conditions by performing
-a stat on the first file before and after.
-Raise Not_found if a race condition is detected.
-*)
-let stats_not_equal name1 name2 =
-  let stat1 = do_stat name1 in
-  let stat2 = do_stat name2 in
-  let stat3 = do_stat name1 in
-  match stat1, stat3 with
-    Some s1, Some s3 when stats_equal s1 s3 ->
-    (match stat2 with
-       Some s2 when stats_equal s2 s1 -> false
-     | _ -> true)
-  | _ ->
-    raise Not_found
-
-(*
-* If we have an alphabetic name, just toggle the case.
-*)
-let stat_with_toggle_case absdir name =
-  let alternate_name = toggle_name_case name (String.length name) 0 in
-  stats_not_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
-
-
-
-    (*
-    * Look through the entire directory for a name with alphabetic characters.
-    * A check for case-sensitivity base on that.
-    *
-    * Raises Not_found if there are no such filenames.
-    *)
-let rec dir_test_all_entries_exn absdir dir_handle =
-  let name =
-    try Unix.readdir dir_handle
-    with Unix.Unix_error _ | End_of_file as exn ->
-      Unix.closedir dir_handle;
-      raise exn
-  in
-  match name with
-    "."
-  | ".." ->
-    dir_test_all_entries_exn absdir dir_handle
-  | _ ->
-    try
-      let result = stat_with_toggle_case absdir name in
-      Unix.closedir dir_handle;
-      result
-    with Not_found ->
-      dir_test_all_entries_exn absdir dir_handle
-
-exception Already_lowercase
-
-let rec check_already_lowercase name len i =
-  if i = len then
-    raise Already_lowercase
-  else
-    match name.[i] with
-    | 'A'..'Z'
-    | '\192' .. '\214'
-    | '\216' .. '\222' -> ()
-    | _ -> check_already_lowercase name len (i+1)
-
-
-module rec FileCase : FileCaseSig with type dir = DirHash.t =
+end   =
   struct
     (* %%MAGICBEGIN%% *)
     type t = string
     (* %%MAGICEND%% *)
 
-    type dir = DirHash.t
-
-    (*
-    * Check whether a directory is case-sensitive.
-    *)
+    (* Check whether a directory is case-sensitive. *)
     let case_table = ref DirTable.empty
-
-
-    let fs_random = Random.State.make_self_init ()
-    (*
-    * Check for sensativity by creating a dummy file.
-    *)
-    let dir_test_new_entry_exn absdir =
-      Unix.access absdir [W_OK];
-      let name = Lm_printf.sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
-      let absname = Filename.concat absdir name in
-      let () = do_create absname in
-      try
-        let flag = stat_with_toggle_case absdir name in
-        do_unlink absname;
-        flag
-      with Not_found as exn ->
-        do_unlink absname;
-        raise exn
 
     (*
     * To check for case sensitivity, try these tests in order,
@@ -187,19 +49,19 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
     exception Not_a_usable_directory
 
     let rec dir_test_sensitivity shortcircuit dir absdir name =
-      try stat_with_toggle_case absdir name
+      try Lm_fs_case_sensitive.stat_with_toggle_case absdir name
       with Not_found ->
         if shortcircuit then
-          check_already_lowercase name (String.length name) 0;
+          Lm_fs_case_sensitive.check_already_lowercase name (String.length name) 0;
         try
           let dir_handle =
             try Unix.opendir absdir with
-              Unix.Unix_error ((Unix.ENOENT | Unix.ENOTDIR | Unix.ELOOP | Unix.ENAMETOOLONG), _, _) ->
+              Unix.Unix_error ((ENOENT | ENOTDIR | ELOOP | ENAMETOOLONG), _, _) ->
               raise Not_a_usable_directory
           in
-          try dir_test_all_entries_exn absdir dir_handle
+          try Lm_fs_case_sensitive.dir_test_all_entries_exn absdir dir_handle
           with Unix.Unix_error _ | Not_found | End_of_file ->
-            dir_test_new_entry_exn absdir
+            Lm_fs_case_sensitive.dir_test_new_entry_exn absdir
         with Unix.Unix_error _ | Not_found | End_of_file | Not_a_usable_directory ->
           match DirHash.get dir with
             DirRoot _ ->
@@ -214,7 +76,7 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
     and dir_is_sensitive shortcircuit dir name =
       try DirTable.find !case_table dir with
         Not_found ->
-        let absdir = DirElt.abs_dir_name dir in
+        let absdir = DirHash.abs_dir_name dir in
         let sensitive =
           if Lm_fs_case_sensitive.available then
             try
@@ -242,7 +104,7 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
         (fun dir name ->
           try
             if dir_is_sensitive true dir name then name else String.lowercase name
-          with Already_lowercase ->
+          with Lm_fs_case_sensitive.Already_lowercase ->
             name)
 
     let compare = Lm_string_util.string_compare
@@ -263,57 +125,12 @@ module rec FileCase : FileCaseSig with type dir = DirHash.t =
 
 (** Directories. *)
 
-(*
- * Internally, we represent pathnames as absolute paths.
- * We keep a hashed integer for quick equality testing.
- *    dir_root : the root of this name
- *    dir_key  : the path in canonical form (lowercase on Windows)
- *    dir_name : the actual path will full capitalization
- *)
-(* %%MAGICBEGIN%% *)
-and DirElt :
-  sig
-    type t =
-        DirRoot of Lm_filename_util.root
-      | DirSub of FileCase.t * string * DirHash.t
-
-    val abs_dir_name: DirHash.t -> string
-  end
-=
-struct
-  type t =
-      DirRoot of Lm_filename_util.root
-    | DirSub of FileCase.t * string * t Lm_hash.hash_marshal_eq_item
-
-  let abs_dir_name =
-    let rec name buf dir =
-      match DirHash.get dir with
-        DirRoot root ->
-        Buffer.add_string buf (Lm_filename_util.string_of_root root)
-      | DirSub (key, _, parent) ->
-        name buf parent;
-        begin match DirHash.get parent with
-          DirRoot _ ->
-          ()
-        | _ ->
-          Buffer.add_string buf Filename.dir_sep 
-        end;
-        FileCase.add_filename_string buf key
-    in
-    fun dir ->
-      let buf = Buffer.create 17 in
-      let () = name buf dir in
-      Buffer.contents buf
-
-end
-(* %%MAGICEND%% *)
 
 (*
  * Sets and tables.
  *)
 and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
   struct
-    (* open DirElt *)
     type t = DirElt.t
 
     let debug = "Dir"
@@ -381,18 +198,43 @@ and DirCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirElt.t =
   end
 
 (* %%MAGICBEGIN%% *)
-and DirHash :
-  Lm_hash_sig.HashMarshalEqSig
-with type elt = DirElt.t
-with type t = DirElt.t Lm_hash.hash_marshal_eq_item
-  = Lm_hash.MakeHashMarshalEq (DirCompare)
+
+and DirHash :  sig 
+  include Lm_hash_sig.HashMarshalEqSig
+  with type elt = DirElt.t
+  with type t = DirElt.t Lm_hash.hash_marshal_eq_item
+  val abs_dir_name : t -> string
+end
+  = struct 
+   include  Lm_hash.MakeHashMarshalEq (DirCompare)
+   let abs_dir_name =
+     let rec name buf dir =
+       match get dir with
+         DirRoot root ->
+         Buffer.add_string buf (Lm_filename_util.string_of_root root)
+       | DirSub (key, _, parent) ->
+         name buf parent;
+         begin match get parent with
+             DirRoot _ ->
+             ()
+           | _ ->
+             Buffer.add_string buf Filename.dir_sep 
+         end;
+         FileCase.add_filename_string buf key
+     in
+     fun dir ->
+       let buf = Buffer.create 17 in
+       let () = name buf dir in
+       Buffer.contents buf
+
+end
 
 and DirSet   : Lm_set_sig.LmSet with
   type elt = DirHash.t = Lm_set.LmMake (DirHash)
 
 and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
 
-type dir = DirHash.t
+
 (* %%MAGICEND%% *)
 
 let hash f l =
@@ -404,9 +246,9 @@ let hash f l =
 (*
  * Lists of directories.
  *)
-module rec DirListCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = dir list =
+module rec DirListCompare : Lm_hash_sig.HashMarshalEqArgSig with type t = DirHash.t list =
 struct
-  type t = dir list
+  type t = DirHash.t list
 
   let debug = "DirList"
 
@@ -434,7 +276,7 @@ struct
   let reintern l = Lm_list_util.smap DirHash.reintern l
 end
 
-and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = dir list 
+and DirListHash : Lm_hash_sig.HashMarshalEqSig with type elt = DirHash.t list 
   =
   Lm_hash.MakeHashMarshalEq (DirListCompare);;
 
@@ -443,7 +285,7 @@ module DirListSet = Lm_set.LmMake (DirListHash)
 
 module DirListTable = Lm_map.LmMake (DirListHash)
 
-(* open DirElt. *)
+
 
 (************************************************************************
  * Nodes.
@@ -463,10 +305,10 @@ type node_flag =
  * A node is a phony, or it is a filename.
  *)
 type node_elt =
-   NodeFile        of dir * FileCase.t * string
+   NodeFile        of DirHash.t * FileCase.t * string
  | NodePhonyGlobal of string
- | NodePhonyDir    of dir * FileCase.t * string
- | NodePhonyFile   of dir * FileCase.t * string * string
+ | NodePhonyDir    of DirHash.t * FileCase.t * string
+ | NodePhonyFile   of DirHash.t * FileCase.t * string * string
  | NodeFlagged     of node_flag * node_elt Lm_hash.hash_marshal_eq_item
 (* %%MAGICEND%% *)
 
@@ -878,7 +720,7 @@ let dotdot_fails dir =
    let table = !dotdot_table in
       try DirTable.find table dir with
          Not_found ->
-            let name = DirElt.abs_dir_name dir in
+            let name = DirHash.abs_dir_name dir in
             let islink =
                try (Unix.lstat name).Unix.st_kind = Unix.S_LNK with
                   Unix.Unix_error _ ->
@@ -941,7 +783,7 @@ let updirs_generic add_string contents buf dirs1 dirs2 =
 (*
  * Compute the path of dir2 relative to dir1.
  *)
-let rec relocate_generic add_string contents buf (dirs1 : dir list) (dirs2 : dir list) =
+let rec relocate_generic add_string contents buf (dirs1 : DirHash.t list) (dirs2 : DirHash.t list) =
    match dirs1, dirs2 with
     | [], _ ->
          Some (flatten_generic add_string contents buf (path_of_dir_list dirs2))
@@ -1115,7 +957,7 @@ let parse_phony_name s =
  *)
 module Dir =
 struct
-  type t = dir
+  type t = DirHash.t
 
   (*
     * We assume the cwd does not change
@@ -1247,7 +1089,7 @@ module Mount =
 struct
    type t = (Dir.t * Dir.t * Omake_node_sig.mount_option list) list
 
-   type dir_tmp = dir
+   type dir_tmp = DirHash.t
    type node_tmp = node
    type dir = dir_tmp
    type node = node_tmp
@@ -1273,25 +1115,15 @@ let no_mount_info =
      mount_digest      = (fun _ -> None)
    }
 
-(*
- * Nodes.
- *)
 module Node =
 struct
    type pre   = node_elt
    type t     = node
    type dir   = Dir.t
    type mount = Mount.t
-
-
-
    let dest = NodeHash.get
 
-   (*
-    * Get the name.
-    *)
-   let phony_name name =
-      "<" ^ name ^ ">"
+   let phony_name name = "<" ^ name ^ ">"
 
    (*
     * Name of the node.
@@ -1638,10 +1470,10 @@ struct
          symlink_file_unix
 
    let create_node mount_info mounts dir name =
-      let {Omake_node_sig.mount_file_exists = file_exists;
-            _
-          } = mount_info
-      in
+     match mount_info with 
+       {Omake_node_sig.mount_file_exists = file_exists;
+        _
+       } -> 
       let dir, key, name = new_file dir name in
       let node = NodeHash.create (NodeFile (dir, key, name)) in
       let rec search mounts =

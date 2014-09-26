@@ -1,11 +1,4 @@
-(*
- * Signatures for the Dir, Node modules.
- *)
 
-
-(*
- * A directory node.
- *)
 module type DirSig =
 sig
    type t
