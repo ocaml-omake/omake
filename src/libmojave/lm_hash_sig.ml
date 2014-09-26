@@ -29,7 +29,7 @@ sig
    val get : t -> elt
 
    (* Hash code *)
-   val hash : t -> int
+   (* val hash : t -> int *)
 
    (* Comparison *)
    val compare : t -> t -> int
