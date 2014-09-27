@@ -105,7 +105,7 @@ struct
       compare_int_list counters1 counters2
 end;;
 
-module NfaState = Lm_hash_cons.MakeHashCons (NfaStateArg);;
+module NfaState = Lm_hash_cons.Make (NfaStateArg);;
 module NfaStateSet = Lm_set.LmMake (NfaState);;
 module NfaStateTable = Lm_map.LmMake (NfaState);;
 
@@ -189,7 +189,7 @@ struct
 end;;
 
 module DfaState = 
-  Lm_hash_cons.MakeHashCons (DfaStateArg);;
+  Lm_hash_cons.Make (DfaStateArg);;
 module DfaStateTable = Lm_map.LmMake (DfaState);;
 
 module IntCompare =

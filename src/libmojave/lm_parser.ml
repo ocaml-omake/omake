@@ -169,17 +169,17 @@ struct
       let compare = Arg.compare_symbol
    end;;
 
-   module Var = Lm_hash_cons.MakeHash (VarArg);;
-   module VarSet    = Lm_set.LmMake (Var);;
-   module VarTable  = Lm_map.LmMake (Var);;
-   module VarMTable = Lm_map.LmMakeList (Var);;
+   (* module Var = Lm_hash_cons.Make (VarArg);; *)
+   module VarSet    = Lm_set.LmMake (VarArg);;
+   module VarTable  = Lm_map.LmMake (VarArg);;
+   module VarMTable = Lm_map.LmMakeList (VarArg);;
 
-   module IVar = Lm_hash_cons.MakeHashCons (VarArg);;
+   module IVar = Lm_hash_cons.Make (VarArg);;
    module IVarSet = Lm_set.LmMake (IVar);;
    module IVarTable = Lm_map.LmMake (IVar);;
    module IVarMTable = Lm_map.LmMakeList (IVar);;
 
-   type var = Var.t
+   type var = VarArg.t
    type ivar = IVar.t
 
    (*
@@ -194,13 +194,13 @@ struct
       let compare = Arg.compare_action
    end;;
 
-   module Action = Lm_hash_cons.MakeHash (ActionArg);;
-   module ActionSet = Lm_set.LmMake (Action);;
+   (* module Action = Lm_hash_cons.Make (ActionArg);; *)
+   module ActionSet = Lm_set.LmMake (ActionArg);;
 
-   module IAction = Lm_hash_cons.MakeHashCons (ActionArg);;
+   module IAction = Lm_hash_cons.Make (ActionArg);;
    module IActionSet = Lm_set.LmMake (IAction);;
 
-   type action = Action.t
+   type action = ActionArg.t
    type iaction = IAction.t
 
    (*
@@ -292,7 +292,7 @@ struct
                cmp
    end
 
-   module ProdItem      = Lm_hash_cons.MakeHashCons (ProdItemArg);;
+   module ProdItem      = Lm_hash_cons.Make (ProdItemArg);;
    module ProdItemSet   = Lm_set.LmMake (ProdItem);;
    module ProdItemTable = Lm_map.LmMake (ProdItem);;
 
@@ -327,7 +327,7 @@ struct
          ProdItemSet.compare state1.info_state_items state2.info_state_items
    end;;
 
-   module State = Lm_hash_cons.MakeHashCons (StateArg);;
+   module State = Lm_hash_cons.Make (StateArg);;
    module StateSet = Lm_set.LmMake (State);;
    module StateTable = Lm_map.LmMake (State);;
 
@@ -351,7 +351,7 @@ struct
                cmp
    end;;
 
-   module StateItem = Lm_hash_cons.MakeHashCons (StateItemArg);;
+   module StateItem = Lm_hash_cons.Make (StateItemArg);;
    module StateItemSet = Lm_set.LmMake (StateItem);;
    module StateItemTable = Lm_map.LmMake (StateItem);;
 
@@ -534,7 +534,7 @@ struct
    (*    Arg.to_string (Var.get v) *)
 
    let pp_print_var buf v =
-      Arg.pp_print_symbol buf (Var.get v)
+      Arg.pp_print_symbol buf v (* (VarArg.get v) *)
 
    let  pp_print_vars buf vl =
       List.iter (fun v -> Format.fprintf buf " %a" pp_print_var v) vl
@@ -550,7 +550,7 @@ struct
    (*             pp_print_var_set s) table *)
 
    let pp_print_action buf action =
-      Arg.pp_print_action buf (Action.get action)
+      Arg.pp_print_action buf ((* Action.get *) action)
 
    let string_of_ivar hash v =
       Arg.to_string (IVar.get hash.hash_ivar_state v)
@@ -732,7 +732,7 @@ struct
     * Add a start symbol.
     *)
    let add_start gram sym =
-      { gram with gram_start_symbols = VarSet.add gram.gram_start_symbols (Var.create sym) }
+      { gram with gram_start_symbols = VarSet.add gram.gram_start_symbols sym(* (Var.create sym) *) }
 
    (*
     * Add a symbol at a given precedence level.
@@ -2285,8 +2285,7 @@ struct
          { parse_grammar = gram; parse_pda = None }
 
    let get_start info =
-      VarSet.fold (fun vars v ->
-            Var.get v :: vars) [] (info.parse_grammar.gram_start_symbols)
+      VarSet.fold (fun vars v -> v :: vars) [] (info.parse_grammar.gram_start_symbols)
 
    let prec_min = Precedence.prec_min
    let prec_max = Precedence.prec_max
@@ -2316,28 +2315,17 @@ struct
          info, pre
 
    let add_prec info pre v =
-      let gram = add_prec info.parse_grammar pre (Var.create v) in
+      let gram = add_prec info.parse_grammar pre v in
          { parse_grammar = gram; parse_pda = None }
 
    let find_prec info v =
-      find_prec info.parse_grammar (Var.create v)
+      find_prec info.parse_grammar v
 
    let add_production info action name rhs pre =
-      let action = Action.create action in
-      let name = Var.create name in
-      let rhs = List.map Var.create rhs in
-      let pre =
-         match pre with
-            Some v ->
-               Some (Var.create v)
-          | None ->
-               None
-      in
       let gram = add_production info.parse_grammar action name rhs pre in
          { parse_grammar = gram; parse_pda = None }
 
    let remove_production info action =
-      let action = Action.create action in
       let gram = remove_production info.parse_grammar action in
          { parse_grammar = gram; parse_pda = None }
 

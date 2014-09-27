@@ -3,42 +3,24 @@
  * A generic hash module to make comparisons faster.
  * This version uses a state for hash-consing.
  *)
-module MakeHash (Arg : Lm_hash_sig.HashArgSig) = 
-struct
-   type elt = Arg.t
-
-   (* %%MAGICBEGIN%% *)
-   type t = int * elt
-   (* %%MAGICEND%% *)
-
-   let create (x : elt) : t =
-      Arg.hash x, x
-
-   let get ((_, x) : t) : elt = x
-
-   let compare ((i1 : int), x1) ((i2 : int), x2) =
-      if i1 = i2 then
-         Arg.compare x1 x2
-      else if i1 < i2 then
-         -1
-      else
-         1
-end
-
 (** Table-based hashing. *)
-module MakeHashCons (Arg : Lm_hash_sig.HashArgSig)  =
+module Make (Arg : sig
+   type t
+   (* For debugging *)
+   val debug : string
+
+   (* The client needs to provide hash and comparison functions *)
+   val hash : t -> int
+   val compare : t -> t -> int
+end
+)  =
 struct
    (* %%MAGICBEGIN%% *)
    type elt = Arg.t
    type t = int
+   module KeyTable = Lm_map.LmMake (Arg);;
 
-   module Key = MakeHash (Arg);;
-   module KeyTable = Lm_map.LmMake (Key);;
-   type hash = Key.t
-
-   (*
-    * We need both directions.
-    *)
+   (* We need both directions.    *)
    type state =
      { mutable key_table : int KeyTable.t;
        mutable int_table : elt array
@@ -65,22 +47,21 @@ struct
      else
        table.(i) <- x
 
-   let icreate state (item : hash) : int =
+   let icreate state (item : elt) : int =
      try KeyTable.find state.key_table item with
        Not_found ->
        let index = KeyTable.cardinal state.key_table in
        state.key_table <- KeyTable.add state.key_table item index;
-       set state index (Key.get item);
+       set state index item ;
        index
 
    let create state x =
-     icreate state (Key.create x)
+     icreate state x 
 
    let get state index =
      state.int_table.(index)
 
-   let hash index =
-     index
+   let hash index = index
 
    let compare index1 index2 =
      index1 - index2
@@ -95,7 +76,6 @@ struct
        if i = len then
          x
        else
-         fold ( i + 1) (f x i)
-     in
+         fold ( i + 1) (f x i) in
      fold 0 x
 end

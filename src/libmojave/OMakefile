@@ -21,7 +21,6 @@ FILES[] =
     lm_thread
     lm_string_util
     lm_string_set
-    lm_hash_sig
     lm_hash
     lm_hash_cons
     lm_hash_code
