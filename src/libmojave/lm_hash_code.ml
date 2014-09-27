@@ -799,45 +799,36 @@ let hash_data =
 let () =
    assert(Array.length hash_data >= hash_length + digest_length - 1)
 
-(************************************************
- * Integer hashes.
- *)
+(** Integer hashes. *)
 (* %%MAGICBEGIN%% *)
 module HashCode  =
 struct
    type t =
-      { mutable hash_digest : int;
-        mutable hash_code   : int
+      { mutable digest : int;
+        mutable code   : int
       }
 
-   (*
-    * New buffer.
-    *)
    let create () =
-      { hash_digest = 0;
-        hash_code   = 0
+      { digest = 0;
+        code   = 0
       }
 
    (*
     * Add an integer.
     *)
-   let add_truncated_bits buf i =
-      let { hash_digest = digest;
-            hash_code   = code
-          } = buf
-      in
-      let code = (code + i + 1) mod hash_length in
-         buf.hash_digest <- (digest * 3) lxor (Array.unsafe_get hash_data code);
-         buf.hash_code <- code
+   let add_truncated_bits ({digest ; code} as buf : t) (i : int) : unit =
+     let code = (code + i + 1) mod hash_length in
+     buf.digest <- (digest * 3) lxor (Array.unsafe_get hash_data code);
+     buf.code <- code
 
    let add_bits buf i =
-      add_truncated_bits buf (i land 0x7ff)
+      add_truncated_bits buf (i land 0x7ff) (* last 11 bits*)
 
    (*
     * Add the characters in a string.
     *)
    let add_string buf s =
-      for i = 0 to pred (String.length s) do
+      for i = 0 to String.length s - 1 do
          add_truncated_bits buf (Char.code (String.unsafe_get s i))
       done
 
@@ -870,7 +861,7 @@ struct
     * Extract the digest.
     *)
    let code buf =
-      buf.hash_digest
+      buf.digest
 end
 (* %%MAGICEND%% *)
 
@@ -882,32 +873,28 @@ end
 module HashDigest  =
 struct
    type t =
-      { hash_digest         : int array;
-        mutable hash_code   : int
+      { digest         : int array;
+        mutable code   : int
       }
 
    (*
     * New buffer.
     *)
    let create () =
-      { hash_digest = Array.create digest_length 0;
-        hash_code   = 0
+      { digest = Array.create digest_length 0;
+        code   = 0
       }
 
    (*
     * Add an integer.
     *)
-   let add_truncated_bits buf i =
-      let { hash_digest = digest;
-            hash_code   = code
-          } = buf
-      in
-      let code = (code + digest_length + i) mod hash_length in
-         for i = 0 to digest_length - 1 do
-            digest.(i) <- (digest.(i) * 3) lxor (Array.unsafe_get hash_data (code + i))
-         done;
-         buf.hash_code <- code
-
+   let add_truncated_bits ( { digest ; code } as buf :t) i =
+     let code = (code + digest_length + i) mod hash_length in
+     for i = 0 to digest_length - 1 do
+       digest.(i) <- (digest.(i) * 3) lxor (Array.unsafe_get hash_data (code + i))
+     done;
+     buf.code <- code
+       
    let add_bits buf i =
       add_truncated_bits buf (i land 0x7ff)
 
@@ -918,7 +905,7 @@ struct
       add_truncated_bits buf (Char.code c)
 
    let add_string buf s =
-      for i = 0 to pred (String.length s) do
+      for i = 0 to  String.length s - 1 do
          add_char buf (String.unsafe_get s i)
       done
 
@@ -964,12 +951,13 @@ struct
     * Extract the digest.
     *)
    let digest buf =
-      let digest = buf.hash_digest in
-      let s = String.create digest_length in
-         for i = 0 to pred digest_length do
-            s.[i] <- Char.chr (digest.(i) land 0xff)
-         done;
-         s
+     let digest = buf.digest in
+     let s = Bytes.create digest_length in
+     for i = 0 to  digest_length - 1 do
+       s.[i] <- Char.chr (digest.(i) land 0xff)
+     done;
+     Bytes.unsafe_to_string s
+
 end;;
 (* %%MAGICEND%% *)
 
@@ -981,33 +969,21 @@ end;;
  * The default function for combinding hash values.
  * XXX: JYH: we should try using a smarter hash function.
  *)
-let hash_combine i1 i2 =
+let hash_combine (i1 : int) (i2 : int) =
    (i1 lsl 2) lxor (i1 lsr 2) lxor i2
 
-(*
- * Hash a list of integers.
- *)
+(**  Hash a list of integers. *)
 let hash_int_list code l =
    let buf = HashCode.create () in
-      HashCode.add_int buf code;
-      List.iter (HashCode.add_int buf) l;
-      HashCode.code buf
+   HashCode.add_int buf code;
+   List.iter (HashCode.add_int buf) l;
+   HashCode.code buf
 
-(*
- * Comparison utilities.
- *)
-let rec compare_int_list (l1 : int list) (l2 : int list) =
-   match l1, l2 with
-      i1 :: l1, i2 :: l2 ->
-         if i1 < i2 then
-            -1
-         else if i1 > i2 then
-            1
-         else
-            compare_int_list l1 l2
-    | [], _ ::_ ->
-         -1
-    | _ :: _, [] ->
-         1
-    | [], [] ->
-         0
+
+let hash_list f lst =
+  let buf = HashCode.create () in
+  List.iter (fun dir -> HashCode.add_int buf (f dir)) lst;
+  HashCode.code buf
+
+
+

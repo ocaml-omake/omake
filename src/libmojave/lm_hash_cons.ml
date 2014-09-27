@@ -95,7 +95,7 @@ struct
        if i = len then
          x
        else
-         fold (succ i) (f x i)
+         fold ( i + 1) (f x i)
      in
      fold 0 x
 end

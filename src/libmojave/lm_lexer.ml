@@ -73,21 +73,36 @@ end;;
  *)
 module NfaStateArg =
 struct
-   type t = NfaStateCore.t
+  type t = NfaStateCore.t
 
-   let debug = "NfaState"
+  let debug = "NfaState"
 
-   let hash (s, counters) =
-      Lm_hash_code.hash_int_list (s lxor 0x2c18c4d5) counters
+  let hash (s, counters) =
+    Lm_hash_code.hash_int_list (s lxor 0x2c18c4d5) counters
 
-   let compare ((s1, counters1) : t) ((s2, counters2) : t) =
-      if s1 < s2 then
-         -1
-      else if s1 > s2 then
-         1
+  let rec compare_int_list (l1 : int list) (l2 : int list) =
+    match l1, l2 with
+    | i1 :: l1, i2 :: l2 ->
+      if i1 < i2 then
+        -1
+      else if i1 > i2 then
+        1
       else
-         Lm_hash_code.compare_int_list
-           counters1 counters2
+        compare_int_list l1 l2
+    | [], _ ::_ ->
+      -1
+    | _ :: _, [] ->
+      1
+    | [], [] ->
+      0
+
+  let compare ((s1, counters1) : t) ((s2, counters2) : t) =
+    if s1 < s2 then
+      -1
+    else if s1 > s2 then
+      1
+    else
+      compare_int_list counters1 counters2
 end;;
 
 module NfaState = Lm_hash_cons.MakeHashCons (NfaStateArg);;

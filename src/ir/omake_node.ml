@@ -237,10 +237,6 @@ and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHa
 
 (* %%MAGICEND%% *)
 
-let hash f l =
-  let buf = Lm_hash_code.HashCode.create () in
-  List.iter (fun dir -> Lm_hash_code.HashCode.add_int buf (f dir)) l;
-  Lm_hash_code.HashCode.code buf
 
 
 (*
@@ -252,8 +248,8 @@ struct
 
   let debug = "DirList"
 
-  let fine_hash = hash DirHash.fine_hash
-  let coarse_hash = hash DirHash.hash
+  let fine_hash = Lm_hash_code.hash_list DirHash.fine_hash
+  let coarse_hash = Lm_hash_code.hash_list DirHash.hash
 
   let rec compare f (l1 : t) (l2 : t) =
     match l1, l2 with
