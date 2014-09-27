@@ -1713,13 +1713,13 @@ struct
     * The info needed to build the grammar.
     *)
    let ivar_of_var hash v =
-      IVar.icreate hash.hash_ivar_state v
+      IVar.create hash.hash_ivar_state v
 
    let ivar_list_of_var_list hash vars =
       List.map (ivar_of_var hash) vars
 
    let iaction_of_action hash action =
-      IAction.icreate hash.hash_iaction_state action
+      IAction.create hash.hash_iaction_state action
 
    let prod_item_of_prod hash prod =
       let { prod_name   = name;

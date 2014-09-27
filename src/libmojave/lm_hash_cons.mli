@@ -33,7 +33,7 @@ end
    val length : state -> int
 
    (* Normal creation *)
-   val icreate : state -> elt -> t
+
    val create : state -> elt -> t
    val get : state -> t -> elt
 

@@ -20,46 +20,43 @@ struct
    type t = int
    module KeyTable = Lm_map.LmMake (Arg);;
 
-   (* We need both directions.    *)
+   (* bi-directions.    *)
    type state =
-     { mutable key_table : int KeyTable.t;
-       mutable int_table : elt array
+     { mutable keys : int KeyTable.t;
+       mutable ints : elt array
      }
    (* %%MAGICEND%% *)
 
    let create_state () =
-     { key_table = KeyTable.empty;
-       int_table = [||]
+     { keys = KeyTable.empty;
+       ints = [||]
      }
 
    let length state =
-     KeyTable.cardinal state.key_table
+     KeyTable.cardinal state.keys
 
    let set state (i : int) (x : elt) =
-     let table = state.int_table in
+     let table = state.ints in
      let len = Array.length table in
      if len = 0 then
-       state.int_table <- Array.create 32 x
+       state.ints <- Array.create 32 x
      else if i = len then
        let table2 = Array.create (len * 2) x in
        Array.blit table 0 table2 0 len;
-       state.int_table <- table2
+       state.ints <- table2
      else
        table.(i) <- x
 
-   let icreate state (item : elt) : int =
-     try KeyTable.find state.key_table item with
+   let create state (item : elt) : int =
+     try KeyTable.find state.keys item with
        Not_found ->
-       let index = KeyTable.cardinal state.key_table in
-       state.key_table <- KeyTable.add state.key_table item index;
+       let index = KeyTable.cardinal state.keys in
+       state.keys <- KeyTable.add state.keys item index;
        set state index item ;
        index
 
-   let create state x =
-     icreate state x 
-
-   let get state index =
-     state.int_table.(index)
+   let get state (index : int) : elt =
+     state.ints.(index)
 
    let hash index = index
 
@@ -68,10 +65,10 @@ struct
 
    let map_array f state =
      Array.mapi f
-       (Array.sub state.int_table 0 (KeyTable.cardinal state.key_table))
+       (Array.sub state.ints 0 (KeyTable.cardinal state.keys))
 
    let fold f x state =
-     let len = KeyTable.cardinal state.key_table in
+     let len = KeyTable.cardinal state.keys in
      let rec fold i x =
        if i = len then
          x
