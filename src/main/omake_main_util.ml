@@ -19,7 +19,7 @@ let main_remote cwd options targets  =
   Omake_exec_remote.main shell options
 
 let print_hash_stats () =
-  Format.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
+  Format.eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_stats
 
 let rec search start cwd len  i =
   if i < start then

@@ -1,6 +1,6 @@
 
 (* %%MAGICBEGIN%% *)
-type 'a hash_marshal_item =
+type 'a marshal_item =
    { mutable item_ref : unit ref;
      mutable item_val : 'a;
      item_hash        : int
@@ -13,17 +13,17 @@ type 'a hash_marshal_item =
  * must be a refinement of the coarse equality.
  *)
 (* %%MAGICBEGIN%% *)
-type 'a hash_marshal_eq_item = ('a * 'a hash_marshal_item) hash_marshal_item
+type 'a marshal_eq_item = ('a * 'a marshal_item) marshal_item
 (* %%MAGICEND%% *)
 
 (*
  * Statistics.
  *)
-type hash_stat =
-   { hash_debug              : string;
-     mutable hash_reintern   : int;
-     mutable hash_compare    : int;
-     mutable hash_collisions : int
+type stat =
+   { debug              : string;
+     mutable reintern   : int;
+     mutable compare    : int;
+     mutable collisions : int
    }
 
 
@@ -32,22 +32,22 @@ type hash_stat =
  *)
 let current_ref = ref ()
 
-let hash_stats = ref []
+let stats = ref []
 
-let pp_print_stat buf ({ hash_debug      = debug;
-         hash_reintern   = reintern;
-         hash_compare    = compare;
-         hash_collisions = collisions
-       } : hash_stat) =
+let pp_print_stat buf ({ debug      = debug;
+         reintern   = reintern;
+         compare    = compare;
+         collisions = collisions
+       } : stat) =
       Format.fprintf buf "@[<hv 3>%s: reintern = %d, compare = %d, collisions = %d@]@\n" (**)
          debug reintern compare collisions
 
-let pp_print_hash_stats buf =
-   List.iter (pp_print_stat buf) !hash_stats
+let pp_print_stats buf =
+   List.iter (pp_print_stat buf) !stats
 
 (*
  * let () =
- *    at_exit (fun () -> pp_print_hash_stats stderr)
+ *    at_exit (fun () -> pp_print_stats stderr)
  *)
 
 (*
@@ -176,12 +176,12 @@ end
 module MakeHashMarshal (Arg : MARSHAL)=
 struct
    type elt = Arg.t
-   type t = elt hash_marshal_item
+   type t = elt marshal_item
 
    (* Keep a hash-cons table based on a weak comparison *)
    module WeakCompare =
    struct
-      type t = elt hash_marshal_item
+      type t = elt marshal_item
 
       let compare item1 item2 =
          let hash1 = item1.item_hash in
@@ -201,15 +201,15 @@ struct
    (*
     * Keep track of collisions for debugging.
     *)
-   let stats =
-      { hash_debug       = Arg.debug;
-        hash_reintern    = 0;
-        hash_compare     = 0;
-        hash_collisions  = 0
+   let stat =
+      { debug       = Arg.debug;
+        reintern    = 0;
+        compare     = 0;
+        collisions  = 0
       }
 
    let () =
-      hash_stats := stats :: !hash_stats
+      stats := stat :: !stats
 
    (*
     * When creating an item, look it up in the table.
@@ -242,7 +242,7 @@ struct
     * and produce a new one that is hashed.
     *)
    let reintern_core item1 =
-      stats.hash_reintern <- succ stats.hash_reintern;
+      stat.reintern <- succ stat.reintern;
       try
          let item2 = Table.find !table item1 in
             if item2 != item1 then begin
@@ -275,7 +275,7 @@ struct
     * String pointer-based comparison.
     *)
    let compare item1 item2 =
-      stats.hash_compare <- succ stats.hash_compare;
+      stat.compare <- succ stat.compare;
       let hash1 = item1.item_hash in
       let hash2 = item2.item_hash in
          if hash1 < hash2 then
@@ -290,7 +290,7 @@ struct
                if elt1 == elt2 then
                   0
                else begin
-                  stats.hash_collisions <- succ stats.hash_collisions;
+                  stat.collisions <- succ stat.collisions;
                   let cmp = Arg.compare elt1 elt2 in
                      if cmp = 0 then
                         invalid_arg "Lm_hash is broken@.";
@@ -305,7 +305,7 @@ end
 module MakeHashMarshalEq (Arg : MARSHAL_EQ) =
 struct
    type elt = Arg.t
-   type t = elt hash_marshal_eq_item
+   type t = elt marshal_eq_item
 
    module CoarseArg =
    struct

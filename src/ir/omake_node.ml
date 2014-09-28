@@ -202,7 +202,7 @@ and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t =
 and DirHash :  sig 
   include Lm_hash.HashMarshalEqSig
   with type elt = DirElt.t
-  with type t = DirElt.t Lm_hash.hash_marshal_eq_item
+  with type t = DirElt.t Lm_hash.marshal_eq_item
   val abs_dir_name : t -> string
 end
   = struct 
@@ -305,7 +305,7 @@ type node_elt =
  | NodePhonyGlobal of string
  | NodePhonyDir    of DirHash.t * FileCase.t * string
  | NodePhonyFile   of DirHash.t * FileCase.t * string * string
- | NodeFlagged     of node_flag * node_elt Lm_hash.hash_marshal_eq_item
+ | NodeFlagged     of node_flag * node_elt Lm_hash.marshal_eq_item
 (* %%MAGICEND%% *)
 
 module rec NodeCompare :
@@ -555,7 +555,7 @@ end
 and NodeHash :
    Lm_hash.HashMarshalEqSig
    with type elt = node_elt
-   with type t = node_elt Lm_hash.hash_marshal_eq_item
+   with type t = node_elt Lm_hash.marshal_eq_item
 =
    Lm_hash.MakeHashMarshalEq (NodeCompare);;
 
