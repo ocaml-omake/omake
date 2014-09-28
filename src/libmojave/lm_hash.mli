@@ -82,12 +82,9 @@ sig
    val fine_equal   : t -> t -> bool
 end
 
-(*
- * Make a hash item.
- *)
-module MakeHashMarshal (Arg : MARSHAL)
-: HashMarshalSig
-   with type elt = Arg.t
+
+module MakeCoarse (Arg : MARSHAL)
+: HashMarshalSig with type elt = Arg.t
 
 
 (**  A variant with two equalities (see Lm_hash_sig for detail)
@@ -104,7 +101,7 @@ module MakeHashMarshal (Arg : MARSHAL)
      (ensures case preservation) and the weak equality is the equality of the
      canonical (e.g. lowercase) representations (ensures case insensitivity).
  *)
-module MakeHashMarshalEq (Arg : MARSHAL_EQ)
+module MakeFine (Arg : MARSHAL_EQ)
 : HashMarshalEqSig
    with type elt = Arg.t
 

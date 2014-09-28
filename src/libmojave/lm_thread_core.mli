@@ -1,13 +1,11 @@
-open Lm_thread_sig
 
-module MutexCore     : MutexSig
-module ConditionCore : ConditionSig with type mutex = MutexCore.t
-module ThreadCore    : ThreadSig
+
+module MutexCore     : Lm_thread_sig.MutexSig
+module ConditionCore : Lm_thread_sig.ConditionSig with type mutex = MutexCore.t
+module ThreadCore    : Lm_thread_sig.ThreadSig
 
 (*
  * A debugging version that flags the errors.
  *)
 val debug_mutex: bool ref
 
-(* module MutexCoreDebug     : MutexSig *)
-(* module ConditionCoreDebug : ConditionSig with type mutex = MutexCoreDebug.t *)

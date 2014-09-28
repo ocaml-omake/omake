@@ -21,6 +21,9 @@ FILES[] =
     lm_thread
     lm_string_util
     lm_string_set
+    # lm_hash_stat
+    # lm_coarse_hash
+    # lm_fine_hash
     lm_hash
     lm_hash_cons
     lm_hash_code

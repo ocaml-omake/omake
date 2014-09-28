@@ -29,7 +29,7 @@ struct
       s
 end;;
 
-module SymbolHash = Lm_hash.MakeHashMarshal (SymbolHashArg);;
+module SymbolHash = Lm_hash.MakeCoarse (SymbolHashArg);;
 
 type t = SymbolHash.t
 (* %%MAGICEND%% *)

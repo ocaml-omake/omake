@@ -202,11 +202,11 @@ and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t=
 and DirHash :  sig 
   include Lm_hash.HashMarshalEqSig
   with type elt = DirElt.t
-  with type t =  Lm_hash.MakeHashMarshalEq(DirCompare).t
+  with type t =  Lm_hash.MakeFine(DirCompare).t
   val abs_dir_name : t -> string
 end
   = struct 
-   include  Lm_hash.MakeHashMarshalEq (DirCompare)
+   include  Lm_hash.MakeFine (DirCompare)
    let abs_dir_name : t -> string  =
      let rec name buf dir =
        match get dir with
@@ -275,7 +275,7 @@ end
 
 and DirListHash : Lm_hash.HashMarshalEqSig with type elt = DirHash.t list 
   =
-  Lm_hash.MakeHashMarshalEq (DirListCompare);;
+  Lm_hash.MakeFine (DirListCompare);;
 
 
 module DirListSet = Lm_set.LmMake (DirListHash)
@@ -558,9 +558,9 @@ end
 and NodeHash :
    Lm_hash.HashMarshalEqSig
    with type elt = NodeElt.t
-   with type t = Lm_hash.MakeHashMarshalEq(NodeCompare).t
+   with type t = Lm_hash.MakeFine(NodeCompare).t
 =
-   Lm_hash.MakeHashMarshalEq (NodeCompare);;
+   Lm_hash.MakeFine (NodeCompare);;
 
 type node = NodeHash.t
 (* %%MAGICEND%% *)

@@ -120,7 +120,7 @@ end
 (*
  * Make a hash item.
  *)
-module MakeHashMarshal (Arg : MARSHAL)=
+module MakeCoarse (Arg : MARSHAL) =
 struct
    type elt = Arg.t
    type t = elt marshal_item
@@ -158,22 +158,19 @@ struct
    let () =
      stats := stat :: !stats
 
-   (*
-    * When creating an item, look it up in the table.
-    *)
-   let create_core elt =
-     let item : _ marshal_item =
-       { item_ref  = current_ref;
-         item_val  = elt;
-         item_hash = Arg.hash elt
-       }
-     in
-     try Table.find !table item with
-       Not_found ->
-       table := Table.add !table item item;
-       item
 
-   let create = Lm_thread.Synchronize.synchronize create_core
+   let create = Lm_thread.Synchronize.synchronize begin function elt -> 
+       let item : _ marshal_item =
+         { item_ref  = current_ref;
+           item_val  = elt;
+           item_hash = Arg.hash elt
+         }
+       in
+       try Table.find !table item with
+         Not_found ->
+         table := Table.add !table item item;
+         item
+     end
 
    let intern elt =
      Table.find !table { 
@@ -186,23 +183,23 @@ struct
     * Reintern.  This will take an item that may-or-may-not be hashed
     * and produce a new one that is hashed.
     *)
-   let reintern_core item1 =
-     stat.reintern <- succ stat.reintern;
-     try
-       let item2 = Table.find !table item1 in
-       if item2 != item1 then begin
-         item1.item_val <- item2.item_val;
-         item1.item_ref <- current_ref
-       end;
-       item2
-     with
-       Not_found ->
-       item1.item_val <- Arg.reintern item1.item_val;
-       item1.item_ref <- current_ref;
-       table := Table.add !table item1 item1;
-       item1
+   let reintern = Lm_thread.Synchronize.synchronize begin function item1 -> 
+       stat.reintern <-  stat.reintern + 1;
+       match Table.find !table item1 with 
+       | item2 -> 
+         (* assert (item2 = item1 ); *)
+         if item2 != item1 then begin
+           item1.item_val <- item2.item_val;
+           item1.item_ref <- current_ref
+         end;
+         item2
+       | exception Not_found ->
+         item1.item_val <- Arg.reintern item1.item_val;
+         item1.item_ref <- current_ref;
+         table := Table.add !table item1 item1;
+         item1
+     end
 
-   let reintern = Lm_thread.Synchronize.synchronize reintern_core
 
    (*
     * Access to the element.
@@ -213,8 +210,7 @@ struct
      else
        (reintern item).item_val
 
-   let hash item =
-     item.item_hash
+   let hash item = item.item_hash
 
    (*
     * String pointer-based comparison.
@@ -247,7 +243,7 @@ struct
 end
 
 
-module MakeHashMarshalEq (Arg : MARSHAL_EQ) =
+module MakeFine (Arg : MARSHAL_EQ) =
 struct
    type elt = Arg.t
    type t = elt marshal_eq_item
@@ -262,7 +258,7 @@ struct
       let reintern = Arg.reintern
    end;;
 
-   module Coarse = MakeHashMarshal (CoarseArg);;
+   module Coarse = MakeCoarse (CoarseArg);;
 
    (*
     * We fold the Coarse item into the fine
@@ -294,7 +290,7 @@ struct
                fine', coarse'
    end;;
 
-   module Fine = MakeHashMarshal (FineArg);;
+   module Fine = MakeCoarse (FineArg);;
 
    let create x =
       Fine.create (x, Coarse.create x)
