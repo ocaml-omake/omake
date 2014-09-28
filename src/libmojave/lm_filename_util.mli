@@ -1,7 +1,3 @@
-(*
- * Utilities on filenames.
- *
- *)
 
 (*
  * Search for the index after the drive letter.

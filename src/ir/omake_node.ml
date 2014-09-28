@@ -202,7 +202,7 @@ and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t =
 and DirHash :  sig 
   include Lm_hash.HashMarshalEqSig
   with type elt = DirElt.t
-  with type t = DirElt.t Lm_hash.marshal_eq_item
+  with type t =  Lm_hash.MakeHashMarshalEq(DirCompare).t
   val abs_dir_name : t -> string
 end
   = struct 
@@ -292,182 +292,184 @@ module DirListTable = Lm_map.LmMake (DirListHash)
  *)
 (* %%MAGICBEGIN%% *)
 type node_flag =
-   NodeIsOptional
- | NodeIsExisting
- | NodeIsSquashed
- | NodeIsScanner
+  | NodeIsOptional
+  | NodeIsExisting
+  | NodeIsSquashed
+  | NodeIsScanner
 
 (*
  * A node is a phony, or it is a filename.
  *)
-type node_elt =
-   NodeFile        of DirHash.t * FileCase.t * string
- | NodePhonyGlobal of string
- | NodePhonyDir    of DirHash.t * FileCase.t * string
- | NodePhonyFile   of DirHash.t * FileCase.t * string * string
- | NodeFlagged     of node_flag * node_elt Lm_hash.marshal_eq_item
+module rec NodeElt : sig
+  type t =
+    | NodeFile        of DirHash.t * FileCase.t * string
+    | NodePhonyGlobal of string
+    | NodePhonyDir    of DirHash.t * FileCase.t * string
+    | NodePhonyFile   of DirHash.t * FileCase.t * string * string
+    | NodeFlagged     of node_flag *  NodeHash.t
+end = NodeElt 
 (* %%MAGICEND%% *)
 
-module rec NodeCompare :
-sig include Lm_hash.MARSHAL_EQ with type t = node_elt
-   (* Include the default "compare" for the PreNodeSet *)
-   val compare : t -> t -> int
+and NodeCompare :
+sig include Lm_hash.MARSHAL_EQ with type t =  NodeElt.t
+  (* Include the default "compare" for the PreNodeSet *)
+  val compare : t -> t -> int
 end
 =
 struct
-   type t = node_elt;;
+  type t = NodeElt.t
 
-   let debug = "Node"
+  let debug = "Node"
 
    type code =
-      CodeSpace
-    | CodeEnd
-    | CodeNodeFile
-    | CodeNodePhonyGlobal
-    | CodeNodePhonyDir
-    | CodeNodePhonyFile
-    | CodeNodeFlagged
-    | CodeNodeIsOptional
-    | CodeNodeIsExisting
-    | CodeNodeIsSquashed
-    | CodeNodeIsScanner
+     | CodeSpace
+     | CodeEnd
+     | CodeNodeFile
+     | CodeNodePhonyGlobal
+     | CodeNodePhonyDir
+     | CodeNodePhonyFile
+     | CodeNodeFlagged
+     | CodeNodeIsOptional
+     | CodeNodeIsExisting
+     | CodeNodeIsSquashed
+     | CodeNodeIsScanner
 
    let add_code buf (code : code) =
-      Lm_hash_code.HashCode.add_bits buf (Obj.magic code)
+     Lm_hash_code.HashCode.add_bits buf (Obj.magic code)
 
    let add_flag_code buf code =
-      let code =
-         match code with
-            NodeIsOptional ->
-               CodeNodeIsOptional
-          | NodeIsExisting ->
-               CodeNodeIsExisting
-          | NodeIsSquashed ->
-               CodeNodeIsSquashed
-          | NodeIsScanner ->
-               CodeNodeIsScanner
-      in
-         add_code buf code
+     let code =
+       match code with
+         NodeIsOptional ->
+         CodeNodeIsOptional
+       | NodeIsExisting ->
+         CodeNodeIsExisting
+       | NodeIsSquashed ->
+         CodeNodeIsSquashed
+       | NodeIsScanner ->
+         CodeNodeIsScanner
+     in
+     add_code buf code
 
    module MakeNodeOps (Arg : sig
-      val add_dir : Lm_hash_code.HashCode.t -> DirHash.t -> unit
-      val add_node : Lm_hash_code.HashCode.t -> NodeHash.t -> unit
-      val add_filename : Lm_hash_code.HashCode.t -> FileCase.t -> string -> unit
-      val filename_compare : FileCase.t -> string -> FileCase.t -> string -> int
-      val node_compare : NodeHash.t -> NodeHash.t -> int
-      val dir_compare : DirHash.t -> DirHash.t -> int
-   end) = struct
-      open Arg
+                         val add_dir : Lm_hash_code.HashCode.t -> DirHash.t -> unit
+                         val add_node : Lm_hash_code.HashCode.t -> NodeHash.t -> unit
+                         val add_filename : Lm_hash_code.HashCode.t -> FileCase.t -> string -> unit
+                         val filename_compare : FileCase.t -> string -> FileCase.t -> string -> int
+                         val node_compare : NodeHash.t -> NodeHash.t -> int
+                         val dir_compare : DirHash.t -> DirHash.t -> int
+                       end) = struct
+     open Arg
 
-      let add_node buf node =
-         match node with
-            NodeFile (dir, name, raw_name) ->
-               add_code buf CodeNodeFile;
-               add_dir buf dir;
-               add_code buf CodeSpace;
-               add_filename buf name raw_name;
-               add_code buf CodeEnd
-          | NodePhonyGlobal name ->
-               add_code buf CodeNodePhonyGlobal;
-               Lm_hash_code.HashCode.add_string buf name;
-               add_code buf CodeEnd
-          | NodePhonyDir (dir, name, raw_name) ->
-               add_code buf CodeNodePhonyDir;
-               add_dir buf dir;
-               add_code buf CodeSpace;
-               add_filename buf name raw_name;
-               add_code buf CodeEnd
-          | NodePhonyFile (dir, key, raw_name, name) ->
-               add_code buf CodeNodePhonyFile;
-               add_dir buf dir;
-               add_code buf CodeSpace;
-               add_filename buf key raw_name;
-               add_code buf CodeSpace;
-               Lm_hash_code.HashCode.add_string buf name;
-               add_code buf CodeEnd
-          | NodeFlagged (flag, node) ->
-               add_code buf CodeNodeFlagged;
-               add_flag_code buf flag;
-               add_code buf CodeSpace;
-               add_node buf node;
-               add_code buf CodeEnd
+     let add_node buf (node : NodeElt.t) =
+       match node with
+       |NodeFile (dir, name, raw_name) ->
+         add_code buf CodeNodeFile;
+         add_dir buf dir;
+         add_code buf CodeSpace;
+         add_filename buf name raw_name;
+         add_code buf CodeEnd
+       | NodePhonyGlobal name ->
+         add_code buf CodeNodePhonyGlobal;
+         Lm_hash_code.HashCode.add_string buf name;
+         add_code buf CodeEnd
+       | NodePhonyDir (dir, name, raw_name) ->
+         add_code buf CodeNodePhonyDir;
+         add_dir buf dir;
+         add_code buf CodeSpace;
+         add_filename buf name raw_name;
+         add_code buf CodeEnd
+       | NodePhonyFile (dir, key, raw_name, name) ->
+         add_code buf CodeNodePhonyFile;
+         add_dir buf dir;
+         add_code buf CodeSpace;
+         add_filename buf key raw_name;
+         add_code buf CodeSpace;
+         Lm_hash_code.HashCode.add_string buf name;
+         add_code buf CodeEnd
+       | NodeFlagged (flag, node) ->
+         add_code buf CodeNodeFlagged;
+         add_flag_code buf flag;
+         add_code buf CodeSpace;
+         add_node buf node;
+         add_code buf CodeEnd
 
-      let hash node =
-         let buf = Lm_hash_code.HashCode.create () in
-            add_node buf node;
-            Lm_hash_code.HashCode.code buf
+     let hash node =
+       let buf = Lm_hash_code.HashCode.create () in
+       add_node buf node;
+       Lm_hash_code.HashCode.code buf
 
-      let compare_flags flag1 flag2 =
-         match flag1, flag2 with
-            NodeIsOptional, NodeIsOptional
-          | NodeIsExisting, NodeIsExisting
-          | NodeIsSquashed, NodeIsSquashed
-          | NodeIsScanner,  NodeIsScanner ->
-               0
-          | NodeIsOptional, NodeIsExisting
-          | NodeIsOptional, NodeIsSquashed
-          | NodeIsOptional, NodeIsScanner
-          | NodeIsExisting, NodeIsSquashed
-          | NodeIsExisting, NodeIsScanner
-          | NodeIsSquashed, NodeIsScanner ->
-               -1
-          | NodeIsExisting, NodeIsOptional
-          | NodeIsSquashed, NodeIsOptional
-          | NodeIsScanner,  NodeIsOptional
-          | NodeIsSquashed, NodeIsExisting
-          | NodeIsScanner,  NodeIsExisting
-          | NodeIsScanner,  NodeIsSquashed ->
-               1
+     let compare_flags flag1 flag2 =
+       match flag1, flag2 with
+         NodeIsOptional, NodeIsOptional
+       | NodeIsExisting, NodeIsExisting
+       | NodeIsSquashed, NodeIsSquashed
+       | NodeIsScanner,  NodeIsScanner ->
+         0
+       | NodeIsOptional, NodeIsExisting
+       | NodeIsOptional, NodeIsSquashed
+       | NodeIsOptional, NodeIsScanner
+       | NodeIsExisting, NodeIsSquashed
+       | NodeIsExisting, NodeIsScanner
+       | NodeIsSquashed, NodeIsScanner ->
+         -1
+       | NodeIsExisting, NodeIsOptional
+       | NodeIsSquashed, NodeIsOptional
+       | NodeIsScanner,  NodeIsOptional
+       | NodeIsSquashed, NodeIsExisting
+       | NodeIsScanner,  NodeIsExisting
+       | NodeIsScanner,  NodeIsSquashed ->
+         1
 
-      let compare node1 node2 =
-         match node1, node2 with
-            NodeFile (dir1, key1, name1), NodeFile (dir2, key2, name2)
-          | NodePhonyDir (dir1, key1, name1), NodePhonyDir (dir2, key2, name2) ->
-               let cmp = filename_compare key1 name1 key2 name2 in
-                  if cmp = 0 then
-                     dir_compare dir1 dir2
-                  else
-                     cmp
-          | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
-               Lm_string_util.string_compare name1 name2
-          | NodePhonyFile (dir1, key1, name1, exname1), NodePhonyFile (dir2, key2, name2, exname2) ->
-               let cmp = Lm_string_util.string_compare exname1 exname2 in
-                  if cmp = 0 then
-                     let cmp = filename_compare key1 name1 key2 name2 in
-                        if cmp = 0 then
-                           dir_compare dir1 dir2
-                        else
-                           cmp
-                  else
-                     cmp
-          | NodeFlagged (flag1, node1), NodeFlagged (flag2, _) ->
-               let cmp = compare_flags flag1 flag2 in
-                  if cmp = 0 then
-                     node_compare node1 node1 (* TODO bug? *)
-                  else
-                     cmp
-          | NodeFile _,        NodePhonyGlobal _
-          | NodeFile _,        NodePhonyDir _
-          | NodeFile _,        NodePhonyFile _
-          | NodeFile _,        NodeFlagged _
-          | NodePhonyGlobal _, NodePhonyDir _
-          | NodePhonyGlobal _, NodePhonyFile _
-          | NodePhonyGlobal _, NodeFlagged _
-          | NodePhonyDir _,    NodePhonyFile _
-          | NodePhonyDir _,    NodeFlagged _
-          | NodePhonyFile _,   NodeFlagged _ ->
-               -1
-          | NodeFlagged _,      NodeFile _
-          | NodePhonyGlobal _,  NodeFile _
-          | NodePhonyDir _,     NodeFile _
-          | NodePhonyFile _,    NodeFile _
-          | NodeFlagged _,      NodePhonyGlobal _
-          | NodePhonyDir _,     NodePhonyGlobal _
-          | NodePhonyFile _,    NodePhonyGlobal _
-          | NodeFlagged _,      NodePhonyDir _
-          | NodePhonyFile _,    NodePhonyDir _
-          | NodeFlagged _,      NodePhonyFile _ ->
-               1
+     let compare (node1 : NodeElt.t) (node2 : NodeElt.t) =
+       match node1, node2 with
+       | NodeFile (dir1, key1, name1), NodeFile (dir2, key2, name2)
+       | NodePhonyDir (dir1, key1, name1), NodePhonyDir (dir2, key2, name2) ->
+         let cmp = filename_compare key1 name1 key2 name2 in
+         if cmp = 0 then
+           dir_compare dir1 dir2
+         else
+           cmp
+       | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
+         Lm_string_util.string_compare name1 name2
+       | NodePhonyFile (dir1, key1, name1, exname1), NodePhonyFile (dir2, key2, name2, exname2) ->
+         let cmp = Lm_string_util.string_compare exname1 exname2 in
+         if cmp = 0 then
+           let cmp = filename_compare key1 name1 key2 name2 in
+           if cmp = 0 then
+             dir_compare dir1 dir2
+           else
+             cmp
+         else
+           cmp
+       | NodeFlagged (flag1, node1), NodeFlagged (flag2, _) ->
+         let cmp = compare_flags flag1 flag2 in
+         if cmp = 0 then
+           node_compare node1 node1 (* TODO bug? *)
+         else
+           cmp
+       | NodeFile _,        NodePhonyGlobal _
+       | NodeFile _,        NodePhonyDir _
+       | NodeFile _,        NodePhonyFile _
+       | NodeFile _,        NodeFlagged _
+       | NodePhonyGlobal _, NodePhonyDir _
+       | NodePhonyGlobal _, NodePhonyFile _
+       | NodePhonyGlobal _, NodeFlagged _
+       | NodePhonyDir _,    NodePhonyFile _
+       | NodePhonyDir _,    NodeFlagged _
+       | NodePhonyFile _,   NodeFlagged _ ->
+         -1
+       | NodeFlagged _,      NodeFile _
+       | NodePhonyGlobal _,  NodeFile _
+       | NodePhonyDir _,     NodeFile _
+       | NodePhonyFile _,    NodeFile _
+       | NodeFlagged _,      NodePhonyGlobal _
+       | NodePhonyDir _,     NodePhonyGlobal _
+       | NodePhonyFile _,    NodePhonyGlobal _
+       | NodeFlagged _,      NodePhonyDir _
+       | NodePhonyFile _,    NodePhonyDir _
+       | NodeFlagged _,      NodePhonyFile _ ->
+         1
    end;;
 
    (*
@@ -521,9 +523,9 @@ struct
    let fine_hash = FineOps.hash
    let compare = Ops.compare (* for the PreNodeSet *)
 
-   let reintern node =
+   let reintern (node : NodeElt.t) =
       match node with
-         NodeFile (dir1, key, name) ->
+      | NodeFile (dir1, key, name) ->
             let dir2 = DirHash.reintern dir1 in
                if dir2 == dir1 then
                   node
@@ -554,8 +556,8 @@ end
 (* %%MAGICBEGIN%% *)
 and NodeHash :
    Lm_hash.HashMarshalEqSig
-   with type elt = node_elt
-   with type t = node_elt Lm_hash.marshal_eq_item
+   with type elt = NodeElt.t
+   with type t = Lm_hash.MakeHashMarshalEq(NodeCompare).t
 =
    Lm_hash.MakeHashMarshalEq (NodeCompare);;
 
@@ -877,11 +879,11 @@ let rec resolve_mount_dir dir_dst dir_src dir =
                DirHash.create (DirSub (key, name, parent))
 
 let rec resolve_mount_node dir_dst dir_src node =
-   let node =
+   let node : NodeElt.t =
       match NodeHash.get node with
-         NodeFile (dir, key, name) ->
+      | NodeFile (dir, key, name) ->
             let dir = resolve_mount_dir dir_dst dir_src dir in
-               NodeFile (dir, key, name)
+            NodeFile (dir, key, name)
        | NodePhonyDir (dir, key, name) ->
             let dir = resolve_mount_dir dir_dst dir_src dir in
                NodePhonyDir (dir, key, name)
@@ -1112,7 +1114,7 @@ let no_mount_info =
 
 module Node =
 struct
-   type pre   = node_elt
+   type pre   = NodeElt.t
    type t     = node
    type dir   = Dir.t
    type mount = Mount.t
@@ -1382,7 +1384,7 @@ struct
       List [Magic NodeFlaggedMagic; marshal_flag flag; marshal node]
 
   let rec unmarshal (l : Lm_marshal.msg) =
-    let node =
+    let node : NodeElt.t =
       match l with
       | List [Magic Lm_marshal.NodeFileMagic; dir; name1; String name2] ->
         NodeFile (Dir.unmarshal dir, FileCase.unmarshal name1, name2)
@@ -1506,33 +1508,34 @@ end
  * node if it does not already exist.
  *)
 let create_node_or_phony phonies mount_info mount phony_ok dir name =
-   match parse_phony_name name, phony_ok with
-   | PhonyDirString name, Omake_node_sig.PhonyOK
-   | PhonyDirString name, PhonyExplicit ->
-     let dir, key, name = new_file dir name in
-     NodeHash.create (NodePhonyDir (dir, key, name))
-   | PhonyGlobalString name, PhonyOK
-   | PhonyGlobalString name, PhonyExplicit ->
-     NodeHash.create (NodePhonyGlobal name)
-   | PhonyDirString _, PhonyProhibited
-   | PhonyGlobalString _, PhonyProhibited ->
-     raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
-   | PhonySimpleString, PhonyOK ->
-     (* Try PhonyDir first *)
-     let node = NodePhonyDir (dir, FileCase.create dir name, name) in
-            if PreNodeSet.mem phonies node then
-               NodeHash.create node
-            else
-               (* Try PhonyGlobal next *)
-               let node = NodePhonyGlobal name in
-                  if PreNodeSet.mem phonies node then
-                     NodeHash.create node
-                  else
-                     Node.create_node mount_info mount dir name
-    | PhonySimpleString, PhonyExplicit
-    | PhonySimpleString, PhonyProhibited
-    | PhonyPathString, _ ->
-         Node.create_node mount_info mount dir name
+  match parse_phony_name name, phony_ok with
+  | PhonyDirString name, Omake_node_sig.PhonyOK
+  | PhonyDirString name, PhonyExplicit ->
+    let dir, key, name = new_file dir name in
+    NodeHash.create (NodePhonyDir (dir, key, name))
+  | PhonyGlobalString name, PhonyOK
+  | PhonyGlobalString name, PhonyExplicit ->
+    NodeHash.create (NodePhonyGlobal name)
+  | PhonyDirString _, PhonyProhibited
+  | PhonyGlobalString _, PhonyProhibited ->
+    raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
+  | PhonySimpleString, PhonyOK ->
+    (* Try PhonyDir first *)
+    let node : NodeElt.t  =
+      NodePhonyDir (dir, FileCase.create dir name, name) in
+    if PreNodeSet.mem phonies node then
+      NodeHash.create node
+    else
+      (* Try PhonyGlobal next *)
+      let node : NodeElt.t  = NodePhonyGlobal name in
+      if PreNodeSet.mem phonies node then
+        NodeHash.create node
+      else
+        Node.create_node mount_info mount dir name
+  | PhonySimpleString, PhonyExplicit
+  | PhonySimpleString, PhonyProhibited
+  | PhonyPathString, _ ->
+    Node.create_node mount_info mount dir name
 
 (*
  * Print the directory, for debugging.

@@ -10,9 +10,6 @@
    BUG: we break abstraction here a little because
    it is hard to define the type recursively otherwise.
  *)
-type 'a marshal_item
-
-type 'a marshal_eq_item
 
 module type MARSHAL = 
 sig
@@ -91,7 +88,7 @@ end
 module MakeHashMarshal (Arg : MARSHAL)
 : HashMarshalSig
    with type elt = Arg.t
-   with type t = Arg.t marshal_item
+
 
 (**  A variant with two equalities (see Lm_hash_sig for detail)
      Here we assume that the argument type has two notions of equality:
@@ -110,7 +107,7 @@ module MakeHashMarshal (Arg : MARSHAL)
 module MakeHashMarshalEq (Arg : MARSHAL_EQ)
 : HashMarshalEqSig
    with type elt = Arg.t
-   with type t = Arg.t marshal_eq_item
+
 
 val pp_print_stats : Format.formatter -> unit
 
