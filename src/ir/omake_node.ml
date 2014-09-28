@@ -129,7 +129,7 @@ end   =
 (*
  * Sets and tables.
  *)
-and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t =
+and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t=
   struct
     type t = DirElt.t
 
@@ -207,7 +207,7 @@ and DirHash :  sig
 end
   = struct 
    include  Lm_hash.MakeHashMarshalEq (DirCompare)
-   let abs_dir_name =
+   let abs_dir_name : t -> string  =
      let rec name buf dir =
        match get dir with
          DirRoot root ->
@@ -215,9 +215,8 @@ end
        | DirSub (key, _, parent) ->
          name buf parent;
          begin match get parent with
-             DirRoot _ ->
-             ()
-           | _ ->
+         | DirRoot _ -> ()
+         | _ ->
              Buffer.add_string buf Filename.dir_sep 
          end;
          FileCase.add_filename_string buf key
@@ -230,9 +229,11 @@ end
 end
 
 and DirSet   : Lm_set_sig.LmSet with
-  type elt = DirHash.t = Lm_set.LmMake (DirHash)
+  type elt = DirHash.t 
+  = Lm_set.LmMake (DirHash)
 
-and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
+and DirTable : Lm_map_sig.LmMap with type key = DirHash.t
+  = Lm_map.LmMake (DirHash)
 
 
 (* %%MAGICEND%% *)

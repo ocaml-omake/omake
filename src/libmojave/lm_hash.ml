@@ -13,7 +13,8 @@ type 'a marshal_item =
  * must be a refinement of the coarse equality.
  *)
 (* %%MAGICBEGIN%% *)
-type 'a marshal_eq_item = ('a * 'a marshal_item) marshal_item
+type 'a marshal_eq_item =
+  ('a * 'a marshal_item) marshal_item
 (* %%MAGICEND%% *)
 
 (*
@@ -129,7 +130,7 @@ struct
    struct
       type t = elt marshal_item
 
-      let compare item1 item2 =
+      let compare (item1 : t) (item2 : t) =
          let hash1 = item1.item_hash in
          let hash2 = item2.item_hash in
             if hash1 < hash2 then
@@ -161,7 +162,7 @@ struct
     * When creating an item, look it up in the table.
     *)
    let create_core elt =
-     let item =
+     let item : _ marshal_item =
        { item_ref  = current_ref;
          item_val  = elt;
          item_hash = Arg.hash elt
@@ -206,7 +207,7 @@ struct
    (*
     * Access to the element.
     *)
-   let get item =
+   let get (item : _ marshal_item) =
      if item.item_ref == current_ref then
        item.item_val
      else
@@ -218,7 +219,7 @@ struct
    (*
     * String pointer-based comparison.
     *)
-   let compare item1 item2 =
+   let compare (item1 : t) (item2 : t) =
      stat.compare <- succ stat.compare;
      let hash1 = item1.item_hash in
      let hash2 = item2.item_hash in
@@ -241,7 +242,7 @@ struct
          cmp
        end
 
-   let equal item1 item2 =
+   let equal (item1 : t) (item2 : t) =
      (item1 == item2) || (item1.item_hash = item2.item_hash && get item1 == get item2)
 end
 
@@ -307,10 +308,10 @@ struct
    (*
     * The default functions are the coarse versions.
     *)
-   let get_coarse info =
+   let get_coarse (info : t) =
       snd (Fine.get info)
 
-   let hash info =
+   let hash (info : t) : int =
       Coarse.hash (get_coarse info)
 
    let compare item1 item2 =
