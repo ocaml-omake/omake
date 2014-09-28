@@ -50,8 +50,8 @@ struct
       ()
 end
 
-module MutexCoreDebug = MutexCore
-module ConditionCoreDebug = ConditionCore
+(* module MutexCoreDebug = MutexCore *)
+(* module ConditionCoreDebug = ConditionCore *)
 
 (*
  * Threads are null.  The create function doesn't work without

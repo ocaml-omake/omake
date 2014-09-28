@@ -9,5 +9,5 @@ module ThreadCore    : ThreadSig
  *)
 val debug_mutex: bool ref
 
-module MutexCoreDebug     : MutexSig
-module ConditionCoreDebug : ConditionSig with type mutex = MutexCoreDebug.t
+(* module MutexCoreDebug     : MutexSig *)
+(* module ConditionCoreDebug : ConditionSig with type mutex = MutexCoreDebug.t *)

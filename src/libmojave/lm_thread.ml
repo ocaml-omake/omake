@@ -1,53 +1,18 @@
-(*
- * Our personal implementation of threads.  Each thread has
- * thread-local state.
- *
- * ----------------------------------------------------------------
- *
- * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Instititue of Technology, and
- * HRL Laboratories, LLC
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation,
- * version 2.1 of the License.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * Additional permission is given to link this library with the
- * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
- * and you may distribute the linked executables.  See the file
- * LICENSE.libmojave for more details.
- *
- * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{anogin@hrl.com}
- * @end[license]
- *)
-open Lm_debug
-open Lm_printf
+(** Our personal implementation of threads.  Each thread has
+    thread-local state. *)
 
-open Lm_thread_core
-open Lm_int_set
 
 let debug_lock =
-   create_debug (**)
+   Lm_debug.create_debug (**)
       { debug_name = "lock";
         debug_description = "Show locking operations";
         debug_value = false
       }
 
-module Mutex = MutexCore
-module Condition = ConditionCore
-module MutexDebug = MutexCoreDebug
-module ConditionDebug = ConditionCoreDebug
+module Mutex = Lm_thread_core.MutexCore
+module Condition = Lm_thread_core.ConditionCore
+(* module MutexDebug = MutexCoreDebug *)
+(* module ConditionDebug = ConditionCoreDebug *)
 
 (*
  * The state identifier is just an integer.
@@ -96,7 +61,7 @@ type 'a handle =
      mutable handle_state      : handle_state;
      mutable handle_readers    : int;
      mutable handle_writers    : int;
-     mutable handle_active     : handle_mode IntTable.t
+     mutable handle_active     : handle_mode Lm_int_set.IntTable.t
    }
 
 (*
@@ -107,8 +72,8 @@ type 'a info =
    { info_default         : 'a;
      info_debug           : string;
      info_fork            : ('a -> 'a);
-     mutable info_forks   : IntSet.t;
-     mutable info_entries : 'a handle IntTable.t
+     mutable info_forks   : Lm_int_set.IntSet.t;
+     mutable info_entries : 'a handle Lm_int_set.IntTable.t
    }
 
 (*
@@ -129,11 +94,11 @@ type 'a entry =
 type state =
    { state_lock               : Mutex.t;
      mutable state_index      : int;
-     mutable state_threads    : thread IntTable.t
+     mutable state_threads    : thread Lm_int_set.IntTable.t
    }
 
 let state =
-   let thread_id = ThreadCore.id (ThreadCore.self ()) in
+   let thread_id = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
    let current =
       { thread_id     = thread_id;
         thread_parent = thread_id;
@@ -142,7 +107,7 @@ let state =
       }
    in
       { state_lock    = Mutex.create "Lm_thread.state";
-        state_threads = IntTable.add IntTable.empty thread_id current;
+        state_threads = Lm_int_set.IntTable.add Lm_int_set.IntTable.empty thread_id current;
         state_index   = 2
       }
 
@@ -150,26 +115,26 @@ let state =
  * Debugging.
  *)
 let print_thread_id out =
-   fprintf out "%d" (ThreadCore.id (ThreadCore.self ()))
+   Format.fprintf out "%d" (Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()))
 
 (*
  * Perform something with the state lock.
  *)
 let with_lock debug f x =
    if !debug_lock then
-      eprintf "\tLocking: %t: %s@." print_thread_id debug;
+      Format.eprintf "\tLocking: %t: %s@." print_thread_id debug;
    Mutex.lock state.state_lock;
    try
       let result = f x in
          Mutex.unlock state.state_lock;
          if !debug_lock then
-            eprintf "\tUnlocking: %t: %s@." print_thread_id debug;
+            Format.eprintf "\tUnlocking: %t: %s@." print_thread_id debug;
          result
    with
       exn ->
          Mutex.unlock state.state_lock;
          if !debug_lock then
-            eprintf "Unlocking: %t: %s (exception)@." print_thread_id debug;
+            Format.eprintf "Unlocking: %t: %s (exception)@." print_thread_id debug;
          raise exn
 
 (*
@@ -177,19 +142,19 @@ let with_lock debug f x =
  *)
 let with_unlock debug f x =
    if !debug_lock then
-      eprintf "\tUnlocking temporarily: %t: %s@." print_thread_id debug;
+      Format.eprintf "\tUnlocking temporarily: %t: %s@." print_thread_id debug;
    Mutex.unlock state.state_lock;
    try
       let result = f x in
          Mutex.lock state.state_lock;
          if !debug_lock then
-            eprintf "\tRelocking: %t: %s@." print_thread_id debug;
+            Format.eprintf "\tRelocking: %t: %s@." print_thread_id debug;
          result
    with
       exn ->
          Mutex.lock state.state_lock;
          if !debug_lock then
-            eprintf "Relocking: %t: %s (exception)@." print_thread_id debug;
+            Format.eprintf "Relocking: %t: %s (exception)@." print_thread_id debug;
          raise exn
 
 (*
@@ -197,17 +162,17 @@ let with_unlock debug f x =
  * The thread uses the same state as its parent.
  *)
 let create_thread f x =
-   let parent = ThreadCore.id (ThreadCore.self ()) in
+   let parent = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
    let pthread =
-      try IntTable.find state.state_threads parent with
+      try Lm_int_set.IntTable.find state.state_threads parent with
          Not_found ->
             raise (Invalid_argument "Thread.create: current thread is unknown")
    in
    let start () =
-      let id = ThreadCore.id (ThreadCore.self ()) in
+      let id = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
       let cleanup () =
          with_lock "create_thread.cleanup" (fun () ->
-               state.state_threads <- IntTable.remove state.state_threads id) ()
+               state.state_threads <- Lm_int_set.IntTable.remove state.state_threads id) ()
       in
          (* Set up the new state *)
          with_lock "create_thread.start" (fun () ->
@@ -218,7 +183,7 @@ let create_thread f x =
                     thread_state  = pthread.thread_state
                   }
                in
-                  state.state_threads <- IntTable.add state.state_threads id thread) ();
+                  state.state_threads <- Lm_int_set.IntTable.add state.state_threads id thread) ();
 
          (* Run the function, and clean up afterwards *)
          try
@@ -226,12 +191,12 @@ let create_thread f x =
             cleanup ()
          with
             exn ->
-               eprintf "Uncaught thread exception: %s@." (Printexc.to_string exn);
+               Format.eprintf "Uncaught thread exception: %s@." (Printexc.to_string exn);
                cleanup ()
    in
-   let child = ThreadCore.create start () in
+   let child = Lm_thread_core.ThreadCore.create start () in
       if !debug_lock then
-         eprintf "Started child %i from thread %t@." (ThreadCore.id child) print_thread_id;
+         Format.eprintf "Started child %i from thread %t@." (Lm_thread_core.ThreadCore.id child) print_thread_id;
       child
 
 (*
@@ -239,13 +204,13 @@ let create_thread f x =
  * Every thread must have some info.
  *)
 let get_thread_info () =
-   let tid = ThreadCore.id (ThreadCore.self ()) in
-      try IntTable.find state.state_threads tid with
+   let tid = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
+      try Lm_int_set.IntTable.find state.state_threads tid with
          Not_found ->
             raise (Invalid_argument "Lm_thread.get_thread_info: unknown thread")
 
 let get_parent_info thread =
-   try IntTable.find state.state_threads thread.thread_parent with
+   try Lm_int_set.IntTable.find state.state_threads thread.thread_parent with
       Not_found ->
          raise (Invalid_argument "Lm_thread.get_thread_info: unknown parent thread")
 
@@ -320,17 +285,17 @@ let release handle =
  *)
 let rec fork_handle thread info =
    let state_id = thread.thread_state in
-      try IntTable.find info.info_entries state_id with
+      try Lm_int_set.IntTable.find info.info_entries state_id with
          Not_found ->
             if !debug_lock then
-               eprintf "Forking handle: %s: state=%d parent=%d this=%d@." (**)
+               Format.eprintf "Forking handle: %s: state=%d parent=%d this=%d@." (**)
                   info.info_debug
                   state_id
                   thread.thread_parent
                   thread.thread_id;
 
             (* Prevent recursion *)
-            let () = info.info_forks <- IntSet.add info.info_forks state_id in
+            let () = info.info_forks <- Lm_int_set.IntSet.add info.info_forks state_id in
 
             (* Get the new value *)
             let handle_value =
@@ -352,17 +317,17 @@ let rec fork_handle thread info =
                  handle_queue      = Queue.create ();
                  handle_readers    = 0;
                  handle_writers    = 0;
-                 handle_active     = IntTable.empty
+                 handle_active     = Lm_int_set.IntTable.empty
                }
             in
                if !debug_lock then
-                  eprintf "Forked handle: %s: state=%d parent=%d this=%d@." (**)
+                  Format.eprintf "Forked handle: %s: state=%d parent=%d this=%d@." (**)
                      handle.handle_debug
                      state_id
                      thread.thread_parent
                      thread.thread_id;
-               info.info_entries <- IntTable.add info.info_entries state_id handle;
-               info.info_forks <- IntSet.remove info.info_forks state_id;
+               info.info_entries <- Lm_int_set.IntTable.add info.info_entries state_id handle;
+               info.info_forks <- Lm_int_set.IntSet.remove info.info_forks state_id;
                fork_handle thread info
 
 let handle_of_info thread info =
@@ -377,7 +342,7 @@ let get_handle thread entry =
             handle_of_info thread info
    in
       if !debug_lock then
-         eprintf "get_handle: %s@." handle.handle_debug;
+         Format.eprintf "get_handle: %s@." handle.handle_debug;
       handle
 
 (*
@@ -388,19 +353,19 @@ let read_lock thread handle =
          if handle.handle_writers <> 0 then
             begin
                if !debug_lock then
-                  eprintf "read_lock: %t: %s: waiting@." print_thread_id handle.handle_debug;
+                  Format.eprintf "read_lock: %t: %s: waiting@." print_thread_id handle.handle_debug;
                Queue.add (RequestRead thread) handle.handle_queue;
                Condition.wait thread.thread_cond state.state_lock
             end;
          handle.handle_state   <- HandleReading;
          handle.handle_readers <- succ handle.handle_readers;
-         handle.handle_active  <- IntTable.add handle.handle_active thread.thread_id ModeReading) ()
+         handle.handle_active  <- Lm_int_set.IntTable.add handle.handle_active thread.thread_id ModeReading) ()
 
 let read_unlock thread handle =
    with_lock "read_unlock" (fun () ->
          let count = pred handle.handle_readers in
             handle.handle_readers <- count;
-            handle.handle_active <- IntTable.remove handle.handle_active thread.thread_id;
+            handle.handle_active <- Lm_int_set.IntTable.remove handle.handle_active thread.thread_id;
             if count = 0 then
                begin
                   handle.handle_state <- HandleUnlocked;
@@ -423,19 +388,19 @@ let read_wrap thread handle f =
          raise exn
 
 let read_thread_handle thread handle f =
-   if IntTable.mem handle.handle_active thread.thread_id then
+   if Lm_int_set.IntTable.mem handle.handle_active thread.thread_id then
       f handle.handle_value
    else
       read_wrap thread handle f
 
 let read entry f =
    if !debug_lock then
-      eprintf "Read: %t: enter@." print_thread_id;
+      Format.eprintf "Read: %t: enter@." print_thread_id;
    let thread = get_thread_info () in
    let handle = get_handle thread entry in
    let x = read_thread_handle thread handle f in
       if !debug_lock then
-         eprintf "Read: %t: %s: end@." print_thread_id handle.handle_debug;
+         Format.eprintf "Read: %t: %s: end@." print_thread_id handle.handle_debug;
       x
 
 (*
@@ -443,31 +408,31 @@ let read entry f =
  *)
 let write_lock thread handle =
    if !debug_lock then
-      eprintf "write_lock: %t: begin@." print_thread_id;
+      Format.eprintf "write_lock: %t: begin@." print_thread_id;
    with_lock "write_lock" (fun () ->
          handle.handle_writers <- succ handle.handle_writers;
          if handle.handle_state <> HandleUnlocked then
             begin
                if !debug_lock then
-                  eprintf "write_lock: %t: waiting@." print_thread_id;
+                  Format.eprintf "write_lock: %t: waiting@." print_thread_id;
                Queue.add (RequestWrite thread) handle.handle_queue;
                Condition.wait thread.thread_cond state.state_lock
             end;
          handle.handle_state <- HandleWriting;
-         handle.handle_active <- IntTable.add handle.handle_active thread.thread_id ModeWriting) ()
+         handle.handle_active <- Lm_int_set.IntTable.add handle.handle_active thread.thread_id ModeWriting) ()
 
 let write_unlock thread handle =
    if !debug_lock then
-      eprintf "write_unlock: %t: begin@." print_thread_id;
+      Format.eprintf "write_unlock: %t: begin@." print_thread_id;
    with_lock "write_unlock" (fun () ->
          handle.handle_state <- HandleUnlocked;
          handle.handle_writers <- pred handle.handle_writers;
-         handle.handle_active <- IntTable.remove handle.handle_active thread.thread_id;
+         handle.handle_active <- Lm_int_set.IntTable.remove handle.handle_active thread.thread_id;
          release handle) ()
 
 let write_wrap thread handle f =
    if !debug_lock then
-      eprintf "write_wrap: %t: begin@." print_thread_id;
+      Format.eprintf "write_wrap: %t: begin@." print_thread_id;
    write_lock thread handle;
    try
       let x = f handle.handle_value in
@@ -476,14 +441,14 @@ let write_wrap thread handle f =
    with
       exn ->
          if !debug_lock then
-            eprintf "write_wrap: %t: exception@." print_thread_id;
+            Format.eprintf "write_wrap: %t: exception@." print_thread_id;
          write_unlock thread handle;
          raise exn
 
 let write_thread_handle thread handle f =
    let locked =
       try
-         match IntTable.find handle.handle_active thread.thread_id with
+         match Lm_int_set.IntTable.find handle.handle_active thread.thread_id with
             ModeReading ->
                raise (Invalid_argument "State.write: handle already has a read lock")
           | ModeWriting ->
@@ -495,14 +460,14 @@ let write_thread_handle thread handle f =
       if locked then
          if !debug_lock then
             begin
-               eprintf "write_thread_handle: %t: begin: already locked@." print_thread_id;
+               Format.eprintf "write_thread_handle: %t: begin: already locked@." print_thread_id;
                try
                   let x = f handle.handle_value in
-                     eprintf "write_thread_handle: %t: end: already locked@." print_thread_id;
+                     Format.eprintf "write_thread_handle: %t: end: already locked@." print_thread_id;
                      x
                with
                   exn ->
-                     eprintf "write_thread_handle: %t: end: already locked (exception)@." print_thread_id;
+                     Format.eprintf "write_thread_handle: %t: end: already locked (exception)@." print_thread_id;
                      raise exn
             end
          else
@@ -512,14 +477,14 @@ let write_thread_handle thread handle f =
 
 let write entry f =
    if !debug_lock then
-      eprintf "Write: %t: enter@." print_thread_id;
+      Format.eprintf "Write: %t: enter@." print_thread_id;
    let thread = get_thread_info () in
    let handle = get_handle thread entry in
       if !debug_lock then
-         eprintf "Writing begin: %t: %s: writers = %d@." print_thread_id handle.handle_debug handle.handle_writers;
+         Format.eprintf "Writing begin: %t: %s: writers = %d@." print_thread_id handle.handle_debug handle.handle_writers;
       let x = write_thread_handle thread handle f in
          if !debug_lock then
-            eprintf "Writing end: %t: %s: writers = %d@." print_thread_id handle.handle_debug handle.handle_writers;
+            Format.eprintf "Writing end: %t: %s: writers = %d@." print_thread_id handle.handle_debug handle.handle_writers;
          x
 
 (*
@@ -527,7 +492,7 @@ let write entry f =
  *)
 let unlock_unlock thread handle =
    let mode =
-      try IntTable.find handle.handle_active thread.thread_id with
+      try Lm_int_set.IntTable.find handle.handle_active thread.thread_id with
          Not_found ->
             raise (Invalid_argument "State.unlock: thread does not have a lock")
    in
@@ -563,12 +528,12 @@ let unlock_thread_handle thread handle f =
 
 let unlock entry f =
    if !debug_lock then
-      eprintf "Unlock: %t: begin@." print_thread_id;
+      Format.eprintf "Unlock: %t: begin@." print_thread_id;
    let thread = get_thread_info () in
    let handle = get_handle thread entry in
    let x = unlock_thread_handle thread handle f in
       if !debug_lock then
-         eprintf "Unlock: %t: %s: end@." print_thread_id handle.handle_debug;
+         Format.eprintf "Unlock: %t: %s: end@." print_thread_id handle.handle_debug;
       x
 
 (*
@@ -576,19 +541,19 @@ let unlock entry f =
  * Verify that this thread has a lock on the object.
  *)
 let get_thread_handle thread handle =
-   if IntTable.mem handle.handle_active thread.thread_id then
+   if Lm_int_set.IntTable.mem handle.handle_active thread.thread_id then
       handle.handle_value
    else
       raise (Invalid_argument (Printf.sprintf "State.get: %s: entry is not locked" handle.handle_debug))
 
 let get entry =
    if !debug_lock then
-      eprintf "Get: %t: begin@." print_thread_id;
+      Format.eprintf "Get: %t: begin@." print_thread_id;
    let thread = get_thread_info () in
    let handle = get_handle thread entry in
    let x = get_thread_handle thread handle in
       if !debug_lock then
-         eprintf "Get: %t: %s: end@." print_thread_id handle.handle_debug;
+         Format.eprintf "Get: %t: %s: end@." print_thread_id handle.handle_debug;
       x
 
 (*
@@ -602,7 +567,7 @@ let shared_val debug x =
         handle_queue      = Queue.create ();
         handle_readers    = 0;
         handle_writers    = 0;
-        handle_active     = IntTable.empty
+        handle_active     = Lm_int_set.IntTable.empty
       }
    in
       EntryShared handle
@@ -617,8 +582,8 @@ let private_val debug x fork =
       { info_default = x;
         info_debug   = debug;
         info_fork    = fork;
-        info_forks   = IntSet.empty;
-        info_entries = IntTable.empty
+        info_forks   = Lm_int_set.IntSet.empty;
+        info_entries = Lm_int_set.IntTable.empty
       }
    in
       EntryPrivate info
@@ -628,16 +593,16 @@ let private_val debug x fork =
  *)
 module Thread =
 struct
-   type t = ThreadCore.t
+   type t = Lm_thread_core.ThreadCore.t
    type id = int
 
-   let enabled = ThreadCore.enabled
+   let enabled = Lm_thread_core.ThreadCore.enabled
    let create = create_thread
-   let self = ThreadCore.self
-   let join = ThreadCore.join
-   let id = ThreadCore.id
-   let sigmask = ThreadCore.sigmask
-   let raise_ctrl_c_wrapper = ThreadCore.raise_ctrl_c_wrapper
+   let self = Lm_thread_core.ThreadCore.self
+   let join = Lm_thread_core.ThreadCore.join
+   let id = Lm_thread_core.ThreadCore.id
+   let sigmask = Lm_thread_core.ThreadCore.sigmask
+   let raise_ctrl_c_wrapper = Lm_thread_core.ThreadCore.raise_ctrl_c_wrapper
 end
 
 (*
@@ -671,8 +636,51 @@ struct
 end
 
 (*
- * -*-
- * Local Variables:
- * End:
- * -*-
+ * We need to work nicely with threads.
+ *
+ * Note that the reintern function may be recursive, so we need to account for cases,
+ * where the current thread is already holding the lock.
+ * Almost every accesses come from the main thread with very little if any contention from other
+ * threads. This makes it more effiecient to use a single global lock (as opposed to having a
+ * separate lock for each instance of the functor), so that mutually recursive reintern calls only
+ * have to lock one lock, not all of them.
+ *
+ * Finally, we do not care about race conditions for the statistics
  *)
+module Synchronize : sig
+   val synchronize : ('a -> 'b) -> 'a -> 'b
+end = struct
+   let lock_mutex = Mutex.create "Lm_hash.Synchronize"
+   let lock_id = ref None
+
+   let unsynchronize () =
+      lock_id := None;
+      Mutex.unlock lock_mutex
+
+   let synchronize f x =
+      let id = Thread.id (Thread.self ()) in
+         match !lock_id with
+            Some id' when id = id' ->
+               (*
+                * We are already holding the lock. This means:
+                *  - we do not have to do anything special
+                *  - reading the shared lock_id ref could not have created a race condition
+                *)
+               f x
+          | _ ->
+               Mutex.lock lock_mutex;
+               lock_id := Some id;
+               try
+                  let res = f x in
+                     unsynchronize();
+                     res
+               with exn ->
+                  unsynchronize();
+                  raise exn
+   let  synchronize =
+     if Thread.enabled then
+       synchronize
+     else
+       (fun f -> f)
+
+end

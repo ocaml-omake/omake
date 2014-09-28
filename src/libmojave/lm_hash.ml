@@ -27,9 +27,6 @@ type stat =
    }
 
 
-(*
- * The reference in the current process.
- *)
 let current_ref = ref ()
 
 let stats = ref []
@@ -45,60 +42,9 @@ let pp_print_stat buf ({ debug      = debug;
 let pp_print_stats buf =
    List.iter (pp_print_stat buf) !stats
 
-(*
- * let () =
- *    at_exit (fun () -> pp_print_stats stderr)
- *)
+(* let () = *)
+(*    at_exit (fun () -> pp_print_stats Format.err_formatter) *)
 
-(*
- * We need to work nicely with threads.
- *
- * Note that the reintern function may be recursive, so we need to account for cases,
- * where the current thread is already holding the lock.
- * Almost every accesses come from the main thread with very little if any contention from other
- * threads. This makes it more effiecient to use a single global lock (as opposed to having a
- * separate lock for each instance of the functor), so that mutually recursive reintern calls only
- * have to lock one lock, not all of them.
- *
- * Finally, we do not care about race conditions for the statistics
- *)
-module Synchronize : sig
-   val synchronize : ('a -> 'b) -> 'a -> 'b
-end = struct
-   let lock_mutex = Lm_thread_core.MutexCore.create "Lm_hash.Synchronize"
-   let lock_id = ref None
-
-   let unsynchronize () =
-      lock_id := None;
-      Lm_thread_core.MutexCore.unlock lock_mutex
-
-   let synchronize f x =
-      let id = Lm_thread_core.ThreadCore.id (Lm_thread_core.ThreadCore.self ()) in
-         match !lock_id with
-            Some id' when id = id' ->
-               (*
-                * We are already holding the lock. This means:
-                *  - we do not have to do anything special
-                *  - reading the shared lock_id ref could not have created a race condition
-                *)
-               f x
-          | _ ->
-               Lm_thread_core.MutexCore.lock lock_mutex;
-               lock_id := Some id;
-               try
-                  let res = f x in
-                     unsynchronize();
-                     res
-               with exn ->
-                  unsynchronize();
-                  raise exn
-end
-
-let synchronize =
-   if Lm_thread_core.ThreadCore.enabled then
-      Synchronize.synchronize
-   else
-      (fun f -> f)
 
 
 module type MARSHAL = 
@@ -202,103 +148,101 @@ struct
     * Keep track of collisions for debugging.
     *)
    let stat =
-      { debug       = Arg.debug;
-        reintern    = 0;
-        compare     = 0;
-        collisions  = 0
-      }
+     { debug       = Arg.debug;
+       reintern    = 0;
+       compare     = 0;
+       collisions  = 0
+     }
 
    let () =
-      stats := stat :: !stats
+     stats := stat :: !stats
 
    (*
     * When creating an item, look it up in the table.
     *)
    let create_core elt =
-      let item =
-         { item_ref  = current_ref;
-           item_val  = elt;
-           item_hash = Arg.hash elt
-         }
-      in
-         try Table.find !table item with
-            Not_found ->
-               table := Table.add !table item item;
-               item
+     let item =
+       { item_ref  = current_ref;
+         item_val  = elt;
+         item_hash = Arg.hash elt
+       }
+     in
+     try Table.find !table item with
+       Not_found ->
+       table := Table.add !table item item;
+       item
 
-   let create = synchronize create_core
+   let create = Lm_thread.Synchronize.synchronize create_core
 
    let intern elt =
-      let item =
-         { item_ref  = current_ref;
-           item_val  = elt;
-           item_hash = Arg.hash elt
-         }
-      in
-         Table.find !table item
+     Table.find !table { 
+       item_ref  = current_ref;
+       item_val  = elt;
+       item_hash = Arg.hash elt
+     }
 
    (*
     * Reintern.  This will take an item that may-or-may-not be hashed
     * and produce a new one that is hashed.
     *)
    let reintern_core item1 =
-      stat.reintern <- succ stat.reintern;
-      try
-         let item2 = Table.find !table item1 in
-            if item2 != item1 then begin
-               item1.item_val <- item2.item_val;
-               item1.item_ref <- current_ref
-            end;
-            item2
-      with
-         Not_found ->
-            item1.item_val <- Arg.reintern item1.item_val;
-            item1.item_ref <- current_ref;
-            table := Table.add !table item1 item1;
-            item1
+     stat.reintern <- succ stat.reintern;
+     try
+       let item2 = Table.find !table item1 in
+       if item2 != item1 then begin
+         item1.item_val <- item2.item_val;
+         item1.item_ref <- current_ref
+       end;
+       item2
+     with
+       Not_found ->
+       item1.item_val <- Arg.reintern item1.item_val;
+       item1.item_ref <- current_ref;
+       table := Table.add !table item1 item1;
+       item1
 
-   let reintern = synchronize reintern_core
+   let reintern = Lm_thread.Synchronize.synchronize reintern_core
 
    (*
     * Access to the element.
     *)
    let get item =
-      if item.item_ref == current_ref then
-         item.item_val
-      else
-         (reintern item).item_val
+     if item.item_ref == current_ref then
+       item.item_val
+     else
+       (reintern item).item_val
 
    let hash item =
-      item.item_hash
+     item.item_hash
 
    (*
     * String pointer-based comparison.
     *)
    let compare item1 item2 =
-      stat.compare <- succ stat.compare;
-      let hash1 = item1.item_hash in
-      let hash2 = item2.item_hash in
-         if hash1 < hash2 then
-            -1
-         else if hash1 > hash2 then
-            1
-         else if item1.item_val == item2.item_val then
-            0
-         else
-            let elt1 = get item1 in
-            let elt2 = get item2 in
-               if elt1 == elt2 then
-                  0
-               else begin
-                  stat.collisions <- succ stat.collisions;
-                  let cmp = Arg.compare elt1 elt2 in
-                     if cmp = 0 then
-                        invalid_arg "Lm_hash is broken@.";
-                     cmp
-               end
+     stat.compare <- succ stat.compare;
+     let hash1 = item1.item_hash in
+     let hash2 = item2.item_hash in
+     if hash1 < hash2 then
+       -1
+     else if hash1 > hash2 then
+       1
+     else if item1.item_val == item2.item_val then
+       0
+     else
+       let elt1 = get item1 in
+       let elt2 = get item2 in
+       if elt1 == elt2 then
+         0
+       else begin
+         stat.collisions <- succ stat.collisions;
+         let cmp = Arg.compare elt1 elt2 in
+         if cmp = 0 then
+           invalid_arg "Lm_hash is broken@.";
+         cmp
+       end
 
    let equal item1 item2 =
-      (item1 == item2) || (item1.item_hash = item2.item_hash && get item1 == get item2)
+     (item1 == item2) || (item1.item_hash = item2.item_hash && get item1 == get item2)
 end
 
 
