@@ -169,7 +169,6 @@ struct
       let compare = Arg.compare_symbol
    end;;
 
-   (* module Var = Lm_hash_cons.Make (VarArg);; *)
    module VarSet    = Lm_set.LmMake (VarArg);;
    module VarTable  = Lm_map.LmMake (VarArg);;
    module VarMTable = Lm_map.LmMakeList (VarArg);;
@@ -194,7 +193,6 @@ struct
       let compare = Arg.compare_action
    end;;
 
-   (* module Action = Lm_hash_cons.Make (ActionArg);; *)
    module ActionSet = Lm_set.LmMake (ActionArg);;
 
    module IAction = Lm_hash_cons.Make (ActionArg);;

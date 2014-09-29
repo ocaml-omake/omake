@@ -1,9 +1,4 @@
 
-(**
- * A generic hash module to make comparisons faster.
- * This version uses a state for hash-consing.
- *)
-(** Table-based hashing. *)
 module Make (Arg : sig
    type t
    (* For debugging *)
@@ -16,14 +11,13 @@ end
 )  =
 struct
    (* %%MAGICBEGIN%% *)
-   type elt = Arg.t
    type t = int
    module KeyTable = Lm_map.LmMake (Arg);;
 
    (* bi-directions.    *)
    type state =
      { mutable keys : int KeyTable.t;
-       mutable ints : elt array
+       mutable ints : Arg.t array
      }
    (* %%MAGICEND%% *)
 
@@ -35,7 +29,7 @@ struct
    let length state =
      KeyTable.cardinal state.keys
 
-   let set state (i : int) (x : elt) =
+   let set state (i : int) (x : Arg.t) =
      let table = state.ints in
      let len = Array.length table in
      if len = 0 then
@@ -47,7 +41,7 @@ struct
      else
        table.(i) <- x
 
-   let create state (item : elt) : int =
+   let create state (item : Arg.t) : int =
      try KeyTable.find state.keys item with
        Not_found ->
        let index = KeyTable.cardinal state.keys in
@@ -55,13 +49,13 @@ struct
        set state index item ;
        index
 
-   let get state (index : int) : elt =
+   let get state (index : int) : Arg.t =
      state.ints.(index)
 
    let hash index = index
 
-   let compare index1 index2 =
-     index1 - index2
+   let compare (index1 : int) index2 =
+     Pervasives.compare index1  index2
 
    let map_array f state =
      Array.mapi f

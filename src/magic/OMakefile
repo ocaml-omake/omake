@@ -3,12 +3,13 @@
 #
 OCAMLINCLUDES[] +=
     ../libmojave
-
+    ../front
 #
 # Magic number generator
 #
 OCAML_LIBS[] =
     ../libmojave/lm
+    ../front/frt
 OCAML_CLIBS[] =
     ../clib/clib
 
@@ -44,10 +45,10 @@ OMC_MAGIC_FILES[] =
 OMO_MAGIC_FILES[] =
     ../libmojave/lm_filename_util.ml
     ../libmojave/lm_hash.ml
-    ../libmojave/lm_lexer.ml
+    ../front/lm_lexer.ml
     ../libmojave/lm_location.ml
     ../libmojave/lm_map.ml
-    ../libmojave/lm_parser.ml
+    ../front/lm_parser.ml
     ../libmojave/lm_position.ml
     ../libmojave/lm_set.ml
     ../libmojave/lm_symbol.ml

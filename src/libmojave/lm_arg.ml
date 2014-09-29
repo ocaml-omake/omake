@@ -6,7 +6,7 @@
  * short form is not ambiguous.
  *
  *)
-(* open! Lm_printf. *)
+
 
 
 (***  Basic Specifications  ***)

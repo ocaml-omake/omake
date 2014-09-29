@@ -1,5 +1,6 @@
 OCAMLINCLUDES[] +=
     ../libmojave
+    ../front
     ../ast
     ../ir
     ../env

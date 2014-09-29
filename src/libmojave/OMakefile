@@ -25,7 +25,6 @@ FILES[] =
     # lm_coarse_hash
     # lm_fine_hash
     lm_hash
-    lm_hash_cons
     lm_hash_code
     lm_symbol
     lm_location
@@ -34,10 +33,7 @@ FILES[] =
     lm_uname
     lm_thread_pool
     lm_channel
-    lm_lexer
-    lm_parser
     lm_unix_util
-    lm_glob
     lm_db
     lm_notify
     lm_fs_case_sensitive

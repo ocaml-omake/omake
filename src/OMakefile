@@ -20,7 +20,7 @@ LocalOCamlGeneratedFiles(files) =
 #
 # Subdirectories
 #
-.SUBDIRS: clib libmojave  magic
+.SUBDIRS: clib libmojave  front magic
 
 LocalOCamlGeneratedFiles(magic/omake_magic.ml)
 
@@ -36,6 +36,7 @@ LocalOCamlGeneratedFiles(env/omake_ast_lex.ml env/omake_ast_parse.mly env/omake_
 MakeRootMakefiles([...])
     clib
     libmojave
+    front
     magic
     ir
     exec
@@ -50,5 +51,6 @@ MakeRootMakefiles([...])
 #
 # Clean up
 #
+# TODO: clean omc, omakedb when adding a new directory
 clean:
     $(CLEAN) Makefile.tmp*

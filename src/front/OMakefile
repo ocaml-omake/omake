@@ -1,0 +1,18 @@
+
+
+OCAMLINCLUDES[] +=
+    ../libmojave
+
+FILES[] =
+    lm_hash_cons
+    lm_lexer
+    lm_parser
+    lm_glob
+
+
+MakeOCamlLibrary(frt, $(FILES))
+
+clean:
+    $(CLEAN) 
+
+MakeMakefile()
