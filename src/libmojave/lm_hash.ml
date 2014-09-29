@@ -93,9 +93,6 @@ sig
    (* Creation *)
    val create   : elt -> t
 
-   (* The intern function fails with Not_found if the node does not already exist *)
-   val intern   : elt -> t
-
    (* Destructors *)
    val get      : t -> elt
    val hash     : t -> int
@@ -172,18 +169,12 @@ struct
          item
      end
 
-   let intern elt =
-     Table.find !table { 
-       item_ref  = current_ref;
-       item_val  = elt;
-       item_hash = Arg.hash elt
-     }
-
    (*
     * Reintern.  This will take an item that may-or-may-not be hashed
     * and produce a new one that is hashed.
     *)
-   let reintern = Lm_thread.Synchronize.synchronize begin function item1 -> 
+   let reintern = Lm_thread.Synchronize.synchronize begin
+       function item1 -> 
        stat.reintern <-  stat.reintern + 1;
        match Table.find !table item1 with 
        | item2 -> 
@@ -216,7 +207,7 @@ struct
     * String pointer-based comparison.
     *)
    let compare (item1 : t) (item2 : t) =
-     stat.compare <- succ stat.compare;
+     stat.compare <-  stat.compare + 1;
      let hash1 = item1.item_hash in
      let hash2 = item2.item_hash in
      if hash1 < hash2 then
@@ -231,7 +222,7 @@ struct
        if elt1 == elt2 then
          0
        else begin
-         stat.collisions <- succ stat.collisions;
+         stat.collisions <-  stat.collisions + 1;
          let cmp = Arg.compare elt1 elt2 in
          if cmp = 0 then
            invalid_arg "Lm_hash is broken@.";
@@ -294,9 +285,6 @@ struct
 
    let create x =
       Fine.create (x, Coarse.create x)
-
-   let intern x =
-      Fine.intern (x, Coarse.intern x)
 
    let get info =
       fst (Fine.get info)

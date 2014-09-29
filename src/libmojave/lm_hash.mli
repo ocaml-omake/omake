@@ -57,9 +57,6 @@ sig
    (* Creation *)
    val create   : elt -> t
 
-   (* The intern function fails with Not_found if the node does not already exist *)
-   val intern   : elt -> t
-
    (* Destructors *)
    val get      : t -> elt
    val hash     : t -> int

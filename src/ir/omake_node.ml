@@ -1215,7 +1215,7 @@ struct
     * Hash code for a node.
     *)
    let hash = NodeHash.hash
-   (* let reintern = NodeHash.reintern *)
+   
 
    (*
     * For building targets, we sometimes want to know the
