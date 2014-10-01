@@ -1,0 +1,17 @@
+open configure/Configure
+
+# \begin{doc}
+# \subsection{Moncontrol configuration}
+# Add \verb+open configure/moncontrol+ line to your \verb+OMakefile+ to get access to the following
+# autoconfiguration variables.
+# \varlabel{MONCONTROL_AVAILABLE}{MONCONTROL\_AVAILABLE} A boolean flag telling whether the moncontrol
+# function is available in the standard C library.
+#
+# \end{doc}
+#
+
+.STATIC:
+    MONCONTROL_AVAILABLE = false
+    section
+        MONCONTROL_AVAILABLE = $(VerboseCheckLib $(EMPTY), moncontrol)
+        export MONCONTROL_AVAILABLE

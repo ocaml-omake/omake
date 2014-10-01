@@ -94,3 +94,6 @@ val list_directory : string -> string list
 
 
 val try_unlink_file : string -> unit
+
+val moncontrol : bool -> unit
+(* control gprof activity *)

@@ -162,6 +162,7 @@ let create_thread info =
        } = info
    in
    Pervasives.flush_all();
+   Lm_unix_util.moncontrol false;
    let pid = Unix.fork () in
       if pid = 0 then
          let code =
@@ -219,6 +220,7 @@ let create_process info =
  *)
     Unix.handle_unix_error
       (fun () ->
+         Lm_unix_util.moncontrol false;
          let workfd = Unix.openfile "." [Unix.O_RDONLY] 0 in
          let pid =
            Omake_shell_spawn.spawn

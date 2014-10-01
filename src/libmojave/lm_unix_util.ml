@@ -9,6 +9,8 @@ external print_stack_pointer : unit -> unit = "lm_print_stack_pointer"
 external registry_find   : registry_hkey -> string -> string -> string = "caml_registry_find"
 external getpwents : unit -> Unix.passwd_entry list = "lm_getpwents"
 
+external moncontrol : bool -> unit = "lm_moncontrol"
+
 
 let pp_time buf secs =
   if secs < 60. then
