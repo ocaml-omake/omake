@@ -1,0 +1,21 @@
+#! /bin/sh
+
+
+exec 2>&1
+
+export LC_ALL=C
+
+for n in 5 6 7 8; do
+  for j in 1 2 4; do
+    for c in 100 1000 10000; do
+      rm -rf testdir
+      mkdir testdir
+      ./generate -n $n -comment-size $c testdir
+      echo "#############################################################"
+      echo "n=$n j=$j c=$c"
+      date
+      ( cd testdir && /usr/bin/time omake -j $j )
+      date
+    done
+  done
+done

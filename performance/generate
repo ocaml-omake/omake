@@ -1,0 +1,7 @@
+#! /usr/bin/env ocaml
+
+#use "topfind";;
+#camlp4o;;
+#require "unix,xstrp4,camlp4";;
+
+#use "generate.ml";;

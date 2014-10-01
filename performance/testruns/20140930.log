@@ -1,0 +1,812 @@
+#############################################################
+n=5 j=1 c=100
+Tue Sep 30 20:30:55 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (57.69 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+28.34user 24.20system 0:57.71elapsed 91%CPU (0avgtext+0avgdata 319600maxresident)k
+0inputs+59208outputs (0major+4369809minor)pagefaults 0swaps
+Tue Sep 30 20:31:52 CEST 2014
+#############################################################
+n=5 j=1 c=1000
+Tue Sep 30 20:31:53 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (58.49 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+29.02user 24.57system 0:58.51elapsed 91%CPU (0avgtext+0avgdata 314912maxresident)k
+0inputs+59208outputs (0major+4384409minor)pagefaults 0swaps
+Tue Sep 30 20:32:52 CEST 2014
+#############################################################
+n=5 j=1 c=10000
+Tue Sep 30 20:32:53 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 04.91 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+35.07user 24.94system 1:04.93elapsed 92%CPU (0avgtext+0avgdata 327072maxresident)k
+0inputs+60816outputs (0major+4556732minor)pagefaults 0swaps
+Tue Sep 30 20:33:57 CEST 2014
+#############################################################
+n=5 j=2 c=100
+Tue Sep 30 20:33:58 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (31.28 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+28.16user 25.60system 0:31.29elapsed 171%CPU (0avgtext+0avgdata 332208maxresident)k
+0inputs+59208outputs (0major+4344029minor)pagefaults 0swaps
+Tue Sep 30 20:34:29 CEST 2014
+#############################################################
+n=5 j=2 c=1000
+Tue Sep 30 20:34:30 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (31.26 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+29.34user 25.74system 0:31.28elapsed 176%CPU (0avgtext+0avgdata 328608maxresident)k
+0inputs+59216outputs (0major+4354611minor)pagefaults 0swaps
+Tue Sep 30 20:35:01 CEST 2014
+#############################################################
+n=5 j=2 c=10000
+Tue Sep 30 20:35:02 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (34.70 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+35.31user 26.52system 0:34.72elapsed 178%CPU (0avgtext+0avgdata 342496maxresident)k
+0inputs+59208outputs (0major+4524200minor)pagefaults 0swaps
+Tue Sep 30 20:35:37 CEST 2014
+#############################################################
+n=5 j=4 c=100
+Tue Sep 30 20:35:37 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (19.81 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+33.09user 28.16system 0:19.82elapsed 308%CPU (0avgtext+0avgdata 338800maxresident)k
+8inputs+59208outputs (0major+4363217minor)pagefaults 0swaps
+Tue Sep 30 20:35:57 CEST 2014
+#############################################################
+n=5 j=4 c=1000
+Tue Sep 30 20:35:58 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (19.38 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+34.03user 27.90system 0:19.39elapsed 319%CPU (0avgtext+0avgdata 334080maxresident)k
+0inputs+59200outputs (0major+4378293minor)pagefaults 0swaps
+Tue Sep 30 20:36:17 CEST 2014
+#############################################################
+n=5 j=4 c=10000
+Tue Sep 30 20:36:18 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.11 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (21.55 sec, 625/625 scans, 650/1925 rules, 2581/5872 digests)
+39.27user 29.09system 0:21.57elapsed 316%CPU (0avgtext+0avgdata 355616maxresident)k
+0inputs+59208outputs (0major+4536176minor)pagefaults 0swaps
+Tue Sep 30 20:36:40 CEST 2014
+#############################################################
+n=6 j=1 c=100
+Tue Sep 30 20:36:41 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 18.82 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+107.81user 81.84system 3:18.85elapsed 95%CPU (0avgtext+0avgdata 656224maxresident)k
+0inputs+200176outputs (0major+11979363minor)pagefaults 0swaps
+Tue Sep 30 20:39:59 CEST 2014
+#############################################################
+n=6 j=1 c=1000
+Tue Sep 30 20:40:01 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 20.87 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+108.79user 82.94system 3:20.89elapsed 95%CPU (0avgtext+0avgdata 662368maxresident)k
+0inputs+200104outputs (0major+11997127minor)pagefaults 0swaps
+Tue Sep 30 20:43:22 CEST 2014
+#############################################################
+n=6 j=1 c=10000
+Tue Sep 30 20:43:23 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 34.92 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+122.27user 84.36system 3:34.94elapsed 96%CPU (0avgtext+0avgdata 656608maxresident)k
+0inputs+199304outputs (0major+12387379minor)pagefaults 0swaps
+Tue Sep 30 20:46:58 CEST 2014
+#############################################################
+n=6 j=2 c=100
+Tue Sep 30 20:47:00 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 46.21 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+110.27user 87.21system 1:46.24elapsed 185%CPU (0avgtext+0avgdata 688624maxresident)k
+0inputs+194440outputs (0major+11916973minor)pagefaults 0swaps
+Tue Sep 30 20:48:46 CEST 2014
+#############################################################
+n=6 j=2 c=1000
+Tue Sep 30 20:48:49 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 47.83 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+112.88user 86.25system 1:47.85elapsed 184%CPU (0avgtext+0avgdata 679664maxresident)k
+0inputs+194440outputs (0major+11783568minor)pagefaults 0swaps
+Tue Sep 30 20:50:36 CEST 2014
+#############################################################
+n=6 j=2 c=10000
+Tue Sep 30 20:50:41 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.18 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 57.60 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+125.66user 87.99system 1:57.63elapsed 181%CPU (0avgtext+0avgdata 681600maxresident)k
+0inputs+194296outputs (0major+12143800minor)pagefaults 0swaps
+Tue Sep 30 20:52:39 CEST 2014
+#############################################################
+n=6 j=4 c=100
+Tue Sep 30 20:52:40 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 06.50 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+128.34user 92.15system 1:06.53elapsed 331%CPU (0avgtext+0avgdata 708240maxresident)k
+0inputs+196216outputs (0major+11718322minor)pagefaults 0swaps
+Tue Sep 30 20:53:47 CEST 2014
+#############################################################
+n=6 j=4 c=1000
+Tue Sep 30 20:53:48 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 06.83 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+127.09user 93.68system 1:06.86elapsed 330%CPU (0avgtext+0avgdata 716704maxresident)k
+0inputs+196192outputs (0major+11743901minor)pagefaults 0swaps
+Tue Sep 30 20:54:55 CEST 2014
+#############################################################
+n=6 j=4 c=10000
+Tue Sep 30 20:54:56 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.17 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: done (1 min 12.04 sec, 1296/1296 scans, 1332/3960 rules, 5298/11999 digests)
+138.91user 94.84system 1:12.07elapsed 324%CPU (0avgtext+0avgdata 723184maxresident)k
+0inputs+195712outputs (0major+12094709minor)pagefaults 0swaps
+Tue Sep 30 20:56:08 CEST 2014
+#############################################################
+n=7 j=1 c=100
+Tue Sep 30 20:56:10 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.27 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (10 min 22.29 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+362.43user 243.97system 10:22.33elapsed 97%CPU (0avgtext+0avgdata 1249056maxresident)k
+0inputs+606792outputs (0major+31528990minor)pagefaults 0swaps
+Tue Sep 30 21:06:32 CEST 2014
+#############################################################
+n=7 j=1 c=1000
+Tue Sep 30 21:06:35 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.26 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (10 min 25.53 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+367.05user 244.55system 10:25.57elapsed 97%CPU (0avgtext+0avgdata 1245152maxresident)k
+0inputs+606464outputs (0major+31598365minor)pagefaults 0swaps
+Tue Sep 30 21:17:01 CEST 2014
+#############################################################
+n=7 j=1 c=10000
+Tue Sep 30 21:17:04 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.27 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (10 min 45.31 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+393.34user 245.81system 10:45.36elapsed 99%CPU (0avgtext+0avgdata 1254320maxresident)k
+0inputs+604560outputs (0major+32320111minor)pagefaults 0swaps
+Tue Sep 30 21:27:49 CEST 2014
+#############################################################
+n=7 j=2 c=100
+Tue Sep 30 21:27:51 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.26 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (5 min 28.55 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+365.65user 258.96system 5:28.60elapsed 190%CPU (0avgtext+0avgdata 1313376maxresident)k
+0inputs+585272outputs (0major+31620204minor)pagefaults 0swaps
+Tue Sep 30 21:33:20 CEST 2014
+#############################################################
+n=7 j=2 c=1000
+Tue Sep 30 21:33:23 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.27 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (5 min 28.94 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+366.71user 257.95system 5:28.99elapsed 189%CPU (0avgtext+0avgdata 1280192maxresident)k
+0inputs+585168outputs (0major+30931117minor)pagefaults 0swaps
+Tue Sep 30 21:38:52 CEST 2014
+#############################################################
+n=7 j=2 c=10000
+Tue Sep 30 21:38:55 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.26 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (5 min 40.36 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+390.75user 263.64system 5:40.41elapsed 192%CPU (0avgtext+0avgdata 1322976maxresident)k
+0inputs+584312outputs (0major+32009625minor)pagefaults 0swaps
+Tue Sep 30 21:44:35 CEST 2014
+#############################################################
+n=7 j=4 c=100
+Tue Sep 30 21:44:38 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.27 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 28.65 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+419.16user 287.14system 3:28.70elapsed 338%CPU (0avgtext+0avgdata 1359472maxresident)k
+0inputs+576720outputs (0major+31633075minor)pagefaults 0swaps
+Tue Sep 30 21:48:07 CEST 2014
+#############################################################
+n=7 j=4 c=1000
+Tue Sep 30 21:48:09 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.27 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 40.69 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+419.20user 284.82system 3:40.74elapsed 318%CPU (0avgtext+0avgdata 1312448maxresident)k
+0inputs+575888outputs (0major+31298106minor)pagefaults 0swaps
+Tue Sep 30 21:51:50 CEST 2014
+#############################################################
+n=7 j=4 c=10000
+Tue Sep 30 21:51:57 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.26 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (3 min 33.09 sec, 2401/2401 scans, 2450/7301 rules, 9757/22048 digests)
+444.38user 291.15system 3:33.14elapsed 345%CPU (0avgtext+0avgdata 1291536maxresident)k
+0inputs+576168outputs (0major+31579417minor)pagefaults 0swaps
+Tue Sep 30 21:55:30 CEST 2014
+#############################################################
+n=8 j=1 c=100
+Tue Sep 30 21:55:33 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.42 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (30 min 50.78 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1173.03user 668.08system 30:50.85elapsed 99%CPU (0avgtext+0avgdata 2013744maxresident)k
+0inputs+1721592outputs (0major+78885242minor)pagefaults 0swaps
+Tue Sep 30 22:26:24 CEST 2014
+#############################################################
+n=8 j=1 c=1000
+Tue Sep 30 22:26:31 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.42 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (31 min 08.44 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1181.04user 676.53system 31:08.51elapsed 99%CPU (0avgtext+0avgdata 1963392maxresident)k
+0inputs+1720512outputs (0major+79386852minor)pagefaults 0swaps
+Tue Sep 30 22:57:40 CEST 2014
+#############################################################
+n=8 j=1 c=10000
+Tue Sep 30 22:57:45 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (31 min 46.22 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1225.08user 681.65system 31:46.29elapsed 100%CPU (0avgtext+0avgdata 2004416maxresident)k
+0inputs+1730136outputs (0major+80377963minor)pagefaults 0swaps
+Tue Sep 30 23:29:31 CEST 2014
+#############################################################
+n=8 j=2 c=100
+Tue Sep 30 23:29:36 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (16 min 01.85 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1142.65user 731.39system 16:01.93elapsed 194%CPU (0avgtext+0avgdata 2161488maxresident)k
+0inputs+1610792outputs (0major+78974517minor)pagefaults 0swaps
+Tue Sep 30 23:45:37 CEST 2014
+#############################################################
+n=8 j=2 c=1000
+Tue Sep 30 23:45:42 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (16 min 09.05 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1155.24user 729.17system 16:09.13elapsed 194%CPU (0avgtext+0avgdata 2158560maxresident)k
+0inputs+1609392outputs (0major+78883587minor)pagefaults 0swaps
+Wed Oct  1 00:01:52 CEST 2014
+#############################################################
+n=8 j=2 c=10000
+Wed Oct  1 00:01:56 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (16 min 23.39 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1192.29user 736.71system 16:23.47elapsed 196%CPU (0avgtext+0avgdata 2160160maxresident)k
+0inputs+1622224outputs (0major+79986255minor)pagefaults 0swaps
+Wed Oct  1 00:18:20 CEST 2014
+#############################################################
+n=8 j=4 c=100
+Wed Oct  1 00:18:25 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (9 min 58.01 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1279.09user 805.77system 9:58.09elapsed 348%CPU (0avgtext+0avgdata 2172448maxresident)k
+0inputs+1566896outputs (0major+79332276minor)pagefaults 0swaps
+Wed Oct  1 00:28:24 CEST 2014
+#############################################################
+n=8 j=4 c=1000
+Wed Oct  1 00:28:28 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.42 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (10 min 02.48 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1300.04user 805.44system 10:02.57elapsed 349%CPU (0avgtext+0avgdata 2169056maxresident)k
+0inputs+1582208outputs (0major+78908809minor)pagefaults 0swaps
+Wed Oct  1 00:38:31 CEST 2014
+#############################################################
+n=8 j=4 c=10000
+Wed Oct  1 00:38:36 CEST 2014
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.41 sec)
+*** omake: warning: stdout is not a tty, disabling the progress bar
+   (use --progress to override).
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (10 min 07.09 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+1317.33user 818.91system 10:07.17elapsed 351%CPU (0avgtext+0avgdata 2159296maxresident)k
+0inputs+1580928outputs (0major+80834515minor)pagefaults 0swaps
+Wed Oct  1 00:48:43 CEST 2014
