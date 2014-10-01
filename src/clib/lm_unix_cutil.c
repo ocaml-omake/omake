@@ -497,3 +497,15 @@ value lm_getlk(value v_fd, value v_op)
 	caml_failwith("lm_getlk: not supported");
 #endif /* FCNTL_ENABLED */
 }
+
+
+#ifdef HAVE_MONCONTROL
+extern int moncontrol(int);
+#endif
+
+value lm_moncontrol(value flag) {
+#ifdef HAVE_MONCONTROL
+    moncontrol(Bool_val(flag));
+#endif
+    return Val_unit;
+}

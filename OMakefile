@@ -84,6 +84,7 @@ if $(not $(defined NATIVE_PROFILE))
 
 if $(NATIVE_PROFILE)
    OCAMLOPTFLAGS += -p -inline 0
+   CFLAGS += -pg
    if $(equal $(NATIVE_PROFILE), compact)
       OCAMLOPTFLAGS += -compact
       export

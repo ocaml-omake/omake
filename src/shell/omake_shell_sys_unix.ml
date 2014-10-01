@@ -143,6 +143,7 @@ let create_thread info =
        } = info
    in
    Pervasives.flush_all();
+   Lm_unix_util.moncontrol false;
    let pid = Unix.fork () in
       if pid = 0 then
          let code =
@@ -198,6 +199,7 @@ let create_process info =
             Format.eprintf "@ %s" s) argv;
       Format.eprintf "@]@.";
  *)
+    Lm_unix_util.moncontrol false;
     let pid = Unix.fork () in
     if pid = 0 then
       try
