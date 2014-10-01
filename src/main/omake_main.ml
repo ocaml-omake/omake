@@ -1,4 +1,4 @@
-
+open Printf
 
 
 
@@ -16,6 +16,7 @@ let command_string = ref None
 let install_flag = ref false
 let install_subdirs = ref false
 let install_force = ref false
+let extended_rusage = ref false
 
 (*
  * Arguments.
@@ -122,7 +123,9 @@ let spec =
     "-debug-thread", Lm_arg.Set Lm_thread_pool.debug_thread, (**)
     "Show thread operations";
     "-allow-exceptions", Lm_arg.SetFold set_allow_exceptions_opt, (**)
-    "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)"];
+    "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)";
+    "-extended-rusage", Lm_arg.Set extended_rusage, (**)
+    "Print more about resource usage"];
    "Internal flags", (**)
    ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
     "Run as a remote server";]])
@@ -147,7 +150,17 @@ let main (options : Omake_options.t) =
        | [] -> [".DEFAULT"]
        | l -> List.rev l);
     if !debug_hash then 
-    Omake_main_util.print_hash_stats ()
+      Omake_main_util.print_hash_stats ();
+    if !extended_rusage then (
+      let r = Unix.times() in
+      let open Unix in
+      printf "Resources used by main process:     \
+              user %.2fseconds, system %.2fseconds\n" 
+             r.tms_utime r.tms_stime;
+      printf "Resources used incl. sub processes: \
+              user %.2fseconds, system %.2fseconds\n"
+             r.tms_cutime r.tms_cstime;
+    )
   end
 
 let _ =
