@@ -42,6 +42,7 @@ FILES[] =
     lm_marshal
     lm_handle_table
     lm_int_handle_table
+    lm_instrument
 
 
 MakeOCamlLibrary(lm, $(FILES))
