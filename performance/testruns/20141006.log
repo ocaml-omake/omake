@@ -1,0 +1,58 @@
+Testrun: c=10000, n=8, j=1
+
+Bad guys:
+ - Omake_exec.spawn: fork/exec perf problem
+ - Omake_rule.eval_commands: needs to be investigated
+ - safrs_effects (i.e. the computation of "effects" inside
+   save_and_finish_rule_success): needs to be investigated
+ - memory consumption: max RSS is 2.1GB !!!
+
+*** omake: reading OMakefiles
+*** omake: finished reading OMakefiles (0.35 sec)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (12 min 50.07 sec, 1260/4096 scans, 4160/12416 rules, 16578/37420 digests)
+Resources used by main process:     user 70.76seconds, system 89.30seconds
+Resources used incl. sub processes: user 298.09seconds, system 283.41seconds
+Probes (times in milliseconds):
+FL NAME                          COUNT       ACC      SELF       MIN       MAX
+   digest_of_commands            17772      1889      1889         0         6
+   Omake_exec.spawn               5420     65346     65346         0        48
+   Omake_eval.compile_deps        1260      3971      3971         1        57
+   Omake_rule.eval_commands      17772     37379     37379         0      2111
+   process_changes                   0         0         0       inf         0
+   all_dependencies                  0         0         0       inf         0
+   reclassify_command            96280       263       263         0         0
+   build_any_command             20940       225       225         0         5
+   start_or_build_commands       50136      3678      3480         0         4
+   start_or_build_scanners       20940       311       285         0         1
+   start_or_build_effects        12416       823        77         0         2
+   command_set_blocked           41880      1109      1109         0         8
+   enable_parents                20940       913       852         0        17
+   parse_deps                     1260      4503       531         0        10
+   finish_scanned                12684      1502       264         0         0
+   finish_scanner                 4096       188        23         0         0
+   save_and_finish_scanner_results      1260      7391        87         0         0
+   save_and_finish_scanner_success      1260     12007       113         0         0
+   execute_scanner                1260       320       284         0         0
+   start_scanner                  4096     26632       234         0         0
+   finish_rule_success           16844       899        90         0         0
+   save_and_finish_rule_success      8588     22731       747         0         0
+   safrs_effects                  8588     21555     21555         0        24
+   run_rule                       4160     65568       179         0         0
+   execute_rule                  16844     76414       852         0         0
+R  invalidate_aux                    4         0         0         0         0
+   process_initial               20940      4207       207         0         4
+   create_env_loop                   1         0         0         0         0
+368.85user 372.77system 12:50.15elapsed 96%CPU (0avgtext+0avgdata 2113392maxresident)k
+0inputs+1648592outputs (0major+43738891minor)pagefaults 0swaps
