@@ -57,6 +57,7 @@ FILES[] =
     lm_handle_table
     lm_int_handle_table
     lm_bitset
+    lm_instrument
 
 
 MakeOCamlLibrary(lm, $(FILES))
