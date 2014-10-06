@@ -1,5 +1,7 @@
 (*  Rule evaluation. *)
 
+module I = Lm_instrument
+
 include Omake_pos.Make (struct let name = "Omake_rule" end);;
 
 
@@ -758,6 +760,15 @@ let eval_memo_rule_exp venv pos loc multiple is_static key vars target source op
    let venv = Omake_env.venv_add_memo_rule venv pos loc multiple is_static key vars sources values e in
       venv
 
+
+let probe_eval_commands = I.create "Omake_rule.eval_commands"
+let probe_eval_rule = I.create "Omake_rule.eval_rule"
+let probe_eval_rule_1 = I.create "Omake_rule.eval_rule.1"
+let probe_eval_rule_2 = I.create "Omake_rule.eval_rule.2"
+let probe_eval_rule_3 = I.create "Omake_rule.eval_rule.3"
+let probe_eval_rule_4 = I.create "Omake_rule.eval_rule.4"
+
+
 (*
  * Evaluate a rule.
  *
@@ -1007,7 +1018,9 @@ and exec_commands venv pos loc commands =
 (*
  * Evaluate the command lines.
  *)
-and eval_commands _ loc target sloppy_deps commands : Omake_env.arg_command_line list =
+and eval_commands _ loc target sloppy_deps (* : Omake_env.arg_command_line *) =
+  I.instrument probe_eval_commands
+  (fun commands ->
   let rec collect commands' commands =
     match commands with
       command :: commands ->
@@ -1024,6 +1037,7 @@ and eval_commands _ loc target sloppy_deps commands : Omake_env.arg_command_line
       List.rev commands'
   in
   collect [] commands
+  )
 
 (*
  * Evaluate the rule lines.
@@ -1036,7 +1050,9 @@ and eval_commands _ loc target sloppy_deps commands : Omake_env.arg_command_line
  *   $^: the sources, in alphabetical order, with duplicates removed
  *   $&: the scanner dependencies from the last run
  *)
-and eval_rule venv loc target sources sloppy_deps values commands =
+and eval_rule venv loc target sources sloppy_deps values =
+  I.instrument probe_eval_rule
+  (fun commands ->
   let pos          = string_pos "eval_rule" (loc_exp_pos loc) in
   let target_name  = Omake_env.venv_nodename venv target in
   let root         = Lm_filename_util.root target_name in
@@ -1079,17 +1095,27 @@ and eval_rule venv loc target sources sloppy_deps values commands =
       in
       commands, fv
   in
-  let commands, fv = List.fold_left command_line ([], Omake_ir_free_vars.free_vars_empty) commands in
+  let commands, fv =
+    I.instrument probe_eval_rule_1
+                 (List.fold_left command_line ([], Omake_ir_free_vars.free_vars_empty)) commands in
   let commands = List.rev commands in
   let values =
-    Omake_ir_util.VarInfoSet.fold (fun values v ->
-      Omake_value_type.ValMaybeApply (loc, v) :: values) values (Omake_ir_free_vars.free_vars_set fv)
+    I.instrument probe_eval_rule_2
+      (fun () ->
+       Omake_ir_util.VarInfoSet.fold (fun values v ->
+          Omake_value_type.ValMaybeApply (loc, v) :: values) values (Omake_ir_free_vars.free_vars_set fv)
+      )
+      ()
   in
   let values =
-    List.fold_left (fun values v ->
-      List.rev_append (Omake_eval.values_of_value venv pos v) values) [] values
+    I.instrument probe_eval_rule_3
+      (List.fold_left (fun values v ->
+        List.rev_append (Omake_eval.values_of_value venv pos v) values) []
+      ) values
   in
-  let values = List.map (Omake_eval.eval_prim_value venv pos) values in
+  let values = 
+    I.instrument probe_eval_rule_4
+      (List.map (Omake_eval.eval_prim_value venv pos)) values in
   let commands =
     if values = [] then
       commands
@@ -1098,6 +1124,7 @@ and eval_rule venv loc target sources sloppy_deps values commands =
   in
   let dir = Omake_env.venv_dir venv in
   Omake_command.parse_commands venv dir target loc commands
+  )
 
 (*
  * Add an ordering constraint.

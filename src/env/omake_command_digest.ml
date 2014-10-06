@@ -1,3 +1,5 @@
+module I = Lm_instrument
+
 (*
  * Compute the digest of a value.  This works the naive way:
  *    1. Convert the value to a string
@@ -996,7 +998,11 @@ let digest_of_exp pos values e =
       squash_exp pos buf e;
       Some (Hash.digest buf)
 
-let digest_of_commands pos commands =
+let probe_digest_of_commands = I.create "digest_of_commands"
+
+let digest_of_commands pos =
+  I.instrument probe_digest_of_commands
+  (fun commands ->
    match commands with
       [] ->
          None
@@ -1004,4 +1010,4 @@ let digest_of_commands pos commands =
          let buf = Hash.create () in
          let () = squash_commands pos buf commands in
             Some (Hash.digest buf)
-
+  )

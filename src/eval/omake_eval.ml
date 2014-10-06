@@ -1,3 +1,5 @@
+module I = Lm_instrument
+
 (*  Predefined set of functions. *)
 
 include Omake_pos.Make (struct let name = "Omake_eval" end);;
@@ -2375,7 +2377,13 @@ let compile venv =
 (************************************************************************
  * Dependencies.
 *)
-let compile_deps venv node buf =
+
+let probe_compile_deps = I.create "Omake_eval.compile_deps"
+
+
+let compile_deps venv node =
+  I.instrument probe_compile_deps
+  (fun buf ->
   let deps = Omake_ast_lex.parse_deps buf in
   let vars = Omake_env.venv_include_scope venv IncludePervasives in
   let senv_empty = Omake_ir_ast.penv_of_vars (open_ir venv) venv node vars in
@@ -2389,3 +2397,4 @@ let compile_deps venv node buf =
       let targets = strings_of_value venv pos target in
       let sources = strings_of_value venv pos source in
       targets, sources) deps
+  )

@@ -3,6 +3,7 @@
  * and local servers.
  *)
 
+module I = Lm_instrument
 
 open Lm_printf
 open Lm_thread_pool
@@ -176,10 +177,14 @@ struct
           | None ->
                raise (Invalid_argument "Omake_exec.find_best_server: all servers are disabled")
 
+   let probe_spawn = I.create "Omake_exec.spawn"
+
    (*
     * Start a job.
     *)
-   let spawn server_main shell options handle_sys_out handle_out handle_err name target commands =
+   let spawn server_main shell options handle_sys_out handle_out handle_err name target =
+     I.instrument probe_spawn
+     (fun commands ->
       (* Start the job *)
       let id = Omake_exec_id.create () in
       let server = find_best_server server_main in
@@ -210,6 +215,7 @@ struct
                ()
       in
          status
+     )
 
    (*
     * Select-based waiting.

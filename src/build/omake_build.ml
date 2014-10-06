@@ -1,3 +1,4 @@
+module I = Lm_instrument
 
 module Pos = Omake_pos.Make (struct let name = "Omake_build" end);;
 
@@ -117,6 +118,8 @@ let restartable_exn = function
   | _ ->
     false
 
+let probe_process_changes = I.create "process_changes"
+
 (*
  * JYH: the overhead of scanning directories every time
  * it changes is pretty high.  We may want to think of
@@ -125,7 +128,8 @@ let restartable_exn = function
  * Intercept directory change events and pretend that every file
  * in the directory has changed.
  *)
-let process_changes is_node_relevant process_node venv cwd cache (event : Lm_notify.event) =
+let process_changes is_node_relevant process_node venv cwd cache =
+  I.instrument probe_process_changes (fun (event : Lm_notify.event) ->
   let process_node name =
     let node = Omake_env.venv_intern_cd venv PhonyProhibited cwd name in
     let changed = is_node_relevant node && Omake_cache.stat_changed cache node in
@@ -144,6 +148,7 @@ let process_changes is_node_relevant process_node venv cwd cache (event : Lm_not
     process_node name
   | _ ->
     false
+  )
 
 (*
  * Find a command from a target.
@@ -165,11 +170,14 @@ let find_parents (env : Omake_build_type.t) node =
 
 
 
+let probe_all_dependencies = I.create "all_dependencies"
+
 
 (*
  * Compute all of the dependencies.
  *)
-let all_dependencies dependencies_of (env : Omake_build_type.t)  nodes =
+let all_dependencies dependencies_of (env : Omake_build_type.t) =
+  I.instrument probe_all_dependencies (fun nodes ->
   let commands = env.env_commands in
   let rec find_deps found examined unexamined =
     if Omake_node.NodeSet.is_empty unexamined then
@@ -195,6 +203,7 @@ let all_dependencies dependencies_of (env : Omake_build_type.t)  nodes =
         find_deps found examined unexamined
   in
   find_deps Omake_node.NodeSet.empty Omake_node.NodeSet.empty nodes
+  )
 
 let all_build_dependencies =
   all_dependencies (fun command -> command.command_build_deps)
@@ -242,12 +251,15 @@ let pp_print_dependencies =
   pp_print_dependencies_aux true
 
 
+let probe_reclassify_command = I.create "reclassify_command"
+
+
 (*
  * Reclassify the commands.
  *)
 let reclassify_command 
-    (env : Omake_build_type.t) (command : Omake_build_type.command) 
-    (state : Omake_build_type.command_state) =
+    (env : Omake_build_type.t) (command : Omake_build_type.command) =
+  I.instrument probe_reclassify_command (fun (state : Omake_build_type.command_state) ->
   (* Unlink the node from its current list *)
   let pred = command.command_pred in
   let succ = !(command.command_succ) in
@@ -278,6 +290,8 @@ let reclassify_command
   match next with
     Some next -> next.command_pred <- command.command_succ
   | None -> ()
+  )
+
 
 (************************************************************************
  * Other target utilities.
@@ -472,11 +486,15 @@ let create_command env venv target effects lock_deps static_deps scanner_deps lo
   (* Add to the command table *)
   env.env_commands <- Omake_node.NodeTable.add env.env_commands target command
 
+
+let probe_build_any_command = I.create "build_any_command"
+
 (*
  * Build a command given a directory and a command list.
  *)
 let build_any_command (env : Omake_build_type.t)
-    pos loc venv target effects locks sources scanners commands =
+    pos loc venv target effects locks sources scanners =
+  I.instrument probe_build_any_command (fun commands ->
   let pos = Pos.string_pos "build_any_command" (Pos.loc_pos loc pos) in
 
   (* Directory for this target *)
@@ -544,6 +562,8 @@ let build_any_command (env : Omake_build_type.t)
       CommandInfo (command :: commands)
   in
   create_command env venv target effects lock_deps static_deps scanner_deps loc dir commands
+  )
+
 
 (*
  * Build a null command for a file that exists but has no
@@ -718,10 +738,14 @@ let build_command env pos loc target =
   | NodeScanner ->
     build_command_non_escaped env pos loc target
 
+
+let probe_start_or_build_commands = I.create "start_or_build_commands"
+
 (*
  * Start commands, or build them.
  *)
-let start_or_build_commands env pos loc parent targets =
+let start_or_build_commands env pos loc parent =
+  I.instrument probe_start_or_build_commands (fun targets ->
   let pos = Pos.string_pos "start_or_build_commands" pos in
   Omake_node.NodeSet.iter (fun target ->
     try start_command env (find_command env target) with
@@ -732,13 +756,18 @@ let start_or_build_commands env pos loc parent targets =
           Format.fprintf buf "Do not know how to build \"%a\" required for \"%a\"" Omake_node.pp_print_node target Omake_node.pp_print_node parent
         in
         raise (Omake_value_type.OmakeException (pos, LazyError print_error)))) targets
+  )
+
+
+let probe_start_or_build_scanners = I.create "start_or_build_scanners"
 
 (*
  * Start scanners.  The difference is that a scanner inherits
  * the environment of the parent, unless the scanner
  * target is explicit.
  *)
-let start_or_build_scanners env pos loc parent targets venv =
+let start_or_build_scanners env pos loc parent targets =
+  I.instrument probe_start_or_build_scanners (fun venv ->
   let pos = Pos.string_pos "start_or_build_scanners" pos in
   Omake_node.NodeSet.iter (fun target ->
     try
@@ -757,13 +786,18 @@ let start_or_build_scanners env pos loc parent targets venv =
           Format.fprintf buf "Do not know how to build \"%a\" required for \"%a\"" Omake_node.pp_print_node target Omake_node.pp_print_node parent
         in
         raise (Omake_value_type.OmakeException (pos, LazyError print_error)))) targets
+  )
+
+let probe_start_or_build_effects = I.create "start_or_build_effects"
+
 
 (*
  * Make sure the effect sets form equivalence classes.
  * Every command in the effect set should have the
  * same effects.
  *)
-let start_or_build_effects env pos loc target effects =
+let start_or_build_effects env pos loc target =
+  I.instrument probe_start_or_build_effects (fun effects ->
   let pos = Pos.string_pos "start_or_build_effects" pos in
   let step effects =
     start_or_build_commands env pos loc target effects;
@@ -783,6 +817,7 @@ let start_or_build_effects env pos loc target effects =
       fixpoint effects
   in
   fixpoint effects
+ )
 
 (*
  * Catch errors.
@@ -796,12 +831,15 @@ let build_command env pos loc target =
  * Dependency management
 *)
 
+let probe_command_set_blocked = I.create "command_set_blocked"
+
 (*
  * Add inverse entries from the command,
  * and set the blocked queue.
  *)
 let command_set_blocked (env : Omake_build_type.t)
-    (command : Omake_build_type.command) deps =
+    (command : Omake_build_type.command) =
+  I.instrument probe_command_set_blocked (fun deps ->
   match command with 
     { command_target = target ; _} -> 
 
@@ -819,6 +857,7 @@ let command_set_blocked (env : Omake_build_type.t)
     in
     env.env_inverse <- inverse;
     command.command_blocked <- Omake_node.NodeSet.to_list deps
+  )
 
 (*
  * Add the build deps.
@@ -892,12 +931,16 @@ let command_effects_are_scanned
           | _ ->
             false) effects
 
+let probe_enable_parents = I.create "enable_parents"
+
+
 (*
  * Reclassify dependent rules.
  *)
 let enable_parents 
-    (env : Omake_build_type.t)
-    (command : Omake_build_type.command) =
+    (env : Omake_build_type.t) =
+  I.instrument probe_enable_parents
+  (fun (command : Omake_build_type.command) ->
   let enable_parent _ command =
     if not (command_is_blocked env command) then
       let state : Omake_build_type.command_state =
@@ -920,15 +963,20 @@ let enable_parents
       Omake_node.NodeTable.empty
   in
   Omake_node.NodeTable.iter enable_parent parents
+  )
 
 (************************************************************************
  * Generic execution.
 *)
 
+let probe_parse_deps = I.create "parse_deps"
+
 (*
  * Parse the dependency list.
  *)
-let parse_deps _ venv target file =
+let parse_deps _ venv target =
+  I.instrument probe_parse_deps
+  (fun file ->
   let deps = Omake_eval.compile_deps venv target file in
   if !debug_deps then
     begin
@@ -955,7 +1003,7 @@ let parse_deps _ venv target file =
           Omake_node.NodeSet.union set sources
         | None ->
           sources)) table targets) Omake_node.NodeTable.empty deps
-
+  )
 
 (*
  * A command finished with an error.
@@ -976,12 +1024,16 @@ let abort_commands env targets code =
  * Scanner execution.
 *)
 
+let probe_finish_scanned = I.create "finish_scanned"
+
+
 (*
  * All scanner subgoals have finished, and all effects
  * have been scanned too.  Take the union of all the dependencies.
  *)
-let finish_scanned (env : Omake_build_type.t)
-    (command : Omake_build_type.command) =
+let finish_scanned (env : Omake_build_type.t) =
+  I.instrument probe_finish_scanned
+  (fun (command : Omake_build_type.command) ->
   match command with 
     { command_loc          = loc;
       command_target       = target;
@@ -1058,12 +1110,17 @@ let finish_scanned (env : Omake_build_type.t)
           CommandReady
       in
       reclassify_command env command state) effects_commands
+  )
+
+let probe_finish_scanner = I.create "finish_scanner"
 
 (*
  * A scanner has finished successfully.
  * Notify the parents.
  *)
-let finish_scanner env (command : Omake_build_type.command) scanned_deps =
+let finish_scanner env (command : Omake_build_type.command) =
+  I.instrument probe_finish_scanner
+  (fun scanned_deps ->
   match command with
     {command_target = target; _} -> 
     if Lm_debug.debug Omake_env.debug_scanner then
@@ -1076,6 +1133,10 @@ let finish_scanner env (command : Omake_build_type.command) scanned_deps =
 
     (* Notify parents that something is done *)
     enable_parents env command
+  )
+
+let probe_save_and_finish_scanner_results =
+  I.create "save_and_finish_scanner_results"
 
 (*
  * A scanner command finished successfully.
@@ -1094,7 +1155,9 @@ let finish_scanner env (command : Omake_build_type.command) scanned_deps =
  *)
 let save_and_finish_scanner_results 
     (env : Omake_build_type.t) 
-    (command : Omake_build_type.command) scanned_deps =
+    (command : Omake_build_type.command) =
+  I.instrument probe_save_and_finish_scanner_results
+  (fun scanned_deps ->
   (* Add the run to the cache *)
   match command with 
     { command_loc            = loc;
@@ -1133,12 +1196,18 @@ let save_and_finish_scanner_results
     in
     Omake_cache.add cache scanner_fun target targets build_deps digest (MemoSuccess scanned_deps);
     finish_scanner env command scanned_deps
+  )
+
+let probe_save_and_finish_scanner_success =
+  I.create "save_and_finish_scanner_success"
 
 (*
  * Add the run to the cache.
  *)
 let save_and_finish_scanner_success 
-    (env : Omake_build_type.t) (command : Omake_build_type.command) filename =
+    (env : Omake_build_type.t) (command : Omake_build_type.command) =
+  I.instrument probe_save_and_finish_scanner_success
+  (fun filename ->
   match command with 
     { command_loc = loc;
       command_venv = venv;
@@ -1188,6 +1257,7 @@ let save_and_finish_scanner_success
       Omake_exec_print.pp_status_lines out options shell "scan" lines;
       Format.fprintf out "*** omake: @[<hv0>scanner output is saved in@ %s@]@." filename;
       abort_command env command Omake_state.scanner_error_code
+  )
 
 (*
  * Failed run.
@@ -1196,11 +1266,15 @@ let save_and_finish_scanner_failed env command filename code =
   Lm_unix_util.try_unlink_file filename;
   abort_command env command code
 
+let probe_execute_scanner =
+  I.create "execute_scanner"
+
 (*
  * Run the command.
  *)
-let execute_scanner (env : Omake_build_type.t) 
-    (command : Omake_build_type.command) =
+let execute_scanner (env : Omake_build_type.t) =
+  I.instrument probe_execute_scanner
+  (fun  (command : Omake_build_type.command) ->
   match command with 
     { command_target = target;
       command_loc = loc;
@@ -1242,6 +1316,9 @@ let execute_scanner (env : Omake_build_type.t)
       (* Process was started *)
       env.env_idle_count <- pred env.env_idle_count;
       reclassify_command env command (CommandRunning (pid, Some tmpfile))
+  )
+
+let probe_start_scanner = I.create "start_scanner"
 
 (*
  * Execute a command.
@@ -1249,8 +1326,9 @@ let execute_scanner (env : Omake_build_type.t)
  * up-to-date.
  *)
 let start_scanner 
-    (env : Omake_build_type.t)
-    (command : Omake_build_type.command) =
+    (env : Omake_build_type.t) =
+  I.instrument probe_start_scanner
+  (fun (command : Omake_build_type.command) ->
   match command with 
     { command_venv           = venv;
       command_loc            = loc;
@@ -1308,18 +1386,25 @@ let start_scanner
         Not_found ->
         execute_scanner env command
     end
+  )
 
 (************************************************************************
  * Rule execution.
 *)
 
+
+let probe_finish_rule_success = I.create "finish_rule_success"
+
 (*
  * A command finished successfuly.
  *)
-let finish_rule_success env command =
+let finish_rule_success env =
+  I.instrument probe_finish_rule_success
+  (fun command ->
   (* Get a list of all commands that might be updated *)
   reclassify_command env command (CommandSucceeded Omake_node.NodeTable.empty);
   enable_parents env command
+  )
 
 (*
  * A command remains failed.
@@ -1338,9 +1423,16 @@ let hexify_digest = function
   | None ->
     "none"
 
+let probe_save_and_finish_rule_success =
+  I.create "save_and_finish_rule_success"
+
+let probe_safrs_effects =
+  I.create "safrs_effects"
+
 let save_and_finish_rule_success 
-    (env : Omake_build_type.t)
-    (command : Omake_build_type.command) =
+    (env : Omake_build_type.t) =
+  I.instrument probe_save_and_finish_rule_success
+  (fun (command : Omake_build_type.command) ->
   (* Add the run to the cache *)
   match command with 
     { command_loc        = loc;
@@ -1355,6 +1447,8 @@ let save_and_finish_rule_success
 
     (* Collect the effects that are not phony, check that they were created *)
     let effects =
+      I.instrument probe_safrs_effects
+      (fun () ->
       Omake_node.NodeSet.fold (fun effects effect ->
         let digest = Omake_cache.force_stat cache effect in
         if Omake_node.Node.is_phony effect then
@@ -1364,6 +1458,8 @@ let save_and_finish_rule_success
           raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("rule failed to build its target", effect)))
         end else
           Omake_node.NodeSet.add effects effect) Omake_node.NodeSet.empty effects
+      )
+      ()
     in
 
     (* Re-stat the locks *)
@@ -1387,6 +1483,7 @@ let save_and_finish_rule_success
 
     (* Now tell parents that this job succeeded *)
     finish_rule_success env command
+  )
 
 (*
  * A command failed.
@@ -1407,10 +1504,14 @@ let save_and_finish_rule_failed
     Omake_cache.add cache rule_fun target effects build_deps commands_digest (MemoFailure code);
     abort_commands env effects code
 
+let probe_run_rule = I.create "run_rule"
+
 (*
  * Run the command.
  *)
-let run_rule (env : Omake_build_type.t) (command : Omake_build_type.command) =
+let run_rule (env : Omake_build_type.t) =
+  I.instrument probe_run_rule
+  (fun (command : Omake_build_type.command) ->
   match command with 
     { command_loc     = loc;
       command_target  = target;
@@ -1440,6 +1541,9 @@ let run_rule (env : Omake_build_type.t) (command : Omake_build_type.command) =
       (* The process was started *)
       env.env_idle_count <- pred env.env_idle_count;
       reclassify_command env command (CommandRunning (pid, None))
+  )
+
+let probe_execute_rule = I.create "execute_rule"
 
 (*
  * Execute a command.
@@ -1447,8 +1551,9 @@ let run_rule (env : Omake_build_type.t) (command : Omake_build_type.command) =
  * up-to-date.
  *)
 let execute_rule 
-    (env : Omake_build_type.t)
-    (command : Omake_build_type.command) =
+    (env : Omake_build_type.t) =
+  I.instrument probe_execute_rule
+  (fun (command : Omake_build_type.command) ->
   match command with 
     { command_loc          = loc;
 
@@ -1520,6 +1625,7 @@ let execute_rule
           run_rule env command
         end
     end
+  )
 
 (************************************************************************
  * Saved versions.
@@ -1645,12 +1751,16 @@ let invalidate_parents env (command : Omake_build_type.command) =
 let invalidate_children _ (command : Omake_build_type.command) =
   command.command_build_deps
 
+let probe_invalidate_aux = I.create "invalidate_aux"
+
 (*
  * General invalidation function.
  *
  * The invalidate_next function determines how to walk the tree.
  *)
-let rec invalidate_aux invalidate_next env nodes =
+let rec invalidate_aux invalidate_next env =
+  I.instrument probe_invalidate_aux 
+  (fun nodes ->
   if not (Omake_node.NodeSet.is_empty nodes) then
     let node = Omake_node.NodeSet.choose nodes in
     let command = find_command env node in
@@ -1676,6 +1786,7 @@ let rec invalidate_aux invalidate_next env nodes =
         nodes
     in
     invalidate_aux invalidate_next env (Omake_node.NodeSet.remove nodes node)
+  )
 
 let invalidate_ancestors = invalidate_aux invalidate_parents
 let invalidate_children  = invalidate_aux invalidate_children
@@ -1684,6 +1795,8 @@ let invalidate_children  = invalidate_aux invalidate_children
  * Command management.
 *)
 
+let probe_process_initial = I.create "process_initial"
+
 (*
  * Process a command in the Initial state.
  * Check the dependencies.  For each dependency,
@@ -1691,7 +1804,9 @@ let invalidate_children  = invalidate_aux invalidate_children
  * If the dependencies are all finished, then
  * schedule this command for scanning.
  *)
-let process_initial env =
+let process_initial =
+  I.instrument probe_process_initial
+  (fun env ->
   let command = Omake_build_util.command_list_head env CommandInitialTag in
   match command with  { command_loc = loc;
                         command_venv = venv;
@@ -1728,6 +1843,7 @@ let process_initial env =
         CommandScannedPending
     in
     reclassify_command env command state
+  )
 
 (*
  * A command has been scanned successfully.
@@ -1968,6 +2084,10 @@ let rec create_env_loop exec options cache targets =
     Restart reason ->
     print_restart options reason;
     create_env_loop exec options cache targets
+
+let probe_create_env_loop = I.create "create_env_loop"
+
+let create_env_loop = I.instrument probe_create_env_loop create_env_loop
 
 (*
  * Load the environment if possible.

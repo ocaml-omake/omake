@@ -160,7 +160,8 @@ let main (options : Omake_options.t) =
       printf "Resources used incl. sub processes: \
               user %.2fseconds, system %.2fseconds\n"
              r.tms_cutime r.tms_cstime;
-    )
+    );
+    Lm_instrument.report()
   end
 
 let _ =
