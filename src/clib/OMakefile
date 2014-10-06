@@ -32,6 +32,7 @@ EXTERNAL = ../libmojave-external
 
 open configure/snprintf
 open configure/fs_case_sensitive
+open configure/moncontrol
 
 if $(SNPRINTF_AVAILABLE)
     CFLAGS += -DHAVE_SNPRINTF
@@ -40,6 +41,9 @@ if $(SNPRINTF_AVAILABLE)
 if $(DETECT_FS_CASE_SENSITIVE)
     CFLAGS += $(DETECT_FS_CASE_SENSITIVE_CFLAGS)
     export
+
+if $(MONCONTROL_AVAILABLE)
+    CFLAGS += -DHAVE_MONCONTROL
 
 FILES[] =
     lm_heap
