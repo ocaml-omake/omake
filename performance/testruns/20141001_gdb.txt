@@ -1,0 +1,111 @@
+#0  0x00007ffff7430fb1 in _wordcopy_fwd_aligned (dstp=140737339192008, 
+    srcp=140737339192272, len=3) at wordcopy.c:38
+#1  0x00007ffff742f6f2 in *__GI_memmove (dest=0x7ffff71bf2c8, 
+    src=<value optimized out>, len=28) at memmove.c:73
+#2  0x0000000000601696 in caml_blit_string ()
+#3  0x00000000005d530b in camlString__sub_1024 () at string.ml:43
+#4  0x000000000058f51f in camlLm_string_util__str_split_1160 ()
+#5  0x000000000059d82b in camlLm_filename_util__filename_path_1099 ()
+#6  0x0000000000554040 in camlOmake_node__new_path_4264 ()
+#7  0x00000000005540b9 in camlOmake_node__new_file_4276 ()
+#8  0x0000000000557140 in camlOmake_node__create_node_4671 ()
+#9  0x000000000051f6f3 in camlOmake_env__fun_5819 ()
+#10 0x00000000005d3b01 in camlList__map_1040 () at list.ml:55
+#11 0x0000000000521335 in camlOmake_env__collect_4181 ()
+#12 0x00000000004ef78f in camlOmake_target__venv_find_buildable_implicit_rule_bound_1421 ()
+#13 0x00000000004ef98b in camlOmake_target__target_is_buildable_bound_1420 ()
+#14 0x00000000004b92f9 in camlOmake_builtin_file__target_is_buildable_2203 ()
+#15 0x00000000005d4041 in camlList__for_all_1132 () at list.ml:127
+#16 0x00000000004b8d41 in camlOmake_builtin_file__node_exists_2143 ()
+#17 0x00000000004efd11 in camlOmake_builtin__fun_2012 ()
+#18 0x0000000000511681 in camlOmake_eval__eval_apply_string_exp_2512 ()
+#19 0x000000000050c82e in camlOmake_eval__eval_if_cases_2547 ()
+#20 0x000000000050c746 in camlOmake_eval__eval_sequence_2549 ()
+#21 0x00000000004e8035 in camlOmake_rule__expand_rule_section_2544 ()
+#22 0x00000000004e819e in camlOmake_rule__expand_commands_2543 ()
+#23 0x00000000004e7e9e in camlOmake_rule__expand_command_info_2546 ()
+#24 0x00000000005d3d44 in camlList__fold_left_1073 () at list.ml:84
+#25 0x00000000004e8577 in camlOmake_rule__expand_rule_2615 ()
+#26 0x00000000004ef598 in camlOmake_target__search_irules_1422 ()
+#27 0x00000000004f6dd4 in camlOmake_build__build_implicit_command_2862 ()
+#28 0x00000000004f2830 in camlOmake_build__fun_4545 ()
+#29 0x000000000057b64b in camlLm_set__iter_1766 ()
+#30 0x000000000057b63a in camlLm_set__iter_1766 ()
+#31 0x000000000057b63a in camlLm_set__iter_1766 ()
+#32 0x000000000057b63a in camlLm_set__iter_1766 ()
+#33 0x000000000057b63a in camlLm_set__iter_1766 ()
+#34 0x000000000057b63a in camlLm_set__iter_1766 ()
+#35 0x00000000004fa02d in camlOmake_build__process_initial_3306 ()
+#36 0x00000000004fae7a in camlOmake_build__main_loop_3355 ()
+#37 0x00000000005d3#38 0x00000000004fd19a in camlOmake_build__build_targets_3599 ()
+#39 0x00000000004fd7bc in camlOmake_build__build_core_3634 ()
+#40 0x00000000004fdbff in camlOmake_build__build_time_3653 ()
+---Type <return> to continue, or q <return> to quit--- 
+#41 0x00000000004fdce7 in camlOmake_build__build_3669 ()
+#42 0x00000000004a313d in camlOmake_main__main_1784 ()
+#43 0x000000000052cd41 in camlOmake_exn_print__catch_1128 ()
+#44 0x00000000004a47d5 in camlOmake_main__entry ()
+#45 0x000000000049f489 in caml_program ()
+c91 in camlList__iter_1061 () at list.ml:73
+
+
+#0  0x00007ffff74741c5 in *__GI___xstat (vers=<value optimized out>, 
+    name=<value optimized out>, buf=0x7fffffffda90)
+    at ../sysdeps/unix/sysv/linux/wordsize-64/xstat.c:38
+#1  0x00000000005f8884 in unix_stat_64 ()
+#2  0x0000000000565be8 in camlOmake_cache__do_stat_unix_2150 ()
+#3  0x00000000005664c4 in camlOmake_cache__exists_2210 ()
+#4  0x00000000004ef40a in camlOmake_target__target_exists_or_is_phony_or_is_explicit_1416 ()
+#5  0x00000000004ef938 in camlOmake_target__target_is_buildable_bound_1420 ()
+#6  0x000000000057bcec in camlLm_set__for_all_1867 ()
+#7  0x00000000004ef584 in camlOmake_target__search_irules_1422 ()
+#8  0x00000000004ef98b in camlOmake_target__target_is_buildable_bound_1420 ()
+#9  0x000000000057bcec in camlLm_set__for_all_1867 ()
+#10 0x00000000004ef584 in camlOmake_target__search_irules_1422 ()
+#11 0x00000000004ef98b in camlOmake_target__target_is_buildable_bound_1420 ()
+#12 0x00000000004b92f9 in camlOmake_builtin_file__target_is_buildable_2203 ()
+#13 0x00000000004b96eb in camlOmake_builtin_file__search_target_in_path_aux_2252 ()
+#14 0x00000000005d3d44 in camlList__fold_left_1073 () at list.ml:84
+#15 0x00000000004b95a2 in camlOmake_builtin_file__search_target_path_aux_2235
+    ()
+#16 0x00000000004efd11 in camlOmake_builtin__fun_2012 ()
+#17 0x0000000000511681 in camlOmake_eval__eval_apply_string_exp_2512 ()
+#18 0x00000000005d3b01 in camlList__map_1040 () at list.ml:55
+#19 0x000000000050f4ca in camlOmake_eval__eval_string_exp_2532 ()
+#20 0x000000000050ba2d in camlOmake_eval__eval_string_value_exp_2566 ()
+#21 0x000000000050c746 in camlOmake_eval__eval_sequence_2549 ()
+#22 0x00000000005117e3 in camlOmake_eval__eval_apply_2511 ()
+#23 0x0000000000512752 in camlOmake_eval__eval_value_core_2501 ()
+#24 0x00000000005123aa in camlOmake_eval__eval_catenable_value_2505 ()
+#25 0x0000000000509d4d in camlOmake_eval__collect_2818 ()
+#26 0x00000000004e74b6 in camlOmake_rule__fun_3955 ()
+#27 0x00000000005d3d44 in camlList__fold_left_1073 () at list.ml:84
+#28 0x00000000004eb6ca in camlOmake_rule__eval_rule_2980 ()
+#29 0x00000000004e7532 in camlOmake_rule__collect_3109 ()
+#30 0x00000000004f87a6 in camlOmake_build__start_scanner_3142 ()
+#31 0x00000000004fad63 in camlOmake_build__main_loop_3355 ()
+#32 0x00000000005d3c91 in camlList__iter_1061 () at list.ml:73
+#33 0x00000000004fd19a in camlOmake_build__build_targets_3599 ()
+#34 0x00000000004fd7bc in camlOmake_build__build_core_3634 ()
+#35 0x00000000004fdbff in camlOmake_build__build_time_3653 ()
+#36 0x00000000004fdce7 in camlOmake_build__build_3669 ()
+#37 0x00000000004a313d in camlOmake_main__main_1784 ()
+#38 0x000000000052cd41 in camlOmake_exn_print__catch_1128 ()
+#39 0x00000000004a47d5 in camlOmake_main__entry ()
+#40 0x000000000049f489 in caml_program ()
+
+#0  0x00007ffff747a3c3 in __select_nocancel ()
+    at ../sysdeps/unix/syscall-template.S:82
+#1  0x00000000005f7754 in unix_select ()
+#2  0x000000000051e76d in camlOmake_exec__wait_select_1584 ()
+#3  0x00000000004fa646 in camlOmake_build__process_running_3329 ()
+#4  0x00000000004fae33 in camlOmake_build__main_loop_3355 ()
+#5  0x00000000005d3c91 in camlList__iter_1061 () at list.ml:73
+#6  0x00000000004fd19a in camlOmake_build__build_targets_3599 ()
+#7  0x00000000004fd7bc in camlOmake_build__build_core_3634 ()
+#8  0x00000000004fdbff in camlOmake_build__build_time_3653 ()
+#9  0x00000000004fdce7 in camlOmake_build__build_3669 ()
+#10 0x00000000004a313d in camlOmake_main__main_1784 ()
+#11 0x000000000052cd41 in camlOmake_exn_print__catch_1128 ()
+#12 0x00000000004a47d5 in camlOmake_main__entry ()
+#13 0x000000000049f489 in caml_program ()
