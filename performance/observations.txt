@@ -1,0 +1,92 @@
+----------------------------------------------------------------------
+Slowness of Omake_eval.value_of_value
+----------------------------------------------------------------------
+
+This function is the core of what is measured by the probe
+Omake_rule.eval_rule.3. Although there is no scalability problem
+(i.e. if it is called more often, it doesn't get slower per call), it is
+somewhat slow. The function reparses the tokens, e.g. if you have
+
+V1 = word1 "word2
+V2 = word3 "word4
+V3 = word5
+
+and if the function was fed with a value sequence corresponding to the
+expansion of $(V1)$(V2)$(V3), namely
+
+[ word1 "word2; word3 "word4; word5 ]
+
+(semicolon is meta-separator), the function would reparse this into
+
+[ word1; word2 word3 ; word4 word5 ]
+
+i.e. it interprets quotations and whitespace to split the input into logical
+words.
+
+It uses a generic token scanner function from Lm_string_util. This
+seems to be the core of the problem. The token scanner is restartable,
+and scanning can be continued by providing some more input, resulting
+in a new token scanner. If you look at the implementation, you'll see
+that every time scanning is continued a new record is allocated,
+copying most of the old record fields. If this happens after every
+little piece of input text, this results in a lot of short-living
+allocations and a lot of work for initializing the new
+records. E.g. when processing a chunk of 20 characters, the function
+needs to allocate a new record with 7 fields (56 bytes on 64 bit
+machines), and needs to initialize it. So for managing the scanner
+state more CPU cycles are consumed than for scanning.
+
+We should look into changing the purely functional scanner into a
+stateful scanner. Scanning is only locally used inside
+values_of_value, so this change can be limited to this scope.
+
+
+----------------------------------------------------------------------
+Slowness of Omake_exec.spawn
+----------------------------------------------------------------------
+
+This is a quite dramatic issue: The runtime of this function grows
+to a multiple for larger build plans (e.g. for running the test with
+n=6 (1296 files to build) we see 2.5ms/call, but for n=8 (4096 files to
+build) we see 11.1 ms/call. There is a huge scalability problem.
+
+What is the reason? Omake_exec.spawn uses fork+exec to start the new
+process. However, it is a known problem that this will slow down with
+larger memory footprints (not because fork has to copy the memory - the
+OS is intelligent enough to avoid this - but because the page table for
+the child process needs to be initialized). If you look at the memory
+footprints, we see a maximum RSS size for omake and all children of
+
+  1.2 GB for n=6, but
+  2.1 GB for n=8
+
+(the children include omake's own children for managing parallel builds,
+and the invoked build commands, ocamlc and ocamlopt). We can draw two
+consequences from this:
+
+ (1) reduce the memory footprint
+ (2) use alternatives to fork+exec
+
+First (2): Luckily, POSIX specified a portable alternative that
+provides almost all functionality one usually needs for a
+fork+exec-based process starter, namely the posix_spawn call. The OS
+has all freedom to accelerate this call. Some OS implement this call
+as system call (e.g.  OS X), so that there is no fork involved at
+all. Some OS implement this as library but use "dirty tricks". Under
+Linux, this trick is to use the vfork call which creates a child
+process that shares most of the memory with the parent (so no new page
+table is required).
+
+There is a binding for posix_spawn I wrote for OCamlnet. An experiment
+could be to link this binding into omake, so that fork+exec is replaced.
+
+Note that Windows should not be affected by this problem at all, because
+Windows uses a posix_spawn-type process starter anyway.
+
+Now (1): XXX
+
+----------------------------------------------------------------------
+Slowness of safrs_effects
+----------------------------------------------------------------------
+
+XXX
