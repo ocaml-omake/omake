@@ -49,6 +49,7 @@ if $(POSIX_SPAWN_AVAILABLE)
 
 if $(MONCONTROL_AVAILABLE)
     CFLAGS += -DHAVE_MONCONTROL
+    export
 
 FILES[] =
     lm_heap
