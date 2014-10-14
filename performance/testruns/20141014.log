@@ -1,0 +1,74 @@
+c=10000 n=8 j=1
+
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.36 sec)
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (23 min 50.62 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+Resources used by main process:     user 75.67seconds, system 111.91seconds
+Resources used incl. sub processes: user 684.32seconds, system 511.16seconds
+Probes (times in milliseconds):
+FL NAME                          COUNT       ACC      SELF       MIN       MAX
+   Omake_cache.digest_file       16582     17924     17924         0        25
+   Omake_cache.stat_file        457241     19665      1741         0         6
+   digest_of_commands            20544      1856      1856         0         5
+   Omake_exec.spawn               8256     59716     59716         0        69
+   Omake_eval.compile_deps        4096     11438     11438         1        58
+   Omake_rule.eval_commands      20544     33120        82         0         7
+   Omake_rule.eval_rule          20544     33038       917         0         1
+   Omake_rule.eval_rule.1        20544      5405      5405         0        30
+   Omake_rule.eval_rule.2        20544        27        27         0         0
+   Omake_rule.eval_rule.3        20544     26656     26656         0      1990
+   Omake_rule.eval_rule.4        20544        34        34         0         1
+   process_changes                   0         0         0       inf         0
+   all_dependencies                  0         0         0       inf         0
+   reclassify_command            99116       312       312         0         0
+   build_any_command             20940       207       207         0         4
+   start_or_build_commands       50136      3690      3508         0         4
+   start_or_build_scanners       20940       316       293         0         1
+   start_or_build_effects        12416       838        76         0         1
+   command_set_blocked           41880      1209      1209         0        14
+   enable_parents                20940       956       877         0        18
+   parse_deps                     4096     12955      1517         0        16
+   finish_scanned                12684      1649       294         0         3
+   finish_scanner                 4096       232        25         0         0
+   save_and_finish_scanner_results      4096     28034       249         0         0
+   save_and_finish_scanner_success      4096     41411       421         0         0
+   execute_scanner                4096       636       518         0         0
+   start_scanner                  4096      1997        75         0         3
+   finish_rule_success           16844       915        97         0         5
+   save_and_finish_rule_success      8588     20194       597         0         0
+   safrs_effects                  8588     18566       189         0         0
+   run_rule                       4160     59875       178         0         0
+   execute_rule                  16844     71078       756         0         1
+R  invalidate_aux                    4         0         0         0         0
+   process_initial               20940      4199       199         0         1
+   create_env_loop                   1         0         0         0         0
+759.99user 623.12system 23:50.69elapsed 96%CPU (0avgtext+0avgdata 2014608maxresident)k
+8496inputs+1649584outputs (23major+66624067minor)pagefaults 0swaps

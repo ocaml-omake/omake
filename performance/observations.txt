@@ -1,11 +1,20 @@
+The following analysis bases on
+
+ - performance/testruns/20141014.log
+
+omake was checked out from git (omake-fork), including the instrumentation.
+omake was built with ocaml-4.02.0. The testrun, however, used ocaml-4.01.0.
+
+
 ----------------------------------------------------------------------
 Slowness of Omake_eval.value_of_value
 ----------------------------------------------------------------------
 
-This function is the core of what is measured by the probe
-Omake_rule.eval_rule.3. Although there is no scalability problem
-(i.e. if it is called more often, it doesn't get slower per call), it is
-somewhat slow. The function reparses the tokens, e.g. if you have
+This function is the core of what is measured by the probes
+Omake_rule.eval_rule.3 and compile_deps. Although there is no
+scalability problem (i.e. if it is called more often, it doesn't get
+slower per call), it is somewhat slow. The function reparses the
+tokens, e.g. if you have
 
 V1 = word1 "word2
 V2 = word3 "word4
@@ -48,7 +57,7 @@ Slowness of Omake_exec.spawn
 This is a quite dramatic issue: The runtime of this function grows
 to a multiple for larger build plans (e.g. for running the test with
 n=6 (1296 files to build) we see 2.5ms/call, but for n=8 (4096 files to
-build) we see 11.1 ms/call. There is a huge scalability problem.
+build) we see 7.2 ms/call. There is a huge scalability problem.
 
 What is the reason? Omake_exec.spawn uses fork+exec to start the new
 process. However, it is a known problem that this will slow down with
@@ -83,10 +92,35 @@ could be to link this binding into omake, so that fork+exec is replaced.
 Note that Windows should not be affected by this problem at all, because
 Windows uses a posix_spawn-type process starter anyway.
 
-Now (1): XXX
+Now (1): For the testrun with n=8 and 4096 files the maximum RSS was
+around 470MB (w/o children processes).
+
+XXX
 
 ----------------------------------------------------------------------
 Slowness of safrs_effects
 ----------------------------------------------------------------------
 
-XXX
+This is about one block in Omake_build.save_and_finish_rule_success
+("safrs"). This function calls Omake_cache.stat_file, and indirectly
+Omake_cache.digest_file. This function takes samples from the files an
+omake rule is expected to have created, and computes the MD5 hash from
+the samples. (For files up to 8MB length, the MD5 hash of the complete
+file is computed; for larger files, 16 pieces of 64KB length are
+extracted.)
+
+For this purpose, MD5 is a fairly slow function: the 16582 digests
+took almost 18 seconds to compute.
+
+The suggestion is to move away from a function that satisfies
+cryptographic requirements to a cheaper one. In particular, we don't
+need that the function is hard to invert, and we also don't need that
+a single changed bit in the input leads to a completely different sum.
+We require though some sensitivity: a changed bit in the input should
+change the output, and it should be unlikely that two changed bits sum
+up to zero in the output.
+
+(An idea for a faster hash function: use RC4 to generate a sequence
+of pseudo-random bytes; XOR these bytes with the data, resulting in
+a sequence of modified data; run a checksum function over the modified
+data.)
