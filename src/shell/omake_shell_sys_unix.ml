@@ -238,6 +238,7 @@ let create_process info =
              exe
              argv in
          Unix.close workfd;
+         Lm_unix_util.moncontrol true;
          pid
       )
       ()
