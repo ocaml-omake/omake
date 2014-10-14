@@ -215,6 +215,7 @@ let create_process info =
         Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
       with _ ->
         exit Omake_state.exn_error_code
-    else
+    else (
+      Lm_unix_util.moncontrol true;
       pid
-
+    )
