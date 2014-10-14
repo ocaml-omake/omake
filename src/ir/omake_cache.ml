@@ -11,6 +11,7 @@
  * The same principle works for scanners.
  *)
 
+module I = Lm_instrument
 
 let debug_cache =
    Lm_debug.create_debug (**)
@@ -493,16 +494,28 @@ let digest_large name file_size =
       Unix.Unix_error _ ->
          raise (Sys_error name)
 
-let digest_file name file_size =
+let probe_digest_file =
+  I.create "Omake_cache.digest_file"
+
+let digest_file name = 
+  I.instrument probe_digest_file
+  (fun file_size ->
    if file_size > large_file_size then
       digest_large name file_size
    else
       Digest.file name
+  )
+
+
+let probe_stat_file =
+  I.create "Omake_cache.stat_file"
 
 (*
  * Stat a file.
  *)
-let stat_file cache node =
+let stat_file cache =
+  I.instrument probe_stat_file
+  (fun node ->
    let nodes = cache.cache_nodes in
    let stats =
       try Some (Omake_node.NodeTable.find nodes node) with
@@ -613,6 +626,7 @@ let stat_file cache node =
             in
                cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
                nmemo.nmemo_digest
+  )
 
 (*
  * Return just the Unix stat information.
