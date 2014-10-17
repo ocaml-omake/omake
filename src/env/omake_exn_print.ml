@@ -48,7 +48,7 @@ let pp_print_obj_err buf obj =
 let pp_print_return_id buf (loc, s) =
    Format.fprintf buf "%s (%a)" s Lm_location.pp_print_location loc
 
-let pp_print_exn buf exn =
+let pp_print_exn_with_backtrace ~backtrace buf exn =
    match exn with
       OmakeException (pos, exn) ->
          Format.fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
@@ -79,7 +79,13 @@ let pp_print_exn buf exn =
             Lm_location.pp_print_location loc
             pp_print_return_id id
     | exn ->
-         Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn;
+         if backtrace <> "" then
+           Format.fprintf buf "@[<v 3>Backtrace: %s@]" backtrace
+
+let pp_print_exn buf exn =
+  pp_print_exn_with_backtrace ~backtrace:"" buf exn
+
 
 (*
  * If one of these exceptions occurs during process creation,
@@ -105,6 +111,7 @@ let is_shell_exn exn =
  * Exception handler.
  *)
 let catch f x =
+  Printexc.record_backtrace true;
   try f x with
   | OmakeException _
   | OmakeFatalErr _
@@ -114,8 +121,9 @@ let catch f x =
   | Unix.Unix_error _
   | Sys_error _
   | Return _ as exn ->
-    Format.eprintf "%a@." pp_print_exn exn;
-    exit Omake_state.exn_error_code
+       let backtrace = Printexc.get_backtrace() in
+       Format.eprintf "%a@." (pp_print_exn_with_backtrace ~backtrace) exn;
+       exit Omake_state.exn_error_code
   | ExitParentException (_, code)
   | ExitException (_, code) as exn ->
     Format.eprintf "%a@." pp_print_exn exn;
