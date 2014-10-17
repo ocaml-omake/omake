@@ -70,7 +70,7 @@ if $(not $(defined CAMLLIB))
 #
 # OCaml options
 #
-OCAMLFLAGS[] += -w +a-4-32-30-42-40-41
+OCAMLFLAGS[] += -w +a-4-32-30-42-40-41 -g
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
