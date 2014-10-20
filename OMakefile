@@ -128,6 +128,9 @@ OCAML_LINK_FLAGS = $(mapprefix -cclib, $(set $(EXTRA_CLIBS)))
 VERSION_TXT = $(file version.txt)
 GENMAGIC = $(file src/magic/omake_gen_magic)
 
+USE_OCAMLFIND = true
+OCAMLPACKS = objsize
+
 ########################################################################
 # Clean up
 #

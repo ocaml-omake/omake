@@ -1,0 +1,87 @@
+MEMORY PROFILING: c=10000 n=8 j=1
+
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.36 sec)
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (24 min 13.78 sec, 4096/4096 scans, 4160/12416 rules, 16582/37423 digests)
+*** memory statistics:
+env (total):          289834400
+venv:                  96727208
+cache:                 56808944
+exec:                      1232
+explicit_deps:          2452648
+explicit_targets:      96741512
+explicit_directories:  96726880
+includes:                 27120
+commands:             269488040
+inverse:              288571064
+print_dependencies:           0
+current_wl:           268256072
+main_wl:              268256072
+Resources used by main process:     user 90.34seconds, system 114.07seconds
+Resources used incl. sub processes: user 693.46seconds, system 519.48seconds
+Probes (times in milliseconds):
+FL NAME                          COUNT       ACC      SELF       MIN       MAX
+   Omake_cache.digest_file       16582     17978     17978         0        26
+   Omake_cache.stat_file        457310     19732      1754         0         7
+   digest_of_commands            20544      1839      1839         0         5
+   Omake_exec.spawn               8256     61332     61332         0        63
+   Omake_eval.compile_deps        4096     11534     11534         1        51
+   Omake_rule.eval_commands      20544     33532        74         0         2
+   Omake_rule.eval_rule          20544     33459       966         0         7
+   Omake_rule.eval_rule.1        20544      5571      5571         0        32
+   Omake_rule.eval_rule.2        20544        27        27         0         0
+   Omake_rule.eval_rule.3        20544     26863     26863         0      2036
+   Omake_rule.eval_rule.4        20544        32        32         0         0
+   process_changes                   0         0         0       inf         0
+   all_dependencies                  0         0         0       inf         0
+   reclassify_command            99116       298       298         0         3
+   build_any_command             20940       217       217         0         4
+   start_or_build_commands       50136      3780      3585         0         3
+   start_or_build_scanners       20940       296       274         0         1
+   start_or_build_effects        12416       833        82         0         5
+   command_set_blocked           41880      1163      1163         0         8
+   enable_parents                20940       950       874         0        18
+   parse_deps                     4096     13075      1541         0        16
+   finish_scanned                12684      1620       305         0         0
+   finish_scanner                 4096       228        27         0         0
+   save_and_finish_scanner_results      4096     28299       289         0         1
+   save_and_finish_scanner_success      4096     42680      1306         0         0
+   execute_scanner                4096       642       516         0         0
+   start_scanner                  4096      2012        78         0         0
+   finish_rule_success           16844       912        95         0         4
+   save_and_finish_rule_success      8588     20314       618         0         0
+   safrs_effects                  8588     18657       208         0         0
+   run_rule                       4160     61479       187         0         0
+   execute_rule                  16844     73017       759         0         0
+R  invalidate_aux                    4         0         0         0         0
+   process_initial               20940      4300       225         0         5
+   create_env_loop                   1         0         0         0         0

@@ -2442,6 +2442,24 @@ and build_on_error env save_flag _ parallel print targets options error_code =
     build_targets env save_flag (Unix.gettimeofday ()) parallel print targets
   end
 
+let memstat (env : Omake_build_type.t) =
+  let open Printf  in
+  let size obj = Objsize.size_with_headers (Objsize.objsize obj) in
+  printf "*** memory statistics:\n";
+  printf "env (total):          %9d\n" (size env);
+  printf "venv:                 %9d\n" (size env.env_venv);
+  printf "cache:                %9d\n" (size env.env_cache);
+  printf "exec:                 %9d\n" (size env.env_exec);
+  printf "explicit_deps:        %9d\n" (size env.env_explicit_deps);
+  printf "explicit_targets:     %9d\n" (size env.env_explicit_targets);
+  printf "explicit_directories: %9d\n" (size env.env_explicit_directories);
+  printf "includes:             %9d\n" (size env.env_includes);
+  printf "commands:             %9d\n" (size env.env_commands);
+  printf "inverse:              %9d\n" (size env.env_inverse);
+  printf "print_dependencies:   %9d\n" (size env.env_print_dependencies);
+  printf "current_wl:           %9d\n" (size env.env_current_wl);
+  printf "main_wl:              %9d\n" (size env.env_main_wl)
+
 (*
  * Notification loop.
  *)
@@ -2494,7 +2512,9 @@ let build_core (env : Omake_build_type.t) dir start_time (options : Omake_option
       Format.eprintf "*** omake: Polling is not enabled@."
     else
       notify_loop env options targets;
-  Omake_build_util.close env
+  Omake_build_util.close env;
+
+  memstat env
 
 (**  Main builder. *)
 let rec build_time start_time venv_opt (options : Omake_options.t) dir_name targets =

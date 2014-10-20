@@ -38,6 +38,7 @@ OCAML_LIBS[] =
 OCAML_CLIBS[] =
     ../clib/clib
 
+OCAML_LINK_FLAGS += -linkpkg
 MakeOCamlProgram(omake, $(FILES))
 
 osh$(EXE): omake$(EXE)
