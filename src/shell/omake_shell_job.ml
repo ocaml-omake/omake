@@ -976,6 +976,17 @@ let create_job venv pipe stdin stdout =
       venv, value
    )
 
+let is_pipe fd =
+  (* we assume that fd is a pipe when fd is not seekable. This is for an
+     optimization only; returning true is always possible, but we must only
+     return false when no separate thread is needed
+   *)
+  try
+    ignore(Unix.lseek fd 0 Unix.SEEK_CUR);
+    false
+  with
+    | Unix.Unix_error(Unix.ESPIPE,_,_) -> true
+
 (*
  * This is a variation: create the process and return the pid.
  * These jobs are always background.
@@ -989,7 +1000,7 @@ let create_process venv pipe stdin stdout =
        * The restriction to stdout and stderr is necessary to
        * prevent possible blocking on I/O.
        *)
-    PipeApply (_, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
+    PipeApply (_, apply) when not(is_pipe stdout) && not (is_pipe stderr) ->
     Format.eprintf "FAST Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let code, venv, value =
       create_apply_top venv stdin stdout stderr apply
