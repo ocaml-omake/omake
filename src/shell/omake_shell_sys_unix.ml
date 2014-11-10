@@ -10,6 +10,8 @@ external ext_setpgid :
   Omake_shell_sys_type.pid ->
   Omake_shell_sys_type.pid -> unit = "omake_shell_sys_setpgid"
 
+module I = Lm_instrument
+
 let interact = ref (Lm_readline.isatty ())
 
 let set_interactive flag =
@@ -22,6 +24,9 @@ let set_tty_pgrp pgrp =
 let setpgid pid1 pid2 =
    if !interact then
       ext_setpgid pid1 pid2
+
+let probe_create_thread = I.create "sys.create_thread"
+let probe_create_process = I.create "sys.create_process"
 
 (*
  * Close-on-exec flags.
@@ -153,6 +158,7 @@ let dup_actions workfd stdin stdout stderr =
  * This actually creates a process on Unix.
  *)
 let create_thread info =
+   I.instrument probe_create_thread (fun () ->
    let { Omake_shell_sys_type.create_thread_stdin = stdin;
          create_thread_stdout = stdout;
          create_thread_stderr = stderr;
@@ -195,11 +201,14 @@ let create_thread info =
             exit code
       else
          pid
+  )
+  ()  
 
 (*
  * Create a process.
  *)
 let create_process info =
+  I.instrument probe_create_process (fun () ->
   match info with 
     {Omake_shell_sys_type.create_process_stdin = stdin;
      create_process_stdout = stdout;
@@ -242,3 +251,5 @@ let create_process info =
          pid
       )
       ()
+  )
+  ()

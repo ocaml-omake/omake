@@ -1,3 +1,5 @@
+module I = Lm_instrument
+
 module Pos  = Omake_pos.Make (struct let name = "Omake_shell_job" end)
 
 
@@ -567,6 +569,11 @@ let cond_continue (op : Omake_shell_type.pipe_op) (x :  job_status ) =
   | _ ->
     false
 
+
+let probe_create_thread = I.create "job.create_thread"
+let probe_create_process = I.create "job.create_process"
+let probe_create_job = I.create "job.create_job"
+
 (*
  * Create a conditional.
  *)
@@ -735,7 +742,8 @@ and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
  * Create a thread.  This may actually be a separate
  * process.
  *)
-and create_thread venv f stdin stdout stderr =
+and create_thread venv f stdin stdout =
+   I.instrument probe_create_thread (fun stderr ->
    if !Omake_shell_type.debug_shell then
       Format.eprintf "Creating thread@.";
 
@@ -746,6 +754,7 @@ and create_thread venv f stdin stdout stderr =
          Format.eprintf "Started thread with pgrp %i, internal id %i@." job.job_pgrp job.job_id;
       job.job_state <- JobBackground;
       Omake_env.InternalPid job.job_id
+  )
 
 (*
  * Wait for a subjob to finish.
@@ -961,15 +970,18 @@ let rec create_job_aux venv pipe stdin stdout stderr =
             else
                info
 
-let create_job venv pipe stdin stdout stderr =
+let create_job venv pipe stdin stdout =
+   I.instrument probe_create_job (fun stderr ->
    let _, venv, value = create_job_aux venv pipe stdin stdout stderr in
       venv, value
+   )
 
 (*
  * This is a variation: create the process and return the pid.
  * These jobs are always background.
  *)
-let create_process venv pipe stdin stdout stderr =
+let create_process venv pipe stdin stdout =
+  I.instrument probe_create_process (fun stderr ->
   if !Omake_shell_type.debug_shell then
     Format.eprintf "Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
   match pipe with
@@ -978,17 +990,20 @@ let create_process venv pipe stdin stdout stderr =
        * prevent possible blocking on I/O.
        *)
     PipeApply (_, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
+    Format.eprintf "FAST Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let code, venv, value =
       create_apply_top venv stdin stdout stderr apply
     in
     Omake_env.ResultPid (code, venv, value)
   | _ ->
+    Format.eprintf "SLOW Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let pgrp = create_pipe_exn venv true stdin stdout stderr pipe in
     let job  = new_job pgrp (Some pipe) in
     if !Omake_shell_type.debug_shell then
       Format.eprintf "Started process with pgrg %i, internal id %i@." job.job_pgrp job.job_id;
     job.job_state <- JobBackground;
     InternalPid job.job_id
+  )
 
 (*
  * This is an explicit wait function.
