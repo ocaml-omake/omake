@@ -424,9 +424,17 @@ Shell. +=
            export
         OCamlScannerPostproc()
 
+# for performance reasons only we avoid now to create a pipe in
+# OCamlScanner. Instead, we use a temporary file.
+
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
+        tmp = $(tmpfile omake,.deps)
+        try
+            $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) >$(tmp)
+            value ocamldep-postproc < $(tmp)
+        finally
+            rm -f $(tmp)
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 
