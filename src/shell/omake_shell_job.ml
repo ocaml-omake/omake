@@ -988,7 +988,8 @@ let create_process venv pipe stdin stdout stderr =
        * The restriction to stdout and stderr is necessary to
        * prevent possible blocking on I/O.
        *)
-    PipeApply (_, apply) when not(is_pipe stdout) && not (is_pipe stderr) ->
+    PipeApply (_, apply) when (stdout = Unix.stdout || not(is_pipe stdout)) && 
+                              (stderr = Unix.stderr || not (is_pipe stderr)) ->
     let code, venv, value =
       create_apply_top venv stdin stdout stderr apply
     in
