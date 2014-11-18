@@ -8,6 +8,9 @@
    was sponsored by Lexifi.
 */
 
+#define _GNU_SOURCE
+/* we need that to make the POSIX_SPAWN_USEVFORK macro visible under Linux */
+
 
 #include "caml/misc.h"
 #include "caml/mlvalues.h"

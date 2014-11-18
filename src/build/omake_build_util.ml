@@ -448,7 +448,7 @@ let pp_print_command_state buf (state : Omake_build_type.command_state)  =
   | CommandPending                   -> Lm_printf.pp_print_string buf "pending"
   | CommandReady                     -> Lm_printf.pp_print_string buf "ready"
   | CommandRunning (pid, None)       -> Format.fprintf buf "running(%a)" Omake_exec_id.pp_print_pid pid
-  | CommandRunning (pid, Some name)  -> Format.fprintf buf "scanning(%a, %s)" Omake_exec_id.pp_print_pid pid name
+  | CommandRunning (pid, Some detail)  -> Format.fprintf buf "scanning(%a, %s)" Omake_exec_id.pp_print_pid pid detail.scanner_out_file
   | CommandSucceeded _               -> Lm_printf.pp_print_string buf "succeeded"
   | CommandFailed code               -> Format.fprintf buf "failed(%d)" code
 
