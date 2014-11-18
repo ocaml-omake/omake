@@ -1189,6 +1189,50 @@ let save_and_finish_scanner_success
       Format.fprintf out "*** omake: @[<hv0>scanner output is saved in@ %s@]@." filename;
       abort_command env command Omake_state.scanner_error_code
 
+
+(* The external command succeeded, but might still need to be postprocessed *)
+
+let save_and_finish_scanner_postprocess
+    (env : Omake_build_type.t) (command : Omake_build_type.command) details =
+  let open Omake_build_type in
+
+  match details.scanner_post_action with
+    | None ->
+        save_and_finish_scanner_success env command details.scanner_out_file
+
+    | Some (loc, apply) ->
+        let venv = command.command_venv in
+        let next_tmpfile = Filename.temp_file "omake" ".deps" in
+        (* FIXME: create a tee for stderr *)
+        let pos = Pos.loc_exp_pos loc in
+        let options =
+          Lm_glob.create_options (Omake_rule.glob_options_of_env venv pos) in
+        let apply1 = Omake_rule.normalize_apply venv pos loc options apply in
+        let apply2 =
+          { apply1 with
+            apply_stdin = RedirectArg details.scanner_out_file;
+            apply_stdout = RedirectArg next_tmpfile;
+          } in
+        let pseudo_pid =
+          Omake_shell_job.create_process
+            venv
+            (PipeApply(loc, apply2))
+            Unix.stdin
+            Unix.stdout
+            Unix.stderr in
+        Lm_unix_util.try_unlink_file details.scanner_out_file;
+        ( match pseudo_pid with
+            | ResultPid(_,_,v) ->  (* CHECK: any success checking needed? *)
+                ( match v with
+                    | Omake_value_type.ValOther(ValExitCode code) when code <> 0 ->
+                        raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringIntError ("command exited with code", code)))
+                    | _ -> ()
+                )
+            | _ ->
+                assert false
+        );
+        save_and_finish_scanner_success env command next_tmpfile
+
 (*
  * Failed run.
  *)
@@ -1196,6 +1240,12 @@ let save_and_finish_scanner_failed env command filename code =
   Lm_unix_util.try_unlink_file filename;
   abort_command env command code
 
+let s_command cmd =
+  match cmd. Omake_command_type.command_inst with
+    | Omake_command_type.CommandEval _ -> "CommandEval"
+    | Omake_command_type.CommandPipe _ -> "CommandPipe"
+    | Omake_command_type.CommandValues _ -> "CommandValues"
+                                              
 (*
  * Run the command.
  *)
@@ -1210,6 +1260,39 @@ let execute_scanner (env : Omake_build_type.t)
     let pos = Pos.string_pos "execute_scanner" (Pos.loc_exp_pos loc) in
     let scanner, _ = command_lines command in
 
+    let tmpfile = Filename.temp_file "omake" ".deps" in
+
+    (* Special-case a pipeline cmd1|cmd2 when cmd2 is a PipeApply (i.e.
+       an internal command). We don't want to fork in this case as
+       it is frequent. (This is for the "ocamldep | ocamldep-postproc" pipe.)
+     *)
+    let scanner_values, scanner_rest =
+      (* the CommandPipe may be preceded by CommandValues *)
+      match scanner with
+        | { command_inst = Omake_command_type.CommandValues _; _ } as v :: rest ->
+            [v], rest
+        | _ ->
+            [], scanner in
+    let eff_scanner, post_action =
+      match scanner_rest with
+        | [ { command_inst = Omake_command_type.CommandPipe(
+                               PipeCompose(_,false,cmd1,(PipeApply(loc,cmd2))));
+              _
+            }
+          ] ->
+            scanner_values @
+              [ { (List.hd scanner_rest) with
+                  command_inst = Omake_command_type.CommandPipe cmd1 
+                }
+              ],
+            Some(loc, cmd2)
+        | _ ->
+            scanner, None in
+    let details =
+      { Omake_build_type.scanner_out_file = tmpfile;
+        scanner_post_action = post_action
+      } in
+
     (* Save errors to the tee *)
     let options = Omake_env.venv_options venv in
     let tee = Omake_exec_util.tee_create (Omake_options.opt_divert options) in
@@ -1218,7 +1301,6 @@ let execute_scanner (env : Omake_build_type.t)
     let copy_stderr = Omake_exec_util.tee_stderr tee divert_only in
 
     (* Save output into a temporary file *)
-    let tmpfile = Filename.temp_file "omake" ".deps" in
     let handle_out = Omake_exec_util.copy_file tmpfile in
 
     (* Debugging *)
@@ -1227,21 +1309,21 @@ let execute_scanner (env : Omake_build_type.t)
         Format.eprintf "@[<v 3>run_scanner %a@ to tmp file %s:%a@]@." (**)
           Omake_node.pp_print_node target
           tmpfile
-          Omake_env.pp_print_arg_command_lines scanner
+          Omake_env.pp_print_arg_command_lines eff_scanner
 
     in
     let shell = Omake_rule.eval_shell venv pos in
     set_tee env command tee;
     env.env_scan_exec_count <- succ env.env_scan_exec_count;
     match Omake_exec.Exec.spawn env.env_exec shell 
-        (Omake_env.venv_options venv) copy_stdout handle_out copy_stderr "scan" target scanner with
+        (Omake_env.venv_options venv) copy_stdout handle_out copy_stderr "scan" target eff_scanner with
       ProcessFailed ->
       (* The fork failed *)
       abort_command env command Omake_state.fork_error_code
     | ProcessStarted pid ->
       (* Process was started *)
       env.env_idle_count <- pred env.env_idle_count;
-      reclassify_command env command (CommandRunning (pid, Some tmpfile))
+      reclassify_command env command (CommandRunning (pid, Some details))
 
 (*
  * Execute a command.
@@ -1786,9 +1868,10 @@ let rec process_running (env : Omake_build_type.t) notify =
             save_and_finish_rule_success env command
           | _, { command_state = CommandRunning (_, None) ; _} ->
             save_and_finish_rule_failed env command code
-          | 0, { command_state = CommandRunning (_, Some filename) ; _} ->
-            save_and_finish_scanner_success env command filename
-          | _, { command_state = CommandRunning (_, Some filename) ; _} ->
+          | 0, { command_state = CommandRunning (_, Some detail) ; _} ->
+            save_and_finish_scanner_postprocess env command detail
+          | _, { command_state = CommandRunning (_, Some detail) ; _} ->
+            let filename = detail.scanner_out_file in
             save_and_finish_scanner_failed env command filename code
           | _ ->
             raise (Invalid_argument "process_running")

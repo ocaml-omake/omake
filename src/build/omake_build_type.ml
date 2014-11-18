@@ -45,9 +45,18 @@ type command_state =
   | CommandBlocked
   | CommandReady
   | CommandPending
-  | CommandRunning of Omake_exec_id.t * string option
+  | CommandRunning of Omake_exec_id.t * scanner_detail option
   | CommandSucceeded of Omake_node.NodeSet.t Omake_node.NodeTable.t
   | CommandFailed of int
+
+and scanner_detail =
+  { scanner_out_file : string;
+    scanner_post_action : (Lm_location.t * scanner_post_action) option;
+  }
+
+and scanner_post_action =
+  (Omake_value_type.t, Omake_command_type.arg, Omake_env.apply) 
+    Omake_shell_type.poly_apply
 
 type command_tag =
   | CommandIdleTag
