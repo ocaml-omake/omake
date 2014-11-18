@@ -419,30 +419,19 @@ public.OCamlScannerPostproc(input) =
 
 Shell. +=
     ocamldep-postproc(argv) =
-        # argv: the ocamldep command to execute and postprocess
-        private.tmp = $(tmpfile omake,.deps)
-        try
-            $(argv) > $(tmp)
-            OCamlScannerPostproc($(tmp))
-        finally
-            unlink($(tmp))
+        OCamlScannerPostproc($(stdin))
 
 Shell. +=
     ocamldep-postproc-preserve(argv) =
         OCAMLDEP_PRESERVE_TARGETS = true
-        private.tmp = $(tmpfile omake,.deps)
-        try
-            $(argv) > $(tmp)
-            OCamlScannerPostproc($(tmp))
-        finally
-            unlink($(tmp))
+        OCamlScannerPostproc($(stdin))
 
 # for performance reasons only we avoid now to create a pipe in
 # OCamlScanner. Instead, we use a temporary file.
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        value ocamldep-postproc $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file)
+        value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 
@@ -612,7 +601,7 @@ public.MenhirOCamldepCommand(raw) =
 public.MenhirScannerCommand(base, src) =
     if $(MENHIR_ENABLED)
         if $(and $(MENHIR_RAW_DEPEND), $(OCAMLDEP_MODULES_ENABLED))
-            value ocamldep-postproc-preserve $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand true) $(base) --raw-depend $(src)
+            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand true) $(base) --raw-depend $(src) | ocamldep-postproc-preserve
         else
             value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand false) $(base) --depend $(src)
 
