@@ -40,4 +40,6 @@ val tee_close       : tee -> unit
 val tee_file        : tee -> string option
 val tee_stdout      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
 val tee_stderr      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
+val tee_file_descr  : tee -> Unix.file_descr option
+
 
