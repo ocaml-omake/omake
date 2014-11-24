@@ -368,7 +368,7 @@ public.PrintFileDependencies(filename, cmideps) =
 # the actual dependencies by finding the filenames
 # associated with each module.
 #
-public.PrintDependencies(filename, modules) =
+public.PrintDependenciesCompat(filename, modules) =
     if $(filename)
         #
         # Find the .cmi files that can be built
@@ -391,6 +391,21 @@ public.PrintDependencies(filename, modules) =
             default
                 eprintln($"ocaml scanner: illegal filename $(filename)")
                 exit(1)
+
+
+public.PrintDependenciesQuick(filename, modules) =
+    if $(filename)
+        if $(OCAMLDEP_PRESERVE_TARGETS)
+            PrintFileDependencies($(filename), $(cmideps))
+        else
+            ocamldep-print-buildable-deps($(OCAMLINCLUDES), $(filename), $(modules), $(NATIVE_ENABLED))
+
+
+public.PrintDependencies =
+    if $(defined ocamldep-print-buildable-deps)
+        value $(public.PrintDependenciesQuick)
+    else
+        value $(public.PrintDependenciesCompat)
 
 #
 # Post-process the output of ocamldep.
