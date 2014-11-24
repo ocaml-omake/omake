@@ -9,39 +9,12 @@ open Omake_ir
  * \fun{ocamldep-print-buildable-deps}
  *
  * \begin{verbatim}
- *    $(ocamldep-print-buildable-deps path, target, deps, enable_cmx)
+ *    $(ocamldep-postproc path, enable_cmx)
  *        path : Dir array
- *        target : File
- *        deps : String sequence
  *        enable_cmx : Bool
  * \end{verbatim}
  *
- * Prints several lines to stdout with an OCaml dependency: If \verb+target+ 
- * has the suffix ".mli", the single line looks like
- *
- * \begin{verbatim}
- * target.cmi: module1.cmi module2.cmi ...
- * \end{verbatim}
- *
- * where the module names are from \verb+deps+. Only those cmi files of the
- * modules are printed that can be found in \verb+path+.
- *
- * If \verb+target+ has the suffix ".ml", the lines look like
- *
- * \begin{verbatim}
- * target.cmo: module1.cmi module2.cmi ...
- * target.cmx target.o: module1.cmi module2.cmi ...
- * \end{verbatim}
- *
- * and if \verb+enable_cmx+ is true, the block looks like
- *
- * \begin{verbatim}
- * target.cmo: module1.cmi module2.cmi ...
- * target.cmx target.o: module1.cmi module2.cmi ... module1.cmx module2.cmx ...
- * \end{verbatim}
- *
- * Only those cmi and cmx files are included as dependencies that are actually
- * buildable.
+ * Postprocesses an ocamldep invocation with -modules switch.
  *
  * Accesses the global \verb+EXT_OBJ+ for getting the ".o" suffix.
  * \end{doc}
@@ -54,7 +27,7 @@ let target_is_buildable cache venv pos node =
     Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
     false
 
-let ocamldep_print_buildable_deps venv pos loc args =
+let ocamldep_postproc venv pos loc args =
   let cache = Omake_env.venv_cache venv in
   let rec search_in_path path name =
     match path with
@@ -72,11 +45,22 @@ let ocamldep_print_buildable_deps venv pos loc args =
                search_in_path path name
       | [] ->
            None in
+
+  let memo = Hashtbl.create 17 in
+  let search_in_path_memo path name =
+    try
+      Hashtbl.find memo name
+    with
+      | Not_found ->
+           let r = search_in_path path name in
+           Hashtbl.add memo name r;
+           r in
+
   let accumulate_over_path path deps suffix =
     List.rev
       (List.fold_left
          (fun acc dep ->
-            match search_in_path path (dep ^ suffix) with
+            match search_in_path_memo path (dep ^ suffix) with
               | Some node -> node :: acc
               | None -> acc
          )
@@ -85,75 +69,120 @@ let ocamldep_print_buildable_deps venv pos loc args =
       ) in
 
   let pos = string_pos "ocamldep-print-buildable-deps" pos in
+
+  let stdin_var = Omake_env.venv_find_var venv pos loc Omake_var.stdin_var in
+  let stdin_prim, stdin_close_flag = 
+    Omake_value.in_channel_of_any_value venv pos stdin_var in
+  let stdin_fd = Omake_env.venv_find_channel venv pos stdin_prim in
+
   let stdout_var = Omake_env.venv_find_var venv pos loc Omake_var.stdout_var in
-  let stdout_prim, close_flag = 
+  let stdout_prim, stdout_close_flag = 
     Omake_value.out_channel_of_any_value venv pos stdout_var in
   let stdout_fd = Omake_env.venv_find_channel venv pos stdout_prim in
+
   let ext_obj_val = Omake_builtin_util.get_sym venv pos loc "EXT_OBJ" in
   let ext_obj = Omake_value.string_of_value venv pos ext_obj_val in
+
+  let output_dep path target deps enable_cmx =
+    let cmideps = accumulate_over_path path deps ".cmi" in
+    let cmideps_str = 
+      String.concat " " (List.map String.escaped cmideps) in
+    if Filename.check_suffix target ".mli" then (
+      let targetbase = Filename.chop_suffix target ".mli" in
+      if cmideps <> [] then
+        Lm_channel.output_string
+          stdout_fd
+          (sprintf
+             "%s.cmi: %s\n"
+             (String.escaped targetbase)
+             cmideps_str
+          )
+    )
+    else
+      if Filename.check_suffix target ".ml" then (
+        let targetbase = Filename.chop_suffix target ".ml" in
+        let targetbase_esc = String.escaped targetbase in
+        let cmxdeps =
+          if enable_cmx then
+            accumulate_over_path path deps ".cmx"
+          else
+            [] in
+        let alldeps = cmideps @ cmxdeps in
+        let alldeps_str = 
+          String.concat " " (List.map String.escaped alldeps) in
+        if cmideps <> [] || cmxdeps <> [] then (
+          if cmideps <> [] then
+            Lm_channel.output_string
+              stdout_fd
+              (sprintf
+                 "%s.cmo: %s\n"
+                 targetbase_esc
+                 cmideps_str
+              );
+          Lm_channel.output_string
+            stdout_fd
+            (sprintf
+               "%s.cmx %s.%s: %s\n"
+               targetbase_esc
+               targetbase_esc
+               ext_obj
+               alldeps_str
+            )
+        )
+      )
+      else
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "illegal filename suffix")) in
+    
   match args with
-    | [path; target; deps; enable_cmx] ->
+    | [path; enable_cmx] ->
          let path = Omake_value.values_of_value venv pos path in
          let path = Omake_eval.path_of_values venv pos path "." in
          let path = List.flatten (List.map snd path) in
-         let target = Omake_value.string_of_value venv pos target in
-         let deps = Omake_value.strings_of_value venv pos deps in
          let enable_cmx = Omake_value.bool_of_value venv pos enable_cmx in
 
-         let cmideps = accumulate_over_path path deps ".cmi" in
-         let cmideps_str = 
-           String.concat " " (List.map String.escaped cmideps) in
-         if Filename.check_suffix target ".mli" then (
-           let targetbase = Filename.chop_suffix target ".mli" in
-           if cmideps <> [] then
-             Lm_channel.output_string
-               stdout_fd
-               (sprintf
-                  "%s.cmi: %s\n"
-                  (String.escaped targetbase)
-                  cmideps_str
+         let current = ref None in
+         let process_current() =
+           match !current with
+             | None -> ()
+             | Some(target, deps) ->
+                  current := None;
+                  output_dep path target deps enable_cmx in
+         ( try
+             while true do
+               let line = Lm_channel.input_line stdin_fd in
+               if Lm_string_util.contains line ':' then (
+                 process_current();
+                 let k = Lm_string_util.strchr line ':' in
+                 let target = String.sub line 0 k in
+                 let rest = 
+                   String.sub line (k+1) (String.length line - k - 1) in
+                 let words =
+                   Lm_string_util.tokens "" Lm_string_util.white rest in
+                 current := Some(target, words)
                )
-         )
-         else
-           if Filename.check_suffix target ".ml" then (
-             let targetbase = Filename.chop_suffix target ".ml" in
-             let targetbase_esc = String.escaped targetbase in
-             let cmxdeps =
-               if enable_cmx then
-                 accumulate_over_path path deps ".cmx"
-               else
-                 [] in
-             let alldeps = cmideps @ cmxdeps in
-             let alldeps_str = 
-               String.concat " " (List.map String.escaped alldeps) in
-             if cmideps <> [] || cmxdeps <> [] then (
-               if cmideps <> [] then
-                 Lm_channel.output_string
-                   stdout_fd
-                   (sprintf
-                      "%s.cmo: %s\n"
-                      targetbase_esc
-                      cmideps_str
-                   );
-               Lm_channel.output_string
-                 stdout_fd
-                 (sprintf
-                    "%s.cmx %s.%s: %s\n"
-                    targetbase_esc
-                    targetbase_esc
-                    ext_obj
-                    alldeps_str
-                 )
-             )
-           )
-           else
-             raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError "illegal filename suffix"));
-         if close_flag then
+               else (
+                 match !current with
+                   | None -> ()
+                   | Some(target,words) ->
+                        let more_words =
+                          Lm_string_util.tokens "" Lm_string_util.white line in
+                        current := Some(target, words @ more_words)
+               )
+             done;
+             assert false
+           with
+             | End_of_file -> ()
+         );
+         process_current();
+
+         if stdin_close_flag then
+           Omake_env.venv_close_channel venv pos stdin_prim;
+         if stdout_close_flag then
            Omake_env.venv_close_channel venv pos stdout_prim;
          Omake_value_type.ValNone
 
     | _ ->
-         raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 4, List.length args)))
+         raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 
 
@@ -161,8 +190,7 @@ let ocamldep_print_buildable_deps venv pos loc args =
 
 let () =
   let builtin_funs =
-    [true, "ocamldep-print-buildable-deps", ocamldep_print_buildable_deps,
-     ArityExact 4;
+    [true, "ocamldep-postproc", ocamldep_postproc, ArityExact 2;
     ] in
   let builtin_info =
     { Omake_builtin_type.builtin_empty with
