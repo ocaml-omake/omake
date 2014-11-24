@@ -1272,8 +1272,8 @@ let save_and_finish_scanner_postprocess
 
     | Some (loc, apply) ->
         let venv = command.command_venv in
+        let venv_opts = Omake_env.venv_options venv in
         let next_tmpfile = Filename.temp_file "omake" ".deps" in
-        (* FIXME: create a tee for stderr *)
         let pos = Pos.loc_exp_pos loc in
         let options =
           Lm_glob.create_options (Omake_rule.glob_options_of_env venv pos) in
@@ -1283,16 +1283,27 @@ let save_and_finish_scanner_postprocess
             apply_stdin = RedirectArg details.scanner_out_file;
             apply_stdout = RedirectArg next_tmpfile;
           } in
+        (* We create the tee for stderr. This is not a real tee, and we cannot
+           emulate the mode where we both write to the temp file and write
+           to stderr. AFAIK this mode isn't used.
+         *)
+        let tee = 
+          Omake_exec_util.tee_create (Omake_options.opt_divert venv_opts) in
+        let stderr =
+          match Omake_exec_util.tee_file_descr tee with
+            | None -> Unix.stderr
+            | Some fd -> fd in
+        set_tee env command tee;
         let pseudo_pid =
           Omake_shell_job.create_process
             venv
             (PipeApply(loc, apply2))
             Unix.stdin
             Unix.stdout
-            Unix.stderr in
+            stderr in
         Lm_unix_util.try_unlink_file details.scanner_out_file;
         ( match pseudo_pid with
-            | ResultPid(_,_,v) ->  (* CHECK: any success checking needed? *)
+            | ResultPid(_,_,v) ->
                 ( match v with
                     | Omake_value_type.ValOther(ValExitCode code) when code <> 0 ->
                         raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringIntError ("command exited with code", code)))
