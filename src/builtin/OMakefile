@@ -24,6 +24,7 @@ FILES[] =
     omake_builtin_rule
     omake_builtin_object
     omake_builtin_test
+    omake_builtin_ocamldep
 
 
 OCAML_LIB_FLAGS = -linkall
