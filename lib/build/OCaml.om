@@ -368,7 +368,7 @@ public.PrintFileDependencies(filename, cmideps) =
 # the actual dependencies by finding the filenames
 # associated with each module.
 #
-public.PrintDependenciesCompat(filename, modules) =
+public.PrintDependencies(filename, modules) =
     if $(filename)
         #
         # Find the .cmi files that can be built
@@ -392,20 +392,6 @@ public.PrintDependenciesCompat(filename, modules) =
                 eprintln($"ocaml scanner: illegal filename $(filename)")
                 exit(1)
 
-
-public.PrintDependenciesQuick(filename, modules) =
-    if $(filename)
-        if $(OCAMLDEP_PRESERVE_TARGETS)
-            PrintFileDependencies($(filename), $(cmideps))
-        else
-            ocamldep-print-buildable-deps($(OCAMLINCLUDES), $(filename), $(modules), $(NATIVE_ENABLED))
-
-
-public.PrintDependencies =
-    if $(defined ocamldep-print-buildable-deps)
-        value $(public.PrintDependenciesQuick)
-    else
-        value $(public.PrintDependenciesCompat)
 
 #
 # Post-process the output of ocamldep.
@@ -434,15 +420,15 @@ public.OCamlScannerPostproc(input) =
 
 Shell. +=
     ocamldep-postproc(argv) =
-        OCamlScannerPostproc($(stdin))
+       if $(defined ocamldep-postproc)
+           ocamldep-postproc($(OCAMLINCLUDES), $(NATIVE_ENABLED))
+       else
+           OCamlScannerPostproc($(stdin))
 
 Shell. +=
     ocamldep-postproc-preserve(argv) =
         OCAMLDEP_PRESERVE_TARGETS = true
         OCamlScannerPostproc($(stdin))
-
-# for performance reasons only we avoid now to create a pipe in
-# OCamlScanner. Instead, we use a temporary file.
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
