@@ -4,6 +4,8 @@ include Omake_pos.Make (struct let name = "Omake_builtin_ocamldep" end)
 open Printf
 open Omake_ir
 
+module I = Lm_instrument
+
 (*
  * \begin{doc}
  * \fun{ocamldep-print-buildable-deps}
@@ -27,7 +29,11 @@ let target_is_buildable cache venv pos node =
     Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
     false
 
-let ocamldep_postproc venv pos loc args =
+let probe_ocamldep_postproc = I.create "ocamldep_postproc"
+
+
+let ocamldep_postproc venv pos loc =
+  I.instrument probe_ocamldep_postproc (fun args ->
   let cache = Omake_env.venv_cache venv in
   let rec search_in_path path name =
     match path with
@@ -183,7 +189,7 @@ let ocamldep_postproc venv pos loc args =
 
     | _ ->
          raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-
+  )
 
 
 (* register *)
