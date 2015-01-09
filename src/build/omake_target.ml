@@ -26,7 +26,10 @@ let target_exists_or_is_phony_or_is_explicit cache venv target =
  *)
 let rec target_is_buildable_bound bound cache venv pos target =
    let target = Omake_node.Node.unsquash target in
-      try Omake_env.venv_find_target_is_buildable_exn venv target with
+   let target_dir = Omake_node.Node.dir target in
+   let target_file = Omake_node.Node.tail target in
+   let tdir = Omake_env.venv_lookup_target_dir venv target_dir in
+      try Omake_env.venv_find_target_is_buildable_exn venv tdir target_file with
          Not_found ->
             (* Check for loops *)
             if Omake_node.NodeSet.mem bound target then
@@ -34,10 +37,11 @@ let rec target_is_buildable_bound bound cache venv pos target =
             let flag =
                (target_exists_or_is_phony_or_is_explicit cache venv target
                    || venv_find_buildable_implicit_rule_bound 
-                     (Omake_node.NodeSet.add bound target) cache venv pos target <> None)
+                        (Omake_node.NodeSet.add bound target) 
+                        cache venv pos target <> None)
             in
-               Omake_env.venv_add_target_is_buildable venv target flag;
-               flag
+            Omake_env.venv_add_target_is_buildable venv tdir target_file flag;
+            flag
 
 (* Find an applicable implicit rule with buildable sources *)
 and venv_find_buildable_implicit_rule_bound bound cache venv pos target =
@@ -100,8 +104,11 @@ let target_is_buildable cache venv pos target =
 
 let target_is_buildable_proper cache venv pos target =
    let target = Omake_node.Node.unsquash target in
+   let target_dir = Omake_node.Node.dir target in
+   let target_file = Omake_node.Node.tail target in
+   let tdir = Omake_env.venv_lookup_target_dir venv target_dir in
       check_build_phase pos;
-      try Omake_env.venv_find_target_is_buildable_proper_exn venv target with
+      try Omake_env.venv_find_target_is_buildable_proper_exn venv tdir target_file with
          Not_found ->
             let flag =
                if target_is_explicit cache venv target then
@@ -109,6 +116,6 @@ let target_is_buildable_proper cache venv pos target =
                else
                   venv_find_buildable_implicit_rule cache venv pos target <> None
             in
-               Omake_env.venv_add_target_is_buildable_proper venv target flag;
+               Omake_env.venv_add_target_is_buildable_proper venv tdir target_file flag;
                flag
 

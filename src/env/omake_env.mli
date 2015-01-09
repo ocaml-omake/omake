@@ -143,6 +143,10 @@ type include_scope =
    IncludePervasives
  | IncludeAll
 
+
+(* Target directories, compressed to a small int *)
+type target_dir
+
 (*
  * Check if command list does not contain anything to execute.
  *)
@@ -412,10 +416,11 @@ val hoist_this       : t -> t -> Omake_value_type.path -> t
 (*
  * Cached buildable flags.
  *)
-val venv_find_target_is_buildable_exn : t -> Omake_node.Node.t -> bool
-val venv_find_target_is_buildable_proper_exn : t -> Omake_node.Node.t -> bool
-val venv_add_target_is_buildable : t -> Omake_node.Node.t -> bool -> unit
-val venv_add_target_is_buildable_proper : t -> Omake_node.Node.t -> bool -> unit
+val venv_lookup_target_dir : t -> Omake_node.Dir.t -> target_dir
+val venv_find_target_is_buildable_exn : t -> target_dir -> string -> bool
+val venv_find_target_is_buildable_proper_exn : t -> target_dir -> string -> bool
+val venv_add_target_is_buildable : t -> target_dir -> string -> bool -> unit
+val venv_add_target_is_buildable_proper : t -> target_dir -> string -> bool -> unit
 
 (*
  * Printing.
