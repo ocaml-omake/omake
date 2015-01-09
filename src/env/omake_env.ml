@@ -1,3 +1,4 @@
+module I = Lm_instrument
 
 (*
  * Command lists have source arguments.
@@ -2782,12 +2783,17 @@ let venv_find_implicit_rules_inner venv target =
   in
   collect [] venv.venv_inner.venv_implicit_rules
 
+let probe_find_implicit_rules = I.create "venv_find_implicit_rules"
+
 let venv_find_implicit_rules venv target =
+   I.instrument probe_find_implicit_rules (fun () ->
    match venv_find_target_dir_opt venv target with
       Some venv ->
          venv_find_implicit_rules_inner venv target
     | None ->
          []
+   )
+   ()
 
 (************************************************************************
  * Ordering rules.

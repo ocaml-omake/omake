@@ -572,6 +572,7 @@ let cond_continue (op : Omake_shell_type.pipe_op) (x :  job_status ) =
 
 let probe_create_thread = I.create "job.create_thread"
 let probe_create_process = I.create "job.create_process"
+let probe_create_process_fast = I.create "job.create_process_fast"
 let probe_create_job = I.create "job.create_job"
 
 (*
@@ -1004,7 +1005,8 @@ let create_process venv pipe stdin stdout =
                               (stderr = Unix.stderr || not (is_pipe stderr)) ->
     Format.eprintf "FAST Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let code, venv, value =
-      create_apply_top venv stdin stdout stderr apply
+      I.instrument probe_create_process_fast
+        (create_apply_top venv stdin stdout stderr) apply
     in
     Omake_env.ResultPid (code, venv, value)
   | _ ->

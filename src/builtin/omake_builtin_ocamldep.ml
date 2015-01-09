@@ -22,12 +22,17 @@ module I = Lm_instrument
  * \end{doc}
  *)
 
-let target_is_buildable cache venv pos node =
+let probe_target_is_buildable = I.create "target_is_buildable"
+
+
+let target_is_buildable cache venv pos =
+  I.instrument probe_target_is_buildable (fun node ->
   try
     Omake_target.target_is_buildable cache venv pos node
   with
     Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
     false
+  )
 
 let probe_ocamldep_postproc = I.create "ocamldep_postproc"
 
