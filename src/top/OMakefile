@@ -33,6 +33,6 @@ let include_dirs = let (//) = Filename.concat in [
 FILES[] = 
 	top_config	
 	boot_top
-.DEFAULT: $(OCamlLibrary boot_repl, $(FILES))
+#.DEFAULT: $(OCamlLibrary boot_repl, $(FILES))
 
-OCAMLINCLUDES+= $(shell ocamlfind query utop)
+#OCAMLINCLUDES+= $(shell ocamlfind query utop)

@@ -133,7 +133,24 @@ and venv_inner =
   }
 
 and venv_globals =
-  { venv_global_index                       : int;
+  { mutable venv_parent                     : (venv_globals * int) option;
+      (* after a venv_fork this is the pointer to the source; it is set back
+         to None when any of the versions is changed. The int is the version
+         of the parent.
+       *)
+
+    mutable venv_version                    : int;
+      (* increased after a change *)
+
+    mutable venv_mutex                      : Lm_thread.Mutex.t;
+
+    (* At present, the venv_parent/venv_version mechanism is only used to
+       accelerate target_is_buildable{_proper}. If a forked venv is still
+       identical to the original, this cache can be better updated in the
+       parent (back propagation).
+
+       TODO: another candidate for back propagation is the file cache.
+     *)
 
     (* Execution service *)
     venv_exec                               : exec;
@@ -285,6 +302,34 @@ module IntTable = Lm_map.LmMake (IntCompare);;
  *)
 let venv_globals venv =
    venv.venv_inner.venv_globals
+
+
+let venv_protect venv f =
+  let g = venv_globals venv in
+  Lm_thread.Mutex.lock g.venv_mutex;
+  try
+    let r = f() in
+    Lm_thread.Mutex.unlock g.venv_mutex;
+    r
+  with
+    | exn ->
+        Lm_thread.Mutex.unlock g.venv_mutex;
+        raise exn
+
+
+let venv_incr_version venv f =
+  (* At present, this function needs to be called when any change is done that
+     may affect target_is_buildable(_proper), i.e. the addition of implicit,
+     explicit or phony rules.
+   *)
+  let g = venv_globals venv in
+  venv_protect
+    venv
+    (fun () ->
+       g.venv_version <- g.venv_version + 1;
+       g.venv_parent <- None;
+       f()
+    )
 
 (*
  * Map functions.
@@ -681,34 +726,72 @@ let venv_find_target_is_buildable_proper_exn venv target =
 
 let venv_add_target_is_buildable venv target flag =
    let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable <- Omake_node.NodeTable.add globals.venv_target_is_buildable target flag
+   (* check whether we can back-propagate *)
+   venv_protect
+     venv
+     (fun () ->
+        match globals.venv_parent with
+          | Some(pglobals, pversion) when pversion = pglobals.venv_version ->
+              let tab = 
+                Omake_node.NodeTable.add 
+                  pglobals.venv_target_is_buildable target flag in
+              pglobals.venv_target_is_buildable <- tab;
+              globals.venv_target_is_buildable <- tab
+          | _ ->
+              globals.venv_target_is_buildable <- 
+                Omake_node.NodeTable.add globals.venv_target_is_buildable
+                                         target flag
+     )
 
 let venv_add_target_is_buildable_proper venv target flag =
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable_proper <- Omake_node.NodeTable.add globals.venv_target_is_buildable_proper target flag
+   (* check whether we can back-propagate *)
+  let globals = venv.venv_inner.venv_globals in
+  venv_protect
+    venv
+    (fun () ->
+       match globals.venv_parent with
+         | Some(pglobals, pversion) when pversion = pglobals.venv_version ->
+             let tab = 
+               Omake_node.NodeTable.add 
+                 pglobals.venv_target_is_buildable_proper target flag in
+             pglobals.venv_target_is_buildable_proper <- tab;
+             globals.venv_target_is_buildable_proper <- tab
+         | _ ->
+             globals.venv_target_is_buildable_proper <-
+               Omake_node.NodeTable.add globals.venv_target_is_buildable_proper
+                                        target flag
+    )
 
 let venv_add_explicit_targets venv rules =
-   let globals = venv.venv_inner.venv_globals in
-   let { venv_target_is_buildable = cache;
-         venv_target_is_buildable_proper = cache_proper;
-         _
-       } = globals
-   in
-   let cache =
-      List.fold_left (fun cache erule ->
+   venv_incr_version
+     venv
+     (fun () ->
+        let globals = venv.venv_inner.venv_globals in
+        let { venv_target_is_buildable = cache;
+              venv_target_is_buildable_proper = cache_proper;
+              _
+            } = globals
+        in
+        let cache =
+          List.fold_left (fun cache erule ->
             Omake_node.NodeTable.add cache erule.rule_target true) cache rules
-   in
-   let cache_proper =
-      List.fold_left (fun cache erule ->
+        in
+        let cache_proper =
+          List.fold_left (fun cache erule ->
             Omake_node.NodeTable.add cache erule.rule_target true) cache_proper rules
-   in
-      globals.venv_target_is_buildable <- cache;
-      globals.venv_target_is_buildable_proper <- cache_proper
+        in
+        globals.venv_target_is_buildable <- cache;
+        globals.venv_target_is_buildable_proper <- cache_proper
+     )
 
 let venv_flush_target_cache venv =
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable <- Omake_node.NodeTable.empty;
-      globals.venv_target_is_buildable_proper <- Omake_node.NodeTable.empty
+   venv_incr_version
+     venv
+     (fun () ->
+        let globals = venv.venv_inner.venv_globals in
+        globals.venv_target_is_buildable <- Omake_node.NodeTable.empty;
+        globals.venv_target_is_buildable_proper <- Omake_node.NodeTable.empty
+     )
 
 (*
  * Save explicit rules.
@@ -771,6 +854,7 @@ let venv_add_phony venv loc names =
     in
     let inner = { inner with venv_phony = phony } in
     let venv = { venv with venv_inner = inner } in
+    venv_incr_version venv (fun () -> ());
     globals.venv_phonies <- phonies;
     venv
 
@@ -1947,7 +2031,9 @@ let create options _dir exec cache =
     }
   in
   let globals =
-    { venv_global_index               = 0;
+    { venv_parent                     = None;
+      venv_version                    = 0;
+      venv_mutex                      = Lm_thread.Mutex.create "venv_globals";
       venv_exec                       = exec;
       venv_cache                      = cache;
       venv_mount_info                 = mount_info;
@@ -2072,7 +2158,11 @@ let venv_get_pervasives venv node =
 let venv_fork venv =
    let inner = venv.venv_inner in
    let globals = inner.venv_globals in
-   let globals = { globals with venv_global_index = succ globals.venv_global_index; venv_exec = globals.venv_exec } in
+   let globals = { globals with 
+                   venv_parent = Some(globals, globals.venv_version);
+                   venv_mutex = Lm_thread.Mutex.create "venv_globals";
+                   venv_version = 0;
+                 } in
    let inner = { inner with venv_globals = globals } in
       { venv with venv_inner = inner }
 
