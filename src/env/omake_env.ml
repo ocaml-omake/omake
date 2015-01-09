@@ -1,4 +1,6 @@
 
+module StrMap = Lm_map.Make(String)
+
 (*
  * Command lists have source arguments.
  *)
@@ -195,13 +197,23 @@ and venv_globals =
     mutable venv_modified_values            : Omake_value_type.obj Lm_symbol.SymbolTable.t Omake_node.NodeTable.t;
 
     (* Cached values for the target_is_buildable function *)
-    mutable venv_target_is_buildable        : bool Omake_node.NodeTable.t;
-    mutable venv_target_is_buildable_proper : bool Omake_node.NodeTable.t;
+    (* This uses now a compression: we map directories to small integers
+       target_dir. This mapping is implemented by venv_target_dirs.
+       For every (candidate) target file we map the file name to two bitsets
+       (buildable,non_buildable) enumerating the directories where the file
+       can be built or not be built.
+     *)
+    mutable venv_target_dirs                : target_dir Omake_node.DirTable.t;
+    mutable venv_target_next_dir            : target_dir;
+    mutable venv_target_is_buildable        : (Lm_bitset.t * Lm_bitset.t) StrMap.t;
+    mutable venv_target_is_buildable_proper : (Lm_bitset.t * Lm_bitset.t) StrMap.t;
 
     (* The state right after Pervasives is evaluated *)
     mutable venv_pervasives_vars            : Omake_ir.senv;
     mutable venv_pervasives_obj             : Omake_value_type.obj
   }
+
+and target_dir = int
 
 (*
  * Type of execution servers.
@@ -304,17 +316,38 @@ let venv_globals venv =
    venv.venv_inner.venv_globals
 
 
-let venv_protect venv f =
-  let g = venv_globals venv in
-  Lm_thread.Mutex.lock g.venv_mutex;
+let venv_protect globals f =
+  Lm_thread.Mutex.lock globals.venv_mutex;
   try
     let r = f() in
-    Lm_thread.Mutex.unlock g.venv_mutex;
+    Lm_thread.Mutex.unlock globals.venv_mutex;
     r
   with
     | exn ->
-        Lm_thread.Mutex.unlock g.venv_mutex;
+        Lm_thread.Mutex.unlock globals.venv_mutex;
         raise exn
+
+
+let venv_synch venv f =
+  let globals = venv_globals venv in
+  venv_protect
+    globals
+    (fun () ->
+       match globals.venv_parent with
+         | Some(pglobals, pversion) ->
+             venv_protect
+               pglobals 
+               (fun () ->
+                  if pversion = pglobals.venv_version then
+                    f globals (Some pglobals)
+                  else (
+                    globals.venv_parent <- None;
+                    f globals None
+                  )
+               )
+         | None ->
+             f globals None
+    )
 
 
 let venv_incr_version venv f =
@@ -324,7 +357,7 @@ let venv_incr_version venv f =
    *)
   let g = venv_globals venv in
   venv_protect
-    venv
+    g
     (fun () ->
        g.venv_version <- g.venv_version + 1;
        g.venv_parent <- None;
@@ -718,49 +751,95 @@ let venv_apply_prim_fun name venv pos loc args =
  * To keep this up-to-date, entries are added for explicit targets,
  * and the cache is flushed whenever an implicit rule is added.
  *)
-let venv_find_target_is_buildable_exn venv target =
-   Omake_node.NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable target
 
-let venv_find_target_is_buildable_proper_exn venv target =
-   Omake_node.NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable_proper target
+let lookup_target_dir_in g dir =
+  try
+    Omake_node.DirTable.find g.venv_target_dirs dir
+  with
+    | Not_found ->
+        let tdir = g.venv_target_next_dir in
+        g.venv_target_next_dir <- tdir+1;
+        let tab =
+          Omake_node.DirTable.add g.venv_target_dirs dir tdir in
+        g.venv_target_dirs <- tab;
+        tdir
 
-let venv_add_target_is_buildable venv target flag =
-   let globals = venv.venv_inner.venv_globals in
-   (* check whether we can back-propagate *)
-   venv_protect
+
+let venv_lookup_target_dir venv dir =
+   venv_synch
      venv
-     (fun () ->
-        match globals.venv_parent with
-          | Some(pglobals, pversion) when pversion = pglobals.venv_version ->
-              let tab = 
-                Omake_node.NodeTable.add 
-                  pglobals.venv_target_is_buildable target flag in
-              pglobals.venv_target_is_buildable <- tab;
-              globals.venv_target_is_buildable <- tab
-          | _ ->
-              globals.venv_target_is_buildable <- 
-                Omake_node.NodeTable.add globals.venv_target_is_buildable
-                                         target flag
+     (fun globals pglobals_opt ->
+        match pglobals_opt with
+          | Some pglobals ->
+              let tdir = lookup_target_dir_in pglobals dir in
+              globals.venv_target_next_dir <- pglobals.venv_target_next_dir;
+              globals.venv_target_dirs <- pglobals.venv_target_dirs;
+              tdir
+          | None ->
+              lookup_target_dir_in globals dir
      )
 
-let venv_add_target_is_buildable_proper venv target flag =
-   (* check whether we can back-propagate *)
-  let globals = venv.venv_inner.venv_globals in
-  venv_protect
-    venv
-    (fun () ->
-       match globals.venv_parent with
-         | Some(pglobals, pversion) when pversion = pglobals.venv_version ->
-             let tab = 
-               Omake_node.NodeTable.add 
-                 pglobals.venv_target_is_buildable_proper target flag in
-             pglobals.venv_target_is_buildable_proper <- tab;
-             globals.venv_target_is_buildable_proper <- tab
-         | _ ->
-             globals.venv_target_is_buildable_proper <-
-               Omake_node.NodeTable.add globals.venv_target_is_buildable_proper
-                                        target flag
-    )
+
+let venv_find_target_is_buildable_exn venv target_dir file =
+  let g = venv_globals venv in
+  let (bset,nonbset) = StrMap.find file g.venv_target_is_buildable in
+  Lm_bitset.is_set bset target_dir || (
+    if not(Lm_bitset.is_set nonbset target_dir) then raise Not_found;
+    false
+  )
+
+let venv_find_target_is_buildable_proper_exn venv target_dir file =
+  let g = venv_globals venv in
+  let (bset,nonbset) = StrMap.find file g.venv_target_is_buildable_proper in
+  Lm_bitset.is_set bset target_dir || (
+    if not(Lm_bitset.is_set nonbset target_dir) then raise Not_found;
+    false
+  )
+
+let add_target_to m target_dir file flag =
+  let (bset,nonbset) =
+    try StrMap.find file m
+    with Not_found -> (Lm_bitset.create(), Lm_bitset.create()) in
+  let (bset',nonbset') =
+    if flag then
+      (Lm_bitset.set bset target_dir, nonbset)
+    else
+      (bset, Lm_bitset.set nonbset target_dir) in
+  StrMap.add file (bset',nonbset') m
+
+
+let venv_add_target_is_buildable venv target_dir file flag =
+   let add g =
+     let tab = add_target_to g.venv_target_is_buildable target_dir file flag in
+     g.venv_target_is_buildable <- tab in
+   venv_synch
+     venv
+     (fun globals pglobals_opt ->
+        match pglobals_opt with
+          | Some pglobals ->
+              add pglobals;
+              globals.venv_target_is_buildable <-
+                pglobals.venv_target_is_buildable
+          | None ->
+              add globals
+     )
+
+let venv_add_target_is_buildable_proper venv target_dir file flag =
+   let add g =
+     let tab =
+       add_target_to g.venv_target_is_buildable_proper target_dir file flag in
+     g.venv_target_is_buildable_proper <- tab in
+   venv_synch
+     venv
+     (fun globals pglobals_opt ->
+        match pglobals_opt with
+          | Some pglobals ->
+              add pglobals;
+              globals.venv_target_is_buildable_proper <-
+                pglobals.venv_target_is_buildable_proper
+          | None ->
+              add globals
+     )
 
 let venv_add_explicit_targets venv rules =
    venv_incr_version
@@ -772,14 +851,13 @@ let venv_add_explicit_targets venv rules =
               _
             } = globals
         in
-        let cache =
-          List.fold_left (fun cache erule ->
-            Omake_node.NodeTable.add cache erule.rule_target true) cache rules
-        in
-        let cache_proper =
-          List.fold_left (fun cache erule ->
-            Omake_node.NodeTable.add cache erule.rule_target true) cache_proper rules
-        in
+        let add cache erule =
+          let dir = Omake_node.Node.dir erule.rule_target in
+          let tdir = lookup_target_dir_in globals dir in
+          let file = Omake_node.Node.tail erule.rule_target in
+          add_target_to cache tdir file true in
+        let cache = List.fold_left add cache rules in
+        let cache_proper = List.fold_left add cache_proper rules in
         globals.venv_target_is_buildable <- cache;
         globals.venv_target_is_buildable_proper <- cache_proper
      )
@@ -789,8 +867,8 @@ let venv_flush_target_cache venv =
      venv
      (fun () ->
         let globals = venv.venv_inner.venv_globals in
-        globals.venv_target_is_buildable <- Omake_node.NodeTable.empty;
-        globals.venv_target_is_buildable_proper <- Omake_node.NodeTable.empty
+        globals.venv_target_is_buildable <- StrMap.empty;
+        globals.venv_target_is_buildable_proper <- StrMap.empty
      )
 
 (*
@@ -2054,8 +2132,10 @@ let create options _dir exec cache =
       venv_object_files               = Omake_node.NodeTable.empty;
       venv_static_values              = Omake_node.NodeTable.empty;
       venv_modified_values            = Omake_node.NodeTable.empty;
-      venv_target_is_buildable        = Omake_node.NodeTable.empty;
-      venv_target_is_buildable_proper = Omake_node.NodeTable.empty
+      venv_target_dirs                = Omake_node.DirTable.empty;
+      venv_target_next_dir            = 0;
+      venv_target_is_buildable        = StrMap.empty;
+      venv_target_is_buildable_proper = StrMap.empty
     }
   in
   let inner =
