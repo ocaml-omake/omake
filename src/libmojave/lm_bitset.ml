@@ -30,7 +30,7 @@ let set bitset b =
       Array.blit bitset 0 bitset' 0 (Array.length bitset);
       bitset' in
   let k = b mod bits_per_int in
-  let x = bitset.(j) in
+  let x = bitset'.(j) in
   let x' = x lor (1 lsl k) in
   bitset'.(j) <- x';
   bitset'
