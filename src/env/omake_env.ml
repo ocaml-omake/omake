@@ -797,7 +797,17 @@ let venv_lookup_target_dir venv dir =
      )
 
 
+let squeeze_phony =
+  (* This is OK because whenever we add a phony target we flush the cache *)
+  function
+  | Omake_node_sig.NodePhony ->
+      Omake_node_sig.NodeNormal
+  | other ->
+      other
+
+
 let venv_find_target_is_buildable_exn venv target_dir file node_kind = 
+  let node_kind = squeeze_phony node_kind in
   let g = venv_globals venv in
   let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
@@ -808,6 +818,7 @@ let venv_find_target_is_buildable_exn venv target_dir file node_kind =
   )
 
 let venv_find_target_is_buildable_multi venv file node_kind =
+  let node_kind = squeeze_phony node_kind in
   let g = venv_globals venv in
   let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
@@ -825,6 +836,7 @@ let venv_find_target_is_buildable_multi venv file node_kind =
 
 
 let venv_find_target_is_buildable_proper_exn venv target_dir file node_kind =
+  let node_kind = squeeze_phony node_kind in
   let g = venv_globals venv in
   let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
@@ -835,6 +847,7 @@ let venv_find_target_is_buildable_proper_exn venv target_dir file node_kind =
   )
 
 let add_target_to m target_dir file node_kind flag =
+  let node_kind = squeeze_phony node_kind in
   let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
     try TargetMap.find ikey m
@@ -866,6 +879,7 @@ let venv_add_target_is_buildable venv target_dir file node_kind flag =
      )
 
 let venv_add_target_is_buildable_multi venv file node_kind tdirs_pos tdirs_neg =
+  let node_kind = squeeze_phony node_kind in
   let add g =
     let ikey = TargetElem.intern (file,node_kind) in
     let (bset,nonbset) =
@@ -1902,6 +1916,19 @@ let venv_intern_cd_1 venv phony_flag dir pname =
 
 let venv_intern_cd venv phony_flag dir name =
   venv_intern_cd_1 venv phony_flag dir (Omake_node.parse_phony_name name)
+
+
+let venv_intern_cd_node_kind venv phony_flag dir pname =
+   let globals = venv_globals venv in
+   let { venv_phonies = phonies;
+         _
+       } = globals
+   in
+   if Omake_node.node_will_be_phony phonies phony_flag dir pname then
+     Omake_node_sig.NodePhony
+   else
+     Omake_node_sig.NodeNormal
+
 
 
 

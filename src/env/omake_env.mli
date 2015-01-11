@@ -200,6 +200,7 @@ val venv_add_file         : t -> Omake_node.Node.t -> t
 val venv_intern           : t -> Omake_node_sig.phony_ok -> string -> Omake_node.Node.t
 val venv_intern_cd        : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> string -> Omake_node.Node.t
 val venv_intern_cd_1      : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> Omake_node.phony_name -> Omake_node.Node.t
+val venv_intern_cd_node_kind : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> Omake_node.phony_name -> Omake_node_sig.node_kind
 val venv_intern_dir       : t -> string -> Omake_node.Dir.t
 val venv_intern_target    : t -> Omake_node_sig.phony_ok -> Omake_value_type.target -> Omake_node.Node.t
 val venv_dirname          : t -> Omake_node.Dir.t -> string

@@ -51,28 +51,27 @@ let compile_out s =
  *)
 let wild_match (plen, prefix, slen, suffix)  s =
    let len = String.length s in
-   let module E = struct exception Not_equal end in
-
    if len >= plen + slen then 
      try 
      begin 
+     let soffs = len-slen in
+     for i = slen - 1 downto 0 do 
+       if String.unsafe_get suffix i = String.unsafe_get s (soffs + i) 
+       then 
+         ()
+       else 
+         raise Not_found
+     done;
      for i = 0 to plen - 1 do 
        if String.unsafe_get prefix i = String.unsafe_get s i then
          ()
        else 
-         raise E.Not_equal 
-     done ;
-     for i = 0 to slen - 1 do 
-       if String.unsafe_get suffix i = String.unsafe_get s (len - slen + i) 
-       then 
-         ()
-       else 
-         raise E.Not_equal 
+         raise Not_found
      done
      end; 
      let len = len - plen - slen in
      Some (len, String.sub s plen len)
-     with E.Not_equal -> None 
+     with Not_found -> None 
    else 
      None
 (*

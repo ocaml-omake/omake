@@ -1539,6 +1539,25 @@ let create_node_or_phony_1 phonies mount_info mount phony_ok dir pname =
     Node.create_node mount_info mount dir name
 
 
+let node_will_be_phony phonies phony_ok dir pname =
+  (* whether create_node_or_phony will return a phony node (true) or a normal
+     node (false)
+   *)
+  match pname, phony_ok with
+    | PhonyDirString _, _
+    | PhonyGlobalString _, _ ->
+        true
+    | PhonySimpleString name, Omake_node_sig.PhonyOK ->
+        let node : NodeElt.t  =
+          NodePhonyDir (dir, FileCase.create dir name, name) in
+        PreNodeSet.mem phonies node
+        || 
+          (* Try PhonyGlobal next *)
+          let node : NodeElt.t  = NodePhonyGlobal name in
+          PreNodeSet.mem phonies node
+    | _ ->
+        false
+
 let create_node_or_phony phonies mount_info mount phony_ok dir name =
   create_node_or_phony_1
     phonies mount_info mount phony_ok dir

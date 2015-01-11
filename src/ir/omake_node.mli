@@ -46,6 +46,7 @@ val parse_phony_name : string -> phony_name  (* failsafe *)
 val create_node_or_phony_1 : PreNodeSet.t -> mount_info -> Mount.t -> 
   Omake_node_sig.phony_ok -> Dir.t -> phony_name -> Node.t
 
+val node_will_be_phony : PreNodeSet.t -> Omake_node_sig.phony_ok -> Dir.t -> phony_name -> bool 
 
 
 (*

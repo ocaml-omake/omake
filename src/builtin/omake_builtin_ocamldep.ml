@@ -46,7 +46,7 @@ let ocamldep_postproc venv pos loc =
       let name1 = String.uncapitalize name in
       let name2 = String.capitalize name in
       let node_opt =
-        Omake_target.target_is_buildable_in_path
+        Omake_target.target_is_buildable_in_path_1
           cache venv pos path [name1;name2] in
       match node_opt with
         | Some node ->
@@ -139,6 +139,10 @@ let ocamldep_postproc venv pos loc =
          let path = Omake_value.values_of_value venv pos path in
          let path = Omake_eval.path_of_values venv pos path "." in
          let path = List.flatten (List.map snd path) in
+         let path = 
+           List.map
+             (fun dir -> dir, Omake_env.venv_lookup_target_dir venv dir)
+             path in
          let enable_cmx = Omake_value.bool_of_value venv pos enable_cmx in
 
          let current = ref None in
