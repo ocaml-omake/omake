@@ -1001,37 +1001,24 @@ let search_target_path_aux search venv pos loc args =
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let rec search_target_in_path_aux fail venv cache pos loc path files name =
-  match path with
-  | dir :: path ->
-    let node = Omake_env.venv_intern_cd venv PhonyOK dir name in
-    if target_is_buildable cache venv pos node then
-      Omake_value_type.ValNode node :: files
-    else
-      search_target_in_path_aux fail venv cache pos loc path files name
-  | [] ->
-    if fail then
-      raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
-    else
-      files
+let search_target_in_path_aux fail venv cache pos loc path files name =
+  match Omake_target.target_is_buildable_in_path cache venv pos path [name] with
+    | Some node ->
+        Omake_value_type.ValNode node :: files
+    | None ->
+        if fail then
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
+        else
+          files
 
-let rec search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2 =
-  match path with
-  | dir :: path ->
-    let node1 = Omake_env.venv_intern_cd venv PhonyProhibited dir name1 in
-    if target_is_buildable cache venv pos node1 then
-      Omake_value_type.ValNode node1 :: files
-    else
-      let node2 = Omake_env.venv_intern_cd venv PhonyProhibited dir name2 in
-      if target_is_buildable cache venv pos node2 then
-        ValNode node2 :: files
-      else
-        search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2
-  | [] ->
-    files
-
-let search_ocaml_target_in_path_aux venv cache pos loc path files name =
-   search_ocaml_target_in_path_aux venv cache pos loc path files (String.uncapitalize name) (String.capitalize name)
+let search_ocaml_target_in_path_aux venv cache pos _loc path files name =
+  let names =
+    [ String.uncapitalize name; String.capitalize name ] in
+  match Omake_target.target_is_buildable_in_path cache venv pos path names with
+    | Some node ->
+        Omake_value_type.ValNode node :: files
+    | None ->
+        files
 
 let find_targets_in_path = search_target_path_aux (search_target_in_path_aux true)
 let find_targets_in_path_optional = search_target_path_aux (search_target_in_path_aux false)

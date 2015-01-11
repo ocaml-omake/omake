@@ -906,8 +906,8 @@ let rec resolve_mount_node dir_dst dir_src node =
 type phony_name =
    PhonyGlobalString of string
  | PhonyDirString of string
- | PhonySimpleString
- | PhonyPathString
+ | PhonySimpleString of string
+ | PhonyPathString of string
 
 (* Starting at position i, s begins with ".PHONY/" *)
 let string_prefix_phony s i len =
@@ -932,7 +932,7 @@ let rec is_simple_string s len i =
 let parse_phony_name s =
    let len = String.length s in
       if len = 0 then
-         PhonySimpleString
+         PhonySimpleString s
       else match s.[0] with
          '/'
        | '\\' ->
@@ -940,15 +940,15 @@ let parse_phony_name s =
             (* /.PHONY/foo *)
             PhonyGlobalString (String.sub s 8 (len - 8))
          else
-            PhonyPathString
+            PhonyPathString s
        | '.' when string_prefix_phony s 0 len ->
             (* .PHONY/foo/bar *)
             PhonyDirString (String.sub s 7 (len - 7))
        | _ ->
             if is_simple_string s len 1 then
-               PhonySimpleString
+               PhonySimpleString s
             else
-               PhonyPathString
+               PhonyPathString s
 
 (************************************************************************
  * Modules.
@@ -1508,8 +1508,8 @@ end
  * NOTE: NodeHash.intern will not create the
  * node if it does not already exist.
  *)
-let create_node_or_phony phonies mount_info mount phony_ok dir name =
-  match parse_phony_name name, phony_ok with
+let create_node_or_phony_1 phonies mount_info mount phony_ok dir pname =
+  match pname, phony_ok with
   | PhonyDirString name, Omake_node_sig.PhonyOK
   | PhonyDirString name, PhonyExplicit ->
     let dir, key, name = new_file dir name in
@@ -1520,7 +1520,7 @@ let create_node_or_phony phonies mount_info mount phony_ok dir name =
   | PhonyDirString _, PhonyProhibited
   | PhonyGlobalString _, PhonyProhibited ->
     raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
-  | PhonySimpleString, PhonyOK ->
+  | PhonySimpleString name, PhonyOK ->
     (* Try PhonyDir first *)
     let node : NodeElt.t  =
       NodePhonyDir (dir, FileCase.create dir name, name) in
@@ -1533,10 +1533,16 @@ let create_node_or_phony phonies mount_info mount phony_ok dir name =
         NodeHash.create node
       else
         Node.create_node mount_info mount dir name
-  | PhonySimpleString, PhonyExplicit
-  | PhonySimpleString, PhonyProhibited
-  | PhonyPathString, _ ->
+  | PhonySimpleString name, PhonyExplicit
+  | PhonySimpleString name, PhonyProhibited
+  | PhonyPathString name, _ ->
     Node.create_node mount_info mount dir name
+
+
+let create_node_or_phony phonies mount_info mount phony_ok dir name =
+  create_node_or_phony_1
+    phonies mount_info mount phony_ok dir
+    (parse_phony_name name)
 
 (*
  * Print the directory, for debugging.
