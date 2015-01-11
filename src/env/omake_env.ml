@@ -1,7 +1,18 @@
 
 module TargetElem = struct
-  type t = string * Omake_node_sig.node_kind
-  let compare = Pervasives.compare
+  type t = int * string * Omake_node_sig.node_kind
+  let compare (h1,s1,k1) (h2,s2,k2) =
+    if h1=h2 then
+      let p1 = String.compare s1 s2 in
+      if p1 = 0 then
+        Pervasives.compare k1 k2
+      else
+        p1
+    else
+      h1-h2
+  let intern ((s1,k1) as key) =
+    let h1 = Hashtbl.hash key in
+    (h1,s1,k1)
 end
 
 module TargetMap = Lm_map.Make(TargetElem)
@@ -785,34 +796,54 @@ let venv_lookup_target_dir venv dir =
      )
 
 
-let venv_find_target_is_buildable_exn venv target_dir file node_kind =
+let venv_find_target_is_buildable_exn venv target_dir file node_kind = 
   let g = venv_globals venv in
+  let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
-    TargetMap.find (file,node_kind) g.venv_target_is_buildable in
+    TargetMap.find ikey g.venv_target_is_buildable in
   Lm_bitset.is_set bset target_dir || (
     if not(Lm_bitset.is_set nonbset target_dir) then raise Not_found;
     false
   )
 
+let venv_find_target_is_buildable_multi venv file node_kind =
+  let g = venv_globals venv in
+  let ikey = TargetElem.intern (file,node_kind) in
+  let (bset,nonbset) =
+    try
+      TargetMap.find ikey g.venv_target_is_buildable
+    with
+      | Not_found ->
+          (Lm_bitset.create(), Lm_bitset.create()) in
+  (fun target_dir ->
+     Lm_bitset.is_set bset target_dir || (
+       if not(Lm_bitset.is_set nonbset target_dir) then raise Not_found;
+       false
+     )
+  )
+
+
 let venv_find_target_is_buildable_proper_exn venv target_dir file node_kind =
   let g = venv_globals venv in
+  let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
-    TargetMap.find (file,node_kind) g.venv_target_is_buildable_proper in
+    TargetMap.find ikey g.venv_target_is_buildable_proper in
   Lm_bitset.is_set bset target_dir || (
     if not(Lm_bitset.is_set nonbset target_dir) then raise Not_found;
     false
   )
 
 let add_target_to m target_dir file node_kind flag =
+  let ikey = TargetElem.intern (file,node_kind) in
   let (bset,nonbset) =
-    try TargetMap.find (file,node_kind) m
+    try TargetMap.find ikey m
     with Not_found -> (Lm_bitset.create(), Lm_bitset.create()) in
   let (bset',nonbset') =
     if flag then
       (Lm_bitset.set bset target_dir, nonbset)
     else
       (bset, Lm_bitset.set nonbset target_dir) in
-  TargetMap.add (file,node_kind) (bset',nonbset') m
+  TargetMap.add ikey (bset',nonbset') m
 
 
 let venv_add_target_is_buildable venv target_dir file node_kind flag =
@@ -832,6 +863,29 @@ let venv_add_target_is_buildable venv target_dir file node_kind flag =
           | None ->
               add globals
      )
+
+let venv_add_target_is_buildable_multi venv file node_kind tdirs_pos tdirs_neg =
+  let add g =
+    let ikey = TargetElem.intern (file,node_kind) in
+    let (bset,nonbset) =
+      try TargetMap.find ikey g.venv_target_is_buildable
+      with Not_found -> (Lm_bitset.create(), Lm_bitset.create()) in
+    let bset' = Lm_bitset.set_multiple bset tdirs_pos in
+    let nonbset' = Lm_bitset.set_multiple nonbset tdirs_neg in
+    let tab = TargetMap.add ikey (bset',nonbset') g.venv_target_is_buildable in
+    g.venv_target_is_buildable <- tab in
+  venv_synch
+    venv
+    (fun globals pglobals_opt ->
+       match pglobals_opt with
+         | Some pglobals ->
+             add pglobals;
+             globals.venv_target_is_buildable <-
+               pglobals.venv_target_is_buildable
+         | None ->
+             add globals
+    )
+
 
 let venv_add_target_is_buildable_proper venv target_dir file node_kind flag =
    let add g =
@@ -1835,7 +1889,7 @@ let venv_intern_target venv phony_flag target =
       Omake_value_type.TargetNode node -> node
     | TargetString name -> venv_intern venv phony_flag name
 
-let venv_intern_cd venv phony_flag dir name =
+let venv_intern_cd_1 venv phony_flag dir pname =
    let mount = venv.venv_inner.venv_mount in
    let globals = venv_globals venv in
    let { venv_phonies = phonies;
@@ -1843,7 +1897,12 @@ let venv_intern_cd venv phony_flag dir name =
          _
        } = globals
    in
-      Omake_node.create_node_or_phony phonies mount_info mount phony_flag dir name
+      Omake_node.create_node_or_phony_1 phonies mount_info mount phony_flag dir pname
+
+let venv_intern_cd venv phony_flag dir name =
+  venv_intern_cd_1 venv phony_flag dir (Omake_node.parse_phony_name name)
+
+
 
 let venv_intern_rule_target venv multiple name =
   let node =

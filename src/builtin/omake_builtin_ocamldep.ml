@@ -29,38 +29,28 @@ let target_is_buildable cache venv pos node =
 
 let ocamldep_postproc venv pos loc args =
   let cache = Omake_env.venv_cache venv in
-  let rec search_in_path path name =
-    match path with
-      | dir :: path ->
-           let name1 = String.uncapitalize name in
-           let name2 = String.capitalize name in
-           let node1 = Omake_env.venv_intern_cd venv PhonyOK dir name1 in
-           if target_is_buildable cache venv pos node1 then
-             Some(Omake_env.venv_nodename venv node1)
-           else
-             let node2 = Omake_env.venv_intern_cd venv PhonyOK dir name2 in
-             if target_is_buildable cache venv pos node2 then
-             Some(Omake_env.venv_nodename venv node2)
-             else
-               search_in_path path name
-      | [] ->
-           None in
 
-  let memo = Hashtbl.create 17 in
-  let search_in_path_memo path name =
+  let search_in_path path name =
     try
-      Hashtbl.find memo name
+      let name1 = String.uncapitalize name in
+      let name2 = String.capitalize name in
+      let node_opt =
+        Omake_target.target_is_buildable_in_path
+          cache venv pos path [name1;name2] in
+      match node_opt with
+        | Some node ->
+            Some(Omake_env.venv_nodename venv node)
+        | None ->
+            None
     with
-      | Not_found ->
-           let r = search_in_path path name in
-           Hashtbl.add memo name r;
-           r in
+      | Omake_value_type.RaiseException(_, obj) when Omake_env.venv_instanceof obj Omake_symbol.unbuildable_exception_sym ->
+          None in
 
   let accumulate_over_path path deps suffix =
     List.rev
       (List.fold_left
          (fun acc dep ->
-            match search_in_path_memo path (dep ^ suffix) with
+            match search_in_path path (dep ^ suffix) with
               | Some node -> node :: acc
               | None -> acc
          )
