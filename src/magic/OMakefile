@@ -73,7 +73,7 @@ MAGIC_FILES =\
 # Generate the file
 #
 omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
-    ./omake_gen_magic -o $@ --lib $(LIBDIR) --version $(VERSION_TXT) --default_save_interval $(DEFAULT_SAVE_INTERVAL) --magic $(MAGIC_FILES)
+    ./omake_gen_magic -o $@ --lib $(LIBDIR) --version $(VERSION_TXT) --default_save_interval $(DEFAULT_SAVE_INTERVAL) --var "omake_cc=$(CC)" --var "omake_cflags=$(CFLAGS)" --var "omake_ccomptype=$(CCOMPTYPE)" --magic $(MAGIC_FILES)
 
 MakeOCamlLibrary(magic, omake_magic)
 

@@ -39,6 +39,11 @@ include Omake_pos.Make (struct let name = "Omake_builtin_base" end)
  *    \verb+Unix+ (for all  Unix  versions, including Linux and Mac OS X), \verb+Win32+
  *    (for MS-Windows, \OMake{} compiled with MSVC++ or Mingw), and \verb+Cygwin+ (for
  *    MS-Windows, \OMake{} compiled with Cygwin).
+ * \var{CCOMPTYPE}
+ *    Set to to either "cc" when the C compiler is invoked in Unix style,
+ *    or "msvc" for Microsoft Visual C (actually, this is the "ccomp_type"
+ *    variable of "ocamlc -config"). This setting is considered as a system
+ *    preference.
  * \var{SYSNAME}
  *    The name of the operating system for the current machine.
  * \var{NODENAME}
@@ -2756,6 +2761,9 @@ let () =
         "nobody" in
     ["OS",             (fun _ -> Omake_value_type.ValData Sys.os_type);
      "OSTYPE",         (fun _ -> ValData Sys.os_type);
+     "CCOMPTYPE",      (fun _ -> ValData Omake_magic.omake_ccomptype);
+     "OMAKE_CC",       (fun _ -> ValData Omake_magic.omake_cc);
+     "OMAKE_CFLAGS",   (fun _ -> ValData Omake_magic.omake_cflags);
      "SYSNAME",        (fun _ -> ValData Lm_uname.sysname);
      "NODENAME",       (fun _ -> ValData Lm_uname.nodename);
      "OS_VERSION",     (fun _ -> ValData Lm_uname.version);

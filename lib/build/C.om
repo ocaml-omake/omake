@@ -90,49 +90,109 @@ open configure/Configure
 # \var{LEX} The name of the \verb+lex+ lexer generator (default is \verb+lex+ on \verb+Unix+, empty on \verb+Win32+).
 # \end{doc}
 #
+
+# by default, we pick the C compiler that was used for building omake.
+# When upgrading omake, this might not be set, so fall back to the old
+# magic.
+.STATIC:
+    if $(equal $(OSTYPE), Win32)
+        CL_FOUND = $(CheckProg cl)
+        LIB_FOUND = $(CheckProg lib)
+        export
+    else
+        GCC_FOUND = $(CheckProg gcc)
+        GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
+        export
+
+    if $(defined OMAKE_CC)
+        DEFAULT_CC = $(OMAKE_CC)
+        export
+    else
+        if $(equal $(OSTYPE), Win32)
+            DEFAULT_CC = cl
+            export
+        else
+            DEFAULT_CC = $(if $(GCC_FOUND), gcc, cc)
+            export
+        export
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_CC += /nologo
+        export
+    export
+
+# At this point you could insert code updating DEFAULT_CC and DEFAULT_CFLAGS.
+
+# derive a toolchain name, e.g.
+#    toolchain-derive(foo-gcc, g++, fallback) = "foo-g++"
+# if foo-g++ exists, and fallback otherwise
+
+protected.toolchain-derive(cc, command, fallback) =
+    empty = $(array)
+    match $(cc)
+    case $"\(.*\)-g?cc"
+        fullcmd = $(concat $(empty), $1, $(command))
+        if $(exists-in-path $(fullcmd))
+            return $(fullcmd)
+        else
+            return $(fallback)
+    default
+        return $(fallback)
+
+declare protected.CC_DEFINE
+declare protected.OS_CFLAGS
+
+if $(equal $(CCOMPTYPE), msvc)
+    CC_DEFINE = /D
+    export
+else
+    CC_DEFINE = -D
+    export
+
 if $(equal $(OSTYPE), Win32)
-    public.CC = cl /nologo
-    public.CXX = cl /nologo
-    public.CPP = cl /nologo /E
-    public.CFLAGS = /DWIN32
-    public.CXXFLAGS = /DWIN32
+    OS_CFLAGS = $(CC_DEFINE)WIN32
+    public.CDLL_IMPLIES_STATIC = true
+    export
+else
+    OS_CFLAGS =
+    public.CDLL_IMPLIES_STATIC = false
+    export
+
+
+if $(equal $(CCOMPTYPE), msvc)
+    public.CC = $(DEFAULT_CC)
+    public.CCX = $(DEFAULT_CC)
+    public.CPP = $(DEFAULT_CC) /E
+    public.CFLAGS = $(OS_CFLAGS)
+    public.CXXFLAGS = $(OS_CFLAGS)
     public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
     public.RANLIB = echo ranlib
     public.INCLUDES[] = .
     public.INCLUDES_OPT = /I
     public.CCOUT = /Fo
-    public.LD = cl /nologo
+    public.LD = $(DEFAULT_CC)
     public.YACC = echo yacc
     public.LEX = echo lex
     public.LIBS =
     public.LDFLAGS =
     public.LDFLAGS_DLL = /DLL
-    public.CDLL_IMPLIES_STATIC = true
     public.LDOUT = /Fe
 
     public.AS = ml /nologo
     public.ASOUT = /Fo
     public.ASFLAGS = /c /coff
 
-    .STATIC:
-        CL_FOUND = $(CheckProg cl)
-        LIB_FOUND = $(CheckProg lib)
-
     export
 else
-    .STATIC:
-        GCC_FOUND = $(CheckProg gcc)
-        GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
-        CC = $(if $(GCC_FOUND), gcc, cc)
-        CXX = $(if $(GXX_FOUND), g++, c++)
-    public.CPP = cpp
-    public.CFLAGS =
-    public.CXXFLAGS =
+    public.CC = $(DEFAULT_CC)
+    public.CXX = $(toolchain-derive $(CC), g++, `$(toolchain-derive $(CC), c++, $(if $(GXX_FOUND), g++, c++)))
+    public.CPP = $(toolchain-derive $(CC), cpp, $(CC) -E)
+    public.CFLAGS = $(OS_CFLAGS)
+    public.CXXFLAGS = $(OS_CFLAGS)
     public.AR(name) =
         return(ar cq $(name))
     public.RANLIB = ranlib
-    public.LD = ld
+    public.LD = $(toolchain-derive $(CC), ld, ld)
     public.INCLUDES[] = .
     public.INCLUDES_OPT = -I
     public.CCOUT = $(array -o)
@@ -140,7 +200,6 @@ else
     public.LEX = lex
     public.LIBS =
     public.LDFLAGS =
-    public.CDLL_IMPLIES_STATIC = false
     public.LDOUT = $(array -o)
 
     # MacOS X specific config
@@ -238,7 +297,7 @@ public.LocalCGeneratedFiles(files) =
 # We use digest-path-exists value dependency to make sure the SCANNER is re-run
 # whenever the scanned dependencies change.
 #
-if $(equal $(OSTYPE), Win32)
+if $(equal $(CCOMPTYPE), msvc)
     Shell. +=
         builtin-cc-depend(argv) =
            filename = $(nth 0, $(argv))

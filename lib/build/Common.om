@@ -104,6 +104,37 @@ MKDIR = mkdir
 RMDIR = rmdir
 CHMOD = chmod
 
+# We now support both msvc and mingw for Win32. CCOMPTYPE is "msvc" for the
+# former case and "cc" for the latter. There is some fallback code for old
+# omake bootstraps, though:
+
+if $(not $(defined CCOMPTYPE))
+    if $(equal $(OSTYPE), Win32)
+        CCOMPTYPE = msvc
+        export
+    else
+        CCOMPTYPE = cc
+        export
+    export
+
+
+switch $(CCOMPTYPE)
+case cc
+    EXT_LIB = .a
+    EXT_DLL = .so            # but may be overridden below
+    EXT_OBJ = .o
+    EXT_ASM = .s
+    EXE =                    # but may be overridden below
+    export
+case msvc
+    EXT_LIB = .lib
+    EXT_DLL = .dll
+    EXT_OBJ = .obj
+    EXT_ASM = .asm
+    EXE = .exe
+    export
+
+
 if $(equal $(OSTYPE), Win32)
     #
     # Command names
@@ -115,10 +146,7 @@ if $(equal $(OSTYPE), Win32)
     #
     # Common suffixes for files
     #
-    EXT_LIB = .lib
     EXT_DLL = .dll
-    EXT_OBJ = .obj
-    EXT_ASM = .asm
     EXE = .exe
 
     export
@@ -129,16 +157,6 @@ else
     INSTALL = install
     PATHSEP = :
     DIRSEP = /
-
-    #
-    # Common suffixes for files
-    #
-    EXT_LIB = .a
-    EXT_DLL = .so
-    EXT_OBJ = .o
-    EXT_ASM = .s
-    EXE =
-
     export
 
 if $(equal $(OSTYPE), Cygwin)

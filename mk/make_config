@@ -3,6 +3,23 @@
 # make sure to also add a default value to mk/defaults.
 #
 
+Shell. +=
+    extract-cc(argv) =
+        awk()
+        case $"^bytecomp_c_compiler: "
+	    println($2)
+
+    extract-cflags(argv) =
+        awk()
+        case $"^bytecomp_c_compiler: "
+            println($(concat $" ", $(subrange 3, $(sub $(length $*), 3), $*)))
+
+    extract-ccomp-type(argv) =
+        awk()
+        case $"^ccomp_type: "
+	    println($2)
+
+
 #
 # Function to generate the config file
 #
@@ -17,6 +34,10 @@ MakeConfig(CONFIG_FILE) =
     if $(equal $(LIBDIR), $(dir $(PREFIX)/lib))
         LIBDIR = $'$(PREFIX)/lib'
         export
+
+    cc = $(shell $(OCAMLC) -config | extract-cc)
+    cflags = $(shell $(OCAMLC) -config | extract-cflags)
+    ccomptype = $(shell $(OCAMLC) -config | extract-ccomp-type)
 
     CONFIG = $"""\
 # Main OMake configuration file.
@@ -39,10 +60,11 @@ LIBDIR = $$(dir $$"$(LIBDIR)")
 
 #
 # What C compiler do you want to use?
-# By default, the C compiler is "cc", unless "gcc" is found on your system.
+# By default, this is now set to the same C compiler as used by ocaml.
 #
-CC = $(CC)
-CFLAGS = $(CFLAGS)
+CC = $(getenv CC, $(cc))
+CFLAGS = $(getenv CFLAGS, $(cflags))
+CCOMPTYPE = $(getenv CCOMPTYPE, $(ccomptype))
 
 #
 # Do you want native and/or byte code?
