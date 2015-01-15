@@ -118,6 +118,8 @@ if $(not $(defined CCOMPTYPE))
     export
 
 
+#println(ccomptype: $(CCOMPTYPE))
+
 switch $(CCOMPTYPE)
 case cc
     EXT_LIB = .a

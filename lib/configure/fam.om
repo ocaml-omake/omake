@@ -9,7 +9,12 @@ open configure/Configure
     FAM_CLIBS =
     if $(equal $(OSTYPE), Win32)
         FAM_AVAILABLE = true
-        FAM_CFLAGS = /DFAM_ENABLED /DFAM_PSEUDO
+        if $(equal $(CCOMPTYPE), msvc)
+            FAM_CFLAGS = /DFAM_ENABLED /DFAM_PSEUDO
+            export
+        else
+            FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO
+            export
         export
     else
         # Unix

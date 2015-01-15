@@ -32,7 +32,7 @@ if $(equal $(OSTYPE), Win32)
         CFLAGS += /MT /DWIN32 /W4 /WX
         export
     else
-	CFLAGS += -DWIN32 -g -O2 -Wall -Werror -Wno-unused
+	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused
         export
 
     #
@@ -51,7 +51,7 @@ else
     #
     # Extra options for the C compiler
     #
-    CFLAGS += -g -O2 -Wall -Werror -Wno-unused
+    CFLAGS += -g -O2 -Wall -Wno-unused
 
     #
     # We never need threads on Unix
