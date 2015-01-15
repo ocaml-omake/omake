@@ -492,7 +492,7 @@ let digest_file name =
   )
 
 
-let probe_stat_file =
+let probe_stat_file = 
   I.create "Omake_cache.stat_file"
 
 (*
@@ -577,6 +577,7 @@ let stat_file cache =
                 | Sys_error _ ->
                      None
             )
+  )
 
 let stat_unix_node cache ~force node =
   (* We used to cache this information, but don't do this anymore. Hence,
