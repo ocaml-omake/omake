@@ -90,49 +90,178 @@ open configure/Configure
 # \var{LEX} The name of the \verb+lex+ lexer generator (default is \verb+lex+ on \verb+Unix+, empty on \verb+Win32+).
 # \end{doc}
 #
+
+# derive a toolchain name, e.g.
+#    toolchain-derive(foo-gcc, g++, fallback) = "foo-g++"
+# if foo-g++ exists, and fallback otherwise
+
+protected.toolchain-derive(cc, command, fallback) =
+    empty = $(array)
+    match $(cc)
+    case $"\(.*\)-g?cc"
+        fullcmd = $(concat $(empty), $1, $(command))
+        if $(exists-in-path $(fullcmd))
+            return $(fullcmd)
+        else
+            return $(fallback)
+    default
+        return $(fallback)
+
+# by default, we pick the C compiler that was used for building omake.
+# When upgrading omake, this might not be set, so fall back to the old
+# magic.
+.STATIC:
+    # C compiler
+
+    if $(equal $(CCOMPTYPE), msvc)
+        CL_FOUND = $(CheckProg cl)
+        LIB_FOUND = $(CheckProg lib)
+        export
+    else
+        protected.GCC_FOUND1 = $(CheckProg gcc)
+        protected.GXX_FOUND1 = $(and $(GCC_FOUND), $(CheckProg g++))
+        export
+
+    if $(defined OMAKE_CC)
+        DEFAULT_CC = $(OMAKE_CC)
+        export
+    else
+        if $(equal $(CCOMPTYPE), msvc)
+            DEFAULT_CC = cl
+            export
+        else
+            DEFAULT_CC = $(if $(GCC_FOUND), gcc, cc)
+            export
+        export
+
+    DEFAULT_CC_FOUND = $(CheckProg $(DEFAULT_CC))
+
+    DEFAULT_GCC_FOUND = false
+    match $(DEFAULT_CC)
+    case $"\.*-gcc"
+        DEFAULT_GCC_FOUND = true
+        export
+    case $"gcc"
+        DEFAULT_GCC_FOUND = true
+        export
+
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_CC += /nologo
+        export
+
+    # C++ compiler
+
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_CXX = cl /nologo
+        export
+    else
+        DEFAULT_CXX = $(toolchain-derive $(DEFAULT_CC), g++, `$(toolchain-derive $(DEFAULT_CC), c++, $(if $(GXX_FOUND1), g++, c++)))
+        export
+
+    DEFAULT_CXX_FOUND = $(CheckProg $(DEFAULT_CXX))
+
+    DEFAULT_GXX_FOUND = false
+    match $(DEFAULT_CXX)
+    case $"\.*-g++"
+        DEFAULT_GXX_FOUND = true
+        export
+    case $"g++"
+        DEFAULT_GXX_FOUND = true
+        export
+
+    # C preprocessor
+
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_CPP = cl /nologo /E
+        export
+    else
+        DEFAULT_CPP = $(toolchain-derive $(CC), cpp, $(CC) -E)
+        export
+
+    DEFAULT_CPP_FOUND = $(CheckProg $(DEFAULT_CPP))
+
+    # linker
+
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_LD = cl /nologo
+        export
+    else
+        DEFAULT_LD = $(toolchain-derive $(CC), ld, ld)
+
+    DEFAULT_LD_FOUND = $(CheckProg $(DEFAULT_LD))
+
+    # assembler
+
+    if $(equal $(CCOMPTYPE), msvc)
+        DEFAULT_AS = ml /nologo
+        export
+    else
+        DEFAULT_AS = $(toolchain-derive $(CC), as, as)
+        export
+
+    DEFAULT_AS_FOUND = $(CheckProg $(DEFAULT_AS))
+
+    export
+
+# At this point you could insert code updating DEFAULT_CC.
+
+declare protected.CC_DEFINE
+declare protected.OS_CFLAGS
+
+if $(equal $(CCOMPTYPE), msvc)
+    CC_DEFINE = /D
+    export
+else
+    CC_DEFINE = -D
+    export
+
 if $(equal $(OSTYPE), Win32)
-    public.CC = cl /nologo
-    public.CXX = cl /nologo
-    public.CPP = cl /nologo /E
-    public.CFLAGS = /DWIN32
-    public.CXXFLAGS = /DWIN32
+    OS_CFLAGS = $(CC_DEFINE)WIN32
+    public.CDLL_IMPLIES_STATIC = true
+    export
+else
+    OS_CFLAGS =
+    public.CDLL_IMPLIES_STATIC = false
+    export
+
+
+if $(equal $(CCOMPTYPE), msvc)
+    public.CC = $(DEFAULT_CC)
+    public.CXX = $(DEFAULT_CXX)
+    public.CPP = $(DEFAULT_CPP)
+    public.CFLAGS = $(OS_CFLAGS)
+    public.CXXFLAGS = $(OS_CFLAGS)
     public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
     public.RANLIB = echo ranlib
     public.INCLUDES[] = .
     public.INCLUDES_OPT = /I
     public.CCOUT = /Fo
-    public.LD = cl /nologo
+    public.LD = $(DEFAULT_LD)
     public.YACC = echo yacc
     public.LEX = echo lex
     public.LIBS =
     public.LDFLAGS =
     public.LDFLAGS_DLL = /DLL
-    public.CDLL_IMPLIES_STATIC = true
     public.LDOUT = /Fe
 
-    public.AS = ml /nologo
+    public.AS = $(DEFAULT_AS)
     public.ASOUT = /Fo
     public.ASFLAGS = /c /coff
 
-    .STATIC:
-        CL_FOUND = $(CheckProg cl)
-        LIB_FOUND = $(CheckProg lib)
-
     export
 else
-    .STATIC:
-        GCC_FOUND = $(CheckProg gcc)
-        GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
-        CC = $(if $(GCC_FOUND), gcc, cc)
-        CXX = $(if $(GXX_FOUND), g++, c++)
-    public.CPP = cpp
-    public.CFLAGS =
-    public.CXXFLAGS =
+    public.CC = $(DEFAULT_CC)
+    public.GCC_FOUND = $(DEFAULT_GCC_FOUND)
+    public.CXX = $(DEFAULT_CXX)
+    public.GXX_FOUND = $(DEFAULT_GXX_FOUND)
+    public.CPP = $(DEFAULT_CPP)
+    public.CFLAGS = $(OS_CFLAGS)
+    public.CXXFLAGS = $(OS_CFLAGS)
     public.AR(name) =
         return(ar cq $(name))
     public.RANLIB = ranlib
-    public.LD = ld
+    public.LD = $(DEFAULT_LD)
     public.INCLUDES[] = .
     public.INCLUDES_OPT = -I
     public.CCOUT = $(array -o)
@@ -140,7 +269,6 @@ else
     public.LEX = lex
     public.LIBS =
     public.LDFLAGS =
-    public.CDLL_IMPLIES_STATIC = false
     public.LDOUT = $(array -o)
 
     # MacOS X specific config
@@ -151,7 +279,7 @@ else
         public.LDFLAGS_DLL = -shared
         export
 
-    public.AS = as
+    public.AS = $(DEFAULT_AS)
     public.ASOUT = $(array -o)
     public.ASFLAGS =
 
@@ -238,7 +366,7 @@ public.LocalCGeneratedFiles(files) =
 # We use digest-path-exists value dependency to make sure the SCANNER is re-run
 # whenever the scanned dependencies change.
 #
-if $(equal $(OSTYPE), Win32)
+if $(equal $(CCOMPTYPE), msvc)
     Shell. +=
         builtin-cc-depend(argv) =
            filename = $(nth 0, $(argv))

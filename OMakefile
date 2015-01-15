@@ -28,7 +28,12 @@ if $(equal $(OSTYPE), Win32)
     #
     # Extra options for the C compiler
     #
-    CFLAGS += /MT /DWIN32 /W4 /WX
+    if $(equal $(CCOMPTYPE), msvc)
+        CFLAGS += /MT /DWIN32 /W4 /WX
+        export
+    else
+	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused
+        export
 
     #
     # Don't build man pages
@@ -46,7 +51,7 @@ else
     #
     # Extra options for the C compiler
     #
-    CFLAGS += -g -O2 -Wall -Werror -Wno-unused
+    CFLAGS += -g -O2 -Wall -Wno-unused
 
     #
     # We never need threads on Unix

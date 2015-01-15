@@ -36,8 +36,6 @@ public.NATIVE_PROFILE = false
 #
 # C compiler and flags - check the environment
 #
-CC = $(getenv CC, $(CC))
-CFLAGS = $(getenv CFLAGS, $(EMPTY))
 
 if $(file-exists $(CONFIG_FILE))
     include $(CONFIG_FILE)

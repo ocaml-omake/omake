@@ -123,6 +123,7 @@ let omake_magic (buf : out_channel)
     cache_files
     omc_files
     omo_files
+    vars
   : unit =
 
   let digest_files filename code filenames =
@@ -168,7 +169,12 @@ let version_message = "OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton
        tm.tm_sec
        (tm.tm_year + 1900)
        (String.escaped (Unix.gethostname ()));
-     flush buf
+  List.iter
+    (fun (name,value) ->
+       Printf.fprintf buf "let %s = %S\n" name value
+    )
+    vars;
+  flush buf
 
 let omake_root buf version_txt name =
   (* Copy a file from input to output. *)
@@ -209,6 +215,7 @@ let cache_files = ref []
 let omc_files   = ref []
 let omo_files   = ref []
 let default_save_interval = ref 15.0 
+let vars        = ref []
 
 
 
@@ -236,6 +243,16 @@ let spec : (string * Arg.spec * string) list =
     "--root", String (fun s -> make_root := Some s),  "generate the OMakeroot file";
     "--default_save_interval",
     Float (fun f -> default_save_interval := f), "specify the default .omakedb save interval";
+    "--var", String (fun s -> 
+                     let (name,value) =
+                       try
+                         let p = String.index s '=' in
+                         (String.sub s 0 p, 
+                          String.sub s (p+1) (String.length s - p - 1)
+                         )
+                       with Not_found -> failwith ("bad --var: " ^ s) in
+                     vars := (name,value) :: !vars
+                    ), "another variable, format name=value";
    ]
 
 let usage = "Generate special files"
@@ -260,7 +277,7 @@ let main () =
   in
 
   if !make_magic then
-    omake_magic buf !version_txt !default_save_interval libdir !cache_files !omc_files !omo_files
+    omake_magic buf !version_txt !default_save_interval libdir !cache_files !omc_files !omo_files !vars
   else
     match !make_root with
     | Some name ->

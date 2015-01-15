@@ -1,4 +1,18 @@
 
+if $(THREADS_ENABLED)
+    lm_thread_core.ml: lm_thread_core_system.ml
+        ln-or-cp $< $@
+
+    lm_thread_pool.ml: lm_thread_pool_system.ml
+        ln-or-cp $< $@
+else
+    lm_thread_core.ml: lm_thread_core_null.ml
+        ln-or-cp $< $@
+
+    lm_thread_pool.ml: lm_thread_pool_null.ml
+        ln-or-cp $< $@
+
+OCamlGeneratedFiles(lm_thread_pool.ml lm_thread_core.ml)
 
 
 FILES[] =
