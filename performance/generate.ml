@@ -67,10 +67,12 @@ let write_directory basedir dir_row dir_col =
 
       let str_deps = String.concat ";\n  " deps in
       let comment = String.make !comment_size 'X' in
-      let mod_text = <:here<(* $comment *)
+      let mod_text = sprintf "(* %s *)
 let f() =
-  $str_deps
->> in
+  %s
+" 
+        comment
+        str_deps in
       let f = open_out
                 (sprintf "%s/m_%d_%d_%d_%d.ml" dirname
                          dir_row dir_col row col) in
@@ -113,16 +115,19 @@ let f() =
 
   let libname = sprintf "lib_%d_%d" dir_row dir_col in
 
-  let omakefile = <:here<
+  let omakefile = sprintf "
 OCAMLINCLUDES[] +=
-    $includes
+    %s
 
 FILES[] =
-    $files
+    %s
 
-.DEFAULT: \$(OCamlLibrary $libname, \$(FILES))
+.DEFAULT: $(OCamlLibrary %s, $(FILES))
 
->> in
+"
+    includes
+    files
+    libname in
 
   let f = open_out (sprintf "%s/OMakefile" dirname) in
   output_string f omakefile;
@@ -152,19 +157,19 @@ let write basedir =
   let subdirs =
     String.concat " " subdirs_l in
   
-  let omakefile = <:here<
-.SUBDIRS: $subdirs
->> in
+  let omakefile = sprintf "
+.SUBDIRS: %s
+" subdirs in
 
   let f = open_out (sprintf "%s/OMakefile" basedir) in
   output_string f omakefile;
   close_out f;
 
-  let omakeroot = <:here<
+  let omakeroot = sprintf "
 open build/OCaml
 DefineCommandVars()
 .SUBDIRS: .
->> in
+" in
 
   let f = open_out (sprintf "%s/OMakeroot" basedir) in
   output_string f omakeroot;
