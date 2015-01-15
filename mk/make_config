@@ -37,7 +37,12 @@ MakeConfig(CONFIG_FILE) =
 
     cc = $(shell $(OCAMLC) -config | extract-cc)
     cflags = $(shell $(OCAMLC) -config | extract-cflags)
+    cflags = $(filter-out -W%, $(cflags))
     ccomptype = $(shell $(OCAMLC) -config | extract-ccomp-type)
+
+    if $(equal $(ccomptype), cc)
+        cflags = $(cflags) -Wall
+        export
 
     CONFIG = $"""\
 # Main OMake configuration file.
