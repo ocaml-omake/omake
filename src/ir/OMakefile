@@ -28,6 +28,7 @@ FILES[] =
     omake_pos
     omake_shell_type
     omake_command
+    omake_digest
     omake_cache_type
     omake_cache
 

@@ -1,0 +1,2 @@
+(* A faster alternative to MD5 - but this one is NOT cryptographically secure
+ *)
