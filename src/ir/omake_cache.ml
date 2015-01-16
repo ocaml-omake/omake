@@ -135,6 +135,10 @@ type stat = Unix.LargeFile.stats
 type cache =
    { (* State *)
      mutable cache_nodes             : node_memo Omake_node.NodeTable.t;
+     mutable cache_exists            : bool Omake_node.NodeTable.t;
+     mutable cache_exists_num        : int;
+     mutable cache_exists_lru        : Omake_node.Node.t list;
+
      mutable cache_info              : Omake_cache_type.memo_deps cache_info array;
      mutable cache_static_values     : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
      mutable cache_memo_values       : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
@@ -250,6 +254,9 @@ let output_magic = Omake_magic.output_magic
  *)
 let create () =
    { cache_nodes           = Omake_node.NodeTable.empty;
+     cache_exists          = Omake_node.NodeTable.empty;
+     cache_exists_num      = 0;
+     cache_exists_lru      = [];
      cache_info            = [||];
      cache_static_values   = Omake_value_util.ValueTable.empty;
      cache_memo_values     = Omake_value_util.ValueTable.empty;
@@ -371,6 +378,78 @@ let to_channel outx cache =
    Marshal.to_channel outx (save_of_cache cache) []
 
 (************************************************************************
+ * File existence.
+ *)
+
+(* Caching the existence of files seems to have a good performance effect on
+   Windows. There is no benefit on Linux. We try to keep the size of the
+   cache small (fast lookups, no waste of RAM), as the locality of the
+   accesses is high.
+
+   NB. In older omake versions there was even a cache for stat records.
+   We don't need this the complete records for regular builds, though. Only the
+   file existence is important.
+ *)
+
+let ex_limit = 100
+  (* we start a GC pass at 2*ex_limit and keep only ex_limit entries (lru) *)
+
+let ex_query cache node =
+  let ex_flag = Omake_node.NodeTable.find cache.cache_exists node in
+  cache.cache_exists_lru <- node :: cache.cache_exists_lru;
+  ex_flag
+
+exception Ex_result of bool Omake_node.NodeTable.t * int
+
+let ex_collect cache =
+  let old = cache.cache_exists in
+  let ex, num =
+    try
+      List.fold_left
+        (fun (ex,num) node ->
+           try
+             if num >= ex_limit then
+               raise(Ex_result(ex,num))
+             else if not (Omake_node.NodeTable.mem ex node) then
+               let ex_flag = Omake_node.NodeTable.find old node in
+               (Omake_node.NodeTable.add ex node ex_flag, num+1)
+             else
+               (ex,num)
+           with Not_found -> (ex,num)
+        )
+        (Omake_node.NodeTable.empty, 0)
+        cache.cache_exists_lru
+    with
+      | Ex_result(ex,num) -> (ex,num) in
+  cache.cache_exists <- ex;
+  cache.cache_exists_num <- num;
+  cache.cache_exists_lru <- []
+
+
+let ex_set cache node ex_flag =
+  cache.cache_exists_lru <- node :: cache.cache_exists_lru;
+  try
+    let old_flag = Omake_node.NodeTable.find cache.cache_exists node in
+    if ex_flag <> old_flag then
+      cache.cache_exists <- 
+        Omake_node.NodeTable.add cache.cache_exists node ex_flag
+  with
+    | Not_found ->
+        cache.cache_exists <- 
+          Omake_node.NodeTable.add cache.cache_exists node ex_flag;
+        cache.cache_exists_num <- cache.cache_exists_num + 1;
+        if cache.cache_exists_num > 2*ex_limit then
+          ex_collect cache
+
+
+let ex_reset cache node =
+  cache.cache_exists <- 
+    Omake_node.NodeTable.remove cache.cache_exists node
+  (* we don't update cache_exists_num, which is only an upper bound *)
+  
+
+
+(************************************************************************
  * Stat.
  *)
 
@@ -391,7 +470,8 @@ let reset cache node =
          Not_found ->
             nodes
    in
-      cache.cache_nodes <- nodes
+   cache.cache_nodes <- nodes;
+   ex_reset cache node
 
 let reset_set cache nodes =
    Omake_node.NodeSet.iter (reset cache) nodes
@@ -524,6 +604,7 @@ let stat_file cache =
             let name = Omake_node.Node.fullname node in
             ( try
                 let stats' = Unix.LargeFile.stat name in
+                ex_set cache node true;
                 if stats'.Unix.LargeFile.st_kind <> Unix.S_REG then (
                   cache.cache_nodes <- Omake_node.NodeTable.remove nodes node;
                   squash_stat
@@ -547,6 +628,7 @@ let stat_file cache =
                   Unix.Unix_error _
                 | Sys_error _ ->
                      cache.cache_nodes <- Omake_node.NodeTable.remove nodes node;
+                     ex_set cache node false;
                      None
             )
 
@@ -587,10 +669,13 @@ let stat_unix_node cache ~force node =
   let name = Omake_node.Node.fullname node in
   try
     cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-    Unix.LargeFile.stat name
+    let s = Unix.LargeFile.stat name in
+    ex_set cache node true;
+    s
   with
       Unix.Unix_error _
     | Sys_error _ ->
+        ex_set cache node false;
          raise Not_found
 
 (*
@@ -717,9 +802,14 @@ let stat_changed cache node =
  *)
 let exists cache ?(force=false) node =
    try
-      ignore (stat_unix cache ~force node); true
+     if force then raise Not_found;
+     ex_query cache node
    with
-      Not_found -> Omake_node.Node.always_exists node
+     | Not_found ->
+         try
+           ignore (stat_unix cache ~force node); true
+         with
+             Not_found -> Omake_node.Node.always_exists node
 
 let exists_dir cache ?(force=false) dir =
    exists cache ~force (Omake_node.Node.node_of_dir dir)
