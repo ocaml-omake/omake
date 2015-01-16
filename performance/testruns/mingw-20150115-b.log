@@ -1,0 +1,80 @@
+Win32 (mingw) build of branch perf-test (as of today)
+
+c=10000, j=1, n=7
+
+(NB. This is a different machine that the system where I do the Linux tests.
+It's a bit faster.)
+
+It's a little bit slower than omake-0.9.8.6 (see mingw-20150115-a.log),
+and the reason is probably the instrumentation.
+
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found c:\OCaml-4.02\bin\ocamlfind.exe)
+--- Checking for ocamlc.opt... (found c:\OCaml-4.02\bin\ocamlc.opt.exe)
+--- Checking for ocamlopt.opt... (found c:\OCaml-4.02\bin\ocamlopt.opt.exe)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.23 sec)
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: done (6 min 07.12 sec, 2401/2401 scans, 2450/7301 rules, 9757/22087 digests)
+*** memory statistics:
+env (total):           81608024
+venv:                  29754884
+cache:                 18735692
+exec:                       804
+explicit_deps:           934316
+explicit_targets:      29760596
+explicit_directories:  29754720
+includes:                 13216
+commands:              76326832
+inverse:               81229456
+print_dependencies:           0
+current_wl:            75960928
+main_wl:               75960928
+Probes (times in milliseconds):
+FL NAME                          COUNT       ACC      SELF       MIN       MAX
+   Omake_cache.digest_file        9757      4260      4260         0        31
+   Omake_cache.stat_file        239768      7130      2870         0        16
+   venv_find_implicit_rules     281575      4909      4909         0        16
+   digest_of_commands            12054       341       341         0        16
+   Omake_exec.spawn               4851      3383       401         0        16
+   Omake_eval.compile_deps        2401      2515      2515         0        16
+   job.create_thread                 0         0         0       inf         0
+   job.create_process             7252     15880      5956         0        47
+   job.create_process_fast        2401      9924       886         0        16
+   job.create_job                    2        15        15         0        15
+   Omake_rule.eval_commands      12054      3279         0         0         0
+   Omake_rule.eval_rule          12054      3279       250         0         0
+   Omake_rule.eval_rule.1        12054      1767      1752         0        16
+   Omake_rule.eval_rule.2        12054         0         0         0         0
+   Omake_rule.eval_rule.3        12054      1262      1262         0        16
+   Omake_rule.eval_rule.4        12054         0         0         0         0
+   process_changes                   0         0         0       inf         0
+   all_dependencies                  0         0         0       inf         0
+   reclassify_command            58643        32        32         0        16
+   build_any_command             12360        78        78         0        16
+   start_or_build_commands       29571      2359      1593         0        16
+   start_or_build_scanners       12360        62         0         0         0
+   start_or_build_effects         7301       529        32         0        16
+   command_set_blocked           24720       422       422         0        16
+   enable_parents                12360       220       220         0        16
+   parse_deps                     2401      2999       484         0        16
+   finish_scanned                 7509       642        62         0         0
+   finish_scanner                 2401        16         0         0         0
+   save_and_finish_scanner_results      2401      1562       138         0         0
+   save_and_finish_scanner_success      2401      4951       390         0         0
+   execute_scanner                2401       921       764         0         0
+   start_scanner                  2401      1430        31         0        15
+   finish_rule_success            9959       252        16         0        16
+   save_and_finish_rule_success      5108      7228        64         0         0
+   safrs_effects                  5108      5619       157         0        16
+   run_rule                       2450      3289        63         0         0
+   execute_rule                   9959      6723       171         0         0
+R  invalidate_aux                    4         0         0         0         0
+   process_initial               12360      2325        30         0         0
+   create_env_loop                   1         0         0         0         0
+   target_is_buildable               0         0         0       inf         0
+   ocamldep_postproc              2401      9038      4879         0        16
+
+real	6m9.518s
+user	0m0.015s
+sys	0m0.030s

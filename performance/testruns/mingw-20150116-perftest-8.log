@@ -1,0 +1,67 @@
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found c:\OCaml\bin\ocamlfind.exe)
+--- Checking for ocamlc.opt... (found c:\OCaml\bin\ocamlc.opt.exe)
+--- Checking for ocamlopt.opt... (found c:\OCaml\bin\ocamlopt.opt.exe)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.75 sec)
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (14 min 29.60 sec, 4096/4096 scans, 4160/12416 rules, 16582/37456 digests)
+Resources used by main process:     user 59.53seconds, system 21.36seconds
+Resources used incl. sub processes: user 0.00seconds, system 0.00seconds
