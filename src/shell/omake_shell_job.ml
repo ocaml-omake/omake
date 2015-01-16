@@ -1003,14 +1003,16 @@ let create_process venv pipe stdin stdout =
        *)
     PipeApply (_, apply) when (stdout = Unix.stdout || not(is_pipe stdout)) && 
                               (stderr = Unix.stderr || not (is_pipe stderr)) ->
-    Format.eprintf "FAST Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
+    if !Lm_instrument.enabled then
+      Format.eprintf "FAST Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let code, venv, value =
       I.instrument probe_create_process_fast
         (create_apply_top venv stdin stdout stderr) apply
     in
     Omake_env.ResultPid (code, venv, value)
   | _ ->
-    Format.eprintf "SLOW Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
+    if !Lm_instrument.enabled then
+      Format.eprintf "SLOW Creating process: %a@." Omake_env.pp_print_string_pipe pipe;
     let pgrp = create_pipe_exn venv true stdin stdout stderr pipe in
     let job  = new_job pgrp (Some pipe) in
     if !Omake_shell_type.debug_shell then

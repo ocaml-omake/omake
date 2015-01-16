@@ -2608,7 +2608,8 @@ let build_core (env : Omake_build_type.t) dir start_time (options : Omake_option
       notify_loop env options targets;
   Omake_build_util.close env;
 
-  memstat env
+  if !Lm_instrument.enabled then
+    memstat env
 
 (**  Main builder. *)
 let rec build_time start_time venv_opt (options : Omake_options.t) dir_name targets =

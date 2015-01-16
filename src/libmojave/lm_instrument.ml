@@ -17,6 +17,7 @@ type probe =
       mutable probe_error : bool;
     }
 
+let enabled = ref true
 let registry = ref []
 
 let create probe_name =
@@ -38,43 +39,47 @@ let callstack = Stack.create()
 
 
 let start probe =
-  let ts0 = Unix.gettimeofday() in
-  if not (Stack.is_empty callstack) then (
-    let (top_probe, _, ts2) = Stack.top callstack in
-    let t2 = ts0 -. ts2 in
-    top_probe.probe_self_time <- top_probe.probe_self_time +. t2
-  );
-  probe.probe_invocations <- probe.probe_invocations + 1;
-  Stack.push (probe, ts0, ts0) callstack
+  if !enabled then (
+    let ts0 = Unix.gettimeofday() in
+    if not (Stack.is_empty callstack) then (
+      let (top_probe, _, ts2) = Stack.top callstack in
+      let t2 = ts0 -. ts2 in
+      top_probe.probe_self_time <- top_probe.probe_self_time +. t2
+    );
+    probe.probe_invocations <- probe.probe_invocations + 1;
+    Stack.push (probe, ts0, ts0) callstack
+  )
 
 let fst3 (x,_,_) = x
 
 let stop probe =
-  let t0 = Unix.gettimeofday() in
-  while not (Stack.is_empty callstack || fst3(Stack.top callstack) == probe) do
-    let (p,_,_) = Stack.pop callstack in
-    p.probe_error <- true;
-  done;
-  ( if Stack.is_empty callstack then
-      probe.probe_error <- true
-    else
-      let (p,ts1,ts2) = Stack.pop callstack in
-      assert(p == probe);
-      let t1 = t0 -. ts1 in
-      let t2 = t0 -. ts2 in
-      probe.probe_invocations <- probe.probe_invocations - 1;
-      probe.probe_count <- probe.probe_count + 1;
-      probe.probe_self_time <- probe.probe_self_time +. t2;
-      probe.probe_min_time <- min probe.probe_min_time t2;
-      probe.probe_max_time <- max probe.probe_max_time t2;
-      if probe.probe_invocations > 0 then
-        probe.probe_recursive <- true
+  if !enabled then (
+    let t0 = Unix.gettimeofday() in
+    while not (Stack.is_empty callstack || fst3(Stack.top callstack) == probe) do
+      let (p,_,_) = Stack.pop callstack in
+      p.probe_error <- true;
+    done;
+    ( if Stack.is_empty callstack then
+        probe.probe_error <- true
       else
-        probe.probe_acc_time <- probe.probe_acc_time +. t1
-  );
-  if not (Stack.is_empty callstack) then (
-    let (p, ts1, _) = Stack.pop callstack in
-    Stack.push (p, ts1, t0) callstack
+        let (p,ts1,ts2) = Stack.pop callstack in
+        assert(p == probe);
+        let t1 = t0 -. ts1 in
+        let t2 = t0 -. ts2 in
+        probe.probe_invocations <- probe.probe_invocations - 1;
+        probe.probe_count <- probe.probe_count + 1;
+        probe.probe_self_time <- probe.probe_self_time +. t2;
+        probe.probe_min_time <- min probe.probe_min_time t2;
+        probe.probe_max_time <- max probe.probe_max_time t2;
+        if probe.probe_invocations > 0 then
+          probe.probe_recursive <- true
+        else
+          probe.probe_acc_time <- probe.probe_acc_time +. t1
+    );
+    if not (Stack.is_empty callstack) then (
+      let (p, ts1, _) = Stack.pop callstack in
+      Stack.push (p, ts1, t0) callstack
+    )
   )
 
 let finish() =
