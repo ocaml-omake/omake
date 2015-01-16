@@ -125,7 +125,10 @@ let spec =
     "-allow-exceptions", Lm_arg.SetFold set_allow_exceptions_opt, (**)
     "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)";
     "-extended-rusage", Lm_arg.Set extended_rusage, (**)
-    "Print more about resource usage"];
+    "Print more about resource usage";
+    "-no-instrument", Lm_arg.Clear Lm_instrument.enabled, (**)
+    "Do not instrument functions";
+   ];
    "Internal flags", (**)
    ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
     "Run as a remote server";]])
@@ -160,7 +163,9 @@ let main (options : Omake_options.t) =
       printf "Resources used incl. sub processes: \
               user %.2fseconds, system %.2fseconds\n"
              r.tms_cutime r.tms_cstime;
-    )
+    );
+    if !Lm_instrument.enabled then
+      Lm_instrument.report()
   end
 
 let _ =

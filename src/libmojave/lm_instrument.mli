@@ -5,6 +5,9 @@
 
 type probe
 
+val enabled : bool ref
+  (** Whether enabled (default: true) *)
+
 val create : string -> probe
   (** Create a new probe with this name *)
 
