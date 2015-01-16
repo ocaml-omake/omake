@@ -517,7 +517,8 @@ let rec really_read_exn fd buf off len =
          really_read_exn fd buf (off + amount) (len - amount)
 
 let digest_sample_exn fd file_size =
-   let sample = String.create (8 + (sample_count + 1) * sample_size) in
+   let dg = Omake_digest.init() in
+   let sample = String.create sample_size in
       (* Add the file length to the string *)
       sample.[0] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 56));
       sample.[1] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 48));
@@ -537,11 +538,12 @@ let digest_sample_exn fd file_size =
                Int64.div (Int64.mul file_size (Int64.of_int i)) (Int64.of_int sample_count)
          in
          let _ = Unix.LargeFile.lseek fd off Unix.SEEK_SET in
-            really_read_exn fd sample (8 + i * sample_size) sample_size
+         really_read_exn fd sample 0 sample_size;
+         Omake_digest.add dg sample;
       done;
 
       (* Take the digest of the sample *)
-      Digest.string sample
+      Omake_digest.finish dg
 
 let digest_large name file_size =
    try
@@ -568,7 +570,7 @@ let digest_file name =
    if file_size > large_file_size then
       digest_large name file_size
    else
-      Digest.file name
+      Omake_digest.file name
   )
 
 
