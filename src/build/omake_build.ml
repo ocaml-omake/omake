@@ -1273,7 +1273,7 @@ let save_and_finish_scanner_postprocess
     | Some (loc, apply) ->
         let venv = command.command_venv in
         let venv_opts = Omake_env.venv_options venv in
-        let next_tmpfile = Filename.temp_file "omake" ".deps" in
+        let next_tmpfile = Filename.temp_file "omake_" ".deps" in
         let pos = Pos.loc_exp_pos loc in
         let options =
           Lm_glob.create_options (Omake_rule.glob_options_of_env venv pos) in
