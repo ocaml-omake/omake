@@ -119,7 +119,7 @@ protected.toolchain-derive(cc, command, fallback) =
         export
     else
         protected.GCC_FOUND1 = $(CheckProg gcc)
-        protected.GXX_FOUND1 = $(and $(GCC_FOUND), $(CheckProg g++))
+        protected.GXX_FOUND1 = $(and $(GCC_FOUND1), $(CheckProg g++))
         export
 
     if $(defined OMAKE_CC)
@@ -130,7 +130,7 @@ protected.toolchain-derive(cc, command, fallback) =
             DEFAULT_CC = cl
             export
         else
-            DEFAULT_CC = $(if $(GCC_FOUND), gcc, cc)
+            DEFAULT_CC = $(if $(GCC_FOUND1), gcc, cc)
             export
         export
 
@@ -175,7 +175,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_CPP = cl /nologo /E
         export
     else
-        DEFAULT_CPP = $(toolchain-derive $(CC), cpp, $(CC) -E)
+        DEFAULT_CPP = $(toolchain-derive $(DEFAULT_CC), cpp, $(DEFAULT_CC) -E)
         export
 
     DEFAULT_CPP_FOUND = $(CheckProg $(DEFAULT_CPP))
@@ -186,7 +186,8 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_LD = cl /nologo
         export
     else
-        DEFAULT_LD = $(toolchain-derive $(CC), ld, ld)
+        DEFAULT_LD = $(toolchain-derive $(DEFAULT_CC), ld, ld)
+        export
 
     DEFAULT_LD_FOUND = $(CheckProg $(DEFAULT_LD))
 
@@ -196,7 +197,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_AS = ml /nologo
         export
     else
-        DEFAULT_AS = $(toolchain-derive $(CC), as, as)
+        DEFAULT_AS = $(toolchain-derive $(DEFAULT_CC), as, as)
         export
 
     DEFAULT_AS_FOUND = $(CheckProg $(DEFAULT_AS))

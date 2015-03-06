@@ -314,7 +314,7 @@ public.VerboseCheckHeader = $(VerboseCheckCHeader)
 #
 public.CheckProg(prog) =
    ConfMsgChecking(for $(prog))
-   WHERE = $(where $(prog))
+   WHERE = $(where $(quote-argv $(prog)))
    if $(WHERE)
       ConfMsgResult(found $(nth 0, $(WHERE)))
       return true
