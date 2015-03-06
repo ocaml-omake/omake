@@ -1,3 +1,6 @@
+-- n=7, c=10000, j=1
+-- current perf-test (disabling accelerated scanners)
+
 *** omake: reading OMakefiles
 --- Checking for ocamlfind... (found c:\OCaml\bin\ocamlfind.exe)
 --- Checking for ocamlc.opt... (found c:\OCaml\bin\ocamlc.opt.exe)
@@ -5,9 +8,6 @@
 --- Checking whether ocamlc understands the "z" warnings... (yes)
 *** omake: finished reading OMakefiles (0.37 sec)
 --- Checking if ocamldep understands -modules... (yes)
--- n=7, c=10000, j=1
--- current perf-test (disabling accelerated scanners)
-
 *** omake: done (12 min 28.69 sec, 4096/4096 scans, 4160/12416 rules, 16582/279583 digests)
 *** memory statistics:
 env (total):          129764116
