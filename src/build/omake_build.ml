@@ -1276,6 +1276,7 @@ let execute_scanner (env : Omake_build_type.t)
     (* Special-case a pipeline cmd1|cmd2 when cmd2 is a PipeApply (i.e.
        an internal command). We don't want to fork in this case as
        it is frequent. (This is for the "ocamldep | ocamldep-postproc" pipe.)
+       We don't do this for Win32 where it only adds latencies.
      *)
     let scanner_values, scanner_rest =
       (* the CommandPipe may be preceded by CommandValues *)
@@ -1290,7 +1291,7 @@ let execute_scanner (env : Omake_build_type.t)
                                PipeCompose(_,false,cmd1,(PipeApply(loc,cmd2))));
               _
             }
-          ] ->
+          ] when Sys.os_type <> "Win32" ->
             scanner_values @
               [ { (List.hd scanner_rest) with
                   command_inst = Omake_command_type.CommandPipe cmd1 
