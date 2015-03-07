@@ -148,7 +148,10 @@ type cache =
      (* Path lookups *)
      mutable cache_dirs         : (stat option * dir_listing_item) Omake_node.DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) Omake_node.DirListTable.t;
-     mutable cache_exe_path     : (stat option list * exe_listing_item) Omake_node.DirListTable.t
+     mutable cache_exe_path     : (stat option list * exe_listing_item) Omake_node.DirListTable.t;
+
+     (* Delayed updates *)
+     mutable cache_delayed : Omake_node.Node.t Queue.t;
    }
 
 (*
@@ -264,7 +267,8 @@ let create () =
      cache_digest_count    = 0;
      cache_dirs            = Omake_node.DirTable.empty;
      cache_path            = Omake_node.DirListTable.empty;
-     cache_exe_path        = Omake_node.DirListTable.empty
+     cache_exe_path        = Omake_node.DirListTable.empty;
+     cache_delayed         = Queue.create()
    }
 
 let rehash cache =
@@ -642,6 +646,7 @@ let stat_file cache =
             let name = Omake_node.Node.fullname node in
             ( try
                 let stats = Unix.LargeFile.stat name in
+                ex_set cache node true;
                 if stats.Unix.LargeFile.st_kind <> Unix.S_REG then
                   squash_stat
                 else (
@@ -659,9 +664,40 @@ let stat_file cache =
               with
                   Unix.Unix_error _
                 | Sys_error _ ->
+                     ex_set cache node false;
                      None
             )
   )
+
+let stat_file_would_be_ok cache node =
+  (* Whether stat_file would return [Some _]. However, the cache isn't
+     updated, and the digest isn't computed
+     NB. The file existence cache IS updated.
+   *)
+   let nodes = cache.cache_nodes in
+   let stats =
+      try Some (Omake_node.NodeTable.find nodes node) with
+         Not_found ->
+            None
+   in
+      match stats with
+         Some { nmemo_stats = FreshStats _;
+                nmemo_digest = _
+              } ->
+            true
+       | _ ->
+            let name = Omake_node.Node.fullname node in
+            ( try
+                let _ = Unix.LargeFile.stat name in
+                ex_set cache node true;
+                true
+              with
+                  Unix.Unix_error _
+                | Sys_error _ ->
+                     ex_set cache node false;
+                     false
+            )
+
 
 let stat_unix_node cache ~force node =
   (* We used to cache this information, but don't do this anymore. Hence,
@@ -761,6 +797,20 @@ let stat cache node =
               | None ->
                    None)
 
+
+let stat_would_be_ok cache node =
+   let core = Omake_node.Node.core node in
+      match Omake_node.Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            false
+       | NodeOptional
+       | NodeNormal
+       | NodeSquashed
+       | NodeExists ->
+            stat_file_would_be_ok cache core
+
+
 (*
  * Turn a set into a table of stat info.
  *)
@@ -815,6 +865,28 @@ let exists cache ?(force=false) node =
 
 let exists_dir cache ?(force=false) dir =
    exists cache ~force (Omake_node.Node.node_of_dir dir)
+
+(************************************************************************
+ * Delayed stat requests
+ *)
+
+let force_stat_delayed cache node =
+   reset cache node;
+   stat_would_be_ok cache node && (
+     Queue.add node cache.cache_delayed;
+     true
+   )
+
+
+let process_delayed_stat_requests cache =
+  try
+    while true do
+      let node = Queue.take cache.cache_delayed in
+      ignore(force_stat cache node)
+    done
+  with
+    | Queue.Empty ->
+        ()
 
 (************************************************************************
  * Adding to the cache.
