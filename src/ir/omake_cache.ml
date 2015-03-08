@@ -942,7 +942,6 @@ let stat_set cache nodes =
 
 let stat_set_for_add ?(compact=false) cache nodes =
    Omake_node.NodeSet.fold (fun table node ->
-         let cstat_opt = compact_stat cache node in
          let out =
            if compact then
              match compact_stat cache node with
@@ -1021,7 +1020,7 @@ let process_delayed_stat_requests cache =
   try
     while true do
       let node = Queue.take cache.cache_delayed in
-      ignore(force_stat cache node)
+      ignore(stat cache node)
     done
   with
     | Queue.Empty ->
