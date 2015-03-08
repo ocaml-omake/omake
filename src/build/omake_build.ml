@@ -1775,8 +1775,8 @@ let is_leaf_file (env : Omake_build_type.t) node =
  * Wait until a process exits.
  *)
 let rec process_running (env : Omake_build_type.t) notify =
-  Omake_cache.process_delayed_stat_requests env.env_cache;
-  match Omake_exec.Exec.wait env.env_exec (env_options env) with
+  let onblock() = Omake_cache.process_delayed_stat_requests env.env_cache in
+  match Omake_exec.Exec.wait ~onblock env.env_exec (env_options env) with
     WaitExited (pid, code, _) ->
     begin
       env.env_idle_count <- succ env.env_idle_count;
