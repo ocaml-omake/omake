@@ -338,10 +338,11 @@ struct
     * The wait process handles output from each of the jobs.
     * Once both output channels are closed, the job is finished.
     *)
-   let  wait server_main options =
+   let wait ?(onblock=fun() -> ()) server_main options =
       let rec poll servers =
          match servers with
             [] ->
+               onblock();
                if Lm_thread_pool.enabled then
                   wait_thread server_main options
                else
@@ -389,6 +390,7 @@ struct
                         poll servers
       in
          poll server_main.server_servers
+
 
    (*
     * Ask for a file to be monitored.

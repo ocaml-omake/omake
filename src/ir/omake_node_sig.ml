@@ -66,7 +66,8 @@ type 'a poly_mount_info =
      mount_file_reset  : 'a -> unit;
      mount_is_dir      : 'a -> bool;
      mount_stat        : 'a -> Unix.LargeFile.stats;
-     mount_digest      : 'a -> string option
+     mount_digest      : 'a -> (string * Digest.t) option;
+                         (* = Omake_cache_type.digest *)
    }
 
 (*

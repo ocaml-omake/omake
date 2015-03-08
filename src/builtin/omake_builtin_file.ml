@@ -596,7 +596,7 @@ let digest_aux fail venv pos loc args =
         match Omake_value.node_value_of_value venv pos v with
           ValNode node ->
           (match Omake_cache.stat cache node with
-            Some digest ->
+            Some (_,digest) ->
             Omake_value_type.ValData (Lm_string_util.hexify digest)
           | None ->
             if fail then
@@ -730,7 +730,7 @@ let digest_path_aux fail venv pos loc args =
               Omake_value_type.ValArray [ValDir dir; ValData "directory"]
             | NodeEntry node ->
               match Omake_cache.stat cache node with
-                Some digest ->
+                Some(_,digest) ->
                 ValArray [ValNode node; ValData (Lm_string_util.hexify digest)]
               | None ->
                 raise Not_found

@@ -1104,7 +1104,7 @@ struct
       let cache = venv.venv_inner.venv_globals.venv_cache in
       let digest =
          match Omake_cache.stat cache source with
-            Some digest ->
+            Some (_,digest) ->
                digest
           | None ->
                raise Not_found

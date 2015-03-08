@@ -150,8 +150,9 @@ sig
    (*
     * Wait for any one of the commands to finish.
     *)
-   val wait : ('exp, 'pid, 'value) t -> Omake_options.t -> 
-     ('exp, 'pid, 'value) wait_code
+   val wait : ?onblock:(unit->unit) -> 
+              ('exp, 'pid, 'value) t -> Omake_options.t -> 
+              ('exp, 'pid, 'value) wait_code
 
    (*
     * Notify when a file changes.
