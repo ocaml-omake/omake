@@ -664,6 +664,7 @@ let stat_file cache =
              including a digest.
           *)
          stat_file_update_digest cache node
+  )
 
 let compact_stat_file cache node =
   (* get only compact_stat *)
