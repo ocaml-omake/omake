@@ -1110,7 +1110,7 @@ let save_and_finish_scanner_results
     let targets = Omake_node.NodeSet.singleton target in
 
     (* Re-stat the locks *)
-    let () = Omake_node.NodeSet.iter (fun lock -> ignore (Omake_cache.force_stat cache lock)) locks in
+    let () = Omake_node.NodeSet.iter (fun lock -> ignore (Omake_cache.force_stat_delayed cache lock)) locks in
 
     (* Recompute the scanner digest *)
     let digest =
