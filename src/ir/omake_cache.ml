@@ -161,6 +161,7 @@ type cache =
 
      (* Delayed updates *)
      mutable cache_delayed : Omake_node.Node.t Queue.t;
+     mutable cache_info_delayed : (key * Omake_node.Node.t) Queue.t;
    }
 
 (*
@@ -286,7 +287,8 @@ let create () =
      cache_dirs            = Omake_node.DirTable.empty;
      cache_path            = Omake_node.DirListTable.empty;
      cache_exe_path        = Omake_node.DirListTable.empty;
-     cache_delayed         = Queue.create()
+     cache_delayed         = Queue.create();
+     cache_info_delayed    = Queue.create()
    }
 
 let rehash cache =
@@ -956,7 +958,6 @@ let stat_set cache nodes =
 
 let stat_set_for_add ?(compact=false) cache nodes =
    Omake_node.NodeSet.fold (fun table node ->
-         let cstat_opt = compact_stat cache node in
          let out =
            if compact then
              match compact_stat cache node with
@@ -968,6 +969,28 @@ let stat_set_for_add ?(compact=false) cache nodes =
                | Some(cstat,dg) -> Some (cstat, Some dg) in
          Omake_node.NodeTable.add table node out) 
     Omake_node.NodeTable.empty nodes
+
+
+let complement_stat_set_for_add cache node_tab =
+  Omake_node.NodeTable.mapi
+    (fun node info_opt ->
+       match info_opt with
+         | None ->
+             None
+         | Some(cstat, None) ->
+             ( match stat cache node with
+                 | None -> info_opt   (* "None" would be surprising *)
+                 | Some(cstat_new, digest) ->
+                     if cstat = cstat_new then
+                       Some(cstat, Some digest)
+                     else
+                       info_opt  (* be conservative here *)
+             )
+         | Some(_, Some _) ->
+             info_opt
+    )
+    node_tab
+
 
 
 let stat_table cache nodes =
@@ -1017,29 +1040,6 @@ let exists cache ?(force=false) node =
 
 let exists_dir cache ?(force=false) dir =
    exists cache ~force (Omake_node.Node.node_of_dir dir)
-
-(************************************************************************
- * Delayed stat requests
- *)
-
-let force_stat_delayed cache node =
-   reset cache node;
-   stat_would_be_ok cache node && (
-     Queue.add node cache.cache_delayed;
-     true
-   )
-
-
-let process_delayed_stat_requests cache =
-(* Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed); *)
-  try
-    while true do
-      let node = Queue.take cache.cache_delayed in
-      ignore(force_stat cache node)
-    done
-  with
-    | Queue.Empty ->
-        ()
 
 (************************************************************************
  * Adding to the cache.
@@ -1096,8 +1096,43 @@ let add cache key target targets deps commands result =
       }
    in
    let info = get_info cache key in
-      info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo;
-      info.cache_index <- IndexNodeTable.add info.cache_index index target
+   info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo;
+   info.cache_index <- IndexNodeTable.add info.cache_index index target;
+   (* schedule to add the digests later: *)
+   Queue.add (key, target) cache.cache_info_delayed
+
+
+let is_digest_missing node_tab =
+  Omake_node.NodeTable.exists
+    (fun _ info_opt ->
+       match info_opt with
+         | Some(_, None) -> true
+         | _ -> false
+    )
+    node_tab
+
+
+let add_digests cache key target =
+  try
+    let info = get_info cache key in
+    let memo = Omake_node.NodeTable.find info.cache_memos target in
+    let p1 = is_digest_missing memo.memo_targets_tab in
+    let p2 = is_digest_missing memo.memo_deps_tab in
+    if p1 || p2 then (
+      let memo' =
+        { memo with
+          memo_targets_tab = 
+            (if p1 then complement_stat_set_for_add cache memo.memo_targets_tab
+             else memo.memo_targets_tab);
+          memo_deps_tab = 
+            (if p1 then complement_stat_set_for_add cache memo.memo_deps_tab
+             else memo.memo_deps_tab);
+        } in
+      info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo'
+    )
+  with
+    | Not_found -> ()
+
 
 (*
  * Check the target digest.
@@ -1290,6 +1325,39 @@ let find_result_sloppy cache key target =
             raise Not_found
        | MemoSuccess deps ->
             deps
+
+(************************************************************************
+ * Delayed stat requests
+ *)
+
+let force_stat_delayed cache node =
+   reset cache node;
+   stat_would_be_ok cache node && (
+     Queue.add node cache.cache_delayed;
+     true
+   )
+
+
+let process_delayed_stat_requests cache =
+(* Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed); *)
+  ( try
+      while true do
+        let node = Queue.take cache.cache_delayed in
+        ignore(stat cache node)
+      done
+    with
+      | Queue.Empty ->
+          ()
+  );
+  ( try
+      while true do
+        let (key, target) = Queue.take cache.cache_info_delayed in
+        add_digests cache key target
+      done
+    with
+      | Queue.Empty ->
+          ()
+  )
 
 (************************************************************************
  * Values.  In this case, we use the key to find the memo.
