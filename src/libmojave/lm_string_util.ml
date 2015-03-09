@@ -545,10 +545,11 @@ let tokens_std s =
  * For simple parsing, all the tokens_wrap_* functions are the same,
  * and the lexer is a dummy.
 *)
-type 'a tokens_prefix =
+type tokens_prefix_type =
     NoPrefix
-  | WordPrefix of 'a list
-  | QuotePrefix of char * 'a list
+  | WordPrefix
+  | SQuotePrefix
+  | DQuotePrefix
 
 type 'a tokens =
   { tokens_lexer         : (string -> int -> int -> int option);
@@ -556,8 +557,9 @@ type 'a tokens =
     tokens_wrap_data     : (string -> 'a);
     tokens_wrap_token    : (string -> 'a);
     tokens_group         : ('a list -> 'a);
-    tokens_list          : 'a list;
-    tokens_prefix        : 'a tokens_prefix
+    mutable tokens_list   : 'a list;
+    mutable tokens_prefix : 'a list;
+    mutable tokens_prefix_type : tokens_prefix_type;
   }
 
 let tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group =
@@ -573,7 +575,8 @@ let tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group =
     tokens_wrap_token    = wrap_token;
     tokens_group         = group;
     tokens_list          = [];
-    tokens_prefix        = NoPrefix
+    tokens_prefix        = [];
+    tokens_prefix_type   = NoPrefix
   }
 
 let tokens_create wrap group =
@@ -586,17 +589,16 @@ let tokens_flush info =
   let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
+        tokens_prefix_type = ptype;
         _
       } = info
   in
   let tokens =
-    match prefix with
-      NoPrefix ->
-      tokens
-    | WordPrefix prefix
-    | QuotePrefix (_, prefix) ->
-      group prefix :: tokens
-  in
+    match ptype with
+      | NoPrefix ->
+          tokens
+      | _ ->
+          group prefix :: tokens in
   List.rev tokens
 
  (*
@@ -606,17 +608,17 @@ let tokens_break info =
   let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
+        tokens_prefix_type = ptype;
         _
       } = info
   in
-  match prefix with
-    NoPrefix ->
-    info
-  | WordPrefix prefix
-  | QuotePrefix (_, prefix) ->
-    { info with tokens_list   = group prefix :: tokens;
-                tokens_prefix = NoPrefix
-    }
+  match ptype with
+    | NoPrefix ->
+        ()
+    | _ ->
+        info.tokens_list <- group prefix :: tokens;
+        info.tokens_prefix_type <- NoPrefix;
+        info.tokens_prefix <- []
 
  (*
  * Add a value directly.
@@ -626,32 +628,29 @@ let tokens_atomic info x =
   let { tokens_group  = group;
         tokens_list   = tokens;
         tokens_prefix = prefix;
+        tokens_prefix_type = ptype;
         _
       } = info
   in
-  match prefix with
-    NoPrefix ->
-    { info with tokens_list   = x :: tokens;
-                tokens_prefix = NoPrefix
-    }
-  | WordPrefix prefix
-  | QuotePrefix (_, prefix) ->
-    { info with tokens_list   = x :: group prefix :: tokens;
-                tokens_prefix = NoPrefix
-    }
+  match ptype with
+    | NoPrefix ->
+        info.tokens_list <- x :: tokens
+    | _ ->
+        info.tokens_list <- x :: group prefix :: tokens;
+        info.tokens_prefix_type <- NoPrefix;
+        info.tokens_prefix <- []
 
  (*
  * Add an value that might be unwrapped.
  * The value is unwrapped only if it is not surrounded by whitespace.
 *)
 let tokens_add info x =
-  match info.tokens_prefix with
-    NoPrefix ->
-    { info with tokens_prefix = WordPrefix [x] }
-  | WordPrefix prefix ->
-    { info with tokens_prefix = WordPrefix (x :: prefix) }
-  | QuotePrefix (c, prefix) ->
-    { info with tokens_prefix = QuotePrefix (c, x :: prefix) }
+  match info.tokens_prefix_type with
+    | NoPrefix ->
+        info.tokens_prefix_type <- WordPrefix;
+        info.tokens_prefix <- [x]
+    | _ ->
+        info.tokens_prefix <- x :: info.tokens_prefix
 
  (*
  * Insert literal data.
@@ -675,74 +674,87 @@ let tokens_string info s =
 
   (* Scanning whitespace *)
   let rec scan_white tokens i =
-    if i = len then
-      { info with tokens_list = tokens;
-                  tokens_prefix = NoPrefix
-      }
-    else
-      match String.unsafe_get s i with
-        ' ' | '\t' | '\n' | '\r' | '\012' ->
-        scan_white tokens (succ i)
-      | '"' | '\'' as c ->
-        scan_quote tokens [] c i (succ i)
-      | '\\' ->
-        scan_word tokens [] i (i + 2)
-      | _ ->
-        scan_word tokens [] i (succ i)
+    if i >= len then (
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- NoPrefix;
+      info.tokens_prefix <- []
+    ) else
+      let c = String.unsafe_get s i in
+      if c <= ' ' then
+        if c = ' ' || c = '\t' || c = '\n' || c = '\r' || c = '\012' then
+          scan_white tokens (succ i)
+        else
+          scan_word tokens [] i (succ i)
+      else
+        if c = '"' then
+          scan_quote tokens [] c DQuotePrefix i (succ i)
+        else if c = '\'' then
+          scan_quote tokens [] c SQuotePrefix i (succ i)
+        else if c = '\\' then
+          scan_word tokens [] i (i + 2)
+        else
+          scan_word tokens [] i (succ i)
 
   (* Scanning a quoted word *)
-  and scan_quote tokens prefix delim start i =
+  and scan_quote tokens prefix delim delim_ptype start i =
     if i >= len then
       let head = wrap_prefix prefix s start (len - start) in
-      { info with tokens_list = tokens;
-                  tokens_prefix = QuotePrefix (delim, head)
-      }
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- delim_ptype;
+      info.tokens_prefix <- head
     else
       let c = String.unsafe_get s i in
-      match c with
-        '"' | '\'' when c = delim ->
+      if c = delim then
         scan_word tokens prefix start (succ i)
-      | '\\' ->
-        scan_quote tokens prefix delim start (i + 2)
-      | _ ->
-        scan_quote tokens prefix delim start (succ i)
+      else if c = '\\' then
+        scan_quote tokens prefix delim delim_ptype start (i+2)
+      else
+        scan_quote tokens prefix delim delim_ptype start (succ i)
 
   (* Scanning a word *)
   and scan_word tokens prefix start i =
-    if i >= len then
+    if i >= len then (
       let prefix = wrap_prefix prefix s start (len - start) in
-      { info with tokens_list = tokens;
-                  tokens_prefix = WordPrefix prefix
-      }
-    else
-      match String.unsafe_get s i with
-        ' ' | '\t' | '\n' | '\r' | '\012' ->
-        let head = wrap_prefix prefix s start (i - start) in
-        let head_tok = info.tokens_group head in
-        scan_white (head_tok :: tokens) (succ i)
-      | '"' | '\'' as c ->
-        scan_quote tokens prefix c start (succ i)
-      | '\\' ->
-        scan_word tokens prefix start (i + 2)
-      | _ ->
-        scan_word tokens prefix start (succ i)
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- WordPrefix;
+      info.tokens_prefix <- prefix
+    ) else
+      let c = String.unsafe_get s i in
+      if c <= ' ' then
+        if c = ' ' || c = '\t' || c = '\n' || c = '\r' || c = '\012' then
+          let head = wrap_prefix prefix s start (i - start) in
+          let head_tok = info.tokens_group head in
+          scan_white (head_tok :: tokens) (succ i)
+        else
+          scan_word tokens prefix start (succ i)
+      else
+        if c = '"' then
+          scan_quote tokens [] c DQuotePrefix i (succ i)
+        else if c = '\'' then
+          scan_quote tokens [] c SQuotePrefix i (succ i)
+        else if c = '\\' then
+          scan_word tokens prefix start (i+2)
+        else
+          scan_word tokens prefix start (succ i)
 
   in
-  if len = 0 then
-    info
-  else
+  if len > 0 then (
     let { tokens_list = tokens;
           tokens_prefix = prefix;
+          tokens_prefix_type = ptype;
           _
         } = info
     in
-    match prefix with
-      NoPrefix ->
-      scan_white tokens 0
-    | WordPrefix prefix ->
-      scan_word tokens prefix 0 0
-    | QuotePrefix (c, prefix) ->
-      scan_quote tokens prefix c 0 0
+    match ptype with
+      | NoPrefix ->
+          scan_white tokens 0
+      | WordPrefix ->
+          scan_word tokens prefix 0 0
+      | SQuotePrefix ->
+          scan_quote tokens prefix '\'' ptype 0 0
+      | DQuotePrefix ->
+          scan_quote tokens prefix '"' ptype 0 0
+  )
 
  (*
  * Yet another tokenizer, where we allow for special tokens.
@@ -751,36 +763,32 @@ let tokens_string info s =
 *)
 type buf_token =
     BufWhite
-  | BufQuote of char
+  | BufSQuote
+  | BufDQuote
   | BufBackslash
   | BufChar
   | BufToken of int
 
 let buffer_get_quoted s i =
   match String.unsafe_get s i with
-    ' ' | '\t' | '\n' | '\r' | '\012' ->
-    BufWhite
-  | '"' | '\'' as c ->
-    BufQuote c
-  | '\\' ->
-    BufBackslash
-  | _ ->
-    BufChar
+    | ' ' | '\t' | '\n' | '\r' | '\012' -> BufWhite
+    | '"' -> BufDQuote
+    | '\'' -> BufSQuote
+    | '\\' -> BufBackslash
+    | _ -> BufChar
 
 let buffer_get_token lexer s i len =
   match String.unsafe_get s i with
-    ' ' | '\t' | '\n' | '\r' | '\012' ->
-    BufWhite
-  | '"' | '\'' as c ->
-    BufQuote c
-  | '\\' ->
-    BufBackslash
-  | _ ->
-    match lexer s i len with
-      Some i ->
-      BufToken i
-    | None ->
-      BufChar
+    | ' ' | '\t' | '\n' | '\r' | '\012' -> BufWhite
+    | '"' -> BufDQuote
+    | '\'' -> BufSQuote
+    | '\\' -> BufBackslash
+    | _ ->
+        match lexer s i len with
+          | Some i ->
+              BufToken i
+          | None ->
+              BufChar
 
 let tokens_lex info s =
   let { tokens_lexer       = lexer;
@@ -794,101 +802,111 @@ let tokens_lex info s =
   let len = String.length s in
   
   (* Don't add empty strings *)
-    let wrap_data_prefix prefix s off len =
-      if len <> 0 then
-    wrap_data (String.sub s off len) :: prefix
-      else
-  prefix
-in
+  let wrap_data_prefix prefix s off len =
+    if len <> 0 then
+      wrap_data (String.sub s off len) :: prefix
+    else
+      prefix
+  in
   
-    let wrap_string_prefix prefix s off len =
-      if len <> 0 then
-    wrap_string (String.sub s off len) :: prefix
-      else
-  prefix
-in
+  let wrap_string_prefix prefix s off len =
+    if len <> 0 then
+      wrap_string (String.sub s off len) :: prefix
+    else
+      prefix
+  in
   
   (* Scanning whitespace *)
-    let rec scan_white tokens i =
-      if i = len then
-                  { info with tokens_list   = tokens;
-      tokens_prefix = NoPrefix
-    }
-      else
-        match buffer_get_token lexer s i len with
-        BufWhite ->
-      scan_white tokens (succ i)
-        | BufQuote c ->
-      scan_quote tokens [] c (succ i) (succ i)
+  let rec scan_white tokens i =
+    if i >= len then (
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- NoPrefix;
+      info.tokens_prefix <- []
+    )
+    else
+      match buffer_get_token lexer s i len with
+        | BufWhite ->
+            scan_white tokens (succ i)
+        | BufDQuote ->
+            scan_quote tokens [] DQuotePrefix (succ i) (succ i)
+        | BufSQuote ->
+            scan_quote tokens [] SQuotePrefix (succ i) (succ i)
         | BufBackslash ->
-      scan_word tokens [] i (i + 2)
+            scan_word tokens [] i (i+2)
         | BufChar ->
-      scan_word tokens [] i (succ i)
+            scan_word tokens [] i (succ i)
         | BufToken len ->
-        let head = wrap_token (String.sub s i len) in
-scan_white (head :: tokens) (i + len)
+            let head = wrap_token (String.sub s i len) in
+            scan_white (head :: tokens) (i + len)
   
   (* Scanning a quoted word *)
-    and scan_quote tokens prefix delim start i =
-      if i >= len then
+  and scan_quote tokens prefix delim_ptype start i =
+    if i >= len then
       let head = wrap_data_prefix prefix s start (len - start) in
-                  { info with tokens_list   = tokens;
-      tokens_prefix =  QuotePrefix (delim, head)
-    }
-      else
-        match buffer_get_quoted s i with
-        BufQuote c when c = delim ->
-        let prefix = wrap_data_prefix prefix s start (i - start) in
-      scan_word tokens prefix (succ i) (succ i)
-        | BufBackslash ->
-      scan_quote tokens prefix delim start (i + 2)
-      | BufQuote _
-      | BufWhite
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- delim_ptype;
+      info.tokens_prefix <- head;
+    else
+      match buffer_get_quoted s i with
+        | BufDQuote when delim_ptype = DQuotePrefix ->
+            let prefix = wrap_data_prefix prefix s start (i - start) in
+            scan_word tokens prefix (succ i) (succ i)
+        | BufSQuote when delim_ptype = SQuotePrefix ->
+            let prefix = wrap_data_prefix prefix s start (i - start) in
+            scan_word tokens prefix (succ i) (succ i)
+        | BufDQuote
+        | BufSQuote
+        | BufWhite
         | BufChar ->
-      scan_quote tokens prefix delim start (succ i)
+            scan_quote tokens prefix delim_ptype start (succ i)
+        | BufBackslash ->
+            scan_quote tokens prefix delim_ptype start (i + 2)
         | BufToken _ ->
-raise (Invalid_argument "Lm_string_util.tokens_lex: illegal token")
+            assert false
   
   (* Scanning a word *)
-    and scan_word tokens prefix start i =
-      if i >= len then
+  and scan_word tokens prefix start i =
+    if i >= len then (
       let head = wrap_string_prefix prefix s start (len - start) in
-                  { info with tokens_list   = tokens;
-      tokens_prefix = WordPrefix head
-    }
-      else
-        match buffer_get_token lexer s i len with
-        BufWhite ->
-        let head = group (wrap_string_prefix prefix s start (i - start)) in
-      scan_white (head :: tokens) (succ i)
+      info.tokens_list <- tokens;
+      info.tokens_prefix_type <- WordPrefix;
+      info.tokens_prefix <- head
+    ) else
+      match buffer_get_token lexer s i len with
+        | BufWhite ->
+            let head = group (wrap_string_prefix prefix s start (i - start)) in
+            scan_white (head :: tokens) (succ i)
         | BufToken len ->
-        let head1 = group (wrap_string_prefix prefix s start (i - start)) in
-        let head2 = wrap_token (String.sub s i len) in
-      scan_white (head2 :: head1 :: tokens) (i + len)
-        | BufQuote c ->
-        let prefix = wrap_string_prefix prefix s start (i - start) in
-      scan_quote tokens prefix c (succ i) (succ i)
+            let head1 = group (wrap_string_prefix prefix s start (i - start)) in
+            let head2 = wrap_token (String.sub s i len) in
+            scan_white (head2 :: head1 :: tokens) (i + len)
+        | BufDQuote ->
+            let prefix = wrap_string_prefix prefix s start (i - start) in
+            scan_quote tokens prefix DQuotePrefix (succ i) (succ i)
+        | BufSQuote ->
+            let prefix = wrap_string_prefix prefix s start (i - start) in
+            scan_quote tokens prefix SQuotePrefix (succ i) (succ i)
         | BufBackslash ->
-      scan_word tokens prefix start (i + 2)
+            scan_word tokens prefix start (i + 2)
         | BufChar ->
-scan_word tokens prefix start (succ i)
-  
+            scan_word tokens prefix start (succ i)
   in
-    if len = 0 then
-  info
-    else
-          let { tokens_list = tokens;
+  if len > 0 then (
+    let { tokens_list = tokens;
           tokens_prefix = prefix;
-        _
-    } = info
+          tokens_prefix_type = ptype;
+          _
+        } = info
     in
-      match prefix with
-      NoPrefix ->
-    scan_white tokens 0
-      | WordPrefix prefix ->
-    scan_word tokens prefix 0 0
-      | QuotePrefix (c, prefix) ->
-scan_quote tokens prefix c 0 0
+    match ptype with
+      | NoPrefix ->
+          scan_white tokens 0
+      | WordPrefix ->
+          scan_word tokens prefix 0 0
+      | SQuotePrefix
+      | DQuotePrefix ->
+          scan_quote tokens prefix ptype 0 0
+  )
 
  (*
  * Split a string based on a boundary.

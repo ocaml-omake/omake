@@ -631,21 +631,22 @@ and values_of_value venv pos v =
     * Array elements are always separate values.
     * The arrays are flattened.
     *)
-  let rec collect_array tokens (vl : Omake_value_type.t list) vll =
+  let rec collect_array (vl : Omake_value_type.t list) vll =
     match vl, vll with
     | v :: vl, _ ->
       begin match eval_value venv pos v with
         ValArray el ->
-        collect_array tokens el (vl :: vll)
+        collect_array el (vl :: vll)
       | ValSequence [v] ->
-        collect_array tokens (v :: vl) vll
+        collect_array (v :: vl) vll
       | v ->
-        collect_array (Lm_string_util.tokens_atomic tokens v) vl vll
+        Lm_string_util.tokens_atomic tokens v;
+        collect_array vl vll
       end
     | [], vl :: vll ->
-      collect_array tokens vl vll
+      collect_array vl vll
     | [], [] ->
-      tokens
+      ()
   in
 
   (*
@@ -653,20 +654,21 @@ and values_of_value venv pos v =
     * in a sequence.  Collect the values into the string buffer,
     * then parse the string into separate tokens.
     *)
-  let rec collect tokens vl vll =
+  let rec collect vl vll =
     match vl, vll with
     | v :: vl, _ ->
       let v : Omake_value_type.t = eval_catenable_value venv pos v in
       begin match v with
       | ValNone ->
-        collect tokens vl vll
+        collect vl vll
 
       (* Strings *)
       | ValWhite s
       | ValString s ->
-        collect (Lm_string_util.tokens_string tokens s) vl vll
+        Lm_string_util.tokens_string tokens s;
+        collect vl vll
       | ValSequence el ->
-        collect tokens el (vl :: vll)
+        collect el (vl :: vll)
 
       (* Other catenable values *)
       | ValData _
@@ -676,11 +678,14 @@ and values_of_value venv pos v =
       | ValNode _
       | ValQuote _
       | ValQuoteString _ ->
-        collect (Lm_string_util.tokens_add tokens v) vl vll
+        Lm_string_util.tokens_add tokens v;
+        collect vl vll
 
       (* Atomic values *)
       | ValArray el ->
-        collect (collect_array (Lm_string_util.tokens_break tokens) el []) vl vll
+        Lm_string_util.tokens_break tokens;
+        collect_array el [];
+        collect vl vll
       | ValFun _
       | ValFunCurry _
       | ValPrim _
@@ -694,18 +699,19 @@ and values_of_value venv pos v =
       | ValCases _
       | ValOther _
       | ValVar _ ->
-        collect (Lm_string_util.tokens_atomic tokens v) vl vll
+        Lm_string_util.tokens_atomic tokens v;
+        collect vl vll
       | ValStringExp _
       | ValMaybeApply _
       | ValDelayed _ ->
         raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal application", v)))
       end
     | [], vl :: vll ->
-      collect tokens vl vll
+      collect vl vll
     | [], [] ->
       Lm_string_util.tokens_flush tokens
   in
-  collect tokens [v] []
+  collect [v] []
 
 (*
  * Get a string list from the value.
@@ -736,20 +742,21 @@ and tokens_of_value venv pos lexer v =
     * Array elements are always separate values.
     * The arrays are flattened.
     *)
-  let rec collect_array (tokens : Omake_env.tok Lm_string_util.tokens) vl vll =
+  let rec collect_array vl vll =
     match vl, vll with
       v :: vl, _ ->
       (match eval_value venv pos v with
         ValArray el ->
-        collect_array tokens el (vl :: vll)
+        collect_array el (vl :: vll)
       | ValSequence [v] ->
-        collect_array tokens (v :: vl) vll
+        collect_array (v :: vl) vll
       | v ->
-        collect_array (Lm_string_util.tokens_atomic tokens (TokString v)) vl vll)
+        Lm_string_util.tokens_atomic tokens (TokString v);
+        collect_array vl vll)
     | [], vl :: vll ->
-      collect_array tokens vl vll
+      collect_array vl vll
     | [], [] ->
-      tokens
+      ()
   in
 
   (*
@@ -757,20 +764,21 @@ and tokens_of_value venv pos lexer v =
     * in a sequence.  Collect the values into the string buffer,
     * then parse the string into separate tokens.
     *)
-  let rec collect (tokens : Omake_env.tok Lm_string_util.tokens) vl vll =
+  let rec collect vl vll =
     match vl, vll with
       v :: vl, _ ->
       let v = eval_catenable_value venv pos v in
       (match v with
         ValNone ->
-        collect tokens vl vll
+        collect vl vll
 
       (* Strings *)
       | ValWhite s
       | ValString s ->
-        collect (Lm_string_util.tokens_lex tokens s) vl vll
+        Lm_string_util.tokens_lex tokens s;
+        collect vl vll
       | ValSequence el ->
-        collect tokens el (vl :: vll)
+        collect el (vl :: vll)
 
       (* Other catenable values *)
       | ValData _
@@ -779,13 +787,17 @@ and tokens_of_value venv pos lexer v =
       | ValDir _
       | ValNode _
       | ValQuote _ ->
-        collect (Lm_string_util.tokens_add tokens (TokString v)) vl vll
+        Lm_string_util.tokens_add tokens (TokString v);
+        collect vl vll
       | ValQuoteString (_, v) ->
-        collect (Lm_string_util.tokens_add tokens (TokString (ValQuote v))) vl vll
+        Lm_string_util.tokens_add tokens (TokString (ValQuote v));
+        collect vl vll
 
       (* Atomic values *)
       | ValArray el ->
-        collect (collect_array (Lm_string_util.tokens_break tokens) el []) vl vll
+        Lm_string_util.tokens_break tokens;
+        collect_array el [];
+        collect vl vll
       | ValFun _
       | ValFunCurry _
       | ValPrim _
@@ -799,17 +811,18 @@ and tokens_of_value venv pos lexer v =
       | ValCases _
       | ValOther _
       | ValVar _ ->
-        collect (Lm_string_util.tokens_atomic tokens (TokString v)) vl vll
+        Lm_string_util.tokens_atomic tokens (TokString v);
+        collect vl vll
       | ValStringExp _
       | ValMaybeApply _
       | ValDelayed _ ->
         raise (Omake_value_type.OmakeException (pos, StringValueError ("illegal application", v))))
     | [], vl :: vll ->
-      collect tokens vl vll
+      collect vl vll
     | [], [] ->
       Lm_string_util.tokens_flush tokens
   in
-  collect tokens [v] []
+  collect [v] []
 
 (*
  * Flatten the value list into a arg_string list.
