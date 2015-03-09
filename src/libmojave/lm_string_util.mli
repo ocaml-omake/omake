@@ -160,12 +160,12 @@ val tokens_create_lexer :
    group       : ('a list -> 'a) ->
    'a tokens
 val tokens_create : (string -> 'a) -> ('a list -> 'a) -> 'a tokens
-val tokens_string : 'a tokens -> string -> 'a tokens
-val tokens_lex    : 'a tokens -> string -> 'a tokens
-val tokens_data   : 'a tokens -> string -> 'a tokens
-val tokens_break  : 'a tokens -> 'a tokens
-val tokens_add    : 'a tokens -> 'a -> 'a tokens
-val tokens_atomic : 'a tokens -> 'a -> 'a tokens
+val tokens_string : 'a tokens -> string -> unit
+val tokens_lex    : 'a tokens -> string -> unit
+val tokens_data   : 'a tokens -> string -> unit
+val tokens_break  : 'a tokens -> unit
+val tokens_add    : 'a tokens -> 'a -> unit
+val tokens_atomic : 'a tokens -> 'a -> unit
 val tokens_flush  : 'a tokens -> 'a list
 
 (*
