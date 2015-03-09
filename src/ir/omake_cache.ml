@@ -735,7 +735,7 @@ let stat_file_would_be_ok cache node =
             )
 
 
-let has_file_stat_1 ?compact_stat ?digest cache node : bool option =
+let has_file_stat ?compact_stat ?digest cache node : bool option =
   (* Check whether a file has certain stats:
       - [compact_stat]: if passed, checks whether the file exists and has
         these stats
@@ -788,25 +788,6 @@ let has_file_stat_1 ?compact_stat ?digest cache node : bool option =
           match stat_file cache node with
             | None -> None
             | Some(cstats,dg) -> check cstats (Some dg)
-
-let has_file_stat ?compact_stat ?digest cache node : bool option =
-  Printf.eprintf "has_file_stat(%s,cstat=%s,digest=%s): "
-                 (name_of node)
-                 ( match compact_stat with
-                     | None -> "na"
-                     | Some cs -> cs
-                 )
-                 ( match digest with
-                     | None -> "na"
-                     | Some dg -> Lm_string_util.hexify_sub dg 0 6
-                 );
-  let r = has_file_stat_1 ?compact_stat ?digest cache node in
-  ( match r with
-      | None -> Printf.eprintf "None\n%!"
-      | Some b -> Printf.eprintf "%B\n%!" b
-  );
-  r
-
 
 
 let stat_unix_node cache ~force node =
@@ -1346,7 +1327,7 @@ let force_stat_delayed cache node =
 
 
 let process_delayed_stat_requests cache =
- Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed);
+(* Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed); *)
   ( try
       while true do
         let node = Queue.take cache.cache_delayed in
@@ -1365,7 +1346,7 @@ let process_delayed_stat_requests cache =
       | Queue.Empty ->
           ()
   );
-Printf.eprintf "process_delayed done\n%!"
+(* Printf.eprintf "process_delayed done\n%!" *)
 
 (************************************************************************
  * Values.  In this case, we use the key to find the memo.
