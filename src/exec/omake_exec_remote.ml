@@ -193,8 +193,10 @@ module Server = struct
         handle_spawn local shell id target commands
     else
       let closed = Omake_exec_local.handle local options fd in
-      if closed then
+      if closed then (
+        Omake_exec_local.acknowledge_eof local options fd;
         Omake_exec_local.handle_eof local options fd
+      )
                               
   (*
    * Serve.
@@ -473,6 +475,7 @@ type 'value job_state =
 
 
  let handle_eof _ _ _ = ()
+ let acknowledge_eof _ _ _ = ()
 
 
  (*

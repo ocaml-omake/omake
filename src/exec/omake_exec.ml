@@ -211,6 +211,16 @@ struct
       in
          status
 
+   let acknowledge_eof server_info options fd =
+     match server_info.server_handle with
+       | LocalServer local ->
+           Omake_exec_local.acknowledge_eof local options fd
+       | RemoteServer _ ->
+           ()
+       | NotifyServer _ ->
+           ()
+
+
    let handle_eof server_info options fd =
      match server_info.server_handle with
        | LocalServer local ->
@@ -289,13 +299,14 @@ struct
    let start_handler server_info handler (pid_table, fd_table) fd =
       if FdTable.mem fd_table fd then
          pid_table, fd_table
-      else
+      else (
          let pid = Lm_thread_pool.create true (fun () -> ignore(handler fd)) in
          let fd_table = FdTable.add fd_table fd server_info in
          let pid_table = IntTable.add pid_table pid fd in
             if !debug_thread then
                eprintf "start_handler: %d@." (Lm_unix_util.int_of_fd fd);
             pid_table, fd_table
+      )
 
    let wait_thread server options =
       let { server_servers = servers;
@@ -330,28 +341,39 @@ struct
            )
            (pid_table, fd_table) servers in
       let pids = Lm_thread_pool.wait () in
-      (* A thread finishes when it got eof *)
-      let pid_table, fd_table, eof_fd_list =
+      (* A thread finishes when it got an event *)
+      let old_fd_table = fd_table in
+      let pid_table, fd_table, event_fd_list =
          List.fold_left
-           (fun (pid_table, fd_table, fd_list) pid ->
+           (fun (pid_table, fd_table, event_fd_list) pid ->
               try
                 let fd = IntTable.find pid_table pid in
                 let pid_table = IntTable.remove pid_table pid in
                 let fd_table = FdTable.remove fd_table fd in
-                pid_table, fd_table, fd::fd_list
+                pid_table, fd_table, fd::event_fd_list
               with
                   Not_found ->
                      (* BUG JYH: we seem to be getting unknown pids... *)
-                     pid_table, fd_table, fd_list
+                     pid_table, fd_table, event_fd_list
            )
            (pid_table, fd_table, []) pids
       in
-      let hdl_eof fd =
-        let server_info = FdTable.find server.server_fd_table fd in
-        handle_eof server_info options fd in
-      List.iter hdl_eof eof_fd_list;
       server.server_fd_table <- fd_table;
       server.server_pid_table <- pid_table;
+      (* Now that the fd's have been removed from the tables, we can ack any
+         eofs seen
+       *)
+      let ack_eof fd =
+        let server_info = FdTable.find old_fd_table fd in
+        acknowledge_eof server_info options fd in
+      List.iter ack_eof event_fd_list;
+      (* Maybe some fd's are at eof: *)
+      let hdl_eof fd =
+        if !Omake_exec_util.debug_exec then
+          eprintf "postprocessing fd %d@." (Lm_unix_util.int_of_fd fd);
+        let server_info = FdTable.find old_fd_table fd in
+        handle_eof server_info options fd in
+      List.iter hdl_eof event_fd_list;
       WaitNone
 
    (*
