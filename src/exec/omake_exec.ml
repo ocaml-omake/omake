@@ -59,7 +59,7 @@ struct
         server_local             : ('venv, 'exp, 'value) Omake_exec_local.t;
         server_notify            : ('venv, 'exp, 'value) Notify.t;
         mutable server_servers   : ('venv, 'exp, 'value) server_info list;
-        mutable server_fd_table  : int FdTable.t;
+        mutable server_fd_table  : ('venv, 'exp, 'value) server_info FdTable.t;
         mutable server_pid_table : Unix.file_descr IntTable.t
       }
 
@@ -217,6 +217,15 @@ struct
          status
      )
 
+   let handle_eof server_info options fd =
+     match server_info.server_handle with
+       | LocalServer local ->
+           Omake_exec_local.handle_eof local options fd
+       | RemoteServer _ ->
+           ()
+       | NotifyServer _ ->
+           ()
+
    (*
     * Select-based waiting.
     * Wait for input on one of the servers.
@@ -228,19 +237,23 @@ struct
           } = server
       in
       let fd_table =
-         List.fold_left (fun fd_table server ->
-               let fd_set =
-                  match server.server_handle with
-                     LocalServer local ->
-                        Omake_exec_local.descriptors local
-                   | RemoteServer remote ->
-                        Omake_exec_remote.descriptors remote
-                   | NotifyServer notify ->
-                        Notify.descriptors notify
-               in
-                  List.fold_left (fun fd_table fd ->
-                        FdTable.add fd_table fd server) fd_table fd_set) FdTable.empty servers
-      in
+         List.fold_left
+           (fun fd_table server ->
+              let fd_set =
+                match server.server_handle with
+                  | LocalServer local ->
+                      Omake_exec_local.descriptors local
+                  | RemoteServer remote ->
+                      Omake_exec_remote.descriptors remote
+                  | NotifyServer notify ->
+                      Notify.descriptors notify in
+              List.fold_left
+                (fun fd_table fd ->
+                   FdTable.add fd_table fd server
+                )
+                fd_table fd_set
+           )
+           FdTable.empty servers in
       let fd_set = FdTable.fold (fun fd_set fd _ -> fd :: fd_set) [] fd_table in
       let fd_set =
          try
@@ -251,33 +264,40 @@ struct
                eprintf "Select: %s, %s, %s@." s1 s2 (Unix.error_message errno);
                []
       in
-         List.iter (fun fd ->
-               let server =
-                  try Some (FdTable.find fd_table fd) with
-                     Not_found ->
-                        eprintf "Omake_exec.wait_select: fd is unknown: %d@." (Obj.magic fd);
-                        None
-               in
-                  match server with
-                     Some { server_handle = LocalServer local ; _} ->
-                        Omake_exec_local.handle local options fd
-                   | Some { server_handle = RemoteServer remote ; _} ->
-                        Omake_exec_remote.handle remote options fd
-                   | Some { server_handle = NotifyServer notify ; _} ->
-                        Notify.handle notify options fd
-                   | None ->
-                        ()) fd_set;
-         WaitNone
+      List.iter
+        (fun fd ->
+           let server =
+             try Some (FdTable.find fd_table fd)
+             with Not_found ->
+               eprintf "Omake_exec.wait_select: fd is unknown: %d@." (Obj.magic fd);
+               None in
+           let got_eof =
+             match server with
+               | Some { server_handle = LocalServer local ; _} ->
+                   Omake_exec_local.handle local options fd
+               | Some { server_handle = RemoteServer remote ; _} ->
+                   Omake_exec_remote.handle remote options fd
+               | Some { server_handle = NotifyServer notify ; _} ->
+                   Notify.handle notify options fd
+               | None ->
+                   false in
+           if got_eof then 
+             match server with
+               | Some si -> handle_eof si options fd
+               | None -> assert false
+        )
+        fd_set;
+      WaitNone
 
    (*
     * Thread-based waiting.
     *)
-   let start_handler (handler : Unix.file_descr -> unit) (pid_table, fd_table) fd =
+   let start_handler server_info handler (pid_table, fd_table) fd =
       if FdTable.mem fd_table fd then
          pid_table, fd_table
       else
-         let pid = Lm_thread_pool.create true (fun () -> handler fd) in
-         let fd_table = FdTable.add fd_table fd pid in
+         let pid = Lm_thread_pool.create true (fun () -> ignore(handler fd)) in
+         let fd_table = FdTable.add fd_table fd server_info in
          let pid_table = IntTable.add pid_table pid fd in
             if !debug_thread then
                eprintf "start_handler: %d@." (Lm_unix_util.int_of_fd fd);
@@ -293,31 +313,52 @@ struct
 
       (* Spawn a thread for each file descriptor *)
       let pid_table, fd_table =
-         List.fold_left (fun tables server ->
-               match server.server_handle with
-                  LocalServer local ->
-                     List.fold_left (start_handler (Omake_exec_local.handle local options)) tables (Omake_exec_local.descriptors local)
+         List.fold_left
+           (fun tables server_info ->
+              match server_info.server_handle with
+                | LocalServer local ->
+                    List.fold_left
+                      (start_handler
+                         server_info
+                         (Omake_exec_local.handle local options))
+                      tables (Omake_exec_local.descriptors local)
                 | RemoteServer remote ->
-                     List.fold_left (start_handler (Omake_exec_remote.handle remote options)) tables (Omake_exec_remote.descriptors remote)
+                     List.fold_left
+                       (start_handler
+                          server_info
+                          (Omake_exec_remote.handle remote options))
+                       tables (Omake_exec_remote.descriptors remote)
                 | NotifyServer notify ->
-                     List.fold_left (start_handler (Notify.handle notify options)) tables (Notify.descriptors notify)) (pid_table, fd_table) servers
-      in
+                     List.fold_left
+                       (start_handler 
+                          server_info (Notify.handle notify options)) 
+                       tables (Notify.descriptors notify)
+           )
+           (pid_table, fd_table) servers in
       let pids = Lm_thread_pool.wait () in
-      let pid_table, fd_table =
-         List.fold_left (fun (pid_table, fd_table) pid ->
-               try
-                  let fd = IntTable.find pid_table pid in
-                  let pid_table = IntTable.remove pid_table pid in
-                  let fd_table = FdTable.remove fd_table fd in
-                     pid_table, fd_table
-               with
+      (* A thread finishes when it got eof *)
+      let pid_table, fd_table, eof_fd_list =
+         List.fold_left
+           (fun (pid_table, fd_table, fd_list) pid ->
+              try
+                let fd = IntTable.find pid_table pid in
+                let pid_table = IntTable.remove pid_table pid in
+                let fd_table = FdTable.remove fd_table fd in
+                pid_table, fd_table, fd::fd_list
+              with
                   Not_found ->
                      (* BUG JYH: we seem to be getting unknown pids... *)
-                     pid_table, fd_table) (pid_table, fd_table) pids
+                     pid_table, fd_table, fd_list
+           )
+           (pid_table, fd_table, []) pids
       in
-         server.server_fd_table <- fd_table;
-         server.server_pid_table <- pid_table;
-         WaitNone
+      let hdl_eof fd =
+        let server_info = FdTable.find server.server_fd_table fd in
+        handle_eof server_info options fd in
+      List.iter hdl_eof eof_fd_list;
+      server.server_fd_table <- fd_table;
+      server.server_pid_table <- pid_table;
+      WaitNone
 
    (*
     * Wait for all threads to finish.

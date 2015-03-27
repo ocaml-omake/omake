@@ -101,9 +101,15 @@ sig
    val descriptors : ('exp, 'pid, 'value) t -> Unix.file_descr list
 
    (*
-    * Handle input from one of the descriptors.
+    * Handle input from one of the descriptors. Returns true on EOF. This
+    * function can run in a thread.
     *)
-   val handle : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
+   val handle : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> bool
+
+   (*
+    * Special actions for EOF.
+    *)
+   val handle_eof : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
 
    (*
     * Wait for any one of the commands to finish.

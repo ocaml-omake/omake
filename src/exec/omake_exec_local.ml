@@ -36,9 +36,10 @@ type 'value job_state =
 
         (* State while a job is running *)
         mutable job_pid        : 'pid;
-        mutable job_fd_count   : int;
         mutable job_stdout     : Unix.file_descr;
+        mutable job_stdout_cl  : bool;
         mutable job_stderr     : Unix.file_descr;
+        mutable job_stderr_cl  : bool;
         mutable job_state      : 'value job_state;
         mutable job_print_flag : bool;
 
@@ -157,9 +158,10 @@ type 'value job_state =
                     job_start_time = now;
                     job_pid = pid;
                     job_state = JobStarted;
-                    job_fd_count = 2;
                     job_stdout = out_read;
+                    job_stdout_cl = false;
                     job_stderr = err_read;
+                    job_stderr_cl = false;
                     job_command = command;
                     job_commands = commands;
                     job_print_flag = false;
@@ -229,9 +231,10 @@ type 'value job_state =
                         unix_close "spawn_next_part.1" out_write;
                         unix_close "spawn_next_part.2" err_write;
                         job.job_pid <- pid;
-                        job.job_fd_count <- 2;
                         job.job_stdout <- out_read;
+                        job.job_stdout_cl <- false;
                         job.job_stderr <- err_read;
+                        job.job_stderr_cl <- false;
                         job.job_command <- command;
                         job.job_commands <- commands;
                         job.job_print_flag <- false;
@@ -296,10 +299,22 @@ type 'value job_state =
                spawn_next_part server job
             end
 
+   let handle_eof server options fd =
+     let table = Omake_exec_util.FdTable.remove server.server_table fd in
+     server.server_table <- table;
+     if !Omake_exec_util.debug_exec then
+       eprintf "Removing fd %d@." (Lm_unix_util.int_of_fd fd);
+     let job =
+       try Omake_exec_util.FdTable.find server.server_table fd
+       with Not_found -> assert false in
+     if job.job_stdout_cl && job.job_stderr_cl then
+       wait_for_job server options job
+
+
    (*
-    * Handle data on a channel.
+    * Handle data on a channel. (This function may be called from a thread.)
     *)
-   let handle server options fd =
+   let handle server _options fd =
       let job =
          try Omake_exec_util.FdTable.find server.server_table fd with
             Not_found ->
@@ -307,7 +322,9 @@ type 'value job_state =
       in
       let { job_id = id;
             job_stdout = stdout;
+            job_stdout_cl = stdout_cl;
             job_stderr = stderr;
+            job_stderr_cl = stderr_cl;
             job_handle_out = handle_out;
             job_handle_err = handle_err;
             job_handle_status = handle_status;
@@ -317,14 +334,17 @@ type 'value job_state =
             _
           } = job
       in
-      let handle, buffer =
+      let handle_data, buffer, is_closed =
          if fd = stdout then
-            handle_out, buffer_stdout
+            handle_out, buffer_stdout, stdout_cl
          else if fd = stderr then
-            handle_err, buffer_stderr
+            handle_err, buffer_stderr, stderr_cl
          else
             raise (Invalid_argument "Omake_exec.handle_channel: unknown file descriptor")
       in
+
+      if is_closed then
+        raise (Invalid_argument "Omake_exec.handle_channel: trying to read from closed file descriptor");
 
       (* Read from the descriptor *)
       let count =
@@ -336,18 +356,12 @@ type 'value job_state =
          (* Handle end of file *)
          if count = 0 then
             begin
-               let table = Omake_exec_util.FdTable.remove server.server_table fd in
-               let fd_count = pred job.job_fd_count in
-                  (* Reached eof *)
-                  if !Omake_exec_util.debug_exec then
-                     eprintf "Removing fd %d@." (Lm_unix_util.int_of_fd fd);
-                  server.server_table <- table;
-                  unix_close "handle" fd;
-
-                  (* Decrement fd_count, and close job when zero *)
-                  job.job_fd_count <- fd_count;
-                  if fd_count = 0 then
-                     wait_for_job server options job
+               if fd = stdout then
+                 job.job_stdout_cl <- true
+               else
+                 job.job_stderr_cl <- true;
+               unix_close "handle" fd;
+               true  (* indicate eof to caller *)
             end
          else
             begin
@@ -356,7 +370,8 @@ type 'value job_state =
                   handle_status id (PrintLazy command);
                   job.job_print_flag <- true
                end;
-               handle id buffer 0 count
+               handle_data id buffer 0 count;
+               false
             end
 
    (*
