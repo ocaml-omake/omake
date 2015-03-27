@@ -150,6 +150,7 @@ struct
 
 
    let handle_eof _ _ _ = ()
+   let acknowledge_eof _ _ _ = ()
 
    (*
     * Wait for a command to finish.

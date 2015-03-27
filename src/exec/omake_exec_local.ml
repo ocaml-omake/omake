@@ -5,6 +5,9 @@ open Omake_exec_type
 open Omake_command_type
 
 
+let buffer_len = 65536
+
+
 let unix_close debug fd =
    if !Lm_thread_pool.debug_thread then
       eprintf "Closing: %s: %d@." debug (Lm_unix_util.int_of_fd fd);
@@ -18,6 +21,13 @@ type 'value job_state =
   |JobStarted
   | JobRunning of 'value
   | JobFinished of int * 'value * float
+
+type fd_state =
+  | Fd_open
+  | Fd_eof
+  | Fd_eof_ack
+  | Fd_closed
+
         
    (*
     * A job has channels for communication,
@@ -37,9 +47,9 @@ type 'value job_state =
         (* State while a job is running *)
         mutable job_pid        : 'pid;
         mutable job_stdout     : Unix.file_descr;
-        mutable job_stdout_cl  : bool;
+        mutable job_stdout_done: fd_state;
         mutable job_stderr     : Unix.file_descr;
-        mutable job_stderr_cl  : bool;
+        mutable job_stderr_done: fd_state;
         mutable job_state      : 'value job_state;
         mutable job_print_flag : bool;
 
@@ -118,7 +128,7 @@ type 'value job_state =
     * Start a command.  Takes the output channels, and returns a pid.
     *)
    let start_command _server (shell : _ Omake_exec_type.shell) stdout stderr command =
-      shell.shell_eval stdout stderr command
+    shell.shell_eval stdout stderr command
 
    (*
     * Start a job.
@@ -159,15 +169,16 @@ type 'value job_state =
                     job_pid = pid;
                     job_state = JobStarted;
                     job_stdout = out_read;
-                    job_stdout_cl = false;
+                    job_stdout_done = Fd_open;
                     job_stderr = err_read;
-                    job_stderr_cl = false;
+                    job_stderr_done = Fd_open;
                     job_command = command;
                     job_commands = commands;
                     job_print_flag = false;
                     job_shell = shell;
-                    job_buffer_len = 1024;
-                    job_buffer = String.create 1024, String.create 1024;
+                    job_buffer_len = buffer_len;
+                    job_buffer = String.create buffer_len, 
+                                 String.create buffer_len;
                   }
                in
                let table = Omake_exec_util.FdTable.add table out_read job in
@@ -232,9 +243,9 @@ type 'value job_state =
                         unix_close "spawn_next_part.2" err_write;
                         job.job_pid <- pid;
                         job.job_stdout <- out_read;
-                        job.job_stdout_cl <- false;
+                        job.job_stdout_done <- Fd_open;
                         job.job_stderr <- err_read;
-                        job.job_stderr_cl <- false;
+                        job.job_stderr_done <- Fd_open;
                         job.job_command <- command;
                         job.job_commands <- commands;
                         job.job_print_flag <- false;
@@ -299,22 +310,72 @@ type 'value job_state =
                spawn_next_part server job
             end
 
-   let handle_eof server options fd =
-     let table = Omake_exec_util.FdTable.remove server.server_table fd in
-     server.server_table <- table;
-     if !Omake_exec_util.debug_exec then
-       eprintf "Removing fd %d@." (Lm_unix_util.int_of_fd fd);
+   let acknowledge_eof server _options fd =
      let job =
        try Omake_exec_util.FdTable.find server.server_table fd
        with Not_found -> assert false in
-     if job.job_stdout_cl && job.job_stderr_cl then
-       wait_for_job server options job
+     if job.job_stdout_done = Fd_eof && fd = job.job_stdout then (
+       if !Omake_exec_util.debug_exec then
+         eprintf "Ack-eof stdout fd %d@." (Lm_unix_util.int_of_fd fd);
+       job.job_stdout_done <- Fd_eof_ack;
+     )
+     else if job.job_stderr_done = Fd_eof && fd = job.job_stderr then (
+       if !Omake_exec_util.debug_exec then
+         eprintf "Ack-eof stderr fd %d@." (Lm_unix_util.int_of_fd fd);
+       job.job_stderr_done <- Fd_eof_ack;
+     )
+      (* When both states are Fd_eof_ack we know that both threads are
+         done, and that we can reuse the job record for the next command
+       *)
 
+   let handle_eof server options fd =
+     let job_opt =
+       try Some (Omake_exec_util.FdTable.find server.server_table fd)
+       with Not_found -> None in
+     match job_opt with
+       | None -> ()
+       | Some job ->
+           let ack_stdout = job.job_stdout_done = Fd_eof_ack in
+           let ack_stderr = job.job_stderr_done = Fd_eof_ack in
+           (* When we close, another thread may get exactly the same fd for a newly
+              opened file. Because of this, closing the fd must first happen when
+              fd has been removed from all tables.
+            *)
+           if ack_stdout then (
+             let table =
+               Omake_exec_util.FdTable.remove server.server_table job.job_stdout in
+             server.server_table <- table;
+             job.job_stdout_done <- Fd_closed;
+             unix_close "handle_eof (stdout)" job.job_stdout;
+           );
+           if ack_stderr then (
+             let table =
+               Omake_exec_util.FdTable.remove server.server_table job.job_stderr in
+             server.server_table <- table;
+             job.job_stderr_done <- Fd_closed;
+             unix_close "handle_eof (stderr)" job.job_stderr;
+           );
+           if job.job_stdout_done = Fd_closed && job.job_stderr_done = Fd_closed then
+             wait_for_job server options job
+
+   let unix_read fd buf pos len =
+     try Unix.read fd buf pos len
+     with Unix.Unix_error _ -> 0 
+
+   let rec unix_really_read fd buf pos len acc =
+     let n = unix_read fd buf pos len in
+     if n > 0 && n < len then
+       unix_really_read fd buf (pos+n) (len-n) (acc+n)
+     else
+       acc
+
+   let fd_closed = [ Fd_eof_ack; Fd_closed ]
+     (* states that must not occur at the beginning of [handle] *)
 
    (*
     * Handle data on a channel. (This function may be called from a thread.)
     *)
-   let handle server _options fd =
+   let handle_1 server _options fd =
       let job =
          try Omake_exec_util.FdTable.find server.server_table fd with
             Not_found ->
@@ -322,9 +383,9 @@ type 'value job_state =
       in
       let { job_id = id;
             job_stdout = stdout;
-            job_stdout_cl = stdout_cl;
+            job_stdout_done = stdout_done;
             job_stderr = stderr;
-            job_stderr_cl = stderr_cl;
+            job_stderr_done = stderr_done;
             job_handle_out = handle_out;
             job_handle_err = handle_err;
             job_handle_status = handle_status;
@@ -336,9 +397,9 @@ type 'value job_state =
       in
       let handle_data, buffer, is_closed =
          if fd = stdout then
-            handle_out, buffer_stdout, stdout_cl
+            handle_out, buffer_stdout, List.mem stdout_done fd_closed
          else if fd = stderr then
-            handle_err, buffer_stderr, stderr_cl
+            handle_err, buffer_stderr, List.mem stderr_done fd_closed
          else
             raise (Invalid_argument "Omake_exec.handle_channel: unknown file descriptor")
       in
@@ -346,33 +407,55 @@ type 'value job_state =
       if is_closed then
         raise (Invalid_argument "Omake_exec.handle_channel: trying to read from closed file descriptor");
 
-      (* Read from the descriptor *)
-      let count =
-         Lm_thread_pool.blocking_section (fun () ->
-               try Unix.read fd buffer 0 buffer_len with
-                  Unix.Unix_error _ ->
-                     0) ()
-      in
-         (* Handle end of file *)
-         if count = 0 then
-            begin
-               if fd = stdout then
-                 job.job_stdout_cl <- true
-               else
-                 job.job_stderr_cl <- true;
-               unix_close "handle" fd;
-               true  (* indicate eof to caller *)
-            end
-         else
-            begin
-               (* For "AllowOutputFlag" commands (e.g. scanner) stdout does not "count", but stderr still does *)
-               if not (job.job_print_flag || (fd = stdout && allow_output job.job_shell command)) then begin
-                  handle_status id (PrintLazy command);
-                  job.job_print_flag <- true
-               end;
-               handle_data id buffer 0 count;
-               false
-            end
+      (* Read from the descriptor. For performance reasons try to read the
+         whole buffer on Win32.
+       *)
+      let count, eof =
+        if Lm_thread_pool.enabled then
+          let n = unix_really_read fd buffer 0 buffer_len 0 in
+          n, n<buffer_len
+        else
+          (* Unix *)
+          let n = unix_read fd buffer 0 buffer_len in
+          n, n=0 in
+
+      if count > 0 then
+        begin
+          (* For "AllowOutputFlag" commands (e.g. scanner) stdout does not "count", but stderr still does *)
+          if not (job.job_print_flag || (fd = stdout && allow_output job.job_shell command)) then begin
+            handle_status id (PrintLazy command);
+            job.job_print_flag <- true
+          end;
+          handle_data id buffer 0 count;
+        end;
+
+      (* Handle end of file *)
+      if eof then
+        begin
+          (* NB. handle_eof (above) may be running concurrently, and
+             will immediately detect when job_std{out,err}_done is changed.
+           *)
+          if fd = stdout then (
+            if !Omake_exec_util.debug_exec then
+              eprintf "stdout EOF fd %d@." (Lm_unix_util.int_of_fd fd);
+            job.job_stdout_done <- Fd_eof
+          ) else (
+            if !Omake_exec_util.debug_exec then
+              eprintf "stderr EOF fd %d@." (Lm_unix_util.int_of_fd fd);
+            job.job_stderr_done <- Fd_eof;
+          );
+          true  (* indicate eof to caller *)
+        end
+      else false
+
+   let handle server options fd =
+     (* We run the whole handler outside the Lm_thread_pool lock (which is
+        safe as the handlers only write to files, see omake_exec_util)
+      *)
+     Lm_thread_pool.blocking_section
+       (fun () -> handle_1 server options fd)
+       ()
+
 
    (*
     * Get all the descriptors.

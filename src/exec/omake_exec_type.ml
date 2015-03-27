@@ -107,7 +107,12 @@ sig
    val handle : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> bool
 
    (*
-    * Special actions for EOF.
+    * Synchronizing point for EOF.
+    *)
+   val acknowledge_eof : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
+
+   (*
+    * Special actions for EOF. (Including closing fd's.)
     *)
    val handle_eof : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
 
