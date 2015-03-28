@@ -133,7 +133,7 @@ type fd_state =
    (*
     * Start a job.
     *)
-   let spawn_exn server shell id handle_out handle_err handle_status target commands =
+   let rec spawn_exn server shell id handle_out handle_err handle_status target commands =
       let command, commands =
          match commands with
             command :: commands ->
@@ -145,6 +145,10 @@ type fd_state =
             server_jobs   = jobs
           } = server
       in
+      if shell.shell_eval_is_nop command then (* quickly skip over nop's *)
+        spawn_exn
+          server shell id handle_out handle_err handle_status target commands
+      else
          Omake_exec_util.with_pipe (fun out_read out_write ->
          Omake_exec_util.with_pipe (fun err_read err_write ->
                if !Lm_thread_pool.debug_thread then
@@ -212,7 +216,7 @@ type fd_state =
    (*
     * Start the next part of the job.
     *)
-   let spawn_next_part_exn server job =
+   let rec spawn_next_part_exn server job =
       let { job_id = id;
             job_shell = shell;
             job_target = _target;
@@ -225,31 +229,37 @@ type fd_state =
       in
       let { server_table  = table ; _} = server in
          match commands with
-            command :: commands ->
-               Omake_exec_util.with_pipe (fun out_read out_write ->
-               Omake_exec_util.with_pipe (fun err_read err_write ->
-                     let () =
-                        handle_status id (PrintEager command);
-                        Unix.set_close_on_exec out_read;
-                        Unix.set_close_on_exec err_read
-                     in
-                     let pid = start_command server shell out_write err_write command in
-                     let table = Omake_exec_util.FdTable.add table out_read job in
-                     let table = Omake_exec_util.FdTable.add table err_read job in
-                        if !Omake_exec_util.debug_exec then
-                           eprintf "Started next job %d, stdout=%d, stderr=%d@." (**)
-                              (Obj.magic pid) (Lm_unix_util.int_of_fd out_read) (Lm_unix_util.int_of_fd err_read);
-                        unix_close "spawn_next_part.1" out_write;
-                        unix_close "spawn_next_part.2" err_write;
-                        job.job_pid <- pid;
-                        job.job_stdout <- out_read;
-                        job.job_stdout_done <- Fd_open;
-                        job.job_stderr <- err_read;
-                        job.job_stderr_done <- Fd_open;
-                        job.job_command <- command;
-                        job.job_commands <- commands;
-                        job.job_print_flag <- false;
-                        server.server_table <- table))
+           | command :: commands ->
+               if shell.shell_eval_is_nop command then (
+                 (* quickly skip over nop's *)
+                 job.job_commands <- commands;
+                 spawn_next_part_exn server job
+               ) 
+               else
+                 Omake_exec_util.with_pipe (fun out_read out_write ->
+                 Omake_exec_util.with_pipe (fun err_read err_write ->
+                       let () =
+                          handle_status id (PrintEager command);
+                          Unix.set_close_on_exec out_read;
+                          Unix.set_close_on_exec err_read
+                       in
+                       let pid = start_command server shell out_write err_write command in
+                       let table = Omake_exec_util.FdTable.add table out_read job in
+                       let table = Omake_exec_util.FdTable.add table err_read job in
+                          if !Omake_exec_util.debug_exec then
+                             eprintf "Started next job %d, stdout=%d, stderr=%d@." (**)
+                                (Obj.magic pid) (Lm_unix_util.int_of_fd out_read) (Lm_unix_util.int_of_fd err_read);
+                          unix_close "spawn_next_part.1" out_write;
+                          unix_close "spawn_next_part.2" err_write;
+                          job.job_pid <- pid;
+                          job.job_stdout <- out_read;
+                          job.job_stdout_done <- Fd_open;
+                          job.job_stderr <- err_read;
+                          job.job_stderr_done <- Fd_open;
+                          job.job_command <- command;
+                          job.job_commands <- commands;
+                          job.job_print_flag <- false;
+                          server.server_table <- table))
           | [] ->
                match job.job_state with
                   JobRunning v ->

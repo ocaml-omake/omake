@@ -1244,6 +1244,7 @@ and eval_shell venv pos : _ Omake_exec_type.shell =
   let pos = string_pos "eval_shell" pos in
   let venv = eval_path venv pos in
   { shell_eval           = eval_shell_internal;
+    shell_eval_is_nop    = eval_shell_is_nop;
     shell_info           = eval_shell_info;
     shell_kill           = eval_shell_kill venv pos;
     shell_wait           = eval_shell_wait venv pos;
@@ -1252,6 +1253,11 @@ and eval_shell venv pos : _ Omake_exec_type.shell =
     shell_print_exn      = Omake_exn_print.pp_print_exn;
     shell_is_failure_exn = Omake_exn_print.is_shell_exn
   }
+
+and eval_shell_is_nop command =
+  match command.command_inst with
+    | CommandValues _ -> true
+    | _ -> false
 
 (*
  * Evaluate a shell command using the internal shell.
