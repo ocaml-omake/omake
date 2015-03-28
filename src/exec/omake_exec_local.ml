@@ -5,7 +5,8 @@ open Omake_exec_type
 open Omake_command_type
 
 
-let buffer_len = 65536
+let buffer_len = 4096
+  (* default size of pipebufs (both Linux and Win32) *)
 
 
 let unix_close debug fd =
@@ -417,18 +418,11 @@ type fd_state =
       if is_closed then
         raise (Invalid_argument "Omake_exec.handle_channel: trying to read from closed file descriptor");
 
-      (* Read from the descriptor. For performance reasons try to read the
-         whole buffer on Win32.
-       *)
+      (* Read from the descriptor. *)
       let count, eof =
-        if Lm_thread_pool.enabled then
-          let n = unix_really_read fd buffer 0 buffer_len 0 in
-          n, n<buffer_len
-        else
-          (* Unix *)
-          let n = unix_read fd buffer 0 buffer_len in
-          n, n=0 in
-
+        let n = unix_read fd buffer 0 buffer_len in
+        n, n=0 in
+      
       if count > 0 then
         begin
           (* For "AllowOutputFlag" commands (e.g. scanner) stdout does not "count", but stderr still does *)
