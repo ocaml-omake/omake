@@ -274,29 +274,35 @@ struct
                eprintf "Select: %s, %s, %s@." s1 s2 (Unix.error_message errno);
                []
       in
-      List.iter
-        (fun fd ->
-           let server =
-             try Some (FdTable.find fd_table fd)
-             with Not_found ->
-               eprintf "Omake_exec.wait_select: fd is unknown: %d@." (Obj.magic fd);
-               None in
-           let got_eof =
-             match server with
-               | Some { server_handle = LocalServer local ; _} ->
-                   Omake_exec_local.handle local options fd
-               | Some { server_handle = RemoteServer remote ; _} ->
-                   Omake_exec_remote.handle remote options fd
-               | Some { server_handle = NotifyServer notify ; _} ->
-                   Notify.handle notify options fd
-               | None ->
-                   false in
-           if got_eof then 
-             match server with
-               | Some si -> handle_eof si options fd
-               | None -> assert false
-        )
-        fd_set;
+      let actions =
+        List.map
+          (fun fd ->
+             let server =
+               try Some (FdTable.find fd_table fd)
+               with Not_found ->
+                 eprintf "Omake_exec.wait_select: fd is unknown: %d@." (Obj.magic fd);
+                 None in
+             let got_eof =
+               match server with
+                 | Some { server_handle = LocalServer local ; _} ->
+                      Omake_exec_local.handle local options fd
+                 | Some { server_handle = RemoteServer remote ; _} ->
+                      Omake_exec_remote.handle remote options fd
+                 | Some { server_handle = NotifyServer notify ; _} ->
+                      Notify.handle notify options fd
+                 | None ->
+                      false in
+             if got_eof then 
+               match server with
+                 | Some si ->
+                      acknowledge_eof si options fd;
+                      (fun () -> handle_eof si options fd)
+                 | None -> assert false
+             else
+               (fun () -> ())
+          )
+          fd_set in
+      List.iter (fun f -> f()) actions;
       WaitNone
 
    (*
