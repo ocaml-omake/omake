@@ -131,6 +131,21 @@ type fd_state =
    let start_command _server (shell : _ Omake_exec_type.shell) stdout stderr command =
     shell.shell_eval stdout stderr command
 
+
+   let likely_blocking server =
+     List.exists
+       (fun job ->
+          let shell = job.job_shell in
+          let all_cmds = job.job_command :: job.job_commands in
+          let non_nops =
+            List.filter
+              (fun cmd -> not(shell.shell_eval_is_nop cmd)) all_cmds in
+          match non_nops with
+            | cmd :: _ -> shell.shell_eval_is_cmd cmd
+            | [] -> false
+       )
+       server.server_jobs
+
    (*
     * Start a job.
     *)

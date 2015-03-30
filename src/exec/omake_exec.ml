@@ -230,6 +230,18 @@ struct
        | NotifyServer _ ->
            ()
 
+
+   let likely_blocking server_main =
+     (* whether it is likely that we'll block the next time we wait *)
+     List.exists
+       (fun server_info ->
+          match server_info.server_handle with
+            | LocalServer local -> Omake_exec_local.likely_blocking local
+            | RemoteServer _ -> true
+            | NotifyServer _ -> false
+       )
+       server_main.server_servers
+
    (*
     * Select-based waiting.
     * Wait for input on one of the servers.
@@ -405,6 +417,8 @@ struct
       let rec poll servers =
          match servers with
             [] ->
+               if likely_blocking server_main then
+                 onblock();
                if Lm_thread_pool.enabled then
                   wait_thread server_main options
                else

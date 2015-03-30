@@ -47,6 +47,7 @@ type ('exp, 'pid, 'value) wait_code =
 type ('exp, 'pid, 'value) shell =
    { shell_eval           : Unix.file_descr -> Unix.file_descr -> 'exp -> 'pid;
      shell_eval_is_nop    : 'exp -> bool;
+     shell_eval_is_cmd    : 'exp -> bool;
      shell_info           : 
        'exp ->
        Omake_command_type.command_flag list * Omake_node.Dir.t * Omake_node.Node.t;
