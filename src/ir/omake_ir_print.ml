@@ -137,7 +137,8 @@ let rec pp_print_string_exp complete buf s =
     Format.fprintf buf "%g" x
   | WhiteString (_, s) ->
     Format.fprintf buf "'%s'" (String.escaped s)
-  | ConstString (_, s) ->
+  | ConstString (_, s)
+  | ConstStringNoMeta (_, s) ->
     Format.fprintf buf "\"%s\"" (String.escaped s)
   | KeyApplyString (_, s) ->
     Format.fprintf buf "$|%s|" s

@@ -28,6 +28,7 @@ type t =
   | ValArray       of t list
   | ValWhite       of string
   | ValString      of string
+  | ValStringNoMeta of string  (* no meta characters, see Omake_ast_ir.contains_meta *)
   | ValData        of string
   | ValQuote       of t list
   | ValQuoteString of char * t list

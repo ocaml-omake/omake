@@ -732,7 +732,7 @@ let tokens_string info s =
           scan_quote tokens [] c DQuotePrefix i (succ i)
         else if c = '\'' then
           scan_quote tokens [] c SQuotePrefix i (succ i)
-        else if c = '\\' then
+        else if c = '\\' then 
           scan_word tokens prefix start (i+2)
         else
           scan_word tokens prefix start (succ i)
@@ -907,6 +907,37 @@ let tokens_lex info s =
       | DQuotePrefix ->
           scan_quote tokens prefix ptype 0 0
   )
+
+let tokens_string_nometa info s =
+  (* The caller assures that [s] doesn't contain whitespace/quotes/backslash *)
+  if s <> "" then
+    let wrap = info.tokens_wrap_string in
+    match info.tokens_prefix_type with
+      | NoPrefix ->
+           info.tokens_prefix <- [wrap s];
+           info.tokens_prefix_type <- WordPrefix
+      | WordPrefix
+      | SQuotePrefix
+      | DQuotePrefix ->
+           info.tokens_prefix <- wrap s :: info.tokens_prefix
+
+let tokens_lex_nometa info s =
+  (* The caller assures that [s] doesn't contain whitespace/quotes/backslash,
+     and nothing to lex.
+   *)
+  if s <> "" then
+    let wrap_s = info.tokens_wrap_string in
+    let wrap_d = info.tokens_wrap_data in
+    match info.tokens_prefix_type with
+      | NoPrefix ->
+           info.tokens_prefix <- [wrap_s s];
+           info.tokens_prefix_type <- WordPrefix
+      | WordPrefix ->
+           info.tokens_prefix <- wrap_s s :: info.tokens_prefix
+      | SQuotePrefix
+      | DQuotePrefix ->
+           info.tokens_prefix <- wrap_d s :: info.tokens_prefix
+
 
  (*
  * Split a string based on a boundary.

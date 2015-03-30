@@ -368,7 +368,8 @@ let sequence_length venv pos loc args =
       | ValQuoteString (c, vl) ->
         String.length (Omake_eval.string_of_quote venv pos (Some c) vl)
       | ValSequence _
-      | ValString _ ->
+      | ValString _
+      | ValStringNoMeta _ ->
         List.length (Omake_eval.values_of_value venv pos arg)
       | ValArray a ->
         List.length a
@@ -452,7 +453,8 @@ let sequence_nth venv pos loc args =
       ValData (String.sub s i 1)
 
     | ValSequence _
-    | ValString _ ->
+    | ValString _
+    | ValStringNoMeta _ ->
       let values = Omake_eval.values_of_value venv pos arg in
       let len = List.length values in
       if i < 0 || i >= len then
@@ -523,7 +525,8 @@ let sequence_nth_tl venv pos loc args =
 
     | ValSequence _
     | ValWhite _
-    | ValString _ ->
+    | ValString _
+    | ValStringNoMeta _ ->
       let values = Omake_eval.values_of_value venv pos arg in
       let len = List.length values in
       if i < 0 || i > len then
@@ -586,7 +589,8 @@ let sequence_nonempty venv pos loc args =
         String.length s <> 0
 
       | ValSequence _
-      | ValString _ ->
+      | ValString _
+      | ValStringNoMeta _ ->
         Omake_eval.values_of_value venv pos arg <> []
       | ValArray a ->
         a <> []
@@ -653,7 +657,8 @@ let sequence_sub venv pos loc args =
       ValData (String.sub s off len)
 
     | ValSequence _
-    | ValString _ ->
+    | ValString _
+    | ValStringNoMeta _ ->
       let values = Omake_eval.values_of_value venv pos arg in
       let length = List.length values in
       if off < 0 || len < 0 || off + len >= length then
@@ -729,7 +734,8 @@ let sequence_rev venv pos loc args =
     | ValCases cases ->
       ValCases (List.rev cases)
     | ValSequence _
-    | ValString _ ->
+    | ValString _
+    | ValStringNoMeta _ ->
       let values = Omake_eval.values_of_value venv pos arg in
       ValArray (List.rev values)
     | ValArray a ->
