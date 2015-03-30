@@ -15,6 +15,12 @@ open Omake_command_type
 module Pos = Omake_pos.Make (struct let name = "Omake_shell_lex" end);;
 open Pos;;
 
+module I = Lm_instrument
+
+let probe_shell_lex_1 = I.create "Omake_shell_lex.1"
+let probe_shell_lex_2 = I.create "Omake_shell_lex.2"
+let probe_shell_lex_3 = I.create "Omake_shell_lex.3"
+
 (************************************************************************
  * Lexing.
  *)
@@ -381,10 +387,13 @@ and pre_pipe_group venv find_alias options pos info =
  *)
 let pipe_of_value venv find_alias options pos loc v =
    let pos = string_pos "pipe_of_value" pos in
-   let argv = tokens_of_value venv pos lexer v in
+   let argv = 
+     I.instrument probe_shell_lex_1 (tokens_of_value venv pos lexer) v in
    let flags, argv = collect_flags argv in
-   let pipe = parse loc argv in
-   let pipe = pre_pipe venv find_alias options pos pipe in
+   let pipe = 
+     I.instrument probe_shell_lex_2 (parse loc) argv in
+   let pipe = 
+     I.instrument probe_shell_lex_3 (pre_pipe venv find_alias options pos) pipe in
       flags, pipe
 
 (*

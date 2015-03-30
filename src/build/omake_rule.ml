@@ -767,7 +767,7 @@ let probe_eval_rule_1 = I.create "Omake_rule.eval_rule.1"
 let probe_eval_rule_2 = I.create "Omake_rule.eval_rule.2"
 let probe_eval_rule_3 = I.create "Omake_rule.eval_rule.3"
 let probe_eval_rule_4 = I.create "Omake_rule.eval_rule.4"
-
+let probe_eval_rule_5 = I.create "Omake_rule.eval_rule.5"
 
 (*
  * Evaluate a rule.
@@ -1087,7 +1087,9 @@ and eval_rule venv loc target sources sloppy_deps values =
       let v = Omake_value_type.ValStringExp (env, s) in
       let commands =
         try
-          let flags, pipe = Omake_shell_lex.pipe_of_value venv find_alias options pos loc v in
+          let flags, pipe = 
+            I.instrument probe_eval_rule_5
+              (Omake_shell_lex.pipe_of_value venv find_alias options pos loc) v in
           (flags, Omake_command_type.CommandPipe pipe) :: commands
         with
           Omake_value_type.OmakeException (_, NullCommand) ->
