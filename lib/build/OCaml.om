@@ -93,6 +93,9 @@ open configure/Configure
 #    at least one should be set to true.
 # \varlabel{MENHIR_ENABLED}{MENHIR\_ENABLED} Define this as \verb+true+ if you wish to use
 #    \verb+menhir+ instead of \verb+ocamlyacc+ (default \verb+false+).
+# \varlabel{EXTENDED_DIGESTS}{EXTENDED\_DIGESTS} Whether to include more information into
+#   rule digests and make it more sensitive to structural changes at the cost
+#   of build speed (\verb+true+ or \verb+false+).
 # \end{doc}
 #
 public.USE_OCAMLFIND = false
@@ -117,6 +120,8 @@ public.USE_OCAMLFIND = false
     #
     NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
     BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
+    #
+    EXTENDED_DIGESTS = false
 
 public.OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
 public.OCAMLFINDFLAGS =
@@ -704,11 +709,21 @@ public.MenhirMulti(target, sources) =
 #
 # Generic scanners
 #
-OCamlScannerTargets(files) =
+OCamlScannerTargetsExtended(files) =
     files[] = $(basename $(files))
     files[] = $(if $(NATIVE_ENABLED), $(files), $(filter-out %.cmx, $(files)))
     files[] = $(if $(BYTE_ENABLED), $(files), $(filter-out %.cmo, $(files)))
     value $(find-targets-in-path-optional $(OCAMLINCLUDES), $(files)) $(NATIVE_ENABLED) $(BYTE_ENABLED)
+
+OCamlScannerTargetsSimplified(dummy) =
+    value $(NATIVE_ENABLED) $(BYTE_ENABLED)
+
+if $(EXTENDED_DIGESTS)
+    OCamlScannerTargets = OCamlScannerTargetsExtended
+    export
+else
+    OCamlScannerTargets = OCamlScannerTargetsSimplified
+    export
 
 .SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerTargets $&)
     $(OCamlScanner $<)
