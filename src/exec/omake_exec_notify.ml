@@ -143,15 +143,20 @@ struct
            notify_server = Some server
          } when Lm_notify.pending server ->
             let event = Lm_thread_pool.blocking_section Lm_notify.next_event server in
-               notify.notify_event <- Some event
+            notify.notify_event <- Some event;
+            false
        | _ ->
-            ()
+            false
+
+
+   let handle_eof _ _ _ = ()
+   let acknowledge_eof _ _ _ = ()
 
    (*
     * Wait for a command to finish.
     *)
    let wait notify _ =
-      handle notify () (); (* XXX HACK: nogin *)
+      ignore(handle notify () ()); (* XXX HACK: nogin *)
       match notify.notify_event with
          Some event ->
             notify.notify_event <- None;
