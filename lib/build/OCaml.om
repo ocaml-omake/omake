@@ -713,10 +713,10 @@ OCamlScannerTargetsSimplified(dummy) =
     value $(NATIVE_ENABLED) $(BYTE_ENABLED)
 
 if $(EXTENDED_DIGESTS)
-    OCamlScannerTargets = OCamlScannerTargetsExtended
+    OCamlScannerTargets = $(OCamlScannerTargetsExtended)
     export
 else
-    OCamlScannerTargets = OCamlScannerTargetsSimplified
+    OCamlScannerTargets = $(OCamlScannerTargetsSimplified)
     export
 
 .SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerTargets $&)
