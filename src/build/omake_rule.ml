@@ -1272,6 +1272,7 @@ and eval_shell venv pos : _ Omake_exec_type.shell =
   let venv = eval_path venv pos in
   { shell_eval           = eval_shell_internal;
     shell_eval_is_nop    = eval_shell_is_nop;
+    shell_eval_is_cmd    = eval_shell_is_cmd;
     shell_info           = eval_shell_info;
     shell_kill           = eval_shell_kill venv pos;
     shell_wait           = eval_shell_wait venv pos;
@@ -1284,6 +1285,20 @@ and eval_shell venv pos : _ Omake_exec_type.shell =
 and eval_shell_is_nop command =
   match command.command_inst with
     | CommandValues _ -> true
+    | _ -> false
+
+and eval_shell_is_cmd command =
+  match command.command_inst with
+    | CommandPipe p -> eval_pipe_is_cmd p
+    | _ -> false
+
+and eval_pipe_is_cmd p =
+  match p with
+    | PipeCommand _ -> true
+    | PipeCond(_,_,p1,p2) -> eval_pipe_is_cmd p1 || eval_pipe_is_cmd p2
+    | PipeCompose(_,_,p1,p2) -> eval_pipe_is_cmd p1 || eval_pipe_is_cmd p2
+    | PipeGroup(_,g) -> eval_pipe_is_cmd g.group_pipe
+    | PipeBackground(_,p1) -> eval_pipe_is_cmd p1
     | _ -> false
 
 (*
