@@ -96,6 +96,7 @@ type string_exp =
  | FloatString       of Lm_location.t * float
  | WhiteString       of Lm_location.t * string
  | ConstString       of Lm_location.t * string
+ | ConstStringNoMeta of Lm_location.t * string  (* no meta characters, see Omake_ast_ir.contains_meta *)
  | FunString         of Lm_location.t * keyword_param list * param list * exp list * export
  | ApplyString       of Lm_location.t * var_info * string_exp list * keyword_arg list
  | SuperApplyString  of Lm_location.t * var * var * string_exp list * keyword_arg list

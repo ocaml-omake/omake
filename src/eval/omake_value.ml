@@ -40,7 +40,8 @@ let add_object_value obj x =
 let concat_array (xs : Omake_value_type.t list) : Omake_value_type.t = 
   match xs with 
   | [ValWhite s]
-  | [ValString s] ->
+  | [ValString s]
+  | [ValStringNoMeta s] ->
     ValData s
   | [ValSequence _] as vl ->
     ValQuote vl
@@ -150,6 +151,7 @@ let rec key_of_value venv pos v =
   | ValQuoteString _
   | ValWhite _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _ ->
     ValData (string_of_value venv pos v)
   | ValArray _ ->
@@ -190,6 +192,7 @@ let dir_of_value venv pos dir =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _
   | ValArray _
   | ValInt _
@@ -226,6 +229,7 @@ let node_value_of_value venv pos ?(follow_symlinks=true) v =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _
   | ValArray _
   | ValMaybeApply _
@@ -268,6 +272,7 @@ let dir_value_of_value venv pos v =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _
   | ValArray _
   | ValMaybeApply _
@@ -348,6 +353,7 @@ let prim_channel_of_value venv pos v =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _ ->
     prim_channel_of_string venv pos (string_of_value venv pos arg)
   | ValInt _
@@ -397,6 +403,7 @@ let in_channel_of_any_value venv pos v =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _
   | ValMaybeApply _
   | ValStringExp _
@@ -447,6 +454,7 @@ let out_channel_of_any_value venv pos v =
   | ValData _
   | ValQuote _
   | ValString _
+  | ValStringNoMeta _
   | ValQuoteString _
   | ValSequence _
   | ValMaybeApply _
@@ -491,7 +499,8 @@ let out_channel_of_any_value venv pos v =
  *)
 let rec is_glob_value options (v : Omake_value_type.t) =
   match v with
-  |  ValString s ->
+  | ValString s
+  | ValStringNoMeta s ->
     Lm_glob.is_glob_string options s
   | ValSequence vl
   | ValArray vl ->

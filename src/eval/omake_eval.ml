@@ -89,6 +89,7 @@ let rec is_empty_value ( v : Omake_value_type.t) =
   | ValNone
   | ValWhite _
   | ValString ""
+  | ValStringNoMeta ""
   | ValData ""
   | ValQuote []
   | ValArray []
@@ -107,6 +108,7 @@ let rec is_empty_value ( v : Omake_value_type.t) =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValArray _
   | ValMaybeApply _
   | ValFun _
@@ -153,6 +155,7 @@ let rec is_array_value (v : Omake_value_type.t) =
   | ValQuoteString _
   | ValWhite _
   | ValString _
+  | ValStringNoMeta _
   | ValMaybeApply _
   | ValSequence _
   | ValFun _
@@ -518,7 +521,8 @@ and string_of_value venv pos (v : Omake_value_type.t) =
       Buffer.add_string scratch_buf (string_of_float x)
     | ValData s
     | ValWhite s
-    | ValString s ->
+    | ValString s
+    | ValStringNoMeta s ->
       Buffer.add_string scratch_buf s
     | ValDir dir2 ->
       Buffer.add_string scratch_buf (Omake_env.venv_dirname venv dir2)
@@ -581,7 +585,8 @@ and string_of_quote_buf scratch_buf venv pos vl =
       Buffer.add_string scratch_buf (string_of_float x)
     | ValData s
     | ValWhite s
-    | ValString s ->
+    | ValString s
+    | ValStringNoMeta s ->
       Buffer.add_string scratch_buf s
     | ValDir dir2 ->
       Buffer.add_string scratch_buf (Omake_env.venv_dirname venv dir2)
@@ -666,6 +671,9 @@ and values_of_value venv pos v =
       | ValWhite s
       | ValString s ->
         Lm_string_util.tokens_string tokens s;
+        collect vl vll
+      | ValStringNoMeta s ->
+        Lm_string_util.tokens_string_nometa tokens s;
         collect vl vll
       | ValSequence el ->
         collect el (vl :: vll)
@@ -777,6 +785,9 @@ and tokens_of_value venv pos lexer v =
       | ValString s ->
         Lm_string_util.tokens_lex tokens s;
         collect vl vll
+      | ValStringNoMeta s ->
+        Lm_string_util.tokens_lex_nometa tokens s;
+        collect vl vll
       | ValSequence el ->
         collect el (vl :: vll)
 
@@ -846,7 +857,8 @@ and arg_of_values venv pos vl =
 
       (* Strings *)
       | ValWhite s
-      | ValString s ->
+      | ValString s
+      | ValStringNoMeta s ->
         let tokens =
           if is_quoted then
             Omake_command.arg_buffer_add_data tokens s
@@ -915,7 +927,8 @@ and bool_of_value venv pos v =
   | [ValFloat x] ->
     x <> 0.0
   | [ValData s]
-  | [ValString s] ->
+  | [ValString s]
+  | [ValStringNoMeta s] ->
     bool_of_string s
   | [ValQuote vl] ->
     bool_of_string (string_of_quote venv pos None vl)
@@ -935,6 +948,7 @@ and file_of_value venv pos file =
     Omake_node.Node.node_of_dir dir
   | ValData _
   | ValString _
+  | ValStringNoMeta _
   | ValSequence _
   | ValQuote _
   | ValQuoteString _
@@ -1097,6 +1111,7 @@ and eval_catenable_value venv pos v =
         ValNone
       | ValWhite _
       | ValString _
+      | ValStringNoMeta _
       | ValSequence _
       | ValData _
       | ValInt _
@@ -1132,6 +1147,7 @@ and eval_body_value venv pos v : Omake_value_type.t =
   | ValData _
   | ValWhite _
   | ValString _
+  | ValStringNoMeta _
   | ValQuote _
   | ValQuoteString _
   | ValDir _
@@ -1170,6 +1186,7 @@ and eval_body_exp venv pos x v : (Omake_env.t * Omake_value_type.t) =
   | ValQuoteString _
   | ValWhite _
   | ValString _
+  | ValStringNoMeta _
   | ValDir _
   | ValNode _
   | ValFun _
@@ -1372,6 +1389,7 @@ and eval_object_exn venv pos x =
   | ValSequence _
   | ValWhite _
   | ValString _
+  | ValStringNoMeta _
   | ValNone ->
     create_object venv x Omake_var.sequence_object_var
   | ValArray _ ->
@@ -1580,6 +1598,7 @@ and simplify_quote_val venv pos c (el : Omake_value_type.t list) : Omake_value_t
   match el with
   | [ValWhite s]
   | [ValString s]
+  | [ValStringNoMeta s]
   | [ValData s] ->
     begin match c with
     | None ->
@@ -1602,6 +1621,7 @@ and simplify_quote_val venv pos c (el : Omake_value_type.t list) : Omake_value_t
         begin match eval_value venv pos e with
           ValWhite s
         | ValString s
+        | ValStringNoMeta s
         | ValData s ->
           Buffer.add_string buf s;
           collect vl el
@@ -1614,6 +1634,7 @@ and simplify_quote_val venv pos c (el : Omake_value_type.t list) : Omake_value_t
     match collect [] el with
       [ValWhite s]
     | [ValString s]
+    | [ValStringNoMeta s]
     | [ValData s] ->
       ValData s
     | el ->
@@ -1639,6 +1660,8 @@ and eval_string_exp venv pos s =
     ValWhite s
   | ConstString (_, s) ->
     ValString s
+  | ConstStringNoMeta (_, s) ->
+    ValStringNoMeta s
   | KeyApplyString (loc, v) ->
     eval_key venv pos loc v
   | FunString (_, opt_params, params, body, export) ->
@@ -1923,6 +1946,8 @@ and eval_string_export_exp venv pos ( s : Omake_ir.string_exp)
     venv, ValWhite s
   | ConstString (_, s) ->
     venv, ValString s
+  | ConstStringNoMeta (_, s) ->
+    venv, ValStringNoMeta s
   | KeyApplyString (loc, v) ->
     venv, eval_key venv pos loc v
   | FunString (_, opt_params, params, body, export) ->

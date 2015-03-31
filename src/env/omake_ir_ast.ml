@@ -1213,6 +1213,18 @@ let get_memo_target e =
    with Omake_value_type.OmakeException _ ->
       None
 
+
+let contains_meta s =
+  (* We try to speed up Omake_shell_lex, and consider the following chars
+     as "meta" (i.e. we fall back to detailed lexing when such chars occur):
+     - whitepace
+     - quotes (single/double)
+     - backslash
+     - < ( ) ; & | >        (see Omake_shell_lex.lexer)
+   *)
+  Lm_string_util.contains_any s " \t\n\r\012'\"\\<>();&|"
+
+
 (*
  * Conversion.
  *)
@@ -1231,7 +1243,10 @@ let rec build_string genv oenv senv cenv e pos =
   | Omake_ast.StringFloatExp (s, loc)
   | Omake_ast.StringOtherExp (s, loc)
   | Omake_ast.StringKeywordExp (s, loc) ->
-    genv, oenv, ConstString (loc, s)
+    if contains_meta s then
+      genv, oenv, ConstString (loc, s)
+    else
+      genv, oenv, ConstStringNoMeta (loc, s)
   | Omake_ast.StringWhiteExp (s, loc) ->
     genv, oenv, WhiteString (loc, s)
   | Omake_ast.QuoteExp (el, loc) ->
@@ -1362,7 +1377,8 @@ and build_sequence_string_aux genv oenv senv cenv el pos _ =
       match e with
         NoneString _ ->
         collect genv oenv buf_opt args el
-      | ConstString (loc, s) ->
+      | ConstString (loc, s)
+      | ConstStringNoMeta (loc, s) ->
         let buf_opt = add_string buf_opt s loc in
         collect genv oenv buf_opt args el
       | IntString _

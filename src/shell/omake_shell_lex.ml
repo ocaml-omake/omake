@@ -149,6 +149,7 @@ let check_next c s off len =
          1
 
 let lexer s off len =
+  (* must be in sync with Omake_ir_ast.contains_meta *)
    match s.[off] with
       '<'
     | '('

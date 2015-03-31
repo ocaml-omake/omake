@@ -46,6 +46,7 @@ let print_result result =
   | ValSequence []
   | ValArray []
   | ValString ""
+  | ValStringNoMeta ""
   | ValWhite _
   | ValClass _
   | ValOther (ValExitCode 0) ->
@@ -58,6 +59,7 @@ let print_result result =
   | ValQuote _
   | ValQuoteString _
   | ValString _
+  | ValStringNoMeta _
   | ValNode _
   | ValDir _
   | ValMaybeApply _

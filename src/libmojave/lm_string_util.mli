@@ -161,7 +161,9 @@ val tokens_create_lexer :
    'a tokens
 val tokens_create : (string -> 'a) -> ('a list -> 'a) -> 'a tokens
 val tokens_string : 'a tokens -> string -> unit
+val tokens_string_nometa : 'a tokens -> string -> unit
 val tokens_lex    : 'a tokens -> string -> unit
+val tokens_lex_nometa : 'a tokens -> string -> unit
 val tokens_data   : 'a tokens -> string -> unit
 val tokens_break  : 'a tokens -> unit
 val tokens_add    : 'a tokens -> 'a -> unit

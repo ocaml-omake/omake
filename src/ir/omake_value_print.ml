@@ -77,7 +77,8 @@ let rec pp_print_value buf v =
     Format.fprintf buf "@[<v 3><string%a>@ : String@]" pp_print_value_list vl
   | ValWhite s ->
     Format.fprintf buf "'%s' : White" (String.escaped s)
-  | ValString s ->
+  | ValString s
+  | ValStringNoMeta s ->
     Format.fprintf buf "\"%s\" : Sequence" (String.escaped s)
   | ValQuoteString (c, vl) ->
     Format.fprintf buf "@[<v 3><string %c%a%c>@ : String@]" c pp_print_value_list vl c
@@ -208,7 +209,8 @@ let rec pp_print_simple_value buf v =
   | ValData s ->
     Omake_command_type.pp_print_arg buf [ArgData s]
   | ValWhite s
-  | ValString s ->
+  | ValString s
+  | ValStringNoMeta s ->
     Omake_command_type.pp_print_arg buf [ArgString s]
   | ValQuote vl ->
     Format.fprintf buf "\"%a\"" pp_print_simple_value_list vl

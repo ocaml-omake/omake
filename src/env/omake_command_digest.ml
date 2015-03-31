@@ -289,7 +289,8 @@ let rec squash_string_exp pos buf e =
        | WhiteString (_, s) ->
             add_code buf CodeWhiteString;
             Hash.add_string buf s
-       | ConstString (_, s) ->
+       | ConstString (_, s)
+       | ConstStringNoMeta (_, s) ->  (* this is considered equivalent *)
             add_code buf CodeConstString;
             Hash.add_string buf s
        | VarString (_, v) ->
@@ -613,7 +614,8 @@ let rec squash_value pos buf v =
     | ValWhite s ->
       add_code buf CodeValWhite;
       Hash.add_string buf s
-    | ValString s ->
+    | ValString s
+    | ValStringNoMeta s ->
       add_code buf CodeValString;
       Hash.add_string buf s
     | ValData s ->

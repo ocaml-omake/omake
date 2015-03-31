@@ -75,6 +75,7 @@ and free_vars_string_exp fv s =
   | FloatString _
   | WhiteString _
   | ConstString _
+  | ConstStringNoMeta _
   | ThisString _
   | KeyApplyString _
   | VarString _ ->
