@@ -1585,7 +1585,10 @@ let venv_get_env venv =
    venv.venv_static
 
 let venv_with_env venv env =
-   { venv with venv_static = env }
+  if env == venv.venv_static then  (* perf: avoid allocation if possible *)
+    venv
+  else
+    { venv with venv_static = env }
 
 (*
  * The current object is always in the venv_this field.
