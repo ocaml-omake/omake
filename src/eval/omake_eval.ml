@@ -734,8 +734,10 @@ and strings_of_value venv pos v =
  *)
 and tokens_of_value venv pos lexer v =
   let pos = string_pos "tokens_of_value" pos in
+(*
   Lm_printf.printf "tokens_of_value(%a)\n@."
                    Omake_value_print.pp_print_value v;
+ *)
 
   (*
     * Convert a catenable value to a string
