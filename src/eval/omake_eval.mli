@@ -39,6 +39,8 @@ val eval_sequence_export_exp :
  *)
 val eval_string_exp : 
   Omake_env.t -> Omake_value_type.pos -> Omake_ir.string_exp -> Omake_value_type.t
+val eval_string_exp_quick :   (* only special cases *)
+  Omake_ir.string_exp -> Omake_value_type.t
 
 (*
  * Include the file literally.

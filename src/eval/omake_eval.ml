@@ -736,6 +736,8 @@ and strings_of_value venv pos v =
  *)
 and tokens_of_value venv pos lexer v =
   let pos = string_pos "tokens_of_value" pos in
+  Lm_printf.printf "tokens_of_value(%a)\n@."
+                   Omake_value_print.pp_print_value v;
 
   (*
     * Convert a catenable value to a string
@@ -781,7 +783,9 @@ and tokens_of_value venv pos lexer v =
         collect vl vll
 
       (* Strings *)
-      | ValWhite s
+      | ValWhite _ ->
+        Lm_string_util.tokens_break tokens;
+        collect vl vll
       | ValString s ->
         Lm_string_util.tokens_lex tokens s;
         collect vl vll
@@ -1068,8 +1072,13 @@ and eval_value_core venv pos v : Omake_value_type.t =
   | ValSequence [v] ->
     eval_value_core venv pos v
   | ValStringExp (env, e) ->
-    let v = eval_string_exp (Omake_env.venv_with_env venv env) pos e in
-    eval_value_core venv pos v
+    ( try eval_string_exp_quick e
+      with 
+        | Not_found ->
+             let v =
+               eval_string_exp (Omake_env.venv_with_env venv env) pos e in
+             eval_value_core venv pos v
+    )
   | _ ->
     v
 
@@ -1102,8 +1111,8 @@ and eval_prim_value venv pos v : Omake_value_type.t =
  * The values are being flattened, so expand all sequences.
  *)
 and eval_catenable_value venv pos v =
-  let pos = string_pos "eval_catenable_value" pos in
-  let v = eval_value venv pos v in
+  (* let pos = string_pos "eval_catenable_value" pos in *)
+  let v = eval_value_core venv pos v in
   match v with
     ValObject obj ->
     (try
@@ -1711,6 +1720,27 @@ and eval_string_exp venv pos s =
     let x = eval_string_exp venv pos s1 in
     let venv = Omake_env.venv_add_var venv v x in
     eval_string_exp venv pos s2
+
+and eval_string_exp_quick s =
+  (* only the cases that don't need venv and pos *)
+  match s with
+    NoneString _ ->
+    ValNone
+  | IntString (_, i) ->
+    ValInt i
+  | FloatString (_, x) ->
+    ValFloat x
+  | WhiteString (_, s) ->
+    ValWhite s
+  | ConstString (_, s) ->
+    ValString s
+  | ConstStringNoMeta (_, s) ->
+    ValStringNoMeta s
+  | VarString (loc, v) ->
+    ValVar (loc, v)
+  | _ ->
+    raise Not_found
+
 
 (* and eval_keyword_string_exp venv pos (v, s) = *)
 (*   v, eval_string_exp venv pos s *)

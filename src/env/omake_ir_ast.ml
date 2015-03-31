@@ -1377,13 +1377,13 @@ and build_sequence_string_aux genv oenv senv cenv el pos _ =
       match e with
         NoneString _ ->
         collect genv oenv buf_opt args el
-      | ConstString (loc, s)
-      | ConstStringNoMeta (loc, s) ->
+      | ConstString (loc, s) ->
         let buf_opt = add_string buf_opt s loc in
         collect genv oenv buf_opt args el
       | IntString _
       | FloatString _
       | WhiteString _
+      | ConstStringNoMeta _  (* FIXME: combine with other ConstStringNoMeta *)
       | FunString _
       | KeyApplyString _
       | ApplyString _
