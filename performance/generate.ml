@@ -131,6 +131,13 @@ FILES[] =
 
   let f = open_out (sprintf "%s/OMakefile" dirname) in
   output_string f omakefile;
+  close_out f;
+
+  (* for ocamlbuild: *)
+  let modules =
+    List.map (fun f -> String.capitalize f) files_l in
+  let f = open_out (sprintf "%s/lib_%d_%d.mllib" dirname dir_row dir_col) in
+  List.iter (fprintf f "%s\n") modules;
   close_out f
 
 
@@ -156,6 +163,20 @@ let write basedir =
       ) in
   let subdirs =
     String.concat " " subdirs_l in
+
+  let sublibs_l =
+    List.flatten
+      (List.map
+         (fun dr ->
+            let l1 = count !dir_cols in
+            List.map
+              (fun dc ->
+                 sprintf "dir_%d_%d/lib_%d_%d.cmxa" dr dc dr dc
+              )
+              l1
+         )
+         (count !dir_rows)
+      ) in
   
   let omakefile = sprintf "
 .SUBDIRS: %s
@@ -173,6 +194,17 @@ DefineCommandVars()
 
   let f = open_out (sprintf "%s/OMakeroot" basedir) in
   output_string f omakeroot;
+  close_out f;
+
+  (* For ocamlbuild: *)
+  let ob_subdirs =
+    String.concat " or " (List.map (sprintf "<%s>") subdirs_l) in
+  let f = open_out (sprintf "%s/_tags" basedir) in
+  fprintf f "%s: include\n" ob_subdirs;
+  close_out f;
+
+  let f = open_out (sprintf "%s/default.itarget" basedir) in
+  List.iter (fprintf f "%s\n") sublibs_l;
   close_out f
 
 
