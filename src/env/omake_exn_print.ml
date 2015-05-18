@@ -78,6 +78,10 @@ let pp_print_exn_with_backtrace ~backtrace buf exn =
          Format.fprintf buf "@[<v 3>*** omake error:@ %a@ uncaught return from %a@]" (**)
             Lm_location.pp_print_location loc
             pp_print_return_id id
+    | (Unix.Unix_error _
+      | Sys_error _
+      ) as exn ->
+         Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn
     | exn ->
          Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn;
          if backtrace <> "" then
