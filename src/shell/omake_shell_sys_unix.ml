@@ -129,6 +129,25 @@ let dup stdin stdout stderr =
       Unix.close stdout';
       Unix.close stderr'
 
+let dup_actions workfd stdin stdout stderr =
+  (* Careful: dup2(fd1,fd2) also clears the close-on-exec flag for the
+     duplicate. However, dup2(fd,fd) is, according to POSIX, a no-op.
+     We work around by doing dup2(fd,workfd); dup2(workfd,fd) in sequence
+     (where workfd is an arbitrary other file descriptor)
+   *)
+  let open Omake_shell_spawn in
+  [ Fda_dup2(stdin, workfd);
+    Fda_dup2(workfd, Unix.stdin);
+    Fda_dup2(stdout, workfd);
+    Fda_dup2(workfd, Unix.stdout);
+    Fda_dup2(stderr, workfd);
+    Fda_dup2(workfd, Unix.stderr);
+    Fda_close(workfd);
+  ] @
+    ( if stdin <> Unix.stdin then [ Fda_close stdin ] else [] ) @
+      ( if stdout <> Unix.stdout then [ Fda_close stdout ] else [] ) @
+        ( if stderr <> Unix.stderr then [ Fda_close stderr ] else [] )
+
 (*
  * Create a thread.
  * This actually creates a process on Unix.
@@ -198,21 +217,25 @@ let create_process info =
             Format.eprintf "@ %s" s) argv;
       Format.eprintf "@]@.";
  *)
-    let pid = Unix.fork () in
-    if pid = 0 then
-      try
-        let () =
-          if pgrp = 0 then
-            let pid = Unix.getpid () in
-            setpgid pid pid;
-            if not bg then
-              set_tty_pgrp pgrp;
-        in
-        dup stdin stdout stderr;
-        Unix.handle_unix_error Unix.chdir dir;
-        Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
-      with _ ->
-        exit Omake_state.exn_error_code
-    else
-      pid
-
+    Unix.handle_unix_error
+      (fun () ->
+         let workfd = Unix.openfile "." [Unix.O_RDONLY] 0 in
+         let pid =
+           Omake_shell_spawn.spawn
+             ~chdir:(Omake_shell_spawn.Wd_chdir dir)
+             ~env
+             ~pg:( if !interact && pgrp = 0 then (
+                     if bg then
+                       Omake_shell_spawn.Pg_new_bg_group
+                     else
+                       Omake_shell_spawn.Pg_new_fg_group
+                   ) else
+                     Omake_shell_spawn.Pg_keep
+                 )
+             ~fd_actions:(dup_actions workfd stdin stdout stderr)
+             exe
+             argv in
+         Unix.close workfd;
+         pid
+      )
+      ()

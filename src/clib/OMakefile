@@ -31,6 +31,7 @@ EXTERNAL = ../libmojave-external
 # CGeneratedFiles($(CUTIL_FILES))
 
 open configure/snprintf
+open configure/posix_spawn
 open configure/fs_case_sensitive
 
 if $(SNPRINTF_AVAILABLE)
@@ -39,6 +40,10 @@ if $(SNPRINTF_AVAILABLE)
 
 if $(DETECT_FS_CASE_SENSITIVE)
     CFLAGS += $(DETECT_FS_CASE_SENSITIVE_CFLAGS)
+    export
+
+if $(POSIX_SPAWN_AVAILABLE)
+    CFLAGS += -DHAVE_POSIX_SPAWN
     export
 
 FILES[] =
@@ -51,6 +56,7 @@ FILES[] =
     lm_compat_win32
     readline
     omake_shell_sys
+    omake_shell_spawn
     fam_win32
     fam_kqueue
     fam_inotify

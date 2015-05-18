@@ -1,0 +1,17 @@
+open configure/Configure
+
+# \begin{doc}
+# \subsection{Posix_spawn configuration}
+# Add \verb+open configure/posix_spawn+ line to your \verb+OMakefile+ to get access to the following
+# autoconfiguration variables.
+# \varlabel{POSIX_SPAWN_AVAILABLE}{POSIX\_SPAWN\_AVAILABLE} A boolean flag telling whether the posix_spawn
+# function is available in the standard C library.
+#
+# \end{doc}
+#
+
+.STATIC:
+    POSIX_SPAWN_AVAILABLE = false
+    section
+        POSIX_SPAWN_AVAILABLE = $(VerboseCheckLib $(EMPTY), posix_spawn)
+        export POSIX_SPAWN_AVAILABLE

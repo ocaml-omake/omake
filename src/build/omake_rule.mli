@@ -17,6 +17,10 @@ val expand_rule : Omake_env.erule -> Omake_env.erule
 val glob_options_of_string : Lm_glob.glob_option list -> string -> Lm_glob.glob_option list
 val glob_options_of_env : Omake_env.t -> Omake_value_type.pos -> Lm_glob.glob_option list
 
+val normalize_apply :  Omake_env.t -> Omake_value_type.pos -> Lm_location.t -> Lm_glob.glob_options -> (Omake_value_type.t, Omake_command_type.arg, Omake_env.apply) Omake_shell_type.poly_apply -> (Omake_value_type.t, string, Omake_env.apply) Omake_shell_type.poly_apply
+
+
+
 (*
  * Evaluators for the Exec module.
  *)

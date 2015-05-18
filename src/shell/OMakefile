@@ -9,6 +9,7 @@ OCAMLINCLUDES[] +=
 FILES[] =
     omake_shell_parse
     omake_shell_lex
+    omake_shell_spawn
     omake_shell_sys_type
     omake_shell_sys
     omake_shell_job

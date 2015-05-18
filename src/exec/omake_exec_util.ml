@@ -93,7 +93,8 @@ let tee_channel tee =
    | TeeChannel (_, outx) ->
        Some outx
    | TeeMaybe ->
-       let filename, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".divert" in
+       let filename, outx =
+         Filename.open_temp_file ~mode:[Open_binary;Open_append] "omake" ".divert" in
        tee := TeeChannel (filename, outx);
        Some outx
    | TeeFile _
@@ -140,6 +141,14 @@ let tee_copy name fd flush_flag tee tee_only id buf off len =
        | None ->
             ()
    end
+
+let tee_file_descr tee =
+  match tee_channel tee with
+   | Some outx ->
+        Some(Unix.descr_of_out_channel outx)
+   | None ->
+        None
+
 
 let tee_stdout = tee_copy "Unix.stdout" Unix.stdout (ref true)
 let tee_stderr = tee_copy "Unix.stderr" Unix.stderr (ref true)
