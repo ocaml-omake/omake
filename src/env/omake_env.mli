@@ -143,6 +143,10 @@ type include_scope =
    IncludePervasives
  | IncludeAll
 
+
+(* Target directories, compressed to a small int *)
+type target_dir
+
 (*
  * Check if command list does not contain anything to execute.
  *)
@@ -195,6 +199,8 @@ val venv_remove_explicit_dir : t -> Omake_node.Dir.t -> unit
 val venv_add_file         : t -> Omake_node.Node.t -> t
 val venv_intern           : t -> Omake_node_sig.phony_ok -> string -> Omake_node.Node.t
 val venv_intern_cd        : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> string -> Omake_node.Node.t
+val venv_intern_cd_1      : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> Omake_node.phony_name -> Omake_node.Node.t
+val venv_intern_cd_node_kind : t -> Omake_node_sig.phony_ok -> Omake_node.Dir.t -> Omake_node.phony_name -> Omake_node_sig.node_kind
 val venv_intern_dir       : t -> string -> Omake_node.Dir.t
 val venv_intern_target    : t -> Omake_node_sig.phony_ok -> Omake_value_type.target -> Omake_node.Node.t
 val venv_dirname          : t -> Omake_node.Dir.t -> string
@@ -412,10 +418,14 @@ val hoist_this       : t -> t -> Omake_value_type.path -> t
 (*
  * Cached buildable flags.
  *)
-val venv_find_target_is_buildable_exn : t -> Omake_node.Node.t -> bool
-val venv_find_target_is_buildable_proper_exn : t -> Omake_node.Node.t -> bool
-val venv_add_target_is_buildable : t -> Omake_node.Node.t -> bool -> unit
-val venv_add_target_is_buildable_proper : t -> Omake_node.Node.t -> bool -> unit
+val venv_lookup_target_dir : t -> Omake_node.Dir.t -> target_dir
+val venv_find_target_is_buildable_exn : t -> target_dir -> string -> Omake_node_sig.node_kind -> bool
+val venv_find_target_is_buildable_multi : t -> string -> Omake_node_sig.node_kind -> target_dir -> bool
+val venv_find_target_is_buildable_proper_exn : t -> target_dir -> string -> Omake_node_sig.node_kind -> bool
+val venv_add_target_is_buildable : t -> target_dir -> string -> Omake_node_sig.node_kind -> bool -> unit
+val venv_add_target_is_buildable_proper : t -> target_dir -> string -> Omake_node_sig.node_kind -> bool -> unit
+val venv_add_target_is_buildable_multi : t -> string -> Omake_node_sig.node_kind -> target_dir list -> target_dir list -> unit
+
 
 (*
  * Printing.

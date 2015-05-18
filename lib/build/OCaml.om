@@ -392,6 +392,7 @@ public.PrintDependencies(filename, modules) =
                 eprintln($"ocaml scanner: illegal filename $(filename)")
                 exit(1)
 
+
 #
 # Post-process the output of ocamldep.
 # Use awk to process the input, find the targets that
@@ -419,15 +420,15 @@ public.OCamlScannerPostproc(input) =
 
 Shell. +=
     ocamldep-postproc(argv) =
-        OCamlScannerPostproc($(stdin))
+        if $(defined ocamldep-postproc)
+            ocamldep-postproc($(OCAMLINCLUDES), $(NATIVE_ENABLED))
+        else
+            OCamlScannerPostproc($(stdin))
 
 Shell. +=
     ocamldep-postproc-preserve(argv) =
         OCAMLDEP_PRESERVE_TARGETS = true
         OCamlScannerPostproc($(stdin))
-
-# for performance reasons only we avoid now to create a pipe in
-# OCamlScanner. Instead, we use a temporary file.
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
