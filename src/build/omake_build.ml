@@ -1110,7 +1110,7 @@ let save_and_finish_scanner_results
     let targets = Omake_node.NodeSet.singleton target in
 
     (* Re-stat the locks *)
-    let () = Omake_node.NodeSet.iter (fun lock -> ignore (Omake_cache.force_stat cache lock)) locks in
+    let () = Omake_node.NodeSet.iter (fun lock -> ignore (Omake_cache.force_stat_delayed cache lock)) locks in
 
     (* Recompute the scanner digest *)
     let digest =
@@ -1450,10 +1450,10 @@ let save_and_finish_rule_success
     (* Collect the effects that are not phony, check that they were created *)
     let effects =
       Omake_node.NodeSet.fold (fun effects effect ->
-        let digest = Omake_cache.force_stat cache effect in
+        let effect_exists = Omake_cache.force_stat_delayed cache effect in
         if Omake_node.Node.is_phony effect then
           effects
-        else if digest = None then begin
+        else if not effect_exists then begin
           abort_command env command Omake_state.exn_error_code;
           raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("rule failed to build its target", effect)))
         end else
@@ -1462,7 +1462,7 @@ let save_and_finish_rule_success
 
     (* Re-stat the locks *)
     Omake_node.NodeSet.iter (fun lock ->
-      ignore (Omake_cache.force_stat cache lock)) locks;
+      ignore (Omake_cache.force_stat_delayed cache lock)) locks;
 
     (* Add a memo for a specific target *)
     if Lm_debug.debug debug_rule then
@@ -1689,6 +1689,7 @@ let save_aux (env : Omake_build_type.t) =
 
   (* Save the .omakedb *)
   let cache = env.env_cache in
+  Omake_cache.process_delayed_stat_requests cache;
 
   (* We want the name to be fairly unique in case locking had failed us. *)
   let db_tmp = Lm_printf.sprintf ".#%s.%s.%i" Omake_state.db_name (Unix.gethostname ()) pid in
@@ -1868,7 +1869,8 @@ let is_leaf_file (env : Omake_build_type.t) node =
  * Wait until a process exits.
  *)
 let rec process_running (env : Omake_build_type.t) notify =
-  match Omake_exec.Exec.wait env.env_exec (env_options env) with
+  let onblock() = Omake_cache.process_delayed_stat_requests env.env_cache in
+  match Omake_exec.Exec.wait ~onblock env.env_exec (env_options env) with
     WaitExited (pid, code, _) ->
     begin
       env.env_idle_count <- succ env.env_idle_count;

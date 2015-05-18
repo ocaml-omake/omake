@@ -413,7 +413,7 @@ struct
     * The wait process handles output from each of the jobs.
     * Once both output channels are closed, the job is finished.
     *)
-   let  wait server_main options =
+   let wait ?(onblock=fun() -> ()) server_main options =
       let rec poll servers =
          match servers with
             [] ->
@@ -466,6 +466,7 @@ struct
                         poll servers
       in
          poll server_main.server_servers
+
 
    (*
     * Ask for a file to be monitored.

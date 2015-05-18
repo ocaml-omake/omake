@@ -70,6 +70,30 @@ type exe_listing_item = exe_entry_core ref Lm_string_set.StringTable.t
 
 type exe_listing = exe_listing_item list
 
+type compact_stats = string
+  (* File stats as a single string (only for comparison) *)
+
+(*
+ * Stats of a file.
+ * FreshStats: we have taken the stats during this program run
+ * OldStats: we took the stats during a prior run of this program
+ *)
+(* %%MAGICBEGIN%% *)
+type node_stats =
+   FreshStats   of compact_stats
+ | OldStats     of compact_stats
+(* %%MAGICEND%% *)
+
+(*
+ * For each file, we keep the stats and the digest.
+ *)
+(* %%MAGICBEGIN%% *)
+type node_memo =
+   { nmemo_stats  : node_stats;
+     nmemo_digest : Digest.t option;  (* None = not yet computed *)
+   }
+(* %%MAGICEND%% *)
+
 (*
  * The memo is a record of what we have done during
  * a previous run of this program.
@@ -83,38 +107,21 @@ type exe_listing = exe_listing_item list
  *)
 (* %%MAGICBEGIN%% *)
 type 'a memo =
-   { memo_index    : int;
-     memo_targets  : Omake_cache_type.digest Omake_node.NodeTable.t;
-     memo_deps     : Omake_cache_type.digest Omake_node.NodeTable.t;
-     memo_commands : Omake_cache_type.digest;
-     memo_result   : 'a Omake_cache_type.memo_result
+   { memo_index        : int;
+     memo_deps         : Omake_node.NodeSet.t;
+     memo_targets_tab  : tab_entry Omake_node.NodeTable.t;
+     memo_deps_tab     : tab_entry Omake_node.NodeTable.t;
+     memo_commands     : Omake_command_type.command_digest;
+     memo_result       : 'a Omake_cache_type.memo_result
    }
-(* %%MAGICEND%% *)
 
-(*
- * Stats of a file.
- * FreshStats: we have taken the stats during this program run
- * OldStats: we took the stats during a prior run of this program
- * PartialStats: we took the stats, but not the digest
- * NoStats: we tried to take stats, but an error occurred (usually
- *    because the file did not exist).
- *)
-(* %%MAGICBEGIN%% *)
-type node_stats =
-   FreshStats   of Unix.LargeFile.stats
- | OldStats     of Unix.LargeFile.stats
- | PartialStats of Unix.LargeFile.stats
- | NoStats
-(* %%MAGICEND%% *)
+ and tab_entry = 
+   (string * Digest.t option) option
+   (* None = node does not exist
+      Some(cstat,None) = node exists, but digest is unknown
+      Some(cstat,Some digest)
+    *)
 
-(*
- * For each file, we keep the stats and the digest.
- *)
-(* %%MAGICBEGIN%% *)
-type node_memo =
-   { nmemo_stats  : node_stats;
-     nmemo_digest : Omake_cache_type.digest
-   }
 (* %%MAGICEND%% *)
 
 (*
@@ -136,7 +143,10 @@ type stat = Unix.LargeFile.stats
 type cache =
    { (* State *)
      mutable cache_nodes             : node_memo Omake_node.NodeTable.t;
-     mutable cache_lstats            : Unix.LargeFile.stats option Omake_node.NodeTable.t;
+     mutable cache_exists            : bool Omake_node.NodeTable.t;
+     mutable cache_exists_num        : int;
+     mutable cache_exists_lru        : Omake_node.Node.t list;
+
      mutable cache_info              : Omake_cache_type.memo_deps cache_info array;
      mutable cache_static_values     : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
      mutable cache_memo_values       : Omake_value_type.obj memo Omake_value_util.ValueTable.t;
@@ -146,7 +156,11 @@ type cache =
      (* Path lookups *)
      mutable cache_dirs         : (stat option * dir_listing_item) Omake_node.DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) Omake_node.DirListTable.t;
-     mutable cache_exe_path     : (stat option list * exe_listing_item) Omake_node.DirListTable.t
+     mutable cache_exe_path     : (stat option list * exe_listing_item) Omake_node.DirListTable.t;
+
+     (* Delayed updates *)
+     mutable cache_delayed : Omake_node.Node.t Queue.t;
+     mutable cache_info_delayed : (key * Omake_node.Node.t) Queue.t;
    }
 
 (*
@@ -162,9 +176,10 @@ type cache_save =
 (* %%MAGICEND%% *)
 
 (*
- * Squash stat code.
+ * Squash stat code. (Returned for directories, non-regular files, and nodes
+ * where contents do not matter.)
  *)
-let squash_stat = Some "squash"
+let squash_stat = "squash"
 
 (*
  * The cache type.
@@ -191,8 +206,8 @@ let env_target  = Omake_node.Node.create_phony_global ".ENV"
 let pp_print_digest buf digest =
    let s =
       match digest with
-         Some digest ->
-            Lm_string_util.hexify digest
+         Some(cstats,digest) ->
+            "<" ^ cstats ^ "/" ^ Lm_string_util.hexify digest ^ ">"
        | None ->
             "<none>"
    in
@@ -216,6 +231,15 @@ let pp_print_memo_result _pp_print_result buf result =
          Format.fprintf buf "@ success"
     | MemoFailure code ->
          Format.fprintf buf "@ failed(%d)" code
+
+let name_of node =
+  let buf = Buffer.create 80 in
+  let formatter = Format.formatter_of_buffer buf in
+  Omake_node.pp_print_node formatter node;
+  Format.pp_print_flush formatter();
+  Buffer.contents buf
+
+
 
 (*
  * Print a memo.
@@ -251,7 +275,9 @@ let output_magic = Omake_magic.output_magic
  *)
 let create () =
    { cache_nodes           = Omake_node.NodeTable.empty;
-     cache_lstats          = Omake_node.NodeTable.empty;
+     cache_exists          = Omake_node.NodeTable.empty;
+     cache_exists_num      = 0;
+     cache_exists_lru      = [];
      cache_info            = [||];
      cache_static_values   = Omake_value_util.ValueTable.empty;
      cache_memo_values     = Omake_value_util.ValueTable.empty;
@@ -259,7 +285,9 @@ let create () =
      cache_digest_count    = 0;
      cache_dirs            = Omake_node.DirTable.empty;
      cache_path            = Omake_node.DirListTable.empty;
-     cache_exe_path        = Omake_node.DirListTable.empty
+     cache_exe_path        = Omake_node.DirListTable.empty;
+     cache_delayed         = Queue.create();
+     cache_info_delayed    = Queue.create()
    }
 
 let rehash cache =
@@ -291,9 +319,7 @@ let save_of_cache cache =
              | OldStats stats ->
                   let nmemo = { nmemo with nmemo_stats = OldStats stats } in
                      Omake_node.NodeTable.add nodes target nmemo
-             | PartialStats _
-             | NoStats ->
-                  nodes) Omake_node.NodeTable.empty cache_nodes
+      ) Omake_node.NodeTable.empty cache_nodes
    in
    let cache_info = Array.map (fun info -> info.cache_memos) cache_info in
       { save_cache_nodes = cache_nodes;
@@ -375,6 +401,78 @@ let to_channel outx cache =
    Marshal.to_channel outx (save_of_cache cache) []
 
 (************************************************************************
+ * File existence.
+ *)
+
+(* Caching the existence of files seems to have a good performance effect on
+   Windows. There is no benefit on Linux. We try to keep the size of the
+   cache small (fast lookups, no waste of RAM), as the locality of the
+   accesses is high.
+
+   NB. In older omake versions there was even a cache for stat records.
+   We don't need this the complete records for regular builds, though. Only the
+   file existence is important.
+ *)
+
+let ex_limit = 100
+  (* we start a GC pass at 2*ex_limit and keep only ex_limit entries (lru) *)
+
+let ex_query cache node =
+  let ex_flag = Omake_node.NodeTable.find cache.cache_exists node in
+  cache.cache_exists_lru <- node :: cache.cache_exists_lru;
+  ex_flag
+
+exception Ex_result of bool Omake_node.NodeTable.t * int
+
+let ex_collect cache =
+  let old = cache.cache_exists in
+  let ex, num =
+    try
+      List.fold_left
+        (fun (ex,num) node ->
+           try
+             if num >= ex_limit then
+               raise(Ex_result(ex,num))
+             else if not (Omake_node.NodeTable.mem ex node) then
+               let ex_flag = Omake_node.NodeTable.find old node in
+               (Omake_node.NodeTable.add ex node ex_flag, num+1)
+             else
+               (ex,num)
+           with Not_found -> (ex,num)
+        )
+        (Omake_node.NodeTable.empty, 0)
+        cache.cache_exists_lru
+    with
+      | Ex_result(ex,num) -> (ex,num) in
+  cache.cache_exists <- ex;
+  cache.cache_exists_num <- num;
+  cache.cache_exists_lru <- []
+
+
+let ex_set cache node ex_flag =
+  cache.cache_exists_lru <- node :: cache.cache_exists_lru;
+  try
+    let old_flag = Omake_node.NodeTable.find cache.cache_exists node in
+    if ex_flag <> old_flag then
+      cache.cache_exists <- 
+        Omake_node.NodeTable.add cache.cache_exists node ex_flag
+  with
+    | Not_found ->
+        cache.cache_exists <- 
+          Omake_node.NodeTable.add cache.cache_exists node ex_flag;
+        cache.cache_exists_num <- cache.cache_exists_num + 1;
+        if cache.cache_exists_num > 2*ex_limit then
+          ex_collect cache
+
+
+let ex_reset cache node =
+  cache.cache_exists <- 
+    Omake_node.NodeTable.remove cache.cache_exists node
+  (* we don't update cache_exists_num, which is only an upper bound *)
+  
+
+
+(************************************************************************
  * Stat.
  *)
 
@@ -390,16 +488,13 @@ let reset cache node =
                match nmemo.nmemo_stats with
                   FreshStats stats
                 | OldStats stats ->
-                     Some { nmemo with nmemo_stats = OldStats stats }
-                | PartialStats _
-                | NoStats ->
-                     None)
+                     Some { nmemo with nmemo_stats = OldStats stats })
       with
          Not_found ->
             nodes
    in
-      cache.cache_nodes <- nodes;
-      cache.cache_lstats <- Omake_node.NodeTable.remove cache.cache_lstats node
+   cache.cache_nodes <- nodes;
+   ex_reset cache node
 
 let reset_set cache nodes =
    Omake_node.NodeSet.iter (reset cache) nodes
@@ -407,26 +502,20 @@ let reset_set cache nodes =
 let reset_table cache nodes =
    Omake_node.NodeTable.iter (fun node _ -> reset cache node) nodes
 
+let compact_stats s =
+  let open Unix.LargeFile in
+  Printf.sprintf "%x:%x:%Lx:%Lx"
+    s.st_dev
+    s.st_ino
+    s.st_size
+    (Int64.bits_of_float s.st_mtime)
+
 (*
  * Test whether stats are equal enough that we think the
  * file is up-to-date.
  *)
 let stats_equal stat1 stat2 =
-   let { Unix.LargeFile.st_ino   = ino1;
-         Unix.LargeFile.st_kind  = kind1;
-         Unix.LargeFile.st_size  = size1;
-         Unix.LargeFile.st_mtime = mtime1;
-         _
-       } = stat1
-   in
-   let { Unix.LargeFile.st_ino   = ino2;
-         Unix.LargeFile.st_kind  = kind2;
-         Unix.LargeFile.st_size  = size2;
-         Unix.LargeFile.st_mtime = mtime2;
-         _
-       } = stat2
-   in
-      ino1 = ino2 && kind1 = kind2 && size1 = size2 && mtime1 = mtime2
+   stat1 = stat2
 
 (* let pp_print_stat buf (stat : Unix.LargeFile.stats) = *)
 (*   match stat with  *)
@@ -499,10 +588,128 @@ let digest_file name file_size =
    else
       Digest.file name
 
+let stat_file_update_digest ?old cache node =
+  let nodes = cache.cache_nodes in
+  let name = Omake_node.Node.fullname node in
+  ( try
+      let stats = Unix.LargeFile.stat name in
+      let cstats = compact_stats stats in
+      ex_set cache node true;
+      if stats.Unix.LargeFile.st_kind <> Unix.S_REG then (
+        cache.cache_nodes <- Omake_node.NodeTable.remove nodes node;
+        Some (cstats, squash_stat)
+      )
+      else (
+        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+        let digest =
+          (* Old: do a conditional update of the digest *)
+          match old with
+            | Some ({ nmemo_digest = Some digest; _ },cstats') 
+                  when stats_equal cstats cstats' ->
+                digest
+            | _ ->
+                let digest = digest_file name stats.Unix.LargeFile.st_size in
+(* Printf.eprintf "digest node=%s\n%!" (name_of node); *)
+                cache.cache_digest_count <- succ cache.cache_digest_count;
+                digest in
+        let nmemo =
+          { nmemo_stats = FreshStats cstats;
+            nmemo_digest = Some digest
+          } in
+        cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
+        Some (cstats, digest)
+      )
+    with
+      | Unix.Unix_error _
+      | Sys_error _ ->
+          cache.cache_nodes <- Omake_node.NodeTable.remove nodes node;
+          ex_set cache node false;
+          None
+  )
+
 (*
- * Stat a file.
+ * Stat a file. (Returns compact_stat * digest.)
  *)
 let stat_file cache node =
+   let nodes = cache.cache_nodes in
+   let old_nmemo =
+      try Some (Omake_node.NodeTable.find nodes node) with
+         Not_found ->
+            None in
+   match old_nmemo with
+     | Some { nmemo_stats = FreshStats cstats;
+              nmemo_digest = Some digest
+            } ->
+         (* We've recently computed the digest for this file. *)
+         Some(cstats, digest)
+
+     | Some { nmemo_stats = FreshStats _;
+              nmemo_digest = None
+            } ->
+         (* The stats are recent, but no digest yet. So do a full update *)
+         stat_file_update_digest cache node
+
+     | Some ({ nmemo_stats = OldStats cstats ; _} as nmemo) ->
+         (* We have no recent record of this file.
+            Get current stats.  If they match, then
+            use current digest; otherwise recompute.
+          *)
+         stat_file_update_digest ~old:(nmemo, cstats) cache node
+
+     | None ->
+         (* We've never seen this file before. Get complete stats,
+             including a digest.
+          *)
+         stat_file_update_digest cache node
+
+let compact_stat_file cache node =
+  (* get only compact_stat *)
+  let nodes = cache.cache_nodes in
+  let name = Omake_node.Node.fullname node in
+  let old_nmemo =
+    try Some (Omake_node.NodeTable.find nodes node) with
+        Not_found ->
+      None in
+  match old_nmemo with
+    | Some { nmemo_stats = FreshStats cstats; _ } ->
+        Some cstats
+    | _ ->
+        ( try
+            let stats = Unix.LargeFile.stat name in
+            let cstats = compact_stats stats in
+            ex_set cache node true;
+            if stats.Unix.LargeFile.st_kind <> Unix.S_REG then
+              cache.cache_nodes <- Omake_node.NodeTable.remove nodes node
+            else (
+              let old_digest =
+                match old_nmemo with
+                  | Some ({ nmemo_stats = OldStats ocstats ; _} as nmemo) ->
+                      if ocstats = cstats then
+                        nmemo.nmemo_digest
+                      else
+                        None
+                  | _ -> None in
+              let nmemo =
+                { nmemo_stats = FreshStats cstats;
+                  nmemo_digest = old_digest;
+                } in
+              cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
+            );
+            Some cstats
+          with
+            | Unix.Unix_error _
+            | Sys_error _ ->
+                cache.cache_nodes <- Omake_node.NodeTable.remove nodes node;
+                ex_set cache node false;
+                None
+        )
+
+
+let stat_file_would_be_ok cache node =
+  (* Whether stat_file would return [Some _]. However, the cache isn't
+     updated, and the digest isn't computed
+     NB. The file existence cache IS updated.
+   *)
    let nodes = cache.cache_nodes in
    let stats =
       try Some (Omake_node.NodeTable.find nodes node) with
@@ -511,234 +718,110 @@ let stat_file cache node =
    in
       match stats with
          Some { nmemo_stats = FreshStats _;
-                nmemo_digest = digest
-         }
-       | Some { nmemo_stats = NoStats;
-                nmemo_digest = digest
-         } ->
-            (*
-             * We've recently computed the digest for this file.
-             *)
-            digest
-       | Some ({ nmemo_stats = OldStats stats ; _} as nmemo) ->
-            (*
-             * We have no recent record of this file.
-             * Get current stats.  If they match, then
-             * use current digest; otherwise recompute.
-             *)
+                nmemo_digest = Some _
+              } ->
+            true
+       | _ ->
             let name = Omake_node.Node.fullname node in
-            let nmemo =
-               try
-                  let stats' = Unix.LargeFile.stat name in
-                     if stats'.Unix.LargeFile.st_kind = Unix.S_DIR then
-                        { nmemo_stats = FreshStats stats';
-                          nmemo_digest = squash_stat
-                        }
-                     else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-                        if stats_equal stats' stats then
-                           { nmemo with nmemo_stats = FreshStats stats' }
-                        else
-                           let digest = digest_file name stats'.Unix.LargeFile.st_size in
-                              cache.cache_digest_count <- succ cache.cache_digest_count;
-                              { nmemo_stats = FreshStats stats';
-                                nmemo_digest = Some digest
-                              }
-                     end
-               with
+            ( try
+                let _ = Unix.LargeFile.stat name in
+                ex_set cache node true;
+                true
+              with
                   Unix.Unix_error _
                 | Sys_error _ ->
-                     { nmemo_stats = NoStats;
-                       nmemo_digest = None
-                     }
-            in
-               cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
-               nmemo.nmemo_digest
+                     ex_set cache node false;
+                     false
+            )
 
-       | Some { nmemo_stats = PartialStats stats ; _} ->
-            (*
-             * We have taken stats of this file, and found that they
-             * differed from the old value, so the digest is out-of-date.
-             *)
-            let name = Omake_node.Node.fullname node in
-            let nmemo =
-               try
-                  if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
-                     { nmemo_stats = FreshStats stats;
-                       nmemo_digest = squash_stat
-                     }
-                  else
-                     let digest = digest_file name stats.Unix.LargeFile.st_size in
-                        cache.cache_digest_count <- succ cache.cache_digest_count;
-                        { nmemo_stats = FreshStats stats;
-                          nmemo_digest = Some digest
-                        }
-               with
-                  Unix.Unix_error _
-                | Sys_error _ ->
-                     { nmemo_stats = NoStats;
-                       nmemo_digest = None
-                     }
-            in
-               cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
-               nmemo.nmemo_digest
 
-       | None ->
-            (*
-             * We've never seen this file before.
-             * Get complete stats, including a digest.
-             *)
-            let name = Omake_node.Node.fullname node in
-            let nmemo =
-               try
-                  let stats = Unix.LargeFile.stat name in
-                     if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
-                        { nmemo_stats = FreshStats stats;
-                          nmemo_digest = squash_stat
-                        }
-                     else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-                        let digest = digest_file name stats.Unix.LargeFile.st_size in
-                           cache.cache_digest_count <- succ cache.cache_digest_count;
-                           { nmemo_stats = FreshStats stats;
-                             nmemo_digest = Some digest
-                           }
-                     end
-               with
-                  Unix.Unix_error _
-                | Sys_error _ ->
-                     { nmemo_stats = NoStats;
-                       nmemo_digest = None
-                     }
-            in
-               cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
-               nmemo.nmemo_digest
+let has_file_stat ?compact_stat ?digest cache node : bool option =
+  (* Check whether a file has certain stats:
+      - [compact_stat]: if passed, checks whether the file exists and has
+        these stats
+      - [digest]: if passed, checks whether the file exists and has this
+        digest
+ 
+     Returns None if the file does not exist. Otherwise [Some b], and [b]
+     says whether the above criteria are fulfilled.
+   *)
+  let st_check cstats =
+    match compact_stat with
+      | Some c -> stats_equal c cstats
+      | None -> true in
+  let check cstats dg_opt =
+    try
+      Some
+        ( st_check cstats &&
+            match digest, dg_opt with
+              | (Some d1, Some d2) -> d1 = d2
+              | (Some d1, None) ->
+                  ( match stat_file cache node with
+                      | Some(cstats1, dg) -> st_check cstats1 && d1 = dg
+                      | None -> raise Not_found
+                  )
+              | (None, _) -> true
+        )
+    with Not_found -> None in
 
-(*
- * Return just the Unix stat information.
- * Avoid taking a full digest in this case.
- *)
-let stat_unix_simple stats =
-   match stats with
-      FreshStats stats
-    | PartialStats stats ->
-         stats
-    | NoStats ->
-         raise Not_found
-    | OldStats _ ->
-         raise (Invalid_argument "Omake_cache.stat_unix_simple")
+  let nodes = cache.cache_nodes in
+  let old_nmemo =
+    try Some (Omake_node.NodeTable.find nodes node) with
+        Not_found -> None in
+  match old_nmemo with
+    | Some { nmemo_stats = FreshStats cstats;
+             nmemo_digest = Some digest
+           } ->
+        check cstats (Some digest)
 
-let do_stat_unix cache node =
-   let name = Omake_node.Node.fullname node in
-   let nmemo =
-      try
-         let stats = Unix.LargeFile.stat name in
-            if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
-               { nmemo_stats = FreshStats stats;
-                 nmemo_digest = squash_stat
-               }
-            else begin
-               cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-               { nmemo_stats = PartialStats stats;
-                 nmemo_digest = None
-               }
-            end
-      with
-         Unix.Unix_error _
-       | Sys_error _ ->
-            { nmemo_stats  = NoStats;
-              nmemo_digest = None
-            }
-   in
-      cache.cache_nodes <- Omake_node.NodeTable.add cache.cache_nodes node nmemo;
-      stat_unix_simple nmemo.nmemo_stats
+    | Some { nmemo_stats = FreshStats cstats;
+             nmemo_digest = None
+           } ->
+        check cstats None
+
+    | _ ->
+        if digest = None then
+          match compact_stat_file cache node with
+            | None -> None
+            | Some cstats -> check cstats None
+        else
+          match stat_file cache node with
+            | None -> None
+            | Some(cstats,dg) -> check cstats (Some dg)
+
 
 let stat_unix_node cache ~force node =
-   let nodes = cache.cache_nodes in
-   let stats =
-      try Some (Omake_node.NodeTable.find nodes node) with
-         Not_found ->
-            None
-   in
-      match stats with
-         Some { nmemo_stats = FreshStats stats ; _}
-       | Some { nmemo_stats = PartialStats stats ; _} ->
-            stats
-       | Some { nmemo_stats = NoStats ; _} ->
-            if force then
-               do_stat_unix cache node
-            else
-               raise Not_found
-       | Some ({ nmemo_stats = OldStats old_stats ; _} as nmemo) ->
-            let name = Omake_node.Node.fullname node in
-            let nmemo =
-               try
-                  let new_stats = Unix.LargeFile.stat name in
-                     if new_stats.Unix.LargeFile.st_kind = Unix.S_DIR then
-                        { nmemo_stats = FreshStats new_stats;
-                          nmemo_digest = squash_stat
-                        }
-                     else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-                        if stats_equal new_stats old_stats then
-                           { nmemo with nmemo_stats = FreshStats new_stats }
-                        else
-                           { nmemo with nmemo_stats = PartialStats new_stats }
-                     end
-               with
-                  Unix.Unix_error _
-                | Sys_error _ ->
-                     { nmemo_stats = NoStats;
-                       nmemo_digest = None
-                     }
-            in
-               cache.cache_nodes <- Omake_node.NodeTable.add nodes node nmemo;
-               stat_unix_simple nmemo.nmemo_stats
-       | None ->
-            do_stat_unix cache node
+  (* We used to cache this information, but don't do this anymore. Hence,
+     the [force] flag is ignored: we always re-stat
+   *)
+  ignore(force);
+  let name = Omake_node.Node.fullname node in
+  try
+    let s = Unix.LargeFile.stat name in
+    ex_set cache node true;
+    s
+  with
+      Unix.Unix_error _
+    | Sys_error _ ->
+        ex_set cache node false;
+         raise Not_found
 
 (*
  * lstat versions, for not following symlinks.
  *)
-let lstat_unix_simple stats =
-   match stats with
-      Some stats ->
-         stats
-    | None ->
+
+let lstat_unix_node _cache ~force node =
+  (* We used to cache this information, but don't do this anymore. Hence,
+     the [force] flag is ignored: we always re-stat
+   *)
+  ignore(force);
+  let name = Omake_node.Node.fullname node in
+  try
+    Unix.LargeFile.lstat name
+  with
+      Unix.Unix_error _
+    | Sys_error _ ->
          raise Not_found
-
-let do_lstat_unix cache node =
-   let name = Omake_node.Node.fullname node in
-   let stats =
-      try
-         let stats = Unix.LargeFile.lstat name in
-            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-            Some stats
-      with
-         Unix.Unix_error _
-       | Sys_error _ ->
-            None
-   in
-      cache.cache_lstats <- Omake_node.NodeTable.add cache.cache_lstats node stats;
-      lstat_unix_simple stats
-
-let lstat_unix_node cache ~force node =
-   let nodes = cache.cache_lstats in
-   let stats =
-      try Some (Omake_node.NodeTable.find nodes node) with
-         Not_found ->
-            None
-   in
-      match stats with
-         Some (Some lstats) ->
-            lstats
-       | Some None ->
-            if force then
-               do_lstat_unix cache node
-            else
-               raise Not_found
-       | None ->
-            do_lstat_unix cache node
 
 (*
  * Cached stat.
@@ -787,6 +870,7 @@ let groups =
  * Check if the node is phony first.
  *)
 let stat cache node =
+(* Printf.eprintf "stat node=%s\n%!" (name_of node); *)
    let core = Omake_node.Node.core node in
       match Omake_node.Node.kind node with
          NodePhony
@@ -798,10 +882,57 @@ let stat cache node =
        | NodeSquashed
        | NodeExists ->
             (match stat_file cache core with
-                Some _ ->
-                   squash_stat
-              | None ->
-                   None)
+               | Some(cstats,_) ->
+                   Some(cstats,squash_stat)
+               | None ->
+                   None
+            )
+
+
+let stat_would_be_ok cache node =
+   let core = Omake_node.Node.core node in
+      match Omake_node.Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            false
+       | NodeOptional
+       | NodeNormal
+       | NodeSquashed
+       | NodeExists ->
+            stat_file_would_be_ok cache core
+
+
+let has_stat ?compact_stat ?digest cache node : bool option =
+   let core = Omake_node.Node.core node in
+      match Omake_node.Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            None
+       | NodeOptional
+       | NodeNormal ->
+            has_file_stat ?compact_stat ?digest cache core
+       | NodeSquashed
+       | NodeExists ->
+            (match stat_file cache core with
+               | Some _ ->
+                   Some true
+               | None ->
+                   None
+            )
+
+
+let compact_stat cache node =
+   let core = Omake_node.Node.core node in
+      match Omake_node.Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            None
+       | NodeOptional
+       | NodeNormal
+       | NodeSquashed
+       | NodeExists ->
+            compact_stat_file cache core
+  
 
 (*
  * Turn a set into a table of stat info.
@@ -810,6 +941,43 @@ let stat_set cache nodes =
    Omake_node.NodeSet.fold (fun table node ->
          Omake_node.NodeTable.add table node (stat cache node)) 
     Omake_node.NodeTable.empty nodes
+
+let stat_set_for_add ?(compact=false) cache nodes =
+   Omake_node.NodeSet.fold (fun table node ->
+         let out =
+           if compact then
+             match compact_stat cache node with
+               | None -> None
+               | Some cstat -> Some (cstat, None)
+           else
+             match stat cache node with
+               | None -> None
+               | Some(cstat,dg) -> Some (cstat, Some dg) in
+         Omake_node.NodeTable.add table node out) 
+    Omake_node.NodeTable.empty nodes
+
+
+let complement_stat_set_for_add cache node_tab =
+  Omake_node.NodeTable.mapi
+    (fun node info_opt ->
+       match info_opt with
+         | None ->
+             None
+         | Some(cstat, None) ->
+             ( match stat cache node with
+                 | None -> info_opt   (* "None" would be surprising *)
+                 | Some(cstat_new, digest) ->
+                     if cstat = cstat_new then
+                       Some(cstat, Some digest)
+                     else
+                       info_opt  (* be conservative here *)
+             )
+         | Some(_, Some _) ->
+             info_opt
+    )
+    node_tab
+
+
 
 let stat_table cache nodes =
    Omake_node.NodeTable.mapi (fun node _ -> stat cache node) nodes
@@ -838,17 +1006,23 @@ let stat_changed cache node =
          Not_found ->
             None
    in
-   let new_digest = force_stat cache node in
-      new_digest <> old_digest
+   match force_stat cache node with
+     | Some(_, dg) -> old_digest = Some dg
+     | None -> old_digest = None
 
 (*
  * Check if a file exists.
  *)
 let exists cache ?(force=false) node =
    try
-      ignore (stat_unix cache ~force node); true
+     if force then raise Not_found;
+     ex_query cache node
    with
-      Not_found -> Omake_node.Node.always_exists node
+     | Not_found ->
+         try
+           ignore (stat_unix cache ~force node); true
+         with
+             Not_found -> Omake_node.Node.always_exists node
 
 let exists_dir cache ?(force=false) dir =
    exists cache ~force (Omake_node.Node.node_of_dir dir)
@@ -899,36 +1073,141 @@ let get_info cache key =
 let add cache key target targets deps commands result =
    let index = hash_index deps commands in
    let memo =
-      { memo_index    = index;
-        memo_targets  = stat_set cache targets;
-        memo_deps     = stat_set cache deps;
-        memo_result   = result;
-        memo_commands = commands
+      { memo_index        = index;
+        memo_deps         = deps;
+        memo_targets_tab  = stat_set_for_add ~compact:true cache targets;
+        memo_deps_tab     = stat_set_for_add ~compact:true cache deps;
+        memo_result       = result;
+        memo_commands     = commands
       }
    in
    let info = get_info cache key in
-      info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo;
-      info.cache_index <- IndexNodeTable.add info.cache_index index target
+   info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo;
+   info.cache_index <- IndexNodeTable.add info.cache_index index target;
+   (* schedule to add the digests later: *)
+   Queue.add (key, target) cache.cache_info_delayed
+
+
+let is_digest_missing node_tab =
+  Omake_node.NodeTable.exists
+    (fun _ info_opt ->
+       match info_opt with
+         | Some(_, None) -> true
+         | _ -> false
+    )
+    node_tab
+
+
+let add_digests cache key target =
+  try
+    let info = get_info cache key in
+    let memo = Omake_node.NodeTable.find info.cache_memos target in
+    let p1 = is_digest_missing memo.memo_targets_tab in
+    let p2 = is_digest_missing memo.memo_deps_tab in
+    if p1 || p2 then (
+      let memo' =
+        { memo with
+          memo_targets_tab = 
+            (if p1 then complement_stat_set_for_add cache memo.memo_targets_tab
+             else memo.memo_targets_tab);
+          memo_deps_tab = 
+            (if p1 then complement_stat_set_for_add cache memo.memo_deps_tab
+             else memo.memo_deps_tab);
+        } in
+      info.cache_memos <- Omake_node.NodeTable.add info.cache_memos target memo'
+    )
+  with
+    | Not_found -> ()
+
 
 (*
  * Check the target digest.
  *)
-let targets_equal cache targets =
-   Omake_node.NodeTable.forall (fun target digest ->
-         stat cache target = digest) targets
+
+let targets_equal_1 cache targets_tab =
+  (* A quick check only using Unix.stat. Not_found if files are missing *)
+  Omake_node.NodeTable.forall
+    (fun target old_stat ->
+       match old_stat with
+         | Some (cstats, _) ->
+             ( match has_stat ~compact_stat:cstats cache target with
+                 | Some b -> b
+                 | None -> raise Not_found  (* target does not exist *)
+             )
+         | None -> (* the recorded target did not exist as file *)
+             has_stat cache target = None
+    )
+    targets_tab                        
+
+
+let targets_equal_2 cache targets_tab =
+  (* A deep check using digests (if available) *)
+  Omake_node.NodeTable.forall
+    (fun target old_stat ->
+       match old_stat with
+         | Some (_, Some digest) ->
+             has_stat ~digest cache target = Some true
+         | Some (cstats, None) ->
+             has_stat ~compact_stat:cstats cache target = Some true
+         | None -> (* the recorded target did not exist as file *)
+             has_stat cache target = None
+    )
+    targets_tab                        
+    
+let targets_equal cache targets_tab =
+  try
+    targets_equal_1 cache targets_tab || targets_equal_2 cache targets_tab
+  with
+    | Not_found -> false
 
 (*
  * Check if deps are the same.
- * This returns true if the deps are equal.
+ * This returns true if the deps are equal (deps: the nodes as of now;
+ * deps_tab: the recorded properties from the last run).
  * If not, it either returns false, or raises Not_found.
  *)
-let deps_equal cache deps1 deps2 =
-   let count1 = Omake_node.NodeSet.cardinal deps1 in
-   let count2 = Omake_node.NodeTable.cardinal deps2 in
-      (count1 = count2) && Omake_node.NodeSet.for_all (fun dep1 ->
-            let digest1 = stat cache dep1 in
-            let digest2 = Omake_node.NodeTable.find deps2 dep1 in
-               digest1 = digest2) deps1
+
+let deps_equal_1 cache deps deps_tab =
+  (* A quick check only using Unix.stat. Not_found if files are missing *)
+  let count1 = Omake_node.NodeSet.cardinal deps in
+  let count2 = Omake_node.NodeTable.cardinal deps_tab in
+  (count1 = count2) && 
+    Omake_node.NodeSet.for_all
+      (fun dep ->
+         match Omake_node.NodeTable.find deps_tab dep with
+           | Some(cstats,_) ->
+               ( match has_stat ~compact_stat:cstats cache dep with
+                   | None -> raise Not_found
+                   | Some ok -> ok
+               )
+           | None -> (* the recorded dep did not exist as file *)
+               has_stat cache dep = None
+      )
+      deps
+
+
+let deps_equal_2 cache deps deps_tab =
+  (* A deep check using digests (if available) *)
+  let count1 = Omake_node.NodeSet.cardinal deps in
+  let count2 = Omake_node.NodeTable.cardinal deps_tab in
+  (count1 = count2) && 
+    Omake_node.NodeSet.for_all
+      (fun dep ->
+         match Omake_node.NodeTable.find deps_tab dep with
+           | Some (_, Some digest) ->
+               has_stat ~digest cache dep = Some true
+           | Some (cstats, None) ->
+               has_stat ~compact_stat:cstats cache dep = Some true
+           | None -> (* the recorded dep did not exist as file *)
+               has_stat cache dep = None
+      )
+      deps
+      
+let deps_equal cache deps deps_tab =
+  try
+    deps_equal_1 cache deps deps_tab || deps_equal_2 cache deps deps_tab
+  with
+    | Not_found -> false
 
 (*
  * Find a memo from the deps and commands.
@@ -948,7 +1227,10 @@ let find_memo cache key deps commands =
                _
              } = memo
          in
-            if hash' = hash && deps_equal cache deps deps' && commands = commands' then
+            if hash' = hash &&
+               commands = commands' &&
+               Omake_node.NodeSet.equal deps deps'
+            then
                memo
             else
                search targets
@@ -966,27 +1248,30 @@ let find_memo cache key deps commands =
 let up_to_date cache key deps commands =
    try
       let memo = find_memo cache key deps commands in
-         if targets_equal cache memo.memo_targets then
-            match memo.memo_result with
+         if targets_equal cache memo.memo_targets_tab &&
+              deps_equal cache deps memo.memo_deps_tab
+         then
+           match memo.memo_result with
                MemoSuccess _ ->
-                  true
+               true
              | MemoFailure _ ->
-                  false
+                 false
          else
-            false
+           false
    with
-      Not_found ->
-         false
+       Not_found -> false
 
 let up_to_date_status cache key deps commands =
   try
     let memo = find_memo cache key deps commands in
-    if targets_equal cache memo.memo_targets then
+    if targets_equal cache memo.memo_targets_tab &&
+         deps_equal cache deps memo.memo_deps_tab
+    then
       match memo.memo_result with
-        Omake_cache_type.MemoSuccess _ ->
-        Omake_cache_type.StatusSuccess
-      | MemoFailure code ->
-        StatusFailure code
+        | Omake_cache_type.MemoSuccess _ ->
+            Omake_cache_type.StatusSuccess
+        | MemoFailure code ->
+            StatusFailure code
     else
       StatusUnknown
   with
@@ -1006,12 +1291,13 @@ let target_results results =
 
 let find_result cache key deps commands =
    let memo = find_memo cache key deps commands in
-   let { memo_targets = targets;
+   let { memo_targets_tab = targets_tab;
+         memo_deps_tab = deps_tab;
          memo_result  = result;
          _
        } = memo
    in
-      if targets_equal cache targets then
+      if targets_equal cache targets_tab && deps_equal cache deps deps_tab then
          target_results result
       else
          raise Not_found
@@ -1027,6 +1313,40 @@ let find_result_sloppy cache key target =
             raise Not_found
        | MemoSuccess deps ->
             deps
+
+(************************************************************************
+ * Delayed stat requests
+ *)
+
+let force_stat_delayed cache node =
+   reset cache node;
+   stat_would_be_ok cache node && (
+     Queue.add node cache.cache_delayed;
+     true
+   )
+
+
+let process_delayed_stat_requests cache =
+(* Printf.eprintf "process_delayed n=%d\n%!" (Queue.length cache.cache_delayed); *)
+  ( try
+      while true do
+        let node = Queue.take cache.cache_delayed in
+        ignore(stat cache node)
+      done
+    with
+      | Queue.Empty ->
+          ()
+  );
+  ( try
+      while true do
+        let (key, target) = Queue.take cache.cache_info_delayed in
+        add_digests cache key target
+      done
+    with
+      | Queue.Empty ->
+          ()
+  );
+(* Printf.eprintf "process_delayed done\n%!" *)
 
 (************************************************************************
  * Values.  In this case, we use the key to find the memo.
@@ -1050,19 +1370,21 @@ let find_value_memo cache key is_static deps1 commands1 =
          _
        } = memo
    in
-      if hash1 = hash2 && deps_equal cache deps1 deps2 && commands1 = commands2 then
-         memo
+      if hash1 = hash2 && commands1 = commands2 && 
+           Omake_node.NodeSet.equal deps1 deps2 then
+        memo
       else
          raise Not_found
 
 let find_value cache key is_static deps commands =
    let memo = find_value_memo cache key is_static deps commands in
-   let { memo_targets = targets;
+   let { memo_targets_tab = targets_tab;
+         memo_deps_tab = deps_tab;
          memo_result  = result;
          _
        } = memo
    in
-      if targets_equal cache targets then
+      if targets_equal cache targets_tab && deps_equal cache deps deps_tab then
          target_results result
       else
          raise Not_found
@@ -1070,11 +1392,12 @@ let find_value cache key is_static deps commands =
 let add_value cache key is_static deps commands result =
    let index = hash_index deps commands in
    let memo =
-      { memo_index    = index;
-        memo_targets  = Omake_node.NodeTable.empty;
-        memo_deps     = stat_set cache deps;
-        memo_result   = result;
-        memo_commands = commands
+      { memo_index       = index;
+        memo_deps        = deps;
+        memo_targets_tab = Omake_node.NodeTable.empty;
+        memo_deps_tab    = stat_set_for_add ~compact:false cache deps;
+        memo_result      = result;
+        memo_commands    = commands
       }
    in
       if is_static then

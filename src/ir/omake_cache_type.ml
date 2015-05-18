@@ -3,8 +3,10 @@
 (* %%MAGICBEGIN%% *)
 (*
  * File digest is an option, in case the file does not exist.
+ * The left string is a compactified version of Unix.stat. The right
+ * half is the MD5 digest.
  *)
-type digest = Digest.t option
+type digest = (string * Digest.t) option
 
 (*
  * The memo result is used only for the scanner,
