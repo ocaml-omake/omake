@@ -1,0 +1,24 @@
+c=10000, j=1, n=8, master, linux (office1, quad-core Intel C2550 server)
+
+real	6m3.425s
+user	4m16.328s
+sys	1m31.846s
+
+*** omake: reading OMakefiles
+--- Checking for ocamlfind... (found /opt/godi-4.01/bin/ocamlfind)
+--- Checking for ocamlc.opt... (found /opt/godi-4.01/bin/ocamlc.opt)
+--- Checking for ocamlopt.opt... (found /opt/godi-4.01/bin/ocamlopt.opt)
+--- Checking whether ocamlc understands the "z" warnings... (yes)
+*** omake: finished reading OMakefiles (0.35 sec)
+--- Checking if ocamldep understands -modules... (yes)
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: saved .omakedb
+*** omake: done (6 min 03.34 sec, 4096/4096 scans, 4160/12416 rules, 16582/16673 digests)
+Resources used by main process:     user 69.84seconds, system 6.53seconds
+Resources used incl. sub processes: user 186.48seconds, system 85.25seconds
+Probes (times in milliseconds):
+FL NAME                          COUNT       ACC      SELF       MIN       MAX
