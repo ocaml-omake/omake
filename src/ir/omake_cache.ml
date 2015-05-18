@@ -1345,7 +1345,7 @@ let process_delayed_stat_requests cache =
     with
       | Queue.Empty ->
           ()
-  );
+  )
 (* Printf.eprintf "process_delayed done\n%!" *)
 
 (************************************************************************
