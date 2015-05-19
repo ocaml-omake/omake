@@ -1,15 +1,15 @@
-c=10000, n=7, j=4, master, win32 mingw build (Intel i3-3227U)
+c=10000, n=8, j=4, master, win32 mingw build (Intel i3-3227U)
 
-real	5m51.485s
-user	0m0.046s
-sys	0m0.000s
+real	5m30.752s
+user	0m0.030s
+sys	0m0.045s
 
 *** omake: reading OMakefiles
 --- Checking for ocamlfind... (found c:\OCaml\bin\ocamlfind.exe)
 --- Checking for ocamlc.opt... (found c:\OCaml\bin\ocamlc.opt.exe)
 --- Checking for ocamlopt.opt... (found c:\OCaml\bin\ocamlopt.opt.exe)
 --- Checking whether ocamlc understands the "z" warnings... (yes)
-*** omake: finished reading OMakefiles (0.34 sec)
+*** omake: finished reading OMakefiles (0.56 sec)
 --- Checking if ocamldep understands -modules... (yes)
 *** omake: saved .omakedb
 *** omake: saved .omakedb
@@ -32,10 +32,8 @@ sys	0m0.000s
 *** omake: saved .omakedb
 *** omake: saved .omakedb
 *** omake: saved .omakedb
-*** omake: saved .omakedb
-*** omake: saved .omakedb
-*** omake: done (5 min 51.22 sec, 4096/4096 scans, 4160/12416 rules, 16582/16706 digests)
-Resources used by main process:     user 73.85seconds, system 27.78seconds
+*** omake: done (5 min 30.49 sec, 4096/4096 scans, 4160/12416 rules, 16582/16706 digests)
+Resources used by main process:     user 76.19seconds, system 26.89seconds
 Resources used incl. sub processes: user 0.00seconds, system 0.00seconds
 Probes (times in milliseconds):
 FL NAME                          COUNT       ACC      SELF       MIN       MAX
