@@ -2,7 +2,6 @@
  * System calls.
  *)
 open Lm_printf
-open Lm_debug
 
 open Omake_shell_type
 open Omake_shell_sys_type
@@ -45,7 +44,7 @@ let close_fd = Unix.close
 (*
  * Termination signal.
  *)
-exception Terminated
+(* exception Terminated *)
 
 (*
  * The operation depends on the signal number.
@@ -98,7 +97,8 @@ let create_thread info =
          create_thread_stdout = stdout;
          create_thread_stderr = stderr;
          create_thread_pgrp = pgrp;
-         create_thread_fun = f
+         create_thread_fun = f;
+         _
        } = info
    in
    Pervasives.flush_all();

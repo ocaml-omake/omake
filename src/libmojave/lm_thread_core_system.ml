@@ -193,7 +193,7 @@ struct
    let signal    = Condition.signal
    let broadcast = Condition.broadcast
 
-   let wait cond l =
+   let wait (cond:t) (l:mutex) =
       begin match l.locked with
          None ->
             if !debug_mutex then
