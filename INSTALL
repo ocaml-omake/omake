@@ -5,8 +5,9 @@ how we build in the first place!
 
 If you already have a working copy of omake (for instance, by
 downloading and installing it from somewhere else like
-omake.metaprl.org), then you should use your working copy to do the
-bootstrap.
+omake.metaprl.org), you can skip the bootstrap, and directly run
+"make all", followed by "make install" (or, equivalently,
+"OMAKEPATH=lib omake install").
 
 Otherwise, let's assume you do don't have omake already installed and
 you want to build it.
@@ -38,12 +39,11 @@ to build the omake-boot executable.  This should work with classic
 make; there should be no need to use GNU make.  If you have it, GNU
 make will work fine.
 
-If you are going to compile OMake with the default options, you can
-use make to both bootstrap and build omake: 
+Go now on with
 
    % make all
 
-or even bootstrap, build, and install it:
+and finally:
 
    % make install
 
