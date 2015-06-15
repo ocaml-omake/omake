@@ -1,5 +1,4 @@
 LN = ln -sf
-# MinGW: set this to: LN=cp
 
 #
 # For bootstrapping
@@ -21,8 +20,13 @@ default:
 	@exit 1
 
 bootstrap: boot/Makefile
-	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake "LN=$(LN)"
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake
 	@$(LN) boot/omake omake-boot
+
+bootstrap-mingw:
+	@$(MAKE) boot/Makefile LN=cp
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe
+	@cp boot/omake omake-boot
 
 boot/Makefile: src/Makefile
 	mkdir -p boot

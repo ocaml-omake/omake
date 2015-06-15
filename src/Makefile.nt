@@ -25,8 +25,7 @@ EXT_LIB = .lib
 EXE = .exe
 CCOMPTYPE = msvc
 
-OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g
-
+OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB = threads.cma
 
 .SUFFIXES: .mll .mly .mli .ml .cmi .cmo

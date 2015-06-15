@@ -27,7 +27,7 @@ EXT_LIB = .a
 EXE =
 CCOMPTYPE = cc
 
-OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g
+OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB =
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
