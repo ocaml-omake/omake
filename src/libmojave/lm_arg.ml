@@ -375,16 +375,16 @@ let rec print_doc_string opt_width s =
    let () = margin.[0] <- '\n' in
    let len = String.length s in
       if len <= width then
-         print_string s
+         Lm_printf.print_string s
       else
          if String.rcontains_from s width ' ' then begin
             let i = String.rindex_from s width ' ' in
-               print_string (String.sub s 0 i);
-               print_string margin;
+               Lm_printf.print_string (String.sub s 0 i);
+               Lm_printf.print_string margin;
                print_doc_string opt_width (String.sub s (i+1) (len - i - 1))
          end else begin
-            print_string (String.sub s 0 width);
-            print_string margin;
+            Lm_printf.print_string (String.sub s 0 width);
+            Lm_printf.print_string margin;
             print_doc_string opt_width (String.sub s width (len - width))
          end
 
