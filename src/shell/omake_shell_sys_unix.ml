@@ -146,7 +146,7 @@ let dup_actions workfd stdin stdout stderr =
   ] @
     ( if stdin <> Unix.stdin then [ Fda_close stdin ] else [] ) @
       ( if stdout <> Unix.stdout then [ Fda_close stdout ] else [] ) @
-        ( if stderr <> Unix.stderr then [ Fda_close stderr ] else [] )
+        ( if stderr <> Unix.stderr && stderr <> stdout then [ Fda_close stderr ] else [] )
 
 (*
  * Create a thread.
