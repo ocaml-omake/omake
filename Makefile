@@ -25,7 +25,7 @@ bootstrap: boot/Makefile
 
 bootstrap-mingw:
 	@$(MAKE) boot/Makefile LN=cp
-	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake.exe LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe
 	@cp boot/omake omake-boot
 
 boot/Makefile: src/Makefile
