@@ -25,8 +25,9 @@ AROUT =
 EXT_OBJ = .o
 EXT_LIB = .a
 EXE =
+CCOMPTYPE = cc
 
-OCAMLFLAGS = -g
+OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g
 THREADSLIB =
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
@@ -35,7 +36,6 @@ THREADSLIB =
 	$(CC) $(CFLAGS) -I"`ocamlc -where`" -c $*.c
 
 
-OCAMLFLAGS = -w -40
 #
 # OCaml configuration
 #
@@ -65,7 +65,7 @@ version.txt:
 	@echo 0.0.boot > $@
 
 
-OFILES_clib = lm_heap$(EXT_OBJ) lm_channel$(EXT_OBJ) lm_printf$(EXT_OBJ) lm_ctype$(EXT_OBJ) lm_uname_ext$(EXT_OBJ) lm_unix_cutil$(EXT_OBJ) lm_compat_win32$(EXT_OBJ) readline$(EXT_OBJ) omake_shell_sys$(EXT_OBJ) fam_win32$(EXT_OBJ) fam_kqueue$(EXT_OBJ) fam_inotify$(EXT_OBJ) lm_notify$(EXT_OBJ) lm_termsize$(EXT_OBJ) lm_terminfo$(EXT_OBJ) lm_fs_case_sensitive$(EXT_OBJ)
+OFILES_clib = lm_heap$(EXT_OBJ) lm_channel$(EXT_OBJ) lm_printf$(EXT_OBJ) lm_ctype$(EXT_OBJ) lm_uname_ext$(EXT_OBJ) lm_unix_cutil$(EXT_OBJ) lm_compat_win32$(EXT_OBJ) readline$(EXT_OBJ) omake_shell_sys$(EXT_OBJ) omake_shell_spawn$(EXT_OBJ) fam_win32$(EXT_OBJ) fam_kqueue$(EXT_OBJ) fam_inotify$(EXT_OBJ) lm_notify$(EXT_OBJ) lm_termsize$(EXT_OBJ) lm_terminfo$(EXT_OBJ) lm_fs_case_sensitive$(EXT_OBJ)
 
 clib$(EXT_LIB): $(OFILES_clib)
 	-$(RM) $@
@@ -121,16 +121,19 @@ lm_uname_ext.c: $(SRC_clib)$(slash)lm_uname_ext.c
 lm_unix_cutil.c: $(SRC_clib)$(slash)lm_unix_cutil.c
 	$(LN) $(SRC_clib)$(slash)lm_unix_cutil.c lm_unix_cutil.c
 
+omake_shell_spawn.c: $(SRC_clib)$(slash)omake_shell_spawn.c
+	$(LN) $(SRC_clib)$(slash)omake_shell_spawn.c omake_shell_spawn.c
+
 omake_shell_sys.c: $(SRC_clib)$(slash)omake_shell_sys.c
 	$(LN) $(SRC_clib)$(slash)omake_shell_sys.c omake_shell_sys.c
 
 readline.c: $(SRC_clib)$(slash)readline.c
 	$(LN) $(SRC_clib)$(slash)readline.c readline.c
 
-ALLFILES_clib = fam_inotify.c fam_kqueue.c fam_win32.c lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_fs_case_sensitive.c lm_heap.c lm_heap.h lm_notify.c lm_printf.c lm_terminfo.c lm_termsize.c lm_uname_ext.c lm_unix_cutil.c omake_shell_sys.c readline.c
+ALLFILES_clib = fam_inotify.c fam_kqueue.c fam_win32.c lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_fs_case_sensitive.c lm_heap.c lm_heap.h lm_notify.c lm_printf.c lm_terminfo.c lm_termsize.c lm_uname_ext.c lm_unix_cutil.c omake_shell_spawn.c omake_shell_sys.c readline.c
 
 
-CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash.cmo lm_hash_code.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_unix_util.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo lm_wild.cmo lm_readline.cmo lm_marshal.cmo lm_handle_table.cmo lm_int_handle_table.cmo
+CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash.cmo lm_hash_code.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_unix_util.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo lm_wild.cmo lm_readline.cmo lm_marshal.cmo lm_handle_table.cmo lm_int_handle_table.cmo lm_bitset.cmo lm_instrument.cmo
 OCAML_LIB_FLAGS_lm =
 
 lm.cma: $(CMOFILES_lm)
@@ -149,6 +152,12 @@ lm_array_util.ml: $(SRC_libmojave)$(slash)lm_array_util.ml
 
 lm_array_util.mli: $(SRC_libmojave)$(slash)lm_array_util.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_array_util.mli lm_array_util.mli
+
+lm_bitset.ml: $(SRC_libmojave)$(slash)lm_bitset.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_bitset.ml lm_bitset.ml
+
+lm_bitset.mli: $(SRC_libmojave)$(slash)lm_bitset.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_bitset.mli lm_bitset.mli
 
 lm_channel.ml: $(SRC_libmojave)$(slash)lm_channel.ml
 	$(LN) $(SRC_libmojave)$(slash)lm_channel.ml lm_channel.ml
@@ -209,6 +218,12 @@ lm_index.ml: $(SRC_libmojave)$(slash)lm_index.ml
 
 lm_index.mli: $(SRC_libmojave)$(slash)lm_index.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_index.mli lm_index.mli
+
+lm_instrument.ml: $(SRC_libmojave)$(slash)lm_instrument.ml
+	$(LN) $(SRC_libmojave)$(slash)lm_instrument.ml lm_instrument.ml
+
+lm_instrument.mli: $(SRC_libmojave)$(slash)lm_instrument.mli
+	$(LN) $(SRC_libmojave)$(slash)lm_instrument.mli lm_instrument.mli
 
 lm_int_handle_table.ml: $(SRC_libmojave)$(slash)lm_int_handle_table.ml
 	$(LN) $(SRC_libmojave)$(slash)lm_int_handle_table.ml lm_int_handle_table.ml
@@ -351,7 +366,7 @@ lm_wild.ml: $(SRC_libmojave)$(slash)lm_wild.ml
 lm_wild.mli: $(SRC_libmojave)$(slash)lm_wild.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_wild.mli lm_wild.mli
 
-ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_channel.ml lm_channel.mli lm_db.ml lm_db.mli lm_debug.ml lm_debug.mli lm_filename_util.ml lm_filename_util.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_handle_table.ml lm_handle_table.mli lm_hash.ml lm_hash.mli lm_hash_code.ml lm_hash_code.mli lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_int_handle_table.ml lm_int_handle_table.mli lm_int_set.ml lm_int_set.mli lm_list_util.ml lm_list_util.mli lm_location.ml lm_location.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_marshal.ml lm_marshal.mli lm_notify.ml lm_notify.mli lm_position.ml lm_position.mli lm_printf.ml lm_printf.mli lm_readline.ml lm_readline.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_symbol.ml lm_symbol.mli lm_terminfo.ml lm_terminfo.mli lm_termsize.ml lm_termsize.mli lm_thread.ml lm_thread.mli lm_thread_core.ml lm_thread_core.mli lm_thread_pool.ml lm_thread_pool.mli lm_thread_sig.ml lm_uname.ml lm_uname.mli lm_unix_util.ml lm_unix_util.mli lm_wild.ml lm_wild.mli
+ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_bitset.ml lm_bitset.mli lm_channel.ml lm_channel.mli lm_db.ml lm_db.mli lm_debug.ml lm_debug.mli lm_filename_util.ml lm_filename_util.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_handle_table.ml lm_handle_table.mli lm_hash.ml lm_hash.mli lm_hash_code.ml lm_hash_code.mli lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_instrument.ml lm_instrument.mli lm_int_handle_table.ml lm_int_handle_table.mli lm_int_set.ml lm_int_set.mli lm_list_util.ml lm_list_util.mli lm_location.ml lm_location.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_marshal.ml lm_marshal.mli lm_notify.ml lm_notify.mli lm_position.ml lm_position.mli lm_printf.ml lm_printf.mli lm_readline.ml lm_readline.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_symbol.ml lm_symbol.mli lm_terminfo.ml lm_terminfo.mli lm_termsize.ml lm_termsize.mli lm_thread.ml lm_thread.mli lm_thread_core.ml lm_thread_core.mli lm_thread_pool.ml lm_thread_pool.mli lm_thread_sig.ml lm_uname.ml lm_uname.mli lm_unix_util.ml lm_unix_util.mli lm_wild.ml lm_wild.mli
 
 
 CMOFILES_frt = lm_hash_cons.cmo lm_lexer.cmo lm_parser.cmo lm_glob.cmo
@@ -408,7 +423,7 @@ GENMAGIC_DEPS = lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_posit
 MAGIC_FILES =    --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
 
 omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
-	$(DOT)omake_gen_magic -o $@ --version version.txt --magic $(MAGIC_FILES)
+	$(DOT)omake_gen_magic -o $@ --version version.txt --var "omake_cc=$(CC)" --var "omake_cflags=$(CFLAGS)"  --var "omake_ccomptype=cc" --magic $(MAGIC_FILES)
 
 SRC_magic = ..$(slash)src$(slash)magic
 
@@ -709,7 +724,7 @@ omake_ir_semant.mli: $(SRC_env)$(slash)omake_ir_semant.mli
 ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_exp_lex.ml omake_exp_lex.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_semant.ml omake_ir_semant.mli omake_ast_lex.mll omake_ast_parse.input omake_exp_parse.mly
 
 
-CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo
+CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_spawn.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo
 OCAML_LIB_FLAGS_shell =
 
 shell.cma: $(CMOFILES_shell)
@@ -747,13 +762,19 @@ omake_shell_lex.ml: $(SRC_shell)$(slash)omake_shell_lex.ml
 omake_shell_lex.mli: $(SRC_shell)$(slash)omake_shell_lex.mli
 	$(LN) $(SRC_shell)$(slash)omake_shell_lex.mli omake_shell_lex.mli
 
+omake_shell_spawn.ml: $(SRC_shell)$(slash)omake_shell_spawn.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_spawn.ml omake_shell_spawn.ml
+
+omake_shell_spawn.mli: $(SRC_shell)$(slash)omake_shell_spawn.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_spawn.mli omake_shell_spawn.mli
+
 omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys.mli omake_shell_sys.mli
 
 omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
 
-ALLFILES_shell = omake_shell_completion.ml omake_shell_completion.mli omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
+ALLFILES_shell = omake_shell_completion.ml omake_shell_completion.mli omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_spawn.ml omake_shell_spawn.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
 
 
 CMOFILES_eval = omake_eval.cmo omake_value.cmo
@@ -834,13 +855,13 @@ omake_target.mli: $(SRC_build)$(slash)omake_target.mli
 ALLFILES_build = omake_build.ml omake_build.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin.ml omake_builtin.mli omake_builtin_type.ml omake_rule.ml omake_rule.mli omake_target.ml omake_target.mli
 
 
-CMOFILES_builtin = omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo
+CMOFILES_builtin = omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo omake_builtin_ocamldep.cmo
 OCAML_LIB_FLAGS_builtin = -linkall
 
 builtin.cma: $(CMOFILES_builtin)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_builtin) -a -o $@ $(CMOFILES_builtin)
 
-omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo omake_printf.cmi omake_builtin_util.cmi omake_builtin_base.cmi omake_builtin_arith.cmi omake_builtin_file.cmi omake_builtin_fun.cmi omake_builtin_io.cmi omake_builtin_io_fun.cmi omake_builtin_sys.cmi omake_builtin_target.cmi omake_builtin_shell.cmi omake_builtin_rule.cmi omake_builtin_object.cmi omake_builtin_test.cmi: magic.cma
+omake_printf.cmo omake_builtin_util.cmo omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_object.cmo omake_builtin_test.cmo omake_builtin_ocamldep.cmo omake_printf.cmi omake_builtin_util.cmi omake_builtin_base.cmi omake_builtin_arith.cmi omake_builtin_file.cmi omake_builtin_fun.cmi omake_builtin_io.cmi omake_builtin_io_fun.cmi omake_builtin_sys.cmi omake_builtin_target.cmi omake_builtin_shell.cmi omake_builtin_rule.cmi omake_builtin_object.cmi omake_builtin_test.cmi: magic.cma
 
 SRC_builtin = ..$(slash)src$(slash)builtin
 
@@ -886,6 +907,9 @@ omake_builtin_object.ml: $(SRC_builtin)$(slash)omake_builtin_object.ml
 omake_builtin_object.mli: $(SRC_builtin)$(slash)omake_builtin_object.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.mli omake_builtin_object.mli
 
+omake_builtin_ocamldep.ml: $(SRC_builtin)$(slash)omake_builtin_ocamldep.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_ocamldep.ml omake_builtin_ocamldep.ml
+
 omake_builtin_rule.ml: $(SRC_builtin)$(slash)omake_builtin_rule.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_rule.ml omake_builtin_rule.ml
 
@@ -928,7 +952,7 @@ omake_printf.ml: $(SRC_builtin)$(slash)omake_printf.ml
 omake_printf.mli: $(SRC_builtin)$(slash)omake_printf.mli
 	$(LN) $(SRC_builtin)$(slash)omake_printf.mli omake_printf.mli
 
-ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli omake_builtin_util.ml omake_builtin_util.mli omake_printf.ml omake_printf.mli
+ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_ocamldep.ml omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli omake_builtin_util.ml omake_builtin_util.mli omake_printf.ml omake_printf.mli
 
 
 CMOFILES_omake = omake_main_util.cmo omake_shell.cmo omake_main.cmo
