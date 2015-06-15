@@ -85,7 +85,7 @@ let pp_print_exn_with_backtrace ~backtrace buf exn =
     | exn ->
          Format.fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn;
          if backtrace <> "" then
-           Format.fprintf buf "@[<v 3>Backtrace: %s@]" backtrace
+           Format.fprintf buf "@[<v 3> - backtrace: %s@]" backtrace
 
 let pp_print_exn buf exn =
   pp_print_exn_with_backtrace ~backtrace:"" buf exn
@@ -104,8 +104,6 @@ let is_shell_exn exn =
   | RaiseException _
   | Unix.Unix_error _
   | Sys_error _
-  | Failure _
-  | Invalid_argument _
   | Return _ ->
     true
   | _ ->
@@ -124,12 +122,16 @@ let catch f x =
   | RaiseException _
   | Unix.Unix_error _
   | Sys_error _
-  | Return _ as exn ->
-       let backtrace = Printexc.get_backtrace() in
-       Format.eprintf "%a@." (pp_print_exn_with_backtrace ~backtrace) exn;
-       exit Omake_state.exn_error_code
+  | Return _
+  | Out_of_memory as exn ->
+      Format.eprintf "%a@." pp_print_exn exn;
+      exit Omake_state.exn_error_code
   | ExitParentException (_, code)
   | ExitException (_, code) as exn ->
-    Format.eprintf "%a@." pp_print_exn exn;
-    exit code
+      Format.eprintf "%a@." pp_print_exn exn;
+      exit code
+  | exn ->
+      let backtrace = Printexc.get_backtrace() in
+      Format.eprintf "%a@." (pp_print_exn_with_backtrace ~backtrace) exn;
+      exit Omake_state.exn_error_code
 
