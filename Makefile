@@ -25,7 +25,7 @@ bootstrap: boot/Makefile
 
 bootstrap-mingw:
 	@$(MAKE) boot/Makefile LN=cp
-	@CC=`ocamlc -config | grep bytecomp_c_compiler | awk '{print $$2}'`; cd boot; $(MAKE) Makefile.dep; $(MAKE) omake.exe LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe "CC=$$CC" win32=win32 system=system
+	@CC=`ocamlc -config | grep bytecomp_c_compiler | awk '{print $$2}'`; cd boot; $(MAKE) Makefile.dep LN=cp; $(MAKE) omake.exe LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe "CC=$$CC" win32=win32 system=system
 	@cp boot/omake omake-boot
 
 boot/Makefile: src/Makefile
