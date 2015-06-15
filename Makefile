@@ -28,7 +28,7 @@ boot/Makefile: src/Makefile
 	mkdir -p boot
 	@touch boot/Makefile.dep
 	@sleep 1
-	$(LN) ../src/Makefile boot/Makefile
+	cd boot && $(LN) ../src/Makefile Makefile
 
 all: bootstrap
 	touch .config
