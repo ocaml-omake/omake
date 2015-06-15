@@ -241,7 +241,7 @@ THREADSLIB =
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
 
 .c.o:
-	$(CC) $(CFLAGS) -I"`ocamlc -where`" -c $*.c
+	inc=`ocamlc -where | tr -d '\015'`; $(CC) $(CFLAGS) -I"$$inc" -I"$$inc/caml" -c $*.c
 '''
 
 private.MAKEFILE_HEAD_NT = $'''#

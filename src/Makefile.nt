@@ -137,6 +137,12 @@ OCAML_LIB_FLAGS_lm =
 lm.cma: $(CMOFILES_lm)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_lm) -a -o $@ $(CMOFILES_lm)
 
+lm_thread_pool.ml: ..$(slash)src$(slash)libmojave$(slash)lm_thread_pool_$(system).ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)lm_thread_pool_$(system).ml lm_thread_pool.ml
+
+lm_thread_core.ml: ..$(slash)src$(slash)libmojave$(slash)lm_thread_core_$(system).ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)lm_thread_core_$(system).ml lm_thread_core.ml
+
 SRC_libmojave = ..$(slash)src$(slash)libmojave
 
 lm_arg.ml: $(SRC_libmojave)$(slash)lm_arg.ml
@@ -331,14 +337,8 @@ lm_thread.ml: $(SRC_libmojave)$(slash)lm_thread.ml
 lm_thread.mli: $(SRC_libmojave)$(slash)lm_thread.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_thread.mli lm_thread.mli
 
-lm_thread_core.ml: $(SRC_libmojave)$(slash)lm_thread_core.ml
-	$(LN) $(SRC_libmojave)$(slash)lm_thread_core.ml lm_thread_core.ml
-
 lm_thread_core.mli: $(SRC_libmojave)$(slash)lm_thread_core.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_thread_core.mli lm_thread_core.mli
-
-lm_thread_pool.ml: $(SRC_libmojave)$(slash)lm_thread_pool.ml
-	$(LN) $(SRC_libmojave)$(slash)lm_thread_pool.ml lm_thread_pool.ml
 
 lm_thread_pool.mli: $(SRC_libmojave)$(slash)lm_thread_pool.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_thread_pool.mli lm_thread_pool.mli
@@ -364,7 +364,7 @@ lm_wild.ml: $(SRC_libmojave)$(slash)lm_wild.ml
 lm_wild.mli: $(SRC_libmojave)$(slash)lm_wild.mli
 	$(LN) $(SRC_libmojave)$(slash)lm_wild.mli lm_wild.mli
 
-ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_bitset.ml lm_bitset.mli lm_channel.ml lm_channel.mli lm_db.ml lm_db.mli lm_debug.ml lm_debug.mli lm_filename_util.ml lm_filename_util.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_handle_table.ml lm_handle_table.mli lm_hash.ml lm_hash.mli lm_hash_code.ml lm_hash_code.mli lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_instrument.ml lm_instrument.mli lm_int_handle_table.ml lm_int_handle_table.mli lm_int_set.ml lm_int_set.mli lm_list_util.ml lm_list_util.mli lm_location.ml lm_location.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_marshal.ml lm_marshal.mli lm_notify.ml lm_notify.mli lm_position.ml lm_position.mli lm_printf.ml lm_printf.mli lm_readline.ml lm_readline.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_symbol.ml lm_symbol.mli lm_terminfo.ml lm_terminfo.mli lm_termsize.ml lm_termsize.mli lm_thread.ml lm_thread.mli lm_thread_core.ml lm_thread_core.mli lm_thread_pool.ml lm_thread_pool.mli lm_thread_sig.ml lm_uname.ml lm_uname.mli lm_unix_util.ml lm_unix_util.mli lm_wild.ml lm_wild.mli
+ALLFILES_libmojave = lm_arg.ml lm_arg.mli lm_array_util.ml lm_array_util.mli lm_bitset.ml lm_bitset.mli lm_channel.ml lm_channel.mli lm_db.ml lm_db.mli lm_debug.ml lm_debug.mli lm_filename_util.ml lm_filename_util.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_handle_table.ml lm_handle_table.mli lm_hash.ml lm_hash.mli lm_hash_code.ml lm_hash_code.mli lm_heap.ml lm_heap.mli lm_index.ml lm_index.mli lm_instrument.ml lm_instrument.mli lm_int_handle_table.ml lm_int_handle_table.mli lm_int_set.ml lm_int_set.mli lm_list_util.ml lm_list_util.mli lm_location.ml lm_location.mli lm_map.ml lm_map.mli lm_map_sig.ml lm_marshal.ml lm_marshal.mli lm_notify.ml lm_notify.mli lm_position.ml lm_position.mli lm_printf.ml lm_printf.mli lm_readline.ml lm_readline.mli lm_set.ml lm_set.mli lm_set_sig.ml lm_string_set.ml lm_string_set.mli lm_string_util.ml lm_string_util.mli lm_symbol.ml lm_symbol.mli lm_terminfo.ml lm_terminfo.mli lm_termsize.ml lm_termsize.mli lm_thread.ml lm_thread.mli lm_thread_core.mli lm_thread_pool.mli lm_thread_sig.ml lm_uname.ml lm_uname.mli lm_unix_util.ml lm_unix_util.mli lm_wild.ml lm_wild.mli lm_thread_pool.ml lm_thread_core.ml
 
 
 CMOFILES_frt = lm_hash_cons.cmo lm_lexer.cmo lm_parser.cmo lm_glob.cmo
