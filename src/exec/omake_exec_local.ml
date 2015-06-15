@@ -161,7 +161,7 @@ type fd_state =
             server_jobs   = jobs
           } = server
       in
-      if shell.shell_eval_is_nop command then (* quickly skip over nop's *)
+      if shell.shell_eval_is_nop command && commands <> [] then (* quickly skip over nop's *)
         spawn_exn
           server shell id handle_out handle_err handle_status target commands
       else
