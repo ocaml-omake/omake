@@ -1,7 +1,3 @@
-open Printf
-
-
-
 let debug_hash = ref false
 
 (* List of targets to build. *)
@@ -126,8 +122,8 @@ let spec =
     "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)";
     "-extended-rusage", Lm_arg.Set extended_rusage, (**)
     "Print more about resource usage";
-    "-no-instrument", Lm_arg.Clear Lm_instrument.enabled, (**)
-    "Do not instrument functions";
+    "-instrument", Lm_arg.Set Lm_instrument.enabled, (**)
+    "Do instrument functions";
    ];
    "Internal flags", (**)
    ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
@@ -157,12 +153,12 @@ let main (options : Omake_options.t) =
     if !extended_rusage then (
       let r = Unix.times() in
       let open Unix in
-      printf "Resources used by main process:     \
-              user %.2fseconds, system %.2fseconds\n" 
-             r.tms_utime r.tms_stime;
-      printf "Resources used incl. sub processes: \
-              user %.2fseconds, system %.2fseconds\n"
-             r.tms_cutime r.tms_cstime;
+      Lm_printf.eprintf "Resources used by main process:     \
+                         user %.2fseconds, system %.2fseconds\n" 
+                        r.tms_utime r.tms_stime;
+      Lm_printf.eprintf "Resources used incl. sub processes: \
+                         user %.2fseconds, system %.2fseconds\n"
+                        r.tms_cutime r.tms_cstime;
     );
     if !Lm_instrument.enabled then
       Lm_instrument.report()

@@ -17,7 +17,7 @@ type probe =
       mutable probe_error : bool;
     }
 
-let enabled = ref true
+let enabled = ref false
 let registry = ref []
 
 let create probe_name =
