@@ -1,3 +1,6 @@
+LN = ln -sf
+# MinGW: set this to: LN=cp
+
 #
 # For bootstrapping
 #
@@ -18,14 +21,14 @@ default:
 	@exit 1
 
 bootstrap: boot/Makefile
-	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake
-	@ln -sf boot/omake omake-boot
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake "LN=$(LN)"
+	@$(LN) boot/omake omake-boot
 
 boot/Makefile: src/Makefile
 	mkdir -p boot
 	@touch boot/Makefile.dep
 	@sleep 1
-	ln -sf ../src/Makefile boot/Makefile
+	$(LN) ../src/Makefile boot/Makefile
 
 all: bootstrap
 	touch .config
