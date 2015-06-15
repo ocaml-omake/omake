@@ -34,7 +34,7 @@ boot/Makefile: src/Makefile
 	@sleep 1
 	cd boot && $(LN) ../src/Makefile Makefile
 
-all: bootstrap
+all:
 	touch .config
 	OMAKEFLAGS= OMAKEPATH=lib ./omake-boot --dotomake .omake --force-dotomake  main
 	OMAKEFLAGS= OMAKEPATH=lib src/main/omake --dotomake .omake --force-dotomake  all
