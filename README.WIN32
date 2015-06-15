@@ -1,8 +1,20 @@
 Please read the INSTALL file.
 
-To summarize, you need to build a bootstrap version of omake, then use
-the bootstrap executable to complete the build.  Run the following
-from a console window (you may need to use the Visual Studio Console Window).
+Note that you can build omake with all "win32 flavors" of OCaml, i.e.
+MSVC, MinGW, and Cygwin. The latter two are very similar to the Unix
+build (or even identical in case of Cygwin).
+
+Regarding the MinGW build: the only speciality is that you need to
+run "make bootstrap-mingw" at the beginning instead of "make bootstrap".
+The C compiler to use is extracted from "ocamlc -config". The rest goes
+on as in the Unix case:
+
+  make all; edit .config; make all; make install
+
+Regarding the MSVC build: To summarize, you need to build a bootstrap
+version of omake, then use the bootstrap executable to complete the
+build.  Run the following from a console window (you may need to use
+the Visual Studio Console Window).
 
    nmake -f Makefile.nt bootstrap
 

@@ -24,11 +24,15 @@ that you can then use to complete the install.
    run omake for the first time.  To be safe, if you decide to modify
    them, save your changes in some safe place, not /tmp.
 
--- Unix, MacOS X, Cygwin bootstrap --
+-- Unix, MacOS X, Cygwin, MinGW bootstrap --
 
 You can use "make" to build a bootstrap version of omake.  Run
 
    % make bootstrap
+
+or in case of MinGW,
+
+   % make bootstrap-mingw
 
 to build the omake-boot executable.  This should work with classic
 make; there should be no need to use GNU make.  If you have it, GNU
