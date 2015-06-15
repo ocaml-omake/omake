@@ -24,9 +24,8 @@ bootstrap: boot/Makefile
 	@$(LN) boot/omake omake-boot
 
 bootstrap-mingw:
-	@if [ -z "$(CC)" ]; then echo "Set the CC variable!" >&2; exit 1; fi
 	@$(MAKE) boot/Makefile LN=cp
-	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake.exe LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe "CC=$(CC)"
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake.exe LN=cp OCAMLFLAGS_EXTRA=-thread THREADSLIB=threads.cma EXE=.exe "CC=`ocamlc -config | grep bytecomp_c_compiler | awk '{print $2}'`"
 	@cp boot/omake omake-boot
 
 boot/Makefile: src/Makefile
