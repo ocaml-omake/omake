@@ -242,7 +242,8 @@ lib/OMakefile.default: $(BOOTFILES)
 ########################################################################
 # Installation
 #
-all: $(DEFAULTFILES)  $(INSTALLFILES) $(ROOT)/src/Makefile $(ROOT)/src/Makefile.nt omaketop
+all: $(DEFAULTFILES)  $(INSTALLFILES) $(ROOT)/src/Makefile $(ROOT)/src/Makefile.nt
+# omaketop
 
 omaketop: src/clib/clib.a src/libmojave/lm.cma src/front/frt.cma src/top/boot_repl.cma  src/magic/magic.cma src/ast/ast.cma src/ir/ir.cma src/env/env.cma  src/eval/eval.cma src/shell/shell.cma src/exec/exec.cma src/build/build.cma src/builtin/builtin.cma
 	$(OCAMLC) -custom -verbose -I +compiler-libs -linkall ocamlcommon.cma ocamlbytecomp.cma ocamltoplevel.cma   unix.cma  src/clib/clib.a src/libmojave/lm.cma  src/front/frt.cma src/top/boot_repl.cma src/magic/magic.cma src/ast/ast.cma src/ir/ir.cma src/env/env.cma  src/eval/eval.cma src/shell/shell.cma src/exec/exec.cma src/build/build.cma src/builtin/builtin.cma -cclib -lreadline    topstart.cmo -o $@
