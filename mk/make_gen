@@ -233,8 +233,9 @@ AROUT =
 EXT_OBJ = .o
 EXT_LIB = .a
 EXE =
+CCOMPTYPE = cc
 
-OCAMLFLAGS = -g
+OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g
 THREADSLIB =
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
@@ -268,8 +269,9 @@ AROUT = /out:
 EXT_OBJ = .obj
 EXT_LIB = .lib
 EXE = .exe
+CCOMPTYPE = msvc
 
-OCAMLFLAGS = -thread -w -40
+OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g
 
 THREADSLIB = threads.cma
 
@@ -280,7 +282,6 @@ THREADSLIB = threads.cma
 '''
 
 private.MAKEFILE_HEAD_COMMON = $'''
-OCAMLFLAGS = -w -40
 #
 # OCaml configuration
 #

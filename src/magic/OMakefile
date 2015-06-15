@@ -91,7 +91,7 @@ MAGIC_FILES =\
     --omo-files $(basename $(OMO_MAGIC_FILES))
 
 omake_magic.ml: omake_gen_magic$$(EXE) $$(GENMAGIC_DEPS)
-	$$(DOT)omake_gen_magic -o $$@ --version version.txt --magic $$(MAGIC_FILES)
+	$$(DOT)omake_gen_magic -o $$@ --version version.txt --var "omake_cc=$$(CC)" --var "omake_cflags=$$(CFLAGS)"  --var "omake_ccomptype=$(CCOMPTYPE)" --magic $$(MAGIC_FILES)
 """
 
 MakeDontLink(omake_magic.ml)
