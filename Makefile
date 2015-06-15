@@ -3,7 +3,8 @@ LN = ln -sf
 #
 # For bootstrapping
 #
-.PHONY: all bootstrap install default
+.PHONY: all bootstrap bootstrap-mingw install default
+.PHONY: all-after-boot all-non-boot install-after-boot install-non-boot
 
 #
 # Bootstrap program is omake-boot
@@ -14,9 +15,9 @@ default:
 	@echo " - 'make bootstrap',"
 	@echo "       to build the bootstrapping (feature-limited) OMake binary './omake-boot'."
 	@echo " - 'make all',"
-	@echo "       to bootstrap and then build everything"
+	@echo "       to build everything after the bootstrap"
 	@echo " - 'make install',"
-	@echo "       to bootstrap, build, and install everything"
+	@echo "       to build and install everything"
 	@exit 1
 
 bootstrap: boot/Makefile
@@ -35,9 +36,24 @@ boot/Makefile: src/Makefile
 	cd boot && $(LN) ../src/Makefile Makefile
 
 all:
+	@if [ -f ./omake-boot ]; then $(MAKE) all-after-boot; else $(MAKE) all-non-boot; fi
+
+all-after-boot:
 	touch .config
 	OMAKEFLAGS= OMAKEPATH=lib ./omake-boot --dotomake .omake --force-dotomake  main
 	OMAKEFLAGS= OMAKEPATH=lib src/main/omake --dotomake .omake --force-dotomake  all
 
+all-non-boot:
+	@echo "*********************************************"
+	@echo "WARNING: No omake-boot, using omake from PATH"
+	@echo "*********************************************"
+	OMAKEFLAGS= OMAKEPATH=lib omake --dotomake .omake
+
 install: all
+	@if [ -f ./omake-boot ]; then $(MAKE) install-after-boot; else $(MAKE) install-non-boot; fi
+
+install-after-boot:
 	OMAKEFLAGS= OMAKEPATH=lib src/main/omake --dotomake .omake --force-dotomake  install
+
+install-non-boot:
+	OMAKEFLAGS= OMAKEPATH=lib omake --dotomake .omake --force-dotomake  install
