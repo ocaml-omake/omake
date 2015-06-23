@@ -74,10 +74,13 @@ MakeLinkExternal(srcdir, files) =
 MakeStaticCLibrary(name, files) =
     StaticCLibrary($(name), $(files))
 
-    private.cfiles = $(addsuffix .c, $(files))
-    private.hfiles = $(filter-exists $(addsuffix .h, $(files)))
-    private.ofiles = $(addsuffix $(ext_obj), $(files))
-    MAKEFILE_LINK += $(cfiles) $(hfiles)
+    private.src_cfiles = $(addsuffix .c, $(files))
+    private.cfiles = $(addprefix c_, $(src_cfiles))
+    private.cfiles = $(src_cfiles)
+    private.src_hfiles = $(filter-exists $(addsuffix .h, $(files)))
+    private.hfiles = $(addprefix c_, $(src_hfiles))
+    private.ofiles = $(addprefix c_, $(addsuffix $(ext_obj), $(files)))
+
     MAKEFILE_TEXT += $"""
 OFILES_$(name) = $(ofiles)
 
@@ -85,6 +88,15 @@ $(name)$$(EXT_LIB): $$(OFILES_$(name))
 	-$$(RM) $$@
 	$$(AR) $$(AROUT)$$@ $$(OFILES_$(name))
 """
+
+    foreach(name => ..., $(src_cfiles))
+        dst=c_$(name)
+        src=$(name)
+        MakeLinkFile($(dst), $(src))
+        $(dst): $(src)
+            ln-or-cp $< $@
+        export
+
     export
 
 ########################################################################
@@ -100,21 +112,32 @@ MakeOCamlProgram(name, files) =
     private.mlfiles = $(addsuffix .ml, $(files))
     private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
     private.cmofiles = $(addsuffix .cmo, $(files))
+    private.cmxfiles = $(addsuffix .cmx, $(files))
     private.ocaml_libs = $(addsuffix .cma, $(basename $(OCAML_LIBS)))
+    private.ocaml_libs_opt = $(addsuffix .cmxa, $(basename $(OCAML_LIBS)))
     private.ocaml_other_libs = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+    private.ocaml_other_libs_opt = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
     private.ocaml_other_libs = $(set-diff $(ocaml_other_libs), threads.cma)
+    private.ocaml_other_libs_opt = $(set-diff $(ocaml_other_libs_opt), threads.cmxa)
     private.ocaml_clibs = $(addsuffix $(ext_lib), $(basename $(OCAML_CLIBS)))
     private.ocaml_cclibs = $(mapprefix -cclib, $(ocaml_clibs))
     MAKEFILE_LINK += $(mlfiles) $(mlifiles)
     MAKEFILE_TEXT += $"""
 CMOFILES_$(name) = $(cmofiles)
+CMXFILES_$(name) = $(cmxfiles)
 OCAML_LIBS_$(name) = $(ocaml_libs)
+OCAML_LIBS_OPT_$(name) = $(ocaml_libs_opt)
 OCAML_OTHER_LIBS_$(name) = $(ocaml_other_libs)
+OCAML_OTHER_LIBS_OPT_$(name) = $(ocaml_other_libs_opt)
 OCAML_CLIBS_$(name) = $(ocaml_clibs)
 OCAML_CCLIBS_$(name) = $(ocaml_cclibs)
 
-$(name)$$(EXE): $$(CMOFILES_$(name)) $$(OCAML_LIBS_$(name)) $$(OCAML_CLIBS_$(name))
+$(name).byte$$(EXE): $$(CMOFILES_$(name)) $$(OCAML_LIBS_$(name)) $$(OCAML_CLIBS_$(name))
 	$$(OCAMLC) $$(OCAMLFLAGS) -custom -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_$(name)) $$(THREADSLIB) $$(OCAML_LIBS_$(name)) $$(CMOFILES_$(name))
+$(name).opt$$(EXE): $$(CMXFILES_$(name)) $$(OCAML_LIBS_OPT_$(name)) $$(OCAML_CLIBS_$(name))
+	$$(OCAMLOPT) $$(OCAMLFLAGS) -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_OPT_$(name)) $$(THREADSLIB) $$(OCAML_LIBS_OPT_$(name)) $$(CMXFILES_$(name))
+$(name)$$(EXE): $(name)$$(PREFERRED)$$(EXE)
+	$$(LN) $(name)$$(PREFERRED)$$(EXE) $$@
 """
     export
 
@@ -127,13 +150,17 @@ MakeOCamlLibrary(name, files) =
     private.mlfiles = $(addsuffix .ml, $(files))
     private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
     private.cmofiles = $(addsuffix .cmo, $(files))
+    private.cmxfiles = $(addsuffix .cmx, $(files))
     MAKEFILE_LINK += $(mlfiles) $(mlifiles)
     MAKEFILE_TEXT += $"""
 CMOFILES_$(name) = $(cmofiles)
+CMXFILES_$(name) = $(cmxfiles)
 OCAML_LIB_FLAGS_$(name) = $(OCAML_LIB_FLAGS)
 
 $(name).cma: $$(CMOFILES_$(name))
 	$$(OCAMLC) $$(OCAMLFLAGS) $$(OCAML_LIB_FLAGS_$(name)) -a -o $$@ $$(CMOFILES_$(name))
+$(name).cmxa: $$(CMXFILES_$(name))
+	$$(OCAMLOPT) $$(OCAMLFLAGS) $$(OCAML_LIB_FLAGS_$(name)) -a -o $$@ $$(CMXFILES_$(name))
 """
     export
 
@@ -143,9 +170,10 @@ $(name).cma: $$(CMOFILES_$(name))
 MakeOCamlDepend(files, deps) =
     private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
     private.cmofiles = $(addsuffix .cmo, $(files))
+    private.cmxfiles = $(addsuffix .cmx, $(files))
     private.cmifiles = $(addsuffix .cmi, $(removesuffix $(mlifiles)))
     MAKEFILE_TEXT += $"""
-$(cmofiles) $(cmifiles): $(deps)
+$(cmxfiles) $(cmofiles) $(cmifiles): $(deps)
 """
     export
 
@@ -237,8 +265,9 @@ CCOMPTYPE = cc
 
 OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB =
+PREFERRED = .byte
 
-.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o
+.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
 
 .c.o:
 	inc=`ocamlc -where | tr -d '\015'`; $(CC) $(CFLAGS) -I"$$inc" -I"$$inc/caml" -c $*.c
@@ -273,8 +302,10 @@ CCOMPTYPE = msvc
 
 OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB = threads.cma
+THREADSLIB_OPT = threads.cmxa
+PREFERRED = .opt
 
-.SUFFIXES: .mll .mly .mli .ml .cmi .cmo
+.SUFFIXES: .mll .mly .mli .ml .cmi .cmo .cmx
 
 .c.obj:
 	$(CC) $(CFLAGS) -c $*.c
@@ -285,6 +316,7 @@ private.MAKEFILE_HEAD_COMMON = $'''
 # OCaml configuration
 #
 OCAMLC = ocamlc.opt
+OCAMLOPT = ocamlopt.opt
 OCAMLYACC = ocamlyacc
 OCAMLLEX = ocamllex.opt
 OCAMLDEP = ocamldep.opt
@@ -303,6 +335,8 @@ OCAMLDEP = ocamldep.opt
 .ml.cmo:
 	$(OCAMLC) $(OCAMLFLAGS) -c $*.ml
 
+.ml.cmx:
+	$(OCAMLOPT) $(OCAMLFLAGS) -c $*.ml
 #
 # The version.txt file
 #
