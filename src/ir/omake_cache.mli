@@ -55,12 +55,7 @@ val force_stat_table : t -> 'b Omake_node.NodeTable.t -> Omake_cache_type.digest
 
 val stat_changed     : t -> Omake_node.Node.t -> bool
 
-val force_stat_delayed : t -> Omake_node.Node.t -> bool
-  (* records that the stat/digest is outdated, and adds the node to the
-     request queue. Returns whether the node exists.
-   *)
-
-val process_delayed_stat_requests : t -> unit
+val process_delayed_digests : t -> unit
   (* Run through the request queue, and compute the digests *)
 
 (*
