@@ -266,7 +266,7 @@ public.VerboseCheckCHeader(files) =
 # \end{doc}
 #
 public.CheckCLib(libs, funs) =
-    CFLAGS += $(addprefix -l, $(libs))
+    LDFLAGS += $(addprefix -l, $(libs))
 
     return $(TryLinkC $"""
 #ifdef __cplusplus
