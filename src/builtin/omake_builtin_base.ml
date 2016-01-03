@@ -41,8 +41,8 @@ include Omake_pos.Make (struct let name = "Omake_builtin_base" end)
  *    MS-Windows, \OMake{} compiled with Cygwin).
  * \var{CCOMPTYPE}
  *    Set to to either "cc" when the C compiler is invoked in Unix style,
- *    or "msvc" for Microsoft Visual C (actually, this is the "ccomp_type"
- *    variable of "ocamlc -config"). This setting is considered as a system
+ *    or "msvc" for Microsoft Visual C (actually, this is the \verb+ccomp_type+
+ *    variable of \verb+ocamlc -config+). This setting is considered as a system
  *    preference.
  * \var{SYSNAME}
  *    The name of the operating system for the current machine.

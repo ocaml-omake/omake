@@ -1316,7 +1316,7 @@ let lex_search venv pos loc args _ =
 
 (*
  * \begin{doc}
- * \obj{Omake_lexer.Lexer}
+ * \obj{Lexer}
  *
  * The \verb+Omake_lexer.Lexer+ object defines a facility for lexical analysis, similar to the
  * \Cmd{lex}{1} and \Cmd{flex}{1} programs.
@@ -1402,11 +1402,11 @@ let lex_search venv pos loc args _ =
  * The \verb+Token.pair($(loc), name, value)+ constructs a token with the
  * given name and value.
  *
- * Omake_lexer.Lexer object operate on \verb+InChannel+ objects.
+ * \verb+Omake_lexer.Lexer+ object operate on \verb+InChannel+ objects.
  * The method \verb+lexer1.lex-channel(channel)+ reads the next
  * token from the channel argument.
  *
- * \subsection{Omake_lexer.Lexer matching}
+ * \subsection{Omake\textunderscore{}lexer.Lexer matching}
  *
  * During lexical analysis, clauses are selected by longest match.
  * That is, the clause that matches the longest sequence of input
