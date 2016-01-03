@@ -17,6 +17,7 @@
 *.magic
 .\#*
 \#*\#
+*~
 *.omc
 *omakedb*
 src/shell/omake_shell_parse.ml
@@ -40,6 +41,13 @@ src/main/cvs_realclean
 src/main/omake
 src/main/osh
 src/util/ocaml_patch.ml
+src/libmojave/lm_thread_core.ml
+src/libmojave/lm_thread_pool.ml
+doc/html/*
+doc/ps/*
+doc/info/*
+doc/txt/*
+doc/tex/*
 tmp/
 *.tmp
 *.run
@@ -49,3 +57,4 @@ omakeutop
 Makefile.tmp1
 Makefile.tmp3
 top_config.ml
+omake.spec
