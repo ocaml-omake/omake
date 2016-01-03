@@ -3,7 +3,7 @@ LN = ln -sf
 #
 # For bootstrapping
 #
-.PHONY: all bootstrap bootstrap-mingw install default
+.PHONY: all bootstrap-byte bootstrap-opt bootstrap bootstrap-mingw install default
 .PHONY: all-after-boot all-non-boot install-after-boot install-non-boot
 
 #
@@ -20,9 +20,16 @@ default:
 	@echo "       to build and install everything"
 	@exit 1
 
-bootstrap: boot/Makefile
+bootstrap-byte: boot/Makefile
 	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake
 	@$(LN) boot/omake omake-boot
+
+bootstrap-opt: boot/Makefile
+	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake PREFERRED=.opt
+	@$(LN) boot/omake omake-boot
+
+bootstrap:
+	ocamlopt.opt -v 2>/dev/null && $(MAKE) bootstrap-opt || $(MAKE) bootstrap-byte
 
 bootstrap-mingw:
 	@$(MAKE) boot/Makefile LN=cp
