@@ -1,5 +1,29 @@
 -*- Mode: text; fill-column: 70 -*-
 
+SIMPLIFIED INSTALLATION INSTRUCTIONS
+
+Since version 0.10 there is now a configure script that permits it to
+set some options, e.g.
+
+./configure --prefix=/some/path
+
+For a full list of options see ./configure --help. Note that "configure"
+only saves the selected options but does not check them (which is done
+later due to the bootstrap-style build process).
+
+After that, just go on as usual with
+
+make all
+
+to bootstrap and build omake, followed by
+
+make install
+
+to install omake.
+
+
+INSTALLATION WITH EXPLICIT BOOTSTRAP
+
 omake is designed to build itself.  Of course you must be wondering
 how we build in the first place!
 
