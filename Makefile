@@ -10,15 +10,10 @@ LN = ln -sf
 # Bootstrap program is omake-boot
 #
 default:
-	@echo "If you have already built omake, you should use it instead of make."
-	@echo "If you need to bootstrap, use "
-	@echo " - 'make bootstrap',"
-	@echo "       to build the bootstrapping (feature-limited) OMake binary './omake-boot'."
-	@echo " - 'make all',"
-	@echo "       to build everything after the bootstrap"
-	@echo " - 'make install',"
-	@echo "       to build and install everything"
-	@exit 1
+	@if [ -f .config ]; then $(MAKE) all; else \
+	   if [ -f mk/preconfig ]; then $(MAKE) bootstrap && $(MAKE) all; else \
+	       echo "Unconfigured. Run the configure script first!" >&2; exit 1; \
+	fi; fi
 
 bootstrap-byte: boot/Makefile
 	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake
@@ -29,7 +24,15 @@ bootstrap-opt: boot/Makefile
 	@$(LN) boot/omake omake-boot
 
 bootstrap:
-	ocamlopt.opt -v 2>/dev/null && $(MAKE) bootstrap-opt || $(MAKE) bootstrap-byte
+	mkdir -p boot
+	system=`ocamlc -config 2>/dev/null|grep '^system'|sed 's/system: //'`; \
+	case "$system" in \
+	  mingw|mingw64) \
+	    $(MAKE) bootstrap-mingw ;; \
+	  *) \
+	    ocamlopt.opt -v 2>/dev/null && \
+	       $(MAKE) bootstrap-opt || $(MAKE) bootstrap-byte ;; \
+	esac
 
 bootstrap-mingw:
 	@$(MAKE) boot/Makefile LN=cp
@@ -64,3 +67,18 @@ install-after-boot:
 
 install-non-boot:
 	OMAKEFLAGS= OMAKEPATH=lib omake --dotomake .omake --force-dotomake  install
+
+.PHONY: clean
+clean:
+	rm .config
+	rm boot/*
+	find . -name "*.omc" | xargs rm -f
+	rm -f src/*/*.cmi src/*/*.cmo src/*/*.cma
+	rm -f src/*/*.cmx src/*/*.o src/*/*/.cmxa src/*/*.a
+	rm -f src/env/omake_ast_parse.mly
+	rm -f src/libmojave/lm_thread_core.ml
+	rm -f src/libmojave/lm_thread_pool.ml
+	rm -f src/magic/omake_magic.ml
+	rm -f src/shell/omake_shell_sys.ml
+	rm -f .omakedb .omakedb.lock
+	@echo "Next 'make' will re-bootstrap. (This is not a full 'clean' rule.)"

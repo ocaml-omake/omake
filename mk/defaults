@@ -67,6 +67,10 @@ if $(file-exists $(CONFIG_FILE))
     include $(CONFIG_FILE)
     export
 
+if $(file-exists $(CONFIG_FILE).local)
+    include $(CONFIG_FILE).local
+    export
+
 PREFIX = $(dir $"$(PREFIX)")
 BINDIR = $(dir $"$(BINDIR)")
 LIBDIR = $(dir $"$(LIBDIR)")
@@ -101,8 +105,8 @@ section
       INSTALL_BINDIR=$(dir $(getenv BINDIR, $(BINDIR)))
       INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(LIBDIR)))
       export
-   
-   export INSTALL_BINDIR INSTALL_LIBDIR
+
+   export INSTALL_BINDIR INSTALL_LIBDIR INSTALL_PREFIX
 
 if $(not $(file-exists $(CONFIG_FILE)))
     eprintln($(CONFIG_FILE) does not exist)
@@ -114,5 +118,5 @@ if $(not $(file-exists $(CONFIG_FILE)))
 !!!!! After you are done, run omake again to continue the build process.""")
     exit(0)
 
-.INCLUDE: $(CONFIG_FILE): mk/make_config
+.INCLUDE: $(CONFIG_FILE): mk/make_config mk/preconfig
     MakeConfig($(CONFIG_FILE))

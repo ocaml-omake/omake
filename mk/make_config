@@ -20,10 +20,21 @@ Shell. +=
 	    println($2)
 
 
+# preconfig file (= written by configure). Might not exist.
+public.PRECONFIG_FILE = $(file $(ROOT)/mk/preconfig)
+
+
 #
 # Function to generate the config file
 #
 MakeConfig(CONFIG_FILE) =
+    # Now apply preconfig
+    if $(file-exists $(PRECONFIG_FILE))
+        include $(PRECONFIG_FILE)
+        BINDIR = $(PREFIX)/bin
+        LIBDIR = $(PREFIX)/lib
+        export
+
     #
     # If possible, express PREFIX subdirs via $(PREFIX)/...
     #

@@ -157,31 +157,274 @@ realclean: clean
 # Packaging
 #
 .PHONY: rpm tar zip pkg dmg osxclean publish
+.PHONY: package
 
 VERSION=$(string $(cat version.txt))
-RELEASE=0.devel
-match $(VERSION)
-case $'^\([^ ]*\)-\([^ ]*\)$'
-    VERSION=$1
-    RELEASE=$2
-    export
-case $'^\([^ ]*\) '
-    VERSION=$1
-    export
+BASENAME = omake-$(VERSION)
 
-BASENAME = omake-$(VERSION)-$(RELEASE)
+PUBFILES[] =
+    README.md
+    README.WIN32
+    INSTALL
+    LICENSE
+    LICENSE.OMake
+    ChangeLog
+    ChangeLog_old.txt
+    CONTRIBUTORS.org
+    omake.spec
+    omake.spec.in
+    omake.aip
+    version.txt
+    OMakefile
+    OMakeroot
+    Makefile
+    Makefile.nt
+    configure
+
+    src/OMakefile
+    src/Makefile
+    src/Makefile.nt
+
+    src/*/OMakefile
+    src/*/*.ml
+    src/*/*.mly
+    src/*/*.mll
+    src/*/*.mli
+    src/*/*.h
+    src/*/*.c
+    src/env/omake_ast_parse.input
+
+    lib/OMakefile.default
+    lib/OMakeroot.default
+    lib/OMakeroot.install
+    lib/OMakeroot.om
+    lib/Pervasives.install
+    lib/Pervasives.om
+    lib/boot/Default
+    lib/boot/License
+    lib/build/*.install
+    lib/build/*.om
+    lib/configure/*.install
+    lib/configure/*.om
+    lib/parse/C/*.install
+    lib/parse/C/*.om
+    lib/parse/LaTeX/*.install
+    lib/parse/LaTeX/*.om
+    lib/web/*.install
+    lib/web/*.om
+
+    mk/defaults
+    mk/make_config
+    mk/make_gen
+
+    doc/OMakefile
+    doc/html/*.html
+    doc/html/*.css
+    doc/images/*.ai
+    doc/images/*.eps
+    doc/images/*.gif
+    doc/images/*.psd
+    doc/info/omake-doc.info
+    doc/info/omake-doc.info-*
+    doc/ps/omake-doc.pdf
+    doc/src/*.hva
+    doc/src/*.sty
+    doc/src/*.tex
+    doc/txt/omake-doc.txt
+
+    bench/OMakefile
+    bench/mandel/Test1
+
+    osx_resources/Description.plist
+    osx_resources/Info.plist.in
+    osx_resources/OMake.pmproj
+    osx_resources/installer_files/License.txt
+    osx_resources/installer_files/preflight
+    osx_resources/installer_files/ReadMe.txt
+
+    test/awk/Test2/stdout.expected
+    test/awk/Test2/awk.osh
+    test/awk/Test2/run.osh
+    test/awk/Test3/stdout.expected
+    test/awk/Test3/awk.osh
+    test/awk/Test3/run.osh
+    test/awk/Test1/stdout.expected
+    test/awk/Test1/awk.osh
+    test/awk/Test1/run.osh
+    test/awk/Awk.out
+    test/awk/Awk.in
+    test/awk/Subst.in
+    test/awk/Test4/Subst.in
+    test/awk/Test4/Subst.out.expected
+    test/awk/Test4/OMakeroot
+    test/awk/Test4/OMakefile
+    test/awk/Test4/run.osh
+    test/syntax/Test2
+    test/syntax/Test3
+    test/syntax/Test1
+    test/exec/Test1/xxx
+    test/exec/Test1/OMakeroot
+    test/exec/Test1/OMakefile
+    test/parse/C/Test2/test.c
+    test/parse/C/Test2/OMakeroot
+    test/parse/C/Test2/OMakefile
+    test/parse/C/Test3/test.c
+    test/parse/C/Test3/OMakeroot
+    test/parse/C/Test3/OMakefile
+    test/parse/C/Test1/test.c
+    test/parse/C/Test1/OMakeroot
+    test/parse/C/Test1/OMakefile
+    test/parse/C/test2.c
+    test/exn/Test2
+    test/exn/Test3/exn.om
+    test/exn/Test3/run.osh
+    test/exn/Test5
+    test/exn/Test4
+    test/vmount/Test1/src/foo.c
+    test/vmount/Test1/src/OMakefile
+    test/vmount/Test1/build/.dummy
+    test/vmount/Test1/OMakeroot
+    test/vmount/Test1/OMakefile
+    test/simple/Test7
+    test/simple/Test2/a/x/.dummy
+    test/simple/Test2/a/y/.dummy
+    test/simple/Test2/OMakeroot
+    test/simple/Test2/OMakefile
+    test/simple/Test9
+    test/simple/Test10
+    test/simple/Test3/OMakeroot
+    test/simple/Test3/OMakefile
+    test/simple/Test5
+    test/simple/Test1/OMakeroot
+    test/simple/Test1/OMakefile
+    test/simple/Test12
+    test/simple/Test8/stdout.expected
+    test/simple/Test8/simple.om
+    test/simple/Test8/run.osh
+    test/simple/Test11
+    test/simple/Test4/stdout.expected
+    test/simple/Test4/simple.om
+    test/simple/Test4/run.osh
+    test/simple/Test6
+    test/diff.om
+    test/targets/Test2/OMakeroot
+    test/targets/Test2/OMakefile
+    test/targets/Test3/OMakeroot
+    test/targets/Test3/OMakefile
+    test/targets/Test3/run.osh
+    test/targets/Test5/OMakeroot
+    test/targets/Test5/run.osh
+    test/targets/Test1/OMakeroot
+    test/targets/Test1/OMakefile
+    test/targets/Test4/OMakeroot
+    test/curry/Test2
+    test/curry/Test3
+    test/curry/Test5
+    test/curry/Test1
+    test/curry/Test4
+    test/object/Test13
+    test/object/Test09
+    test/object/Test10
+    test/object/Test17
+    test/object/Test18
+    test/object/Test15
+    test/object/Test16
+    test/object/Test11
+    test/object/Test03
+    test/object/Test14
+    test/object/Test05
+    test/object/Test07
+    test/object/Test06
+    test/object/Test04
+    test/object/Test08
+    test/object/Test02
+    test/object/Test01/stdout.expected
+    test/object/Test01/OMakeroot
+    test/object/Test01/OMakefile
+    test/object/Test01/run.osh
+    test/object/Test01/object.om
+    test/regex/Test2
+    test/regex/Test3
+    test/regex/Test1
+    test/regex/Test4
+    test/memo/Test2/stdout.expected
+    test/memo/Test2/OMakeroot
+    test/memo/Test2/run.osh
+    test/memo/Test3/stdout.expected
+    test/memo/Test3/OMakeroot
+    test/memo/Test3/run.osh
+    test/memo/Test5/stdout.expected
+    test/memo/Test5/run.osh
+    test/memo/Test5/fib.om
+    test/memo/Test1/stdout.expected
+    test/memo/Test1/OMakeroot
+    test/memo/Test1/run.osh
+    test/memo/Test4/stdout.expected
+    test/memo/Test4/memo.om
+    test/memo/Test4/run.osh
+    test/memo/Test6/test.om
+    test/memo/Test6/OMakeroot
+    test/OMakefile
+    test/README
+    test/lazy/Test1
+    test/return/Test2
+    test/return/Test1
+    test/static/Test2/stdout.expected
+    test/static/Test2/OMakeroot
+    test/static/Test2/run.osh
+    test/static/Test3/stdout.expected
+    test/static/Test3/OMakeroot
+    test/static/Test3/run.osh
+    test/static/Test1/stdout.expected
+    test/static/Test1/OMakeroot
+    test/static/Test1/run.osh
+    test/calculator/Test
+    test/calculator/Test.input1
+    test/calculator/Test.input2
+    test/keyword/Test2
+    test/keyword/Test3
+    test/keyword/Test5
+    test/keyword/Test1
+    test/keyword/Test4
+    test/keyword/Test6
+    test/shell/Test7/OMakeroot
+    test/shell/Test2/stdout.expected
+    test/shell/Test2/OMakeroot
+    test/shell/Test2/OMakefile
+    test/shell/Test2/run.osh
+    test/shell/Test3/run.osh
+    test/shell/Test5
+    test/shell/Test1/shell.om
+    test/shell/Test1/run.osh
+    test/shell/Test4/run.osh
+    test/shell/Test6/run.osh
+
+PUBFILES_EXCLUDE[] =
+    src/env/omake_ast_parse.mly
+    src/libmojave/lm_thread_core.ml
+    src/libmojave/lm_thread_pool.ml
+    src/magic/omake_magic.ml
+    src/shell/omake_shell_sys.ml
+
+package: packages/$(BASENAME)
+
+packages/$(BASENAME):
+    mkdir -p packages/$(BASENAME)
+    foreach(pat => ..., $(PUBFILES))
+        files = $(glob $(pat))
+        foreach(file => ..., $(files))
+	     if $(test -f $(file))
+	         mkdir -p packages/$(BASENAME)/$(dirname $(file))
+                 cp $(file) packages/$(BASENAME)/$(file)
+    foreach(file => ..., $(PUBFILES_EXCLUDE))
+        rm -f packages/$(BASENAME)/$(file)
+
+packages/$(BASENAME).tar.gz: packages/$(BASENAME)
+    cd packages
+    tar czf $(BASENAME).tar.gz $(BASENAME)
 
 rpm: version.txt make_rpm make_checkout
     ./make_rpm
-
-zip: download/$(BASENAME).src.zip
-tar: download/$(BASENAME).tar.gz
-
-download/$(BASENAME).src.zip: make_zip make_checkout
-   ./make_zip
-
-download/$(BASENAME).tar.gz: make_tar make_checkout
-   ./make_tar
 
 dmg: version.txt
     ./make_dmg dmg
@@ -191,9 +434,6 @@ pkg: version.txt
 
 osxclean: version.txt
     ./make_dmg clean
-
-publish: download/$(BASENAME).src.zip download/$(BASENAME).tar.gz
-   rsync --progress --stats -lrt $^ n0bu.com\:/home/mojave/public_html/download/omake
 
 omake.spec: omake.spec.in
     echo $"%define index $(RELEASE)" > $@
