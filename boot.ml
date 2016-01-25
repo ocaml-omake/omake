@@ -1,4 +1,4 @@
-(* Build omake-boot.exe. Assuming OCaml for Windows installed *)
+(* Build omake-boot.exe *)
 
 let ocamlopt = "ocamlopt -w +a-4-32-30-42-40-41 -g -thread"
 
@@ -10,7 +10,7 @@ let cc =
 let ccinc =
   match Sys.os_type with
     | "Unix" -> " -I/usr/lib/ocaml -I/usr/lib/ocaml/include -I../src/clib" 
-    | "Win32" -> " -Ic:/ocaml/lib -Ic:/ocaml/lib/caml -I../src/clib"
+    | "Win32" -> " -Ic:/ocaml/lib -I../src/clib"
 
 let ar =
   match Sys.os_type with
