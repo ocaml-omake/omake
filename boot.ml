@@ -1,6 +1,6 @@
 (* Build omake-boot.exe. Assuming OCaml for Windows installed *)
 
-let ocamlopt = "ocamlopt.opt -w +a-4-32-30-42-40-41 -g -thread"
+let ocamlopt = "ocamlopt -w +a-4-32-30-42-40-41 -g -thread"
 
 let cc =
   match Sys.os_type with
