@@ -1,6 +1,10 @@
 (* Build omake-boot.exe. Assuming OCaml for Windows installed *)
 
 let ocamlopt = "ocamlopt.opt -w +a-4-32-30-42-40-41 -g -thread"
+let cc = "i686-w64-mingw32-gcc"
+let ccinc = " -Ic:/ocaml/lib -Ic:/ocaml/lib/caml -I../src/clib"
+let ar = "i686-w64-mingw32-ar"
+let rm_f = "del"
 
 let cmd s =
   print_endline s;
@@ -24,7 +28,7 @@ let cmi_of_mli mli = cmd (ocamlopt ^ " -c " ^ mli)
 
 let cmx_of_ml ml = cmd (ocamlopt ^ " -c " ^ ml)
 
-let co_of_c c = cmd ("i686-w64-mingw32-gcc -Ic:/ocaml/lib -Ic:/ocaml/lib/caml -I../src/clib -o " ^ c ^ "o -c " ^ c)
+let co_of_c c = cmd (cc ^ ccinc ^ " -o " ^ (c ^ "o") ^ " -c " ^ c)
 
 let _ =
   cmd "mkdir boot";
@@ -268,9 +272,7 @@ let _ =
   copy_to_boot "src/main/omake_shell.ml";
   copy_to_boot "src/main/omake_shell.mli";
   copy_to_boot "version.txt";
-  cmd "ocamllex.opt omake_ast_lex.mll";
-  cmd "ocamlc.opt -w +a-4-32-30-42-40-41 -g  -c omake_gen_parse.ml";
-  cmd "ocamlc.opt -w +a-4-32-30-42-40-41 -g  -thread -custom -o omake_gen_parse.byte unix.cma threads.cma  omake_gen_parse.cmo";
+  cmd "ocamllex omake_ast_lex.mll";
   cmx_of_ml "omake_gen_parse.ml";
   cmd (ocamlopt ^ " -o omake_gen_parse.opt.exe  unix.cmxa threads.cmxa  omake_gen_parse.cmx");
   cmd "cp omake_gen_parse.opt.exe omake_gen_parse.exe";
@@ -384,11 +386,11 @@ let _ =
   co_of_c "c_lm_termsize.c";
   co_of_c "c_lm_terminfo.c";
   co_of_c "c_lm_fs_case_sensitive.c";
-  cmd "del clib.a";
-  cmd "i686-w64-mingw32-ar cq clib.a c_lm_heap.co c_lm_channel.co c_lm_printf.co c_lm_ctype.co c_lm_uname_ext.co c_lm_unix_cutil.co c_lm_compat_win32.co c_readline.co c_omake_shell_sys.co c_omake_shell_spawn.co c_fam_win32.co c_fam_kqueue.co c_fam_inotify.co c_lm_notify.co c_lm_termsize.co c_lm_terminfo.co c_lm_fs_case_sensitive.co";
+  cmd (rm_f ^ " clib.a");
+  cmd (ar ^ " cq clib.a c_lm_heap.co c_lm_channel.co c_lm_printf.co c_lm_ctype.co c_lm_uname_ext.co c_lm_unix_cutil.co c_lm_compat_win32.co c_readline.co c_omake_shell_sys.co c_omake_shell_spawn.co c_fam_win32.co c_fam_kqueue.co c_fam_inotify.co c_lm_notify.co c_lm_termsize.co c_lm_terminfo.co c_lm_fs_case_sensitive.co");
   cmd (ocamlopt ^ " -o omake_gen_magic.opt.exe -cclib clib.a unix.cmxa threads.cmxa lm.cmxa frt.cmxa omake_gen_magic.cmx");
   cmd "cp omake_gen_magic.opt.exe omake_gen_magic.exe";
-  cmd "omake_gen_magic -o omake_magic.ml --version version.txt --var \"omake_cc=i686-w64-mingw32-gcc\" --var \"omake_cflags=\"  --var \"omake_ccomptype=cc\" --magic --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml";
+  cmd ("omake_gen_magic -o omake_magic.ml --version version.txt --var \"omake_cc=" ^ cc ^ "\" --var \"omake_cflags=\"  --var \"omake_ccomptype=cc\" --magic --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml");
   cmx_of_ml "omake_magic.ml";
   cmd (ocamlopt ^ " -a -o magic.cmxa omake_magic.cmx");
   cmx_of_ml "omake_symbol.ml";
