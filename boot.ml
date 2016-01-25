@@ -20,7 +20,7 @@ let copy_to_boot ?dstname path =
             Not_found -> path in
   cmd ("cp ../" ^ path ^ " " ^ dstname)
 
-let cmi_of_mli mli = cmd ("ocamlc.opt -w +a-4-32-30-42-40-41 -g -thread -c " ^ mli)
+let cmi_of_mli mli = cmd (ocamlopt ^ " -c " ^ mli)
 
 let cmx_of_ml ml = cmd (ocamlopt ^ " -c " ^ ml)
 
@@ -393,8 +393,6 @@ let _ =
   cmd (ocamlopt ^ " -a -o magic.cmxa omake_magic.cmx");
   cmx_of_ml "omake_symbol.ml";
   cmx_of_ml "omake_node_sig.ml";
-  cmi_of_mli "omake_magic.ml";
-  cmd "ocamlc.opt -w +a-4-32-30-42-40-41 -g -thread  -a -o magic.cma omake_magic.cmo";
   cmi_of_mli "omake_state.mli";
   cmx_of_ml "omake_state.ml";
   cmi_of_mli "omake_node_sig.ml";
