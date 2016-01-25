@@ -1,10 +1,31 @@
 (* Build omake-boot.exe. Assuming OCaml for Windows installed *)
 
 let ocamlopt = "ocamlopt.opt -w +a-4-32-30-42-40-41 -g -thread"
-let cc = "i686-w64-mingw32-gcc"
-let ccinc = " -Ic:/ocaml/lib -Ic:/ocaml/lib/caml -I../src/clib"
-let ar = "i686-w64-mingw32-ar"
-let rm_f = "del"
+
+let cc =
+  match Sys.os_type with
+    | "Unix" -> "gcc -O -Wall -D_FILE_OFFSET_BITS=64 -D_REENTRANT" 
+    | "Win32" -> "i686-w64-mingw32-gcc"
+
+let ccinc =
+  match Sys.os_type with
+    | "Unix" -> " -I/usr/lib/ocaml -I/usr/lib/ocaml/include -I../src/clib" 
+    | "Win32" -> " -Ic:/ocaml/lib -Ic:/ocaml/lib/caml -I../src/clib"
+
+let ar =
+  match Sys.os_type with
+    | "Unix" -> "ar" 
+    | "Win32" -> "i686-w64-mingw32-ar"
+
+let rm_f =
+  match Sys.os_type with
+    | "Unix" -> "rm -f"
+    | "Win32" -> "del"
+
+let dotslash =
+  match Sys.os_type with
+    | "Unix" -> "./"
+    | "Win32" -> ""
 
 let cmd s =
   print_endline s;
@@ -218,7 +239,7 @@ let _ =
   copy_to_boot "src/shell/omake_shell_sys.mli";
   copy_to_boot "src/shell/omake_shell_sys_type.ml";
   copy_to_boot "src/shell/omake_shell_parse.mly";
-  copy_to_boot "src/shell/omake_shell_sys_win32.ml" ~dstname:"omake_shell_sys.ml";
+  copy_to_boot ("src/shell/omake_shell_sys_" ^ (match Sys.os_type with "Unix" -> "unix" | "Win32" -> "win32") ^ ".ml") ~dstname:"omake_shell_sys.ml";
   copy_to_boot "src/eval/omake_eval.ml";
   copy_to_boot "src/eval/omake_eval.mli";
   copy_to_boot "src/eval/omake_value.ml";
@@ -276,7 +297,7 @@ let _ =
   cmx_of_ml "omake_gen_parse.ml";
   cmd (ocamlopt ^ " -o omake_gen_parse.opt.exe  unix.cmxa threads.cmxa  omake_gen_parse.cmx");
   cmd "cp omake_gen_parse.opt.exe omake_gen_parse.exe";
-  cmd "omake_gen_parse -o omake_ast_parse.mly omake_ast_parse.input";
+  cmd (dotslash ^ "omake_gen_parse.exe -o omake_ast_parse.mly omake_ast_parse.input");
   cmd "ocamlyacc omake_ast_parse.mly";
   cmd "ocamlyacc omake_exp_parse.mly";
   cmd "ocamlyacc omake_shell_parse.mly";
@@ -390,7 +411,7 @@ let _ =
   cmd (ar ^ " cq clib.a c_lm_heap.co c_lm_channel.co c_lm_printf.co c_lm_ctype.co c_lm_uname_ext.co c_lm_unix_cutil.co c_lm_compat_win32.co c_readline.co c_omake_shell_sys.co c_omake_shell_spawn.co c_fam_win32.co c_fam_kqueue.co c_fam_inotify.co c_lm_notify.co c_lm_termsize.co c_lm_terminfo.co c_lm_fs_case_sensitive.co");
   cmd (ocamlopt ^ " -o omake_gen_magic.opt.exe -cclib clib.a unix.cmxa threads.cmxa lm.cmxa frt.cmxa omake_gen_magic.cmx");
   cmd "cp omake_gen_magic.opt.exe omake_gen_magic.exe";
-  cmd ("omake_gen_magic -o omake_magic.ml --version version.txt --var \"omake_cc=" ^ cc ^ "\" --var \"omake_cflags=\"  --var \"omake_ccomptype=cc\" --magic --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml");
+  cmd (dotslash ^ "omake_gen_magic.exe -o omake_magic.ml --version version.txt --var \"omake_cc=" ^ cc ^ "\" --var \"omake_cflags=\"  --var \"omake_ccomptype=cc\" --magic --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml");
   cmx_of_ml "omake_magic.ml";
   cmd (ocamlopt ^ " -a -o magic.cmxa omake_magic.cmx");
   cmx_of_ml "omake_symbol.ml";
@@ -485,6 +506,8 @@ let _ =
   cmx_of_ml "omake_shell_lex.ml";
   cmx_of_ml "omake_shell_sys_type.ml";
   cmi_of_mli "omake_shell_sys_type.ml";
+  cmi_of_mli "omake_shell_spawn.mli";
+  cmx_of_ml "omake_shell_spawn.ml";
   cmi_of_mli "omake_shell_sys.mli";
   cmx_of_ml "omake_shell_sys.ml";
   cmi_of_mli "omake_shell_job.mli";
@@ -524,8 +547,6 @@ let _ =
   cmd (ocamlopt ^ " -a -o env.cmxa omake_env.cmx omake_exn_print.cmx omake_ast_parse.cmx omake_ast_lex.cmx omake_exp_parse.cmx omake_exp_lex.cmx omake_ir_ast.cmx omake_ir_semant.cmx omake_command_digest.cmx");
   cmd (ocamlopt ^ " -a -o exec.cmxa omake_exec_id.cmx omake_exec_type.cmx omake_exec_print.cmx omake_exec_util.cmx omake_exec_local.cmx omake_exec_remote.cmx omake_exec_notify.cmx omake_exec.cmx");
   cmd (ocamlopt ^ " -a -o eval.cmxa omake_eval.cmx omake_value.cmx");
-  cmi_of_mli "omake_shell_spawn.mli";
-  cmx_of_ml "omake_shell_spawn.ml";
   cmd (ocamlopt ^ " -a -o shell.cmxa omake_shell_parse.cmx omake_shell_lex.cmx omake_shell_spawn.cmx omake_shell_sys_type.cmx omake_shell_sys.cmx omake_shell_job.cmx omake_shell_completion.cmx");
   cmd (ocamlopt ^ " -a -o build.cmxa omake_rule.cmx omake_build_type.cmx omake_build_tee.cmx omake_build_util.cmx omake_builtin_type.cmx omake_target.cmx omake_builtin.cmx omake_build.cmx");
   cmi_of_mli "omake_printf.mli";
