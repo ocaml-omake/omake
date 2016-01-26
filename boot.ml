@@ -1,69 +1,62 @@
 (* Build omake-boot.exe *)
 #load "str.cma" ;;
-
-let cmd s =
-  print_endline s;
-  let x = Sys.command s in
-  (if x <> 0 then
-    exit (-1))
-
-let ocamlopt = "ocamlopt -w +a-4-32-30-42-40-41 -g -thread"
-
-let ccinc =
-  match Sys.os_type with
-    | "Unix" -> " -I/usr/lib/ocaml -I../src/clib" 
-    | "Win32" -> " -Ic:/ocaml/lib -I../src/clib"
-    | _ -> exit (-1)
-
-let ar =
-  match Sys.os_type with
-    | "Unix" -> "ar" 
-    | "Win32" -> "i686-w64-mingw32-ar"
-    | _ -> exit (-1)
-
-let rm_f =
-  match Sys.os_type with
-    | "Unix" -> "rm -f"
-    | "Win32" -> "del"
-    | _ -> exit (-1)
-
-let dotslash =
-  match Sys.os_type with
-    | "Unix" -> "./"
-    | "Win32" -> ""
-    | _ -> exit (-1)
-
-let copy_to_boot ?dstname path =
-  let dstname =
-    match dstname with
-      | Some name -> name
-      | None ->
-          try
-            let i = String.rindex path '/' + 1 in
-            String.sub path i (String.length path - i)
-          with
-            Not_found -> path in
-  cmd ("cp ../" ^ path ^ " " ^ dstname)
-
-let cmi_of_mli mli = cmd (ocamlopt ^ " -c " ^ mli)
-
-let cmx_of_ml ml = cmd (ocamlopt ^ " -c " ^ ml)
-
 let _ =
+  let cmd s =
+    print_endline s;
+    let x = Sys.command s in
+    (if x <> 0 then
+      exit (-1)) in
   cmd "mkdir boot";
   Sys.chdir "boot";
+  let ocamlc_config =
+    cmd "ocamlc -config >ocamlc-config.txt";
+    let f = open_in_bin "ocamlc-config.txt" in
+    let s = really_input_string f (in_channel_length f) in
+    close_in f;
+    s in
+  let ocamlopt = "ocamlopt -w +a-4-32-30-42-40-41 -g -thread" in
   let cc =
     match Sys.os_type with
-      | "Unix" ->
-          cmd "ocamlc -config >ocamlc-config.txt";
-          let ocamlc_config =
-            let f = open_in_bin "ocamlc-config.txt" in
-            let s = really_input_string f (in_channel_length f) in
-            close_in f;
-            s in
+      | "Unix" | "Win32" ->
           ignore (Str.search_forward (Str.regexp "native_c_compiler: \\([^\r\n]*\\)") ocamlc_config 0);
           Str.matched_group 1 ocamlc_config
-      | "Win32" -> "i686-w64-mingw32-gcc" in
+      | _ -> exit (-1) in
+  let ccinc =
+    match Sys.os_type with
+      | "Unix" | "Win32" ->
+          ignore (Str.search_forward (Str.regexp "standard_library: \\([^\r\n]*\\)") ocamlc_config 0);
+          " -I" ^  (Str.matched_group 1 ocamlc_config) ^ " -I../src/clib" 
+      | _ -> exit (-1) in
+  let ar =
+    match Sys.os_type with
+      | "Unix" -> "ar" 
+      | "Win32" ->
+          ignore (Str.search_forward (Str.regexp "ranlib: \\([^\r\n]*\\)-ranlib") ocamlc_config 0);
+          (Str.matched_group 1 ocamlc_config) ^ "-ar" 
+      | _ -> exit (-1) in
+  let rm_f =
+    match Sys.os_type with
+      | "Unix" -> "rm -f"
+      | "Win32" -> "del"
+      | _ -> exit (-1) in
+  let dotslash =
+    match Sys.os_type with
+      | "Unix" -> "./"
+      | "Win32" -> ""
+      | _ -> exit (-1) in
+  let copy_to_boot ?dstname path =
+    let dstname =
+      match dstname with
+        | Some name -> name
+        | None ->
+            try
+              let i = String.rindex path '/' + 1 in
+              String.sub path i (String.length path - i)
+            with
+              Not_found -> path in
+    cmd ("cp ../" ^ path ^ " " ^ dstname) in
+  let cmi_of_mli mli = cmd (ocamlopt ^ " -c " ^ mli) in
+  let cmx_of_ml ml = cmd (ocamlopt ^ " -c " ^ ml) in
   let co_of_c c = cmd (cc ^ ccinc ^ " -o " ^ (c ^ "o") ^ " -c " ^ c) in
   copy_to_boot "src/clib/lm_heap.c" ~dstname:"c_lm_heap.c";
   copy_to_boot "src/clib/lm_channel.c" ~dstname:"c_lm_channel.c";
