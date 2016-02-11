@@ -23,7 +23,7 @@ let _ =
       | _ -> "") in
   let cc =
     ignore (Str.search_forward (Str.regexp "native_c_compiler: \\([^\r\n]*\\)") ocamlc_config 0);
-    Str.matched_group 1 ocamlc_config
+    Str.matched_group 1 ocamlc_config in
   let ccinc =
     (match Sys.os_type with
       | "Unix" | "Win32" ->
