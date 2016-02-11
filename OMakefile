@@ -76,6 +76,11 @@ if $(not $(defined CAMLLIB))
 # OCaml options
 #
 OCAMLFLAGS[] += -w +a-4-32-30-42-40-41 -g
+
+if $(equal $(OSTYPE), Cygwin)
+  OCAMLFLAGS[] += -nostdlib -I /usr/lib/ocaml -I /usr/lib/ocaml/threads
+  export
+
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export

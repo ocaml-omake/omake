@@ -1,5 +1,7 @@
 (* Build omake-boot.exe *)
+#directory "/usr/lib/ocaml/stublibs" ;;
 #load "str.cma" ;;
+
 let _ =
   let cmd s =
     print_endline s;
@@ -14,10 +16,13 @@ let _ =
     let s = really_input_string f (in_channel_length f) in
     close_in f;
     s in
-  let ocamlopt = "ocamlopt -w +a-4-32-30-42-40-41 -g -thread" in
+  let ocamlopt =
+    match Sys.os_type with
+      | "Cygwin" ->  "ocamlopt -w +a-4-32-30-42-40-41 -g -thread -nostdlib -I /usr/lib/ocaml -I /usr/lib/ocaml/threads"
+      | _ -> "ocamlopt -w +a-4-32-30-42-40-41 -g -thread" in
   let cc =
     match Sys.os_type with
-      | "Unix" | "Win32" ->
+      | "Unix" | "Win32" | "Cygwin" ->
           ignore (Str.search_forward (Str.regexp "native_c_compiler: \\([^\r\n]*\\)") ocamlc_config 0);
           Str.matched_group 1 ocamlc_config
       | _ -> exit (-1) in
@@ -25,23 +30,24 @@ let _ =
     match Sys.os_type with
       | "Unix" | "Win32" ->
           ignore (Str.search_forward (Str.regexp "standard_library: \\([^\r\n]*\\)") ocamlc_config 0);
-          " -I" ^  (Str.matched_group 1 ocamlc_config) ^ " -I../src/clib" 
+          " -I" ^  (Str.matched_group 1 ocamlc_config) ^ " -I../src/clib"
+      | "Cygwin" -> "-I /usr/lib/ocaml -I ../src/clib"
       | _ -> exit (-1) in
   let ar =
     match Sys.os_type with
-      | "Unix" -> "ar" 
+      | "Unix" | "Cygwin" -> "ar" 
       | "Win32" ->
           ignore (Str.search_forward (Str.regexp "ranlib: \\([^\r\n]*\\)-ranlib") ocamlc_config 0);
           (Str.matched_group 1 ocamlc_config) ^ "-ar" 
       | _ -> exit (-1) in
   let rm_f =
     match Sys.os_type with
-      | "Unix" -> "rm -f"
+      | "Unix" | "Cygwin" -> "rm -f"
       | "Win32" -> "del"
       | _ -> exit (-1) in
   let dotslash =
     match Sys.os_type with
-      | "Unix" -> "./"
+      | "Unix" | "Cygwin" -> "./"
       | "Win32" -> ""
       | _ -> exit (-1) in
   let copy_to_boot ?dstname path =
@@ -243,7 +249,7 @@ let _ =
   copy_to_boot "src/shell/omake_shell_sys.mli";
   copy_to_boot "src/shell/omake_shell_sys_type.ml";
   copy_to_boot "src/shell/omake_shell_parse.mly";
-  copy_to_boot ("src/shell/omake_shell_sys_" ^ (match Sys.os_type with "Unix" -> "unix" | "Win32" -> "win32") ^ ".ml") ~dstname:"omake_shell_sys.ml";
+  copy_to_boot ("src/shell/omake_shell_sys_" ^ (match Sys.os_type with "Unix" | "Cygwin" -> "unix" | "Win32" -> "win32" | _ -> exit (-1)) ^ ".ml") ~dstname:"omake_shell_sys.ml";
   copy_to_boot "src/eval/omake_eval.ml";
   copy_to_boot "src/eval/omake_eval.mli";
   copy_to_boot "src/eval/omake_value.ml";
