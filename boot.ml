@@ -17,22 +17,20 @@ let _ =
     close_in f;
     s in
   let ocamlopt =
-    match Sys.os_type with
-      | "Cygwin" ->  "ocamlopt -w +a-4-32-30-42-40-41 -g -thread -nostdlib -I /usr/lib/ocaml -I /usr/lib/ocaml/threads"
-      | _ -> "ocamlopt -w +a-4-32-30-42-40-41 -g -thread" in
+    "ocamlopt -w +a-4-32-30-42-40-41 -g -thread" ^
+    (match Sys.os_type with
+      | "Cygwin" ->  " -nostdlib -I /usr/lib/ocaml -I /usr/lib/ocaml/threads"
+      | _ -> "") in
   let cc =
-    match Sys.os_type with
-      | "Unix" | "Win32" | "Cygwin" ->
-          ignore (Str.search_forward (Str.regexp "native_c_compiler: \\([^\r\n]*\\)") ocamlc_config 0);
-          Str.matched_group 1 ocamlc_config
-      | _ -> exit (-1) in
+    ignore (Str.search_forward (Str.regexp "native_c_compiler: \\([^\r\n]*\\)") ocamlc_config 0);
+    Str.matched_group 1 ocamlc_config
   let ccinc =
-    match Sys.os_type with
+    (match Sys.os_type with
       | "Unix" | "Win32" ->
           ignore (Str.search_forward (Str.regexp "standard_library: \\([^\r\n]*\\)") ocamlc_config 0);
-          " -I" ^  (Str.matched_group 1 ocamlc_config) ^ " -I../src/clib"
-      | "Cygwin" -> "-I /usr/lib/ocaml -I ../src/clib"
-      | _ -> exit (-1) in
+          " -I" ^  (Str.matched_group 1 ocamlc_config)
+      | "Cygwin" -> " -I /usr/lib/ocaml"
+      | _ -> exit (-1)) ^ " -I../src/clib" in
   let ar =
     match Sys.os_type with
       | "Unix" | "Cygwin" -> "ar" 
