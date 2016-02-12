@@ -8,6 +8,17 @@ let _ =
     let x = Sys.command s in
     (if x <> 0 then
       exit (-1)) in
+  (if Sys.file_exists "boot" then
+    (match Sys.argv with
+      | [| _; "-f" |] ->
+          (match Sys.os_type with
+            | "Unix" | "Cygwin" -> cmd "rm -rf boot"
+            | "Win32" -> cmd "rd /s /q boot"
+            | _ -> exit (-1))
+      | _ ->
+        print_endline "./boot already exists. Aborting.";
+        print_endline "(If it is okay to remove ./boot at start, please run \"ocaml boot.ml -f\".)";
+        exit(-1)));
   cmd "mkdir boot";
   Sys.chdir "boot";
   let ocamlc_config =
@@ -38,11 +49,6 @@ let _ =
           ignore (Str.search_forward (Str.regexp "ranlib: \\([^\r\n]*\\)-ranlib") ocamlc_config 0);
           (Str.matched_group 1 ocamlc_config) ^ "-ar" 
       | _ -> exit (-1) in
-  let rm_f =
-    match Sys.os_type with
-      | "Unix" | "Cygwin" -> "rm -f"
-      | "Win32" -> "del"
-      | _ -> exit (-1) in
   let re_slash = Str.regexp "/" in
   let cp src dst =
     match Sys.os_type with
@@ -51,7 +57,8 @@ let _ =
       | "Win32" ->
           let src = Str.global_replace re_slash "\\\\" src in
           let dst = Str.global_replace re_slash "\\\\" dst in
-          cmd ("copy " ^ src ^ " " ^ dst) in
+          cmd ("copy " ^ src ^ " " ^ dst)
+      | _ -> exit (-1) in
   let dotslash =
     match Sys.os_type with
       | "Unix" | "Cygwin" -> "./"
@@ -424,7 +431,6 @@ let _ =
   co_of_c "c_lm_termsize.c";
   co_of_c "c_lm_terminfo.c";
   co_of_c "c_lm_fs_case_sensitive.c";
-  cmd (rm_f ^ " clib.a");
   cmd (ar ^ " cq clib.a c_lm_heap.co c_lm_channel.co c_lm_printf.co c_lm_ctype.co c_lm_uname_ext.co c_lm_unix_cutil.co c_lm_compat_win32.co c_readline.co c_omake_shell_sys.co c_omake_shell_spawn.co c_fam_win32.co c_fam_kqueue.co c_fam_inotify.co c_lm_notify.co c_lm_termsize.co c_lm_terminfo.co c_lm_fs_case_sensitive.co");
   cmd (ocamlopt ^ " -o omake_gen_magic.opt.exe -cclib clib.a unix.cmxa threads.cmxa lm.cmxa frt.cmxa omake_gen_magic.cmx");
   cp "omake_gen_magic.opt.exe" "omake_gen_magic.exe";
