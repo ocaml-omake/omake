@@ -15,6 +15,7 @@
 *.default
 *.i.mli
 *.magic
+*.exe
 .\#*
 \#*\#
 *~
