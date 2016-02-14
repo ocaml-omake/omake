@@ -147,7 +147,7 @@ GENMAGIC = $(file src/magic/omake_gen_magic)
 CLEAN = rm -rf *.cm* *~ .\#* *.o *.obj *.a *.lib *.exe *.omc *.install *.tmp
 
 clean:
-    $(CLEAN) boot .config.omc .config.local.omc .omakedb* mk/*.omc .omake omake-boot$(EXE) lib/*.default download
+    $(CLEAN) .config.omc .config.local.omc .omakedb* mk/*.omc .omake lib/*.default download
 
 if $(not $(defined FORCE_REALCLEAN))
     FORCE_REALCLEAN = false
