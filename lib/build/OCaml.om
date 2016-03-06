@@ -52,6 +52,7 @@ open configure/Configure
 #    machines.
 # \varlabel{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} True when a version of
 #    \verb+ocamldep+ that understands the \verb+-modules+ option is available on your machine.
+# \varlabel{CMXS_SUPPORTED}{CMXS\_SUPPORTED} True if "ocamlopt -shared" is supported by the compiler.
 # \varlabel{MENHIR_AVAILABLE}{MENHIR\_AVAILABLE} True when the Menhir parser-generator is available
 #    on your machine.
 # \var{OCAMLLIB} The location of OCaml library directory (output of \verb+ocamlc -where+). Empty when no
@@ -91,6 +92,10 @@ open configure/Configure
 # \varlabel{NATIVE_ENABLED}{NATIVE\_ENABLED} Flag indicating whether to use the native-code compiler (default \verb+true+, when ocamlopt is found, \verb+false+ otherwise).
 #    Both \verb+BYTE_ENABLED+ and \verb+NATIVE_ENABLED+ can be set to true;
 #    at least one should be set to true.
+# \varlabel{CMXS_ENABLED}{CMXS\_ENABLED} Flag indicating whether libraries are
+#    also created as plugins. This defaults to \verb+false+ for compatibility
+#    with old omake versions. Set it to \verb+CMXS_SUPPORTED+ to enable this
+#    feature when supported
 # \varlabel{MENHIR_ENABLED}{MENHIR\_ENABLED} Define this as \verb+true+ if you wish to use
 #    \verb+menhir+ instead of \verb+ocamlyacc+ (default \verb+false+).
 # \varlabel{EXTENDED_DIGESTS}{EXTENDED\_DIGESTS} Whether to include more information into
@@ -114,6 +119,15 @@ public.USE_OCAMLFIND = false
             value $(ConfMsgYesNo $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az))
         else
             ConfMsgResult($"FAILED - ocamlc not found")
+            value false
+    ConfMsgChecking(whether ocamlopt can create cmxs plugins)
+    CMXS_SUPPORTED =
+        if $(OCAMLOPT_EXISTS)
+            ok = $(ConfMsgYesNo $(shell-success-null ocamlopt -shared -o .dummy.cmxs))
+            rm(-f .dummy.cmxs)
+            value $(ok)
+        else
+            ConfMsgResult($"no (ocamlopt not found)")
             value false
     OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
     OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
@@ -782,6 +796,17 @@ OCamlLinkSort(nodes) =
 # \begin{verbatim}
 # OCamlLibrary(libfoo, foo bar)
 # \end{verbatim}
+#
+# If the variable \verb+CMXS_ENABLED+ is set, additionally the cmxs plugin
+# is created. Note that \verb+CMXS_SUPPORTED+ returns whether the compiler
+# installation supports plugins, so you can simply set
+#
+# \begin{verbatim}
+# CMXS_ENABLED = CMXS_SUPPORTED
+# \end{verbatime}
+#
+# before calling \verb+OCamlLibrary+. For compatibility with older omake
+# versions, \verb+CMXS_ENABLED+ defaults to \verb+false+.
 # \end{doc}
 #
 public.OCamlLibrary(name, files) =
