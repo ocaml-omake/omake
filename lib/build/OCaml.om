@@ -122,6 +122,7 @@ public.USE_OCAMLFIND = false
     #
     NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
     BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
+    CMXS_ENABLED = false
     #
     EXTENDED_DIGESTS = false
 
@@ -794,6 +795,7 @@ public.OCamlLibrary(name, files) =
    protected.CLIB      = $(file $(name)$(EXT_LIB))
    protected.BYTELIB   = $(file $(name).cma)
    protected.NATIVELIB = $(file $(name).cmxa)
+   protected.SHAREDLIB = $(file $(name).cmxs)
 
    #
    # Link commands
@@ -806,7 +808,10 @@ public.OCamlLibrary(name, files) =
         $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) \
                 $(OCAML_LIB_FLAGS) -a -o $(NATIVELIB) $(OCamlLinkSort $(CMXFILES))
 
-   return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+   $(SHAREDLIB): $(NATIVELIB) $(CLIB)
+      $(OCAMLFIND) $(OCAMLOPTLINK) -shared -cclib -L. -o $(SHAREDLIB) $(NATIVELIB)
+
+   return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)), $(if $(CMXS_ENABLED), $(SHAREDLIB)))
 
 #
 # Generic rule to build an ML library
