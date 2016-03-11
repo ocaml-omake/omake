@@ -917,6 +917,12 @@ public.OCamlPackage(name, files) =
             $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
                 $(OCAMLOPTFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMX) $(OCamlLinkSort $(CMXFILES))
 
+   section
+      OCAMLOPTFLAGS += -for-pack $(capitalize $(name))
+      $(addsuffix .cmi, $(files)):
+      $(BYTE_DEPS):
+      $(NATIVE_DEPS):
+
    $(CMI):
       section rule
          if $(target-exists $(MLI))
