@@ -135,7 +135,7 @@ OCAML_CCLIBS_$(name) = $(ocaml_cclibs)
 $(name).byte$$(EXE): $$(CMOFILES_$(name)) $$(OCAML_LIBS_$(name)) $$(OCAML_CLIBS_$(name))
 	$$(OCAMLC) $$(OCAMLFLAGS) -custom -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_$(name)) $$(THREADSLIB) $$(OCAML_LIBS_$(name)) $$(CMOFILES_$(name))
 $(name).opt$$(EXE): $$(CMXFILES_$(name)) $$(OCAML_LIBS_OPT_$(name)) $$(OCAML_CLIBS_$(name))
-	$$(OCAMLOPT) $$(OCAMLFLAGS) -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_OPT_$(name)) $$(THREADSLIB) $$(OCAML_LIBS_OPT_$(name)) $$(CMXFILES_$(name))
+	$$(OCAMLOPT) $$(OCAMLFLAGS) -o $$@ $$(OCAML_CCLIBS_$(name)) $$(OCAML_OTHER_LIBS_OPT_$(name)) $$(THREADSLIB_OPT) $$(OCAML_LIBS_OPT_$(name)) $$(CMXFILES_$(name))
 $(name)$$(EXE): $(name)$$(PREFERRED)$$(EXE)
 	$$(LN) $(name)$$(PREFERRED)$$(EXE) $$@
 """
@@ -265,6 +265,7 @@ CCOMPTYPE = cc
 
 OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB =
+THREADSLIB_OPT =
 PREFERRED = .byte
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
