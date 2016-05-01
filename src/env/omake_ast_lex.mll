@@ -3,6 +3,10 @@
  * This is a little difficult because indentation is
  * significant, and we want it to work in interactive mode
  * too.
+ *
+ * GS. Also includes the entry points for parsing:
+ * - parse_ast:     parse a file
+ * - parse_string:  parse a string
  *)
 
 {
@@ -26,6 +30,16 @@ let debug_lex =
  *       s is the quotation delimiter, skip the token if it is a quote that is not s
  *    ModeQuote s: parsing a literal string, dollar sequences are still expanded,
  *       escape sequences are allowed, s is the quotation delimiter.
+ *
+ * GS. The main entry is lex_line (below). Depending on the current mode,
+ * a different lexer function is invoked:
+ *
+ * ModeNormal:      calls lex_main
+ * ModeString:      calls lex_string, for text in $+dquote (e.g. $"")
+ * ModeSkipString:  calls lex_skip_string. This is used after newlines inside
+ *                  $-dquoted-text for checking whether the matching end
+ *                  quote is following. Fairly technical.
+ * ModeQuote:       calls lex_quote, for text after dquote
  *)
 type mode =
    ModeNormal
@@ -38,6 +52,9 @@ type mode =
  *    ModeInitial: lexbuf is ready to be used
  *    ModeIndent i: initial indentation has been scanned
  *    ModeNormal: normal processing
+ *
+ * GS. LexModeInitial means we are at the beginning of the line. LexModeNormal
+ * means that we've just lexed the left indentation.
  *)
 type lexmode =
    LexModeInitial
@@ -69,6 +86,10 @@ type session =
      mutable current_line    : int;
      mutable current_off     : int;
      mutable current_loc     : Lm_location.t;
+
+     (* GS TODO: line/off/loc is now tracked by lexbuf (it wasn't in ancient
+        versions of OCaml). Remove this here, and rely on lexbuf only.
+      *)
 
      (* The current input buffer *)
      mutable current_buffer  : string;
@@ -257,6 +278,10 @@ let push_dollar state mode =
    push_mode state mode;
    state.current_parens <- Some 0
 
+(* GS. The reason for counting open parentheses (in current_parens) is that
+   a line feed is interpreted differently while there is an open parenthesis.
+ *)
+
 (*
  * Push a paren.
  *)
@@ -300,6 +325,8 @@ let lexeme_loc state lexbuf =
    let loc = Lm_location.create_loc file line schar line echar in
       state.current_loc <- loc;
       loc
+(* GS TODO: use Lexing.lexeme_start_p and Lexing.lexeme_end_p instead *)
+
 
 (*
  * Raise a syntax error exception.
@@ -390,6 +417,7 @@ let lexeme_key state lexbuf =
 
 (*
  * Get the escaped char.
+ * GS. e.g. "\X" -> "X"
  *)
 let lexeme_esc state lexbuf =
    let s, loc = lexeme_string state lexbuf in
@@ -397,6 +425,7 @@ let lexeme_esc state lexbuf =
 
 (*
  * Single character variable.
+ * GS. $x (not $(...)). Also $`x and $,x.
  *)
 let lexeme_var state lexbuf =
   let s, loc = lexeme_string state lexbuf in
@@ -426,6 +455,10 @@ let lexeme_dollar_pipe state lexbuf =
    in
    let s = String.sub s off (String.length s - off) in
       strategy, s, loc
+
+(* GS. Unclear why there are two versions of this function. lexeme_dollar
+   seems to be the usual function, for all of $` $, $$
+ *)
 
 let lexeme_dollar state lexbuf =
    let s, loc = lexeme_string state lexbuf in
@@ -547,6 +580,7 @@ let name_prefix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '@']
 let name_suffix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '@']
 let name            = name_prefix name_suffix* | '[' | ']'
 let key             = ['~' '?'] name_suffix+
+  (* GS. Named function arguments, as in OCaml *)
 
 (*
  * Numbers.
@@ -581,6 +615,7 @@ let quote_opt      = quote?
 
 (*
  * Special variables.
+ * GS. This refers to one-character dollar refs, without parentheses.
  *)
 let dollar         = '$' ['`' ',' '$']
 let paren_dollar   = '$' ['`' ',']?
@@ -644,6 +679,11 @@ rule lex_main state = parse
     * like the decimal numbers, etc.  We can define the
     * regular expressions normally, but give precedence
     * to identifiers. *)
+   (* GS TODO. This doesn't seem to be correct. The regexp for [name] also
+      parses [integer] and some forms of [float]. Because ocamllex picks
+      the first regexp when two regexps match the same string, [name] is
+      always preferred.
+    *)
  | name
    { lexeme_name state lexbuf }
  | integer
@@ -654,7 +694,7 @@ rule lex_main state = parse
    { let s, loc = lexeme_string state lexbuf in
         TokFloat (s, loc)
    }
- | key
+ | key        (* GS: name prefixed with '?' or '~' (named arguments) *)
    { lexeme_key state lexbuf }
  | ['\'' '"']
    { let id, loc = lexeme_string state lexbuf in
@@ -662,9 +702,11 @@ rule lex_main state = parse
         push_mode state mode;
         TokBeginQuoteString (id, loc)
    }
+ (* GS. Remember dquote and squote can be several quotes *)
  | '$' dquote
    { let id, loc = lexeme_string state lexbuf in
      let id = String.sub id 1 (pred (String.length id)) in
+              (* GS TODO: use "as" *)
      let mode = ModeString id in
         push_mode state mode;
         TokBeginQuote ("", loc)
@@ -672,20 +714,27 @@ rule lex_main state = parse
  | '$' squote
    { let id, _ = lexeme_string state lexbuf in
      let id = String.sub id 1 (pred (String.length id)) in
+              (* GS TODO: use "as" *)
      let s, loc = lex_literal state (Buffer.create 32) id lexbuf in
+     (* GS: lex_literal is a sublexer. Returns the quoted string *)
         TokStringQuote (s, loc)
    }
+ (* GS: e.g. $||text||, this is used for map keys *)
  | paren_dollar pipe
    { let strategy, id, _ = lexeme_dollar_pipe state lexbuf in
      let s, loc = lex_literal state (Buffer.create 32) id lexbuf in
         TokVarQuote (strategy, s, loc)
    }
+ (* $ plus a single character *)
  | special_var
    { lexeme_var state lexbuf }
+ (* other $ *)
  | dollar
    { lexeme_dollar state lexbuf }
+ (* $ ( ) : , ; = . % + - * / < > ^ & | *)
  | special_char
    { lexeme_char state lexbuf }
+ (* => :: += [] << >> >>> && || ... [...] *)
  | special_string
    { lexeme_special_string state lexbuf }
  | special_colon
@@ -730,6 +779,8 @@ rule lex_main state = parse
  * escape sequences are allowed, and unescaped newlines are
  * not allowed (this is the normal shell definition of
  * a quoted string).
+ *
+ * GS: text after double quotes
  *)
 and lex_quote state = parse
    strict_nl
@@ -781,6 +832,8 @@ and lex_quote state = parse
  * Inline text.  We allow any text, but dollars are expanded.
  * Escape sequence other than an escaped newline are not
  * processed.
+ *
+ * GS: text after $ + double quotes
  *)
 and lex_string state = parse
    '\\'
@@ -814,13 +867,14 @@ and lex_string state = parse
            ModeString s ->
               push_mode state (ModeSkipString s)
          | _ ->
+             (* GS CHECK: When is this possible? *)
               ()
      in
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
         TokString (s, loc)
    }
- | esc_line
+ | esc_line              (* GS: Backslash before newline *)
    { let loc = lexeme_loc state lexbuf in
      let () =
         match state.current_mode with
@@ -841,6 +895,9 @@ and lex_string state = parse
    }
 
 and lex_skip_string state = parse
+  (* GS. This also matches the empty string, so this rule is always matched.
+     This is a technical sub-lexer of lex_string
+   *)
    quote_opt
    { let s, loc = lexeme_string state lexbuf in
         pop_mode state;
@@ -854,6 +911,7 @@ and lex_skip_string state = parse
 
 (*
  * Text, but we don't expand variables.
+ * GS. E.g. after $''. Parses until matching ''
  *)
 and lex_literal state buf equote = parse
    strict_nl
@@ -1084,6 +1142,7 @@ let state_refill state =
 
 (*
  * Lexer function to refill the buffer.
+ * GS. This is for Lexing.from_function.
  *)
 let lex_refill state buf len =
    let { current_buffer = buffer;
@@ -1161,8 +1220,14 @@ let parse_indent state prompt root nest =
     | LexModeNormal indent ->
          indent
 
+(* GS. In the following, parse = Omake_ast_parse.shell, i.e. the ocamlyacc
+   generated parser
+ *)
+
 (*
  * Parse a single expression.
+ * GS. an "expression" is not just a $-expression, but any code block, which
+ * may span several lines.
  *)
 let rec parse_exp state parse prompt root nest =
   let indent = parse_indent state prompt root nest in
@@ -1174,13 +1239,15 @@ let rec parse_exp state parse prompt root nest =
     parse_exp_indent state parse prompt root nest
 
 and parse_exp_indent state parse _ root nest =
+  (* GS: after the indentation... *)
   let code, e =
     try parse (lex_line state) state.current_lexbuf with
       Parsing.Parse_error ->
       parse_error state
-  in
+  in  (* GS: e is the parsed expression *)
   let code = Omake_ast_util.scan_body_flag code e in
   let parse = body_parser state code in
+  (* GS. parse is now None, or Some Omake_ast_parse.shell or .string *)
   match parse with
     Some parse ->
     let prompt = prompt_string state root nest e in
@@ -1199,6 +1266,9 @@ and parse_exp_indent state parse _ root nest =
 and parse_body state parse prompt nest =
   let nest = succ nest in
   let indent = parse_indent state prompt false nest in
+  (* GS. The body must be further indented, otherwise it is not a body
+     of the preceding expr
+   *)
   if indent > state.current_indent then
     begin
       push_mode state ModeNormal;
@@ -1209,6 +1279,7 @@ and parse_body state parse prompt nest =
     []
 
 and parse_body_indent state parse prompt nest el =
+  (* GS TODO: reformulate with "match ... with exception" *)
   let e =
     try ParseExp (parse_exp state parse prompt false nest) with
       End_of_file ->
@@ -1230,6 +1301,7 @@ and parse_body_indent state parse prompt nest el =
 
 (*
  * Parse a file.
+ * GS: Entry point
  *)
 let parse_ast name =
    let inx = open_in name in
@@ -1245,6 +1317,7 @@ let parse_ast name =
 
 (*
  * Parse a string.
+ * GS: Entry point
  *)
 let parse_string s =
    let len = String.length s in
