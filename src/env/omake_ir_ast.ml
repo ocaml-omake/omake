@@ -1077,6 +1077,20 @@ let senv_declare_normal_var genv oenv senv cenv pos loc info v =
  * Strategy handling.  When we enter a lazy mode, we collect any eager parts
  * in the oenv.
  *)
+(* GS. Remember that we can have lazy and eager evaluation ranges in nested
+   applications, e.g. $`(lazy... $,(back to eager $(`lazy again)))
+   We keep track whether we are in a lazy range (in genv-genv_lazy_mode).
+   The idea is now a transformation where the eager parts are pulled out
+   of the lazy ranges, and are evaluated upfront.
+
+   lazy_push_strategy: called for determining what to do, and for establishing
+   lazy state if a new lazy range is found. The returned genv is for the
+   arguments of the application.
+
+   lazy_pop_strategy: actually does the transformation.
+ *)
+
+
 type lazy_state =
    NormalState
  | EagerState
@@ -1105,7 +1119,7 @@ let lazy_pop_strategy genv state loc e =
     NormalState ->
     genv, e
   | EagerState ->
-    (* Expression was eager *)
+    (* Expression was eager *)  (* GS: eager inside some lazy range *)
     let i = genv.genv_static_index in
     let v = Lm_symbol.make "eager.x" i in
     let lenv = genv.genv_lazy in
@@ -1114,9 +1128,9 @@ let lazy_pop_strategy genv state loc e =
     let e = Omake_ir.ApplyString (loc, VarPrivate (loc, v), [], []) in
     genv, e
   | NestedState ->
-    (* Expression was lazy, but nested *)
+    (* Expression was lazy, but nested *)  (* GS: i.e. lazy inside iazy range *)
     genv, LazyString (loc, e)
-  | LazyState lenv_old ->
+  | LazyState lenv_old ->                  (* GS: lazy in an eager range *)
     (* Expression was lazy, so pre-evaluate all the eager parts *)
     let e = Omake_ir.LazyString (loc, e) in
     let e =
