@@ -80,7 +80,10 @@ let copy_file from_name to_name mode =
        need_close to_fd 
          (function to_fd ->
            copy_file_fd (Bytes.create 8192) from_fd to_fd; 
-           Unix.fchmod to_fd mode
+           if Sys.os_type <> "Win32" then
+             Unix.fchmod to_fd mode
+           else
+             Unix.chmod to_name mode
          )  )
 
 
