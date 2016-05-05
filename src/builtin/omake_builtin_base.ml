@@ -2800,6 +2800,11 @@ let () =
      "AUTO_REHASH",                (fun _ -> Omake_builtin_util.val_false);
     ]
   in
+  (* GS: the first col says whether the primitive gets eagerly evaluated
+     arguments. If false, you need to run Omake_eval.eval_value to force
+     the evaluation of the lazy arguments. It is not possible to specify
+     this per arg - either all args are eager or all args are lazy.
+   *)
   let builtin_funs =
     [true,  "addprefix",             addprefix,           Omake_ir.ArityExact 2;
      true,  "mapprefix",             mapprefix,           ArityExact 2;
