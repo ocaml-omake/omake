@@ -1135,6 +1135,7 @@ let lazy_pop_strategy genv state loc e =
  * Literal string.
  *)
 let build_literal_string e =
+   (* GS: note that this eats quotes! *)
    let buf = Buffer.create 32 in
    let rec collect_exp e =
       match e with
