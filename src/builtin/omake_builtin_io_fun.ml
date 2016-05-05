@@ -67,18 +67,18 @@
  * abstractly.  Some of these sequences can change depending on your LOCALE.
  *
  * \begin{itemize}
- * \item \verb+[:alnum:]+ Alphanumeric characters.
- * \item \verb+[:alpha:]+ Alphabetic characters.
- * \item \verb+[:lower:]+ Lowercase alphabetic characters.
- * \item \verb+[:upper:]+ Uppercase alphabetic characters.
- * \item \verb+[:cntrl:]+ Control characters.
- * \item \verb+[:digit:]+ Numeric characters.
- * \item \verb+[:xdigit:]+ Numeric and hexadecimal characters.
- * \item \verb+[:graph:]+ Characters that are printable and visible.
- * \item \verb+[:print:]+ Characters that are printable, whether they are visible or not.
- * \item \verb+[:punct:]+ Punctuation characters.
- * \item \verb+[:blank:]+ Space or tab characters.
- * \item \verb+[:space:]+ Whitespace characters.
+ * \item \verb+[[:alnum:]]+ Alphanumeric characters.
+ * \item \verb+[[:alpha:]]+ Alphabetic characters.
+ * \item \verb+[[:lower:]]+ Lowercase alphabetic characters.
+ * \item \verb+[[:upper:]]+ Uppercase alphabetic characters.
+ * \item \verb+[[:cntrl:]]+ Control characters.
+ * \item \verb+[[:digit:]]+ Numeric characters.
+ * \item \verb+[[:xdigit:]]+ Numeric and hexadecimal characters.
+ * \item \verb+[[:graph:]]+ Characters that are printable and visible.
+ * \item \verb+[[:print:]]+ Characters that are printable, whether they are visible or not.
+ * \item \verb+[[:punct:]]+ Punctuation characters.
+ * \item \verb+[[:blank:]]+ Space or tab characters.
+ * \item \verb+[[:space:]]+ Whitespace characters.
  * \end{itemize}
  * \end{doc}
  *
@@ -457,15 +457,21 @@ let scan_options venv pos loc options =
 let scan_args venv pos loc (args : Omake_value_type.t list) =
    let pos = string_pos "scan_args" pos in
    let cases, options, files =
-      match args with
-      | [ValCases cases] ->
-            cases, Omake_value_type.ValNone, Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
+     match args with
+       | [ValCases cases] ->
+           cases, Omake_value_type.ValNone, Omake_env.venv_find_var venv pos loc Omake_var.stdin_var
        | [ValCases cases; files] ->
-            cases, ValNone, files
+           cases, ValNone, files
        | [ValCases cases; options; files] ->
-            cases, options, files
+           cases, options, files
+       | (ValBody _) :: _ ->
+           raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("Unexpected body (bad indentation?)")))
+       | [_]
+       | [_; _]
+       | [_; _; _] ->
+           raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("No cases")))
        | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+           raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let poptions, roptions = scan_options venv pos loc options in
       cases, poptions, roptions, Omake_value.values_of_value venv pos files
@@ -636,7 +642,7 @@ let scan venv pos loc args _ =
  *        print = false
  *
  *        awk(Awk.in)
- *        case $"^\\end\{\([:alpha:]+\)\}"
+ *        case $"^\\end\{\([[:alpha:]]+\)\}"
  *           if $(mem $1, $(names))
  *              print = false
  *              export
@@ -644,7 +650,7 @@ let scan venv pos loc args _ =
  *        default
  *           if $(print)
  *              println($0)
- *        case $"^\\begin\{\([:alpha:]+\)\}"
+ *        case $"^\\begin\{\([[:alpha:]]+\)\}"
  *           print = $(mem $1, $(names))
  *           export
  * \end{verbatim}
@@ -707,26 +713,37 @@ let rec awk_eval_cases venv pos loc break line cases =
  * The arguments.
  *)
 let awk_args venv pos loc (args : Omake_value_type.t list) =
-   let pos = string_pos "awk_args" pos in
-      match args with
-         [ValCases cases] ->
-            cases, [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
-       | [ValCases cases; files] ->
-            cases, Omake_value.values_of_value venv pos files
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+  let pos = string_pos "awk_args" pos in
+  match args with
+    | [ValCases cases] ->
+        cases, [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
+    | [ValCases cases; files] ->
+        cases, Omake_value.values_of_value venv pos files
+    | (ValBody _) :: _ ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("Unexpected body (bad indentation?)")))
+    | [_]
+    | [_; _] ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("No cases")))
+    | _ ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
 let awk_option_args venv pos loc (args : Omake_value_type.t list) =
-   let pos = string_pos "awk_args" pos in
-      match args with
-         [ValCases cases] ->
-            cases, "", [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
-       | [ValCases cases; files] ->
-            cases, "", Omake_value.values_of_value venv pos files
-       | [ValCases cases; options; files] ->
-            cases, Omake_value.string_of_value venv pos options, Omake_value.values_of_value venv pos files
-       | _ ->
-            raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
+  let pos = string_pos "awk_args" pos in
+  match args with
+    | [ValCases cases] ->
+        cases, "", [Omake_env.venv_find_var venv pos loc Omake_var.stdin_var]
+    | [ValCases cases; files] ->
+        cases, "", Omake_value.values_of_value venv pos files
+    | [ValCases cases; options; files] ->
+        cases, Omake_value.string_of_value venv pos options, Omake_value.values_of_value venv pos files
+    | (ValBody _) :: _ ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("Unexpected body (bad indentation?)")))
+    | [_]
+    | [_; _]
+    | [_; _; _] ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, SyntaxError("No cases")))
+    | _ ->
+        raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
 
 type awk_flag =
    AwkBreak
@@ -1073,7 +1090,7 @@ let fsubst venv pos loc args _ =
  * words in an input file.
  *
  * \begin{verbatim}
- *     collect-words($(files)) =
+ *     collect-words(files) =
  *        words[] =
  *        lex($(files))
  *        default
@@ -1081,6 +1098,7 @@ let fsubst venv pos loc args _ =
  *        case $"[[:alnum:]]+" g
  *           words[] += $0
  *           export
+ *        value $(words)
  * \end{verbatim}
  *
  * The \verb+default+ case, if one exists, matches single characters.  Since
