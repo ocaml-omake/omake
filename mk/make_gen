@@ -231,120 +231,14 @@ MakeMakefile() =
 # Global Makefile generation
 #
 
-#
-# Header file for Unix
-#
-private.MAKEFILE_HEAD_UNIX = $'''#
+private.MAKEFILE_HEAD = $'''#
 # !!!THIS IS A GENERATED FILE!!!
 # !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
 #
-.PHONY: depend clean
-
-#
-# System config
-#
-LN = ln -sf
-RM = rm -f
-DOT = ./
-slash = /
-
-win32 = unix
-system = null
-
-#
-# C configuration
-#
-CC = cc
-CFLAGS =
-AR = ar cq
-AROUT =
-EXT_OBJ = .o
-EXT_LIB = .a
-EXE =
-CCOMPTYPE = cc
-
-OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
-THREADSLIB =
-PREFERRED = .byte
-
-.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
-
-.c.o:
-	inc=`ocamlc -where | tr -d '\015'`; $(CC) $(CFLAGS) -I"$$inc" -I"$$inc/caml" -c $*.c
+include osconfig.mk
 '''
 
-private.MAKEFILE_HEAD_NT = $'''#
-# !!!THIS IS A GENERATED FILE!!!
-# !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
-#
-#
-# Generic "nmake" configuration for bootstrapping.
-#
-LN = copy /Y
-RM = del /F
-DOT =
-slash = \\
-
-win32 = win32
-system = system
-
-#
-# C configuration
-#
-CC = cl
-CFLAGS = /nologo /MT -I"$(OCAMLLIB)" /DWIN32 /DFAM_ENABLED /DFAM_PSEUDO
-AR = lib /nologo /debugtype:CV
-AROUT = /out:
-EXT_OBJ = .obj
-EXT_LIB = .lib
-EXE = .exe
-CCOMPTYPE = msvc
-
-OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
-THREADSLIB = threads.cma
-THREADSLIB_OPT = threads.cmxa
-PREFERRED = .opt
-
-.SUFFIXES: .mll .mly .mli .ml .cmi .cmo .cmx
-
-.c.obj:
-	$(CC) $(CFLAGS) -c $*.c
-'''
-
-private.MAKEFILE_HEAD_COMMON = $'''
-#
-# OCaml configuration
-#
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
-OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex.opt
-OCAMLDEP = ocamldep.opt
-.mly.ml:
-	$(OCAMLYACC) $*.mly
-
-.mly.mli:
-	$(OCAMLYACC) $*.mly
-
-.mll.ml:
-	$(OCAMLLEX) $*.mll
-
-.mli.cmi:
-	$(OCAMLC) $(OCAMLFLAGS) -c $*.mli
-
-.ml.cmo:
-	$(OCAMLC) $(OCAMLFLAGS) -c $*.ml
-
-.ml.cmx:
-	$(OCAMLOPT) $(OCAMLFLAGS) -c $*.ml
-#
-# The version.txt file
-#
-version.txt:
-	@echo 0.0.boot > $@
-'''
-
-private.MAKEFILE_TAIL_COMMON = $'''
+private.MAKEFILE_TAIL = $'''
 #
 # Create a dependency file
 #
@@ -358,14 +252,8 @@ clean:
 	$(RM) *.cmo *.cmx *.cma *.cmxa *.o *.obj *.a *.lib *.exe
 	$(RM) $(ALLFILES)
 	$(RM) omake
-'''
 
-private.MAKEFILE_TAIL_UNIX = $'''
 include Makefile.dep
-'''
-
-private.MAKEFILE_TAIL_NT = $'''
-!INCLUDE Makefile.dep
 '''
 
 MakeRootMakefiles(dirs) =
@@ -390,25 +278,12 @@ MakeRootMakefiles(dirs) =
     tmp4 = Makefile.tmp4
 
     Makefile: $(MAKEFILES) $(file $(ROOT)/mk/make_gen)
-        @echo $(MAKEFILE_HEAD_UNIX) > $(tmp1)
-        @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp1)
+        @echo $(MAKEFILE_HEAD) > $(tmp1)
         @cat $(MAKEFILES) >> $(tmp1)
         @echo $(ALLFILES) >> $(tmp1)
-        @echo $(MAKEFILE_TAIL_COMMON) >> $(tmp1)
-        @echo $(MAKEFILE_TAIL_UNIX) >> $(tmp1)
+        @echo $(MAKEFILE_TAIL) >> $(tmp1)
 	remove-trailing-whitespace($(tmp1), $(tmp2))
 	@mv -f $(tmp2) $@
 	@chmod 444 $@
 
-    Makefile.nt: $(MAKEFILES) $(file $(ROOT)/mk/make_gen)
-        @echo $(MAKEFILE_HEAD_NT) > $(tmp3)
-        @echo $(MAKEFILE_HEAD_COMMON) >> $(tmp3)
-        @cat $(MAKEFILES) >> $(tmp3)
-        @echo $(ALLFILES) >> $(tmp3)
-        @echo $(MAKEFILE_TAIL_COMMON) >> $(tmp3)
-        @echo $(MAKEFILE_TAIL_NT) >> $(tmp3)
-	remove-trailing-whitespace($(tmp3), $(tmp4))
-	@mv -f $(tmp4) $@
-	@chmod 444 $@
-
-    .DEFAULT: Makefile Makefile.nt
+    .DEFAULT: Makefile

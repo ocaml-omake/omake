@@ -2,71 +2,7 @@
 # !!!THIS IS A GENERATED FILE!!!
 # !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
 #
-.PHONY: depend clean
-
-#
-# System config
-#
-LN = ln -sf
-RM = rm -f
-DOT = ./
-slash = /
-
-win32 = unix
-system = null
-
-#
-# C configuration
-#
-CC = cc
-CFLAGS =
-AR = ar cq
-AROUT =
-EXT_OBJ = .o
-EXT_LIB = .a
-EXE =
-CCOMPTYPE = cc
-
-OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
-THREADSLIB =
-PREFERRED = .byte
-
-.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
-
-.c.o:
-	inc=`ocamlc -where | tr -d '\015'`; $(CC) $(CFLAGS) -I"$$inc" -I"$$inc/caml" -c $*.c
-
-
-#
-# OCaml configuration
-#
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
-OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex.opt
-OCAMLDEP = ocamldep.opt
-.mly.ml:
-	$(OCAMLYACC) $*.mly
-
-.mly.mli:
-	$(OCAMLYACC) $*.mly
-
-.mll.ml:
-	$(OCAMLLEX) $*.mll
-
-.mli.cmi:
-	$(OCAMLC) $(OCAMLFLAGS) -c $*.mli
-
-.ml.cmo:
-	$(OCAMLC) $(OCAMLFLAGS) -c $*.ml
-
-.ml.cmx:
-	$(OCAMLOPT) $(OCAMLFLAGS) -c $*.ml
-#
-# The version.txt file
-#
-version.txt:
-	@echo 0.0.boot > $@
+include osconfig.mk
 
 
 OFILES_clib = c_lm_heap$(EXT_OBJ) c_lm_channel$(EXT_OBJ) c_lm_printf$(EXT_OBJ) c_lm_ctype$(EXT_OBJ) c_lm_uname_ext$(EXT_OBJ) c_lm_unix_cutil$(EXT_OBJ) c_lm_compat_win32$(EXT_OBJ) c_readline$(EXT_OBJ) c_omake_shell_sys$(EXT_OBJ) c_omake_shell_spawn$(EXT_OBJ) c_fam_win32$(EXT_OBJ) c_fam_kqueue$(EXT_OBJ) c_fam_inotify$(EXT_OBJ) c_lm_notify$(EXT_OBJ) c_lm_termsize$(EXT_OBJ) c_lm_terminfo$(EXT_OBJ) c_lm_fs_case_sensitive$(EXT_OBJ)
@@ -1052,7 +988,6 @@ clean:
 	$(RM) *.cmo *.cmx *.cma *.cmxa *.o *.obj *.a *.lib *.exe
 	$(RM) $(ALLFILES)
 	$(RM) omake
-
 
 include Makefile.dep
 

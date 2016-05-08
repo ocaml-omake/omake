@@ -13,7 +13,6 @@
  *)
 
 (* TODO:
-    - "::" rules
     - globbing for sources
     - emulate cp, rm, ln, echo for Windows
     - suffix substitution
@@ -22,6 +21,8 @@
 #warnings "-3";;
 #load "str.cma";;
 #load "unix.cma";;
+
+open Printf
 
 module StrMap = Map.Make(String)
 module StrSet = Set.Make(String)
@@ -40,10 +41,12 @@ type suffix_rule =
 
 type rule =
   | Explicit of exp_rule
+  | DblColon of exp_rule
   | Suffix of suffix_rule
 
 type rules =
-  { exp_rules : exp_rule StrMap.t;  (* keyed by target *)
+  { exp_rules : exp_rule StrMap.t;             (* keyed by target *)
+    dblcolon_rules : exp_rule list StrMap.t;   (* keyed by target; rev order *)
     suffix_rules : suffix_rule list;
     enabled_suffixes : StrSet.t;
     phonies : StrSet.t;
@@ -52,6 +55,7 @@ type rules =
 
 let empty_rules =
   { exp_rules = StrMap.empty;
+    dblcolon_rules = StrMap.empty;
     suffix_rules = [];
     enabled_suffixes = StrSet.empty;
     phonies = StrSet.empty;
@@ -101,13 +105,18 @@ let multi_index s k charlist =
   search k
 
 let read_data ch =
+  (* textual data *)
   let buf = Buffer.create 1024 in
   try
     while true do
       let line = input_line ch in
       if Buffer.length buf > 0 then
         Buffer.add_char buf '\n';
-      Buffer.add_string buf line
+      let n = String.length line in
+      if n > 0 && line.[n-1] = '\r' then
+        Buffer.add_substring buf line 0 (n-1)
+      else
+        Buffer.add_string buf line
     done;
     assert false
   with
@@ -249,6 +258,9 @@ let ws_re =
 let set_var_re =
   Str.regexp "^\\([^ +?=:]+\\)[ \t]*\\([:?+]?=\\)[ \t]*\\(.*\\)$"
 
+let dblcolon_rule_re =
+  Str.regexp "^\\([^:]+\\)::\\(.*\\)$"
+
 let rule_re =
   Str.regexp "^\\([^:]+\\):\\(.*\\)$"
 
@@ -310,6 +322,7 @@ let is_empty line =
 let append_to_rule rule line =
   match rule with
     | Explicit r -> Explicit { r with commands = line :: r.commands }
+    | DblColon r -> DblColon { r with commands = line :: r.commands }
     | Suffix r -> Suffix { r with sfx_commands = line :: r.sfx_commands }
 
 let same_suffix_rule r1 r2 =
@@ -324,6 +337,9 @@ let enter_rule1 current env rules =
         if r.commands = [] then
           List.fold_left
             (fun rules target ->
+               if StrMap.mem target rules.dblcolon_rules then
+                 failwith "Cannot have both normal and double-colon rules for \
+                           the same target";
                if StrMap.mem target rules.exp_rules then
                  (* add further dependencies to existing explicit rule *)
                  let r1 = StrMap.find target rules.exp_rules in
@@ -345,6 +361,9 @@ let enter_rule1 current env rules =
           (* new explicit rule *)
           List.iter
             (fun target ->
+               if StrMap.mem target rules.dblcolon_rules then
+                 failwith "Cannot have both normal and double-colon rules for \
+                           the same target";
                try
                  let r = StrMap.find target rules.exp_rules in
                  if r.commands <> [] then
@@ -366,6 +385,22 @@ let enter_rule1 current env rules =
             )
             rules
             r.targets
+        )
+    | Some (DblColon r) ->
+        let target = List.hd r.targets in  (* only one target here *)
+        if StrMap.mem target rules.exp_rules then
+          failwith "Cannot have both normal and double-colon rules for the \
+                    same target";
+        ( try
+            let l = StrMap.find target rules.dblcolon_rules in
+            { rules with
+              dblcolon_rules = StrMap.add target (r :: l) rules.dblcolon_rules
+            }
+          with
+            | Not_found ->
+                { rules with
+                  dblcolon_rules = StrMap.add target [r] rules.dblcolon_rules
+                }
         )
     | Some (Suffix r) ->
         if List.exists (same_suffix_rule r) rules.suffix_rules then
@@ -407,6 +442,94 @@ let is_suffix_comb suffixes word =
     suffixes
     None
 
+let match_rule text =
+  if Str.string_match dblcolon_rule_re text 0 then
+    let target_str = Str.matched_group 1 text in
+    let source_str = Str.matched_group 2 text in
+    Some(`DblColon, target_str, source_str)
+  else
+    if Str.string_match rule_re text 0 then
+      let target_str = Str.matched_group 1 text in
+      let source_str = Str.matched_group 2 text in
+      Some(`Colon, target_str, source_str)
+    else
+      None
+
+let process_rule env rules' ty target_str source_str =
+  let target_words0 = Str.split split_ws_re target_str in
+  (* not handled: glob expressions in sources *)
+  ( match target_words0 with
+      | [] ->
+          failwith "Empty target"
+      | [ ".PHONY" ] ->
+          if ty = `DblColon then
+            failwith ".PHONY not possible with double-colon rule";
+          let source_words =
+            Str.split split_ws_re (expand env source_str) in
+          let phonies =
+            List.fold_left
+              (fun acc phony -> StrSet.add phony acc)
+              rules'.phonies
+              source_words in
+          let rules'' = { rules' with phonies } in
+          ([],None,env,rules'')
+      | [ ".SUFFIXES" ] ->
+          if ty = `DblColon then
+            failwith ".SUFFIXES not possible with double-colon rule";
+          let source_words =
+            Str.split split_ws_re (expand env source_str) in
+          let enabled_suffixes =
+            List.fold_left
+              (fun acc suffix -> StrSet.add suffix acc)
+              rules'.enabled_suffixes
+              source_words in
+          let rules'' = { rules' with enabled_suffixes } in
+          ([],None,env,rules'')
+      | [ word ] when is_empty source_str ->
+          ( match is_suffix_comb rules'.enabled_suffixes word
+            with
+              | Some(target_suffix, source_suffix) ->
+                  if ty = `DblColon then
+                    failwith "Suffix rule not possible with double-colon";
+                  let r =
+                    { target_suffix;
+                      source_suffix;
+                      sfx_commands = []
+                    } in
+                  ([],Some(Suffix r),env,rules')
+              | None ->
+                  let r =
+                    { targets = Str.split
+                                  split_ws_re
+                                  (expand env word);
+                      sources = [];
+                      commands = []
+                    } in
+                  let rule =
+                    match ty with
+                      | `Colon -> Explicit r
+                      | `DblColon -> DblColon r in
+                  ([],Some rule,env,rules')
+          )
+      | _ ->
+          let target_words =
+            Str.split split_ws_re (expand env target_str) in
+          let source_words =
+            Str.split split_ws_re (expand env source_str) in
+          if ty = `DblColon && List.length target_words > 1 then
+            failwith "Only one target allowed for double-colon rule";
+          let r =
+            { targets = target_words;
+              sources = source_words;
+              commands = []
+            } in
+          let rule =
+            match ty with
+              | `Colon -> Explicit r
+              | `DblColon -> DblColon r in
+          ([],Some rule,env,rules')
+  )
+
 let rec parse_statements ?(exec = fun _ _ _ -> ()) env rules file =
   let fh = open_in file in
   let last_num = ref 0 in
@@ -426,13 +549,13 @@ let rec parse_statements ?(exec = fun _ _ _ -> ()) env rules file =
              else
                let multiline =
                  String.concat "" (List.rev (line :: preceding)) in
-               if line.[0] = '\t' then
+               if multiline.[0] = '\t' then
                  match current with
                    | None ->
                        failwith "TAB found outside a rule definition"
                    | Some rule ->
                        let current' =
-                         Some (append_to_rule rule line) in
+                         Some (append_to_rule rule multiline) in
                        ([],current',env,rules)
                else
                  let rules' =
@@ -444,75 +567,19 @@ let rec parse_statements ?(exec = fun _ _ _ -> ()) env rules file =
                    let env' = update_env name op value env in
                    ([],None,env',rules')
                else
-                 if Str.string_match rule_re multiline 0 then
-                   let target_str = Str.matched_group 1 multiline in
-                   let source_str = Str.matched_group 2 multiline in
-                   let target_words0 = Str.split split_ws_re target_str in
-                   (* not handled: glob expressions in sources *)
-                   match target_words0 with
-                     | [] ->
-                         failwith "Empty target"
-                     | [ ".PHONY" ] ->
-                         let source_words =
-                           Str.split split_ws_re (expand env source_str) in
-                         let phonies =
-                           List.fold_left
-                             (fun acc phony -> StrSet.add phony acc)
-                             rules'.phonies
-                             source_words in
-                         let rules'' = { rules' with phonies } in
-                         ([],None,env,rules'')
-                     | [ ".SUFFIXES" ] ->
-                         let source_words =
-                           Str.split split_ws_re (expand env source_str) in
-                         let enabled_suffixes =
-                           List.fold_left
-                             (fun acc suffix -> StrSet.add suffix acc)
-                             rules'.enabled_suffixes
-                             source_words in
-                         let rules'' = { rules' with enabled_suffixes } in
-                         ([],None,env,rules'')
-                     | [ word ] when is_empty source_str ->
-                         ( match is_suffix_comb rules'.enabled_suffixes word
-                           with
-                             | Some(target_suffix, source_suffix) ->
-                                 let r =
-                                   { target_suffix;
-                                     source_suffix;
-                                     sfx_commands = []
-                                   } in
-                                 ([],Some(Suffix r),env,rules')
-                             | None ->
-                                 let r =
-                                   { targets = Str.split
-                                                 split_ws_re
-                                                 (expand env word);
-                                     sources = [];
-                                     commands = []
-                                   } in
-                                 ([],Some(Explicit r),env,rules')
-                         )
-                     | _ ->
-                         let target_words =
-                           Str.split split_ws_re (expand env target_str) in
-                         let source_words =
-                           Str.split split_ws_re (expand env source_str) in
-                         let r =
-                           { targets = target_words;
-                             sources = source_words;
-                             commands = []
-                           } in
-                         ([],Some(Explicit r),env,rules')
-                 else
-                   if Str.string_match include_re multiline 0 then (
-                     let target = Str.matched_group 1 multiline in
-                     exec env rules target;
-                     let (env',rules'') =
-                       parse_statements ~exec env rules' target in
-                     ([],None,env',rules'')
-                   )
-                   else
-                     failwith "Cannot parse line"
+                 match match_rule multiline with
+                   | Some(ty, target_str, source_str) ->
+                       process_rule env rules' ty target_str source_str
+                   | None ->
+                       if Str.string_match include_re multiline 0 then (
+                         let target = Str.matched_group 1 multiline in
+                         exec env rules target;
+                         let (env',rules'') =
+                           parse_statements ~exec env rules' target in
+                         ([],None,env',rules'')
+                       )
+                       else
+                         failwith "Cannot parse line"
         )
         1
         ([],None,env,rules) in
@@ -569,23 +636,27 @@ let exec made_targets env rules target =
     debug ("Make: " ^ target);
     if not (StrSet.mem target !made_targets) then (
       match search_rule ancestors target with
-        | Some(r,local_env) ->
-            let env' =
-              List.fold_left
-                (fun acc (n,v) -> StrMap.add n v acc)
-                env
-                local_env in
-            let ancestors' =
-              StrSet.add target ancestors in
-            List.iter (make ancestors') r.sources;
-            let cmds1 = List.rev r.commands in
-            let cmds2 = List.map (expand env') cmds1 in
-            List.iter run_command cmds2;
+        | Some list ->
             List.iter
-              (fun tgt ->
-                 made_targets := StrSet.add tgt !made_targets
+              (fun (r,local_env) ->
+                 let env' =
+                   List.fold_left
+                     (fun acc (n,v) -> StrMap.add n v acc)
+                     env
+                     local_env in
+                 let ancestors' =
+                   StrSet.add target ancestors in
+                 List.iter (make ancestors') r.sources;
+                 let cmds1 = List.rev r.commands in
+                 let cmds2 = List.map (expand env') cmds1 in
+                 List.iter run_command cmds2;
+                 List.iter
+                   (fun tgt ->
+                      made_targets := StrSet.add tgt !made_targets
+                   )
+                   r.targets
               )
-              r.targets
+              list
         | None ->
             if StrSet.mem target rules.phonies then
               failwith("No way to execute phony target: " ^ target);
@@ -606,70 +677,94 @@ let exec made_targets env rules target =
             "<", (Expanded (String.concat " " r.sources));
           ] in
         debug ("  target: " ^ target ^ " = direct");
-        Some(r, localenv)
+        Some [r, localenv]
       with
         | Not_found ->
-            debug ("  target: " ^ target ^ " = search");
-            let r_opt =
-              StrSet.fold
-                (fun target_suffix rule_opt ->
-                   match rule_opt with
-                     | Some r -> Some r
-                     | None ->
-                         if Filename.check_suffix target target_suffix then (
-                           debug("  target_suffix: " ^ target_suffix);
-                           let irules =
-                             List.filter
-                               (fun suffr ->
-                                  suffr.target_suffix = target_suffix
-                               )
-                               rules.suffix_rules in
-                           if irules = [] then
-                             None
-                           else (
-                             let target_base =
-                               Filename.chop_suffix target target_suffix in
-                             try
-                               let ancestors' =
-                                 StrSet.add target ancestors in
-                               let irule =
-                                 List.find
-                                   (fun suffr ->
-                                      debug("  source_suffix: " ^ suffr.source_suffix);
-                                      let source =
-                                        target_base ^ suffr.source_suffix in
-                                      search_rule ancestors' source <> None
-                                      || Sys.file_exists source
-                                   )
-                                   irules in
-                               let source =
-                                 target_base ^ irule.source_suffix in
-                               let deps =
-                                 try
-                                   let r = StrMap.find target rules.exp_rules in
-                                   r.sources
-                                 with
-                                   | Not_found -> [] in
-                               Some
-                                 ( { targets = [target];
-                                     sources = source :: deps;
-                                     commands = irule.sfx_commands
-                                   },
-                                   [ "*", (Expanded target_base);
-                                     "@", (Expanded target);
-                                     "<", (Expanded source);
-                                   ]
-                                 )
-                             with Not_found ->
-                               None
-                           )
-                         )
-                         else
-                           None
+            try
+              (* Double-colon rules are always executed if r.sources=[].
+                 Well, we always execute anyway, so this does not make a
+                 difference.
+               *)
+              let rlist = StrMap.find target rules.dblcolon_rules in
+              debug ("  target: " ^ target ^ " = double-colon");
+              Some
+                (List.map
+                   (fun r ->
+                      let localenv =
+                        [ "@", (Expanded (String.concat " " r.targets));
+                          "<", (Expanded (String.concat " " r.sources));
+                        ] in
+                      (r,localenv)
+                   )
+                   rlist
                 )
-                rules.enabled_suffixes
-                None in
-            r_opt in
+            with
+              | Not_found ->
+                  search_implicit_rule ancestors target
+
+  and search_implicit_rule ancestors target =
+    debug ("  target: " ^ target ^ " = search");
+    let r_opt =
+      StrSet.fold
+        (fun target_suffix rule_opt ->
+           match rule_opt with
+             | Some r -> Some r
+             | None ->
+                 if Filename.check_suffix target target_suffix then (
+                   debug("  target_suffix: " ^ target_suffix);
+                   let irules =
+                     List.filter
+                       (fun suffr ->
+                          suffr.target_suffix = target_suffix
+                       )
+                       rules.suffix_rules in
+                   if irules = [] then
+                     None
+                   else (
+                     let target_base =
+                       Filename.chop_suffix target target_suffix in
+                     try
+                       let ancestors' =
+                         StrSet.add target ancestors in
+                       let irule =
+                         List.find
+                           (fun suffr ->
+                              debug("  source_suffix: " ^ suffr.source_suffix);
+                              let source =
+                                target_base ^ suffr.source_suffix in
+                              search_rule ancestors' source <> None
+                              || Sys.file_exists source
+                           )
+                           irules in
+                       let source =
+                         target_base ^ irule.source_suffix in
+                       let deps =
+                         try
+                           let r = StrMap.find target rules.exp_rules in
+                           r.sources
+                         with
+                           | Not_found -> [] in
+                       Some
+                         [ { targets = [target];
+                             sources = source :: deps;
+                             commands = irule.sfx_commands
+                           },
+                           [ "*", (Expanded target_base);
+                             "@", (Expanded target);
+                             "<", (Expanded source);
+                           ]
+                         ]
+                     with Not_found ->
+                       None
+                   )
+                 )
+                 else
+                   None
+        )
+        rules.enabled_suffixes
+        None in
+    r_opt in
+
   try
     make StrSet.empty target
   with
@@ -681,12 +776,17 @@ let exec made_targets env rules target =
 let set_re = Str.regexp "^\\([^=]+\\)=\\(.*\\)$"
 
 
-let () =
+let main() =
+  let self = Sys.argv.(0) in
+  let self = 
+    if Filename.is_relative self then
+      Filename.concat (Sys.getcwd()) self
+    else
+      self in
   let env = ref StrMap.empty in
   let targets = ref [] in
   let setvar name value =
     env := StrMap.add name (Expanded value) !env in
-  setvar "MAKE" ("ocaml " ^ Sys.argv.(0));
   Arg.parse
     [ "-C", Arg.String (fun s -> Sys.chdir s),
       "<dir>  Change to this directory";
@@ -701,7 +801,14 @@ let () =
        else
          targets := !targets @ [s]
     )
-    "ocaml make.ml [options] (var=value | target)";
+    "ocaml make.ml [options] (var=value | target) ...";
+
+  setvar
+    "MAKE"
+    (sprintf "ocaml %s %s"
+             self
+             (if !debug_enabled then "-debug" else "")
+    );
   
   let made_targets = ref StrSet.empty in
   let (env,rules) =
@@ -714,3 +821,14 @@ let () =
     (exec made_targets env rules)
     !targets
 
+
+let () =
+  try main()
+  with
+    | Failure msg
+    | Arg.Bad msg
+    | Sys_error msg ->
+        flush stdout;
+        prerr_endline msg;
+        flush stderr;
+        exit 1
