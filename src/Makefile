@@ -62,9 +62,15 @@ c_lm_terminfo.c: ..$(slash)src$(slash)clib$(slash)lm_terminfo.c
 c_lm_fs_case_sensitive.c: ..$(slash)src$(slash)clib$(slash)lm_fs_case_sensitive.c
 	$(LN) ..$(slash)src$(slash)clib$(slash)lm_fs_case_sensitive.c c_lm_fs_case_sensitive.c
 
+c_lm_heap.h: ..$(slash)src$(slash)clib$(slash)lm_heap.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)lm_heap.h c_lm_heap.h
+
+c_lm_compat_win32.h: ..$(slash)src$(slash)clib$(slash)lm_compat_win32.h
+	$(LN) ..$(slash)src$(slash)clib$(slash)lm_compat_win32.h c_lm_compat_win32.h
+
 SRC_clib = ..$(slash)src$(slash)clib
 
-ALLFILES_clib =  c_lm_heap.c c_lm_channel.c c_lm_printf.c c_lm_ctype.c c_lm_uname_ext.c c_lm_unix_cutil.c c_lm_compat_win32.c c_readline.c c_omake_shell_sys.c c_omake_shell_spawn.c c_fam_win32.c c_fam_kqueue.c c_fam_inotify.c c_lm_notify.c c_lm_termsize.c c_lm_terminfo.c c_lm_fs_case_sensitive.c
+ALLFILES_clib =  c_lm_heap.c c_lm_channel.c c_lm_printf.c c_lm_ctype.c c_lm_uname_ext.c c_lm_unix_cutil.c c_lm_compat_win32.c c_readline.c c_omake_shell_sys.c c_omake_shell_spawn.c c_fam_win32.c c_fam_kqueue.c c_fam_inotify.c c_lm_notify.c c_lm_termsize.c c_lm_terminfo.c c_lm_fs_case_sensitive.c c_lm_heap.h c_lm_compat_win32.h
 
 
 CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash.cmo lm_hash_code.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_unix_util.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo lm_wild.cmo lm_readline.cmo lm_marshal.cmo lm_handle_table.cmo lm_int_handle_table.cmo lm_bitset.cmo lm_instrument.cmo
