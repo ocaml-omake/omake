@@ -67,3 +67,4 @@ version.txt:
 
 # Entry point
 omake: omake.exe
+	@echo
