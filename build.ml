@@ -223,7 +223,7 @@ let do_bootstrap self vars ty =
     | `Disable ->
         ("omake", "omake")
     | `Auto ->
-        if not (Sys.file_exists "boot/omake") then
+        if not (Sys.file_exists "boot/omake") && not (Sys.file_exists "boot/omake")  then
           run_bootstrap self vars;
         ("boot/omake", "src/main/omake")
 
