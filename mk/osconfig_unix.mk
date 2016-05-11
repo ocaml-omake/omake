@@ -10,6 +10,15 @@ win32 = unix
 system = null
 
 #
+# OCaml configuration
+#
+OCAMLC = ocamlc.opt
+OCAMLOPT = ocamlopt.opt
+OCAMLYACC = ocamlyacc
+OCAMLLEX = ocamllex.opt
+OCAMLDEP = ocamldep.opt
+
+#
 # C configuration
 #
 CC = cc
@@ -25,21 +34,12 @@ OCAMLFLAGS = -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB =
 THREADSLIB_OPT =
 PREFERRED = .byte
-STDLIB := $(shell ocamlc -where)
+STDLIB := $(shell $(OCAMLC) -where)
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
 
 .c.o:
 	$(CC) $(CFLAGS) -c $*.c
-
-#
-# OCaml configuration
-#
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
-OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex.opt
-OCAMLDEP = ocamldep.opt
 
 .mly.ml:
 	$(OCAMLYACC) $*.mly

@@ -10,6 +10,15 @@ win32 = win32
 system = system
 
 #
+# OCaml configuration
+#
+OCAMLC = ocamlc.opt
+OCAMLOPT = ocamlopt.opt
+OCAMLYACC = ocamlyacc
+OCAMLLEX = ocamllex.opt
+OCAMLDEP = ocamldep.opt
+
+#
 # C configuration
 #
 CC = cl
@@ -20,7 +29,7 @@ EXT_OBJ = .obj
 EXT_LIB = .lib
 EXE = .exe
 CCOMPTYPE = msvc
-STDLIB := $(shell ocamlc -where)
+STDLIB := $(shell $(OCAMLC) -where)
 
 OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB = threads.cma
@@ -31,15 +40,6 @@ PREFERRED = .byte
 
 .c.obj:
 	$(CC) $(CFLAGS) -c $*.c
-
-#
-# OCaml configuration
-#
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
-OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex.opt
-OCAMLDEP = ocamldep.opt
 
 .mly.ml:
 	$(OCAMLYACC) $*.mly
