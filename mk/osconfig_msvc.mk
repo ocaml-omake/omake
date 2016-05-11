@@ -63,3 +63,7 @@ PREFERRED = .byte
 #
 version.txt:
 	@echo 0.0.boot > $@
+
+
+# Entry point
+omake: omake.exe
