@@ -3,8 +3,8 @@
 #
 LN = cp
 RM = rm -f
-DOT = ./
-slash = /
+DOT =
+slash = \\
 
 win32 = win32
 system = system
