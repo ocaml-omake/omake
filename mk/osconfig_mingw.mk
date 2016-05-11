@@ -21,13 +21,13 @@ OCAMLDEP = ocamldep.opt
 #
 # C configuration
 #
-CC := $(shell sh -c "shell $(OCAMLC) -config | grep bytecomp_c_compiler | awk '{print $$2}'")
+CC := $(shell sh -c "$(OCAMLC) -config | grep bytecomp_c_compiler | awk '{print $$2}'")
 CFLAGS = -I"$(STDLIB)" -I"$(STDLIB)/caml" 
 AR = ar cq
 AROUT =
 EXT_OBJ = .o
 EXT_LIB = .a
-EXE =
+EXE = .exe
 CCOMPTYPE = cc
 
 OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41 -g $(OCAMLFLAGS_EXTRA)
