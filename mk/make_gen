@@ -89,8 +89,16 @@ $(name)$$(EXT_LIB): $$(OFILES_$(name))
 	$$(AR) $$(AROUT)$$@ $$(OFILES_$(name))
 """
 
-    foreach(name => ..., $(src_cfiles) $(src_hfiles))
+    foreach(name => ..., $(src_cfiles))
         dst=c_$(name)
+        src=$(name)
+        MakeLinkFile($(dst), $(src))
+        $(dst): $(src)
+            ln-or-cp $< $@
+        export
+
+    foreach(name => ..., $(src_hfiles))
+        dst=$(name)
         src=$(name)
         MakeLinkFile($(dst), $(src))
         $(dst): $(src)
