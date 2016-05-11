@@ -123,8 +123,40 @@ let read_data ch =
     | End_of_file ->
         Buffer.contents buf
 
+let ws_re = Str.regexp "[ \t\r\n]+"
+let wildcard_re = Str.regexp "\\*\\(\\.[a-zA-Z0-9]+\\)"
+
+let expand_command cmd =
+  (* Windows shells do not expand wildcards, so we need to do it here.
+     The following is super-primitive and only covers the form *.suffix.
+     Quoting is not taken into account.
+   *)
+  if Sys.os_type = "Win32" then
+    let words = Str.split ws_re cmd in
+    if List.exists (fun w -> Str.string_match wildcard_re w 0) words then
+      let words' =
+        List.flatten
+          (List.map
+             (fun word ->
+                if Str.string_match wildcard_re word 0 then
+                  let suffix = Str.matched_group 1 word in
+                  List.filter
+                    (fun file -> Filename.check_suffix file suffix)
+                    (Array.to_list(Sys.readdir "."))
+                else
+                  [word]
+             )
+             words
+          ) in
+      String.concat " " words'
+    else
+      cmd
+  else
+    cmd
+  
+
 let command_output cmd =
-  let ch = Unix.open_process_in cmd in
+  let ch = Unix.open_process_in (expand_command cmd) in
   try
     let data = read_data ch in
     let status = Unix.close_process_in ch in
@@ -618,7 +650,7 @@ let run_command1 cmd =
         false, cmd1 in
     if not no_echo then
       print_endline cmd2;
-    let code = Sys.command cmd2 in
+    let code = Sys.command (expand_command cmd2) in
     if not no_errcheck && code <> 0 then
       failwith ("Command failed: " ^ cmd2)
 
