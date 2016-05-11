@@ -121,7 +121,7 @@ let is_dir dir =
   (* Sys.file_exists (Filename.concat dir ".") - doesn't work under Windows *)
   try
     let st = Unix.stat dir in
-    Unit.(st.st_kind = S_DIR)
+    Unix.(st.st_kind = S_DIR)
   with
     | Unix.Unix_error _ -> false
 
