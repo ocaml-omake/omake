@@ -185,10 +185,10 @@ let configure_bootstrap vars =
   match get_system vars with
     | "mingw"
     | "mingw64" ->
-        copy "mk/oscofig_mingw.mk" "boot/osconfig.mk"
+        copy "mk/osconfig_mingw.mk" "boot/osconfig.mk"
     | "win32"
     | "win64" ->
-        copy "mk/oscofig_msvc.mk" "boot/osconfig.mk"
+        copy "mk/osconfig_msvc.mk" "boot/osconfig.mk"
     | _ ->
         copy "mk/osconfig_unix.mk" "boot/osconfig.mk"
 
