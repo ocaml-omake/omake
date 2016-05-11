@@ -21,7 +21,7 @@ OCAMLDEP = ocamldep.opt
 #
 # C configuration
 #
-CC := $(sh -c "shell $(OCAMLC) -config | grep bytecomp_c_compiler | awk '{print $$2}'")
+CC := $(shell sh -c "shell $(OCAMLC) -config | grep bytecomp_c_compiler | awk '{print $$2}'")
 CFLAGS = -I"$(STDLIB)" -I"$(STDLIB)/caml" 
 AR = ar cq
 AROUT =
