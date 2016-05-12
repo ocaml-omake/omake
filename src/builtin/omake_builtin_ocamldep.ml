@@ -112,7 +112,7 @@ let ocamldep_postproc venv pos loc args =
           Lm_channel.output_string
             stdout_fd
             (sprintf
-               "%s.cmx %s.%s: %s\n"
+               "%s.cmx %s%s: %s\n"
                targetbase_esc
                targetbase_esc
                ext_obj
