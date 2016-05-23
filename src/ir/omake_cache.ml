@@ -550,66 +550,8 @@ let stats_equal stat1 stat2 =
 (*     } -> *)
 (*     Format.fprintf buf "ino = %d, size = %Ld, mtime = %g" ino size mtime *)
 
-(*
- * Sloppy digests on files larger than 16MB.
- *)
-let large_file_size = 8_000_000L
-let sample_size     = 0x10000
-let sample_count    = 16
-
-let rec really_read_exn fd buf off len =
-   if len > 0 then
-      let amount = Unix.read fd buf off len in
-         really_read_exn fd buf (off + amount) (len - amount)
-
-let digest_sample_exn fd file_size =
-   let sample = String.create (8 + (sample_count + 1) * sample_size) in
-      (* Add the file length to the string *)
-      sample.[0] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 56));
-      sample.[1] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 48));
-      sample.[2] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 40));
-      sample.[3] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 32));
-      sample.[4] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 24));
-      sample.[5] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 16));
-      sample.[6] <- Char.unsafe_chr (Int64.to_int (Int64.shift_right_logical file_size 8));
-      sample.[7] <- Char.unsafe_chr (Int64.to_int file_size);
-
-      (* Sample the file *)
-      for i = 0 to sample_count do
-         let off =
-            if i = sample_count then
-               Int64.sub file_size (Int64.of_int sample_size)
-            else
-               Int64.div (Int64.mul file_size (Int64.of_int i)) (Int64.of_int sample_count)
-         in
-         let _ = Unix.LargeFile.lseek fd off Unix.SEEK_SET in
-            really_read_exn fd sample (8 + i * sample_size) sample_size
-      done;
-
-      (* Take the digest of the sample *)
-      Digest.string sample
-
-let digest_large name file_size =
-   try
-      let fd = Unix.openfile name [Unix.O_RDONLY] 0o000 in
-         try
-            let digest = digest_sample_exn fd file_size in
-               Unix.close fd;
-               digest
-         with
-            Unix.Unix_error _
-          | End_of_file ->
-               Unix.close fd;
-               raise (Sys_error name)
-   with
-      Unix.Unix_error _ ->
-         raise (Sys_error name)
-
-let digest_file name file_size =
-   if file_size > large_file_size then
-      digest_large name file_size
-   else
-      Digest.file name
+let digest_file name _file_size =
+  Digest.file name
 
 let stat_file_update_digest ?old cache node =
   let nodes = cache.cache_nodes in
