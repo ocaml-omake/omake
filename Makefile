@@ -70,8 +70,8 @@ install-non-boot:
 
 .PHONY: clean
 clean:
-	rm .config
-	rm boot/*
+	rm -f .config
+	rm -f boot/*
 	find . -name "*.omc" | xargs rm -f
 	rm -f src/*/*.cmi src/*/*.cmo src/*/*.cma
 	rm -f src/*/*.cmx src/*/*.o src/*/*/.cmxa src/*/*.a
