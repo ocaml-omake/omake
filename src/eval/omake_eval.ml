@@ -1562,50 +1562,39 @@ and eval_defined_field venv pos _ v vl =
  * Strings are concatenated.
  *)
 and simplify_quote_val venv pos c (el : Omake_value_type.t list) : Omake_value_type.t  =
-  match el with
-  | [ValWhite s]
-  | [ValString s]
-  | [ValData s] ->
-    begin match c with
-    | None ->
-      ValData s
-    | Some c ->
-      ValQuoteString (c, [ValData s])
-    end
-  | _ ->
-    let buf = Buffer.create 32 in
-    let flush vl : Omake_value_type.t list =
-      if Buffer.length buf = 0 then
-        vl
-      else
-        let s = Buffer.contents buf in
-        Buffer.clear buf;
-        ValData s :: vl in
-    let rec collect vl el =
-      match el with
+  let buf = Buffer.create 32 in
+  let flush vl : Omake_value_type.t list =
+    if Buffer.length buf = 0 then
+      vl
+    else
+      let s = Buffer.contents buf in
+      Buffer.clear buf;
+      ValData s :: vl in
+  let rec collect vl el =
+    match el with
       | e :: el ->
-        begin match eval_value venv pos e with
-          ValWhite s
-        | ValString s
-        | ValData s ->
-          Buffer.add_string buf s;
-          collect vl el
-        | v ->
-          collect (v :: flush vl) el
-        end
+          ( match eval_value venv pos e with
+              | ValWhite s
+              | ValString s
+              | ValData s ->
+                  Buffer.add_string buf s;
+                  collect vl el
+              | v ->
+                  collect (v :: flush vl) el
+          )
       | [] ->
-        List.rev (flush vl)
-    in
-    match collect [] el with
-      [ValWhite s]
-    | [ValString s]
-    | [ValData s] ->
-      ValData s
-    | el ->
-      match c with
-        None ->
-        ValQuote el
-      | Some c ->
+          List.rev (flush vl) in
+  let el = collect [] el in
+  match c with
+    | None ->
+        (* GS: ValQuote just concatenates the inner elements without caring
+           about sequences. Think about renaming to ValConcat.
+         *)
+        ( match el with
+            | [ValData _ as e] -> e
+            | _ -> ValQuote el
+        )
+    | Some c ->
         ValQuoteString (c, el)
 
 (*
