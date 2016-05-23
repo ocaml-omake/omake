@@ -45,11 +45,11 @@
 #define _WIN32_WINNT 0x0400
 #endif
 
-#include <windows.h>
+#include "caml/unixsupport.h"
+//#include <windows.h>
 #include <tlhelp32.h>
-#include <winsock.h>
+//#include <winsock.h>
 
-#include "unixsupport.h"
 #include "lm_compat_win32.h"
 
 #define Val_nil         (Val_int(0))

@@ -29,7 +29,7 @@ if $(equal $(OSTYPE), Win32)
     # Extra options for the C compiler
     #
     if $(equal $(CCOMPTYPE), msvc)
-        CFLAGS += /MT /DWIN32 /W4 /WX
+        CFLAGS += /MT /DWIN32 /W4
         export
     else
 	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused
@@ -178,12 +178,10 @@ PUBFILES[] =
     OMakefile
     OMakeroot
     Makefile
-    Makefile.nt
     configure
 
     src/OMakefile
     src/Makefile
-    src/Makefile.nt
 
     src/*/OMakefile
     src/*/*.ml
@@ -482,7 +480,7 @@ lib/OMakefile.default: $(BOOTFILES)
 ########################################################################
 # Installation
 #
-all: $(DEFAULTFILES)  $(INSTALLFILES) $(ROOT)/src/Makefile $(ROOT)/src/Makefile.nt
+all: $(DEFAULTFILES)  $(INSTALLFILES) $(ROOT)/src/Makefile
 # omaketop
 
 omaketop: src/clib/clib.a src/libmojave/lm.cma src/front/frt.cma src/top/boot_repl.cma  src/magic/magic.cma src/ast/ast.cma src/ir/ir.cma src/env/env.cma  src/eval/eval.cma src/shell/shell.cma src/exec/exec.cma src/build/build.cma src/builtin/builtin.cma

@@ -21,7 +21,7 @@ Shell. +=
 
 
 # preconfig file (= written by configure). Might not exist.
-public.PRECONFIG_FILE = $(file $(ROOT)/mk/preconfig)
+public.PRECONFIG_FILE = $(file $(ROOT)/.preconfig)
 
 
 #

@@ -36,8 +36,8 @@
 #include <caml/custom.h>
 
 #ifdef WIN32
-#include <windows.h>
-#include "unixsupport.h"
+//#include <windows.h>
+#include "caml/unixsupport.h"
 
 /*
  * Utilities for pipes, used by Omake_channel.
