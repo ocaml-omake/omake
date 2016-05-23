@@ -132,8 +132,6 @@ public.USE_OCAMLFIND = false
         else
             ConfMsgResult($"no (ocamlopt not found)")
             value false
-    OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
-    OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
     #
     # Compile native or byte code?
     #
@@ -147,7 +145,14 @@ public.OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
 public.OCAMLFINDFLAGS =
 public.LAZY_OCAMLFINDFLAGS = $`(if $(USE_OCAMLFIND), $(OCAMLFINDFLAGS))
 
-public.OCAMLDEP = $(if $(OCAMLDEP_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamldep, ocamldep.opt), ocamldep)
+# OCAMLC/OCAMLOPT/OCAMLDEP are now 0-ary functions instead of normal variables
+# because sometimes USE_OCAMLFIND is set too late by the user.
+public.OCAMLC() =
+    value $(if $(OCAMLC_OPT_EXISTS), $(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
+public.OCAMLOPT() =
+    value $(if $(OCAMLOPT_OPT_EXISTS), $(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
+public.OCAMLDEP() =
+    value $(if $(OCAMLDEP_OPT_EXISTS), $(if $(USE_OCAMLFIND), ocamldep, ocamldep.opt), ocamldep)
 public.CAMLP4 = camlp4
 public.OCAMLLEX = $(if $(OCAMLLEX_OPT_EXISTS), ocamllex.opt, ocamllex)
 public.OCAMLLEXFLAGS = -q
