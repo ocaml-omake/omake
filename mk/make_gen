@@ -101,8 +101,6 @@ $(name)$$(EXT_LIB): $$(OFILES_$(name))
         dst=$(name)
         src=$(name)
         MakeLinkFile($(dst), $(src))
-        $(dst): $(src)
-            ln-or-cp $< $@
         export
 
     export

@@ -385,17 +385,17 @@ if $(equal $(CCOMPTYPE), msvc)
     .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
         $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
-    # Include default rule for backwards-compatibility
-    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+#    # Include default rule for backwards-compatibility
+#    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+#        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
     foreach(CXX_EXT => ..., $(CXX_EXTS))
         .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
             $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
-        # Include default rule for backwards-compatibility
-        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+#        # Include default rule for backwards-compatibility
+#        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+#            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
         export
     export
@@ -403,17 +403,17 @@ else
     .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
         $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -MM $<
 
-    # Include default rule for backwards-compatibility
-    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -MM $<
+#    # Include default rule for backwards-compatibility
+#    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+#        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -MM $<
 
     foreach(CXX_EXT => ..., $(CXX_EXTS))
         .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
             $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -MM $<
 
-        # Include default rule for backwards-compatibility
-        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -MM $<
+#        # Include default rule for backwards-compatibility
+#        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
+#            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -MM $<
 
         export
     export

@@ -112,6 +112,16 @@ let copy src dest =
   flush f_dest;
   close_out f_dest
 
+let copy_executable src dest =
+  let need_exe =
+    Sys.file_exists (src ^ ".exe") in
+  let with_exe file =
+    if need_exe then file ^ ".exe" else "" in
+  let src = with_exe src in
+  let dest = with_exe dest in
+  copy src dest;
+  Unix.chmod dest 0o755
+
 let touch file =
   let f = open_out_gen [ Open_wronly; Open_append; Open_creat ] 0o666 file in
   close_out f
@@ -219,13 +229,13 @@ let do_bootstrap self vars ty =
   match ty with
     | `Force ->
         run_bootstrap self vars;
-        ("boot/omake", "src/main/omake")
+        ("boot/omake", "src/main/prelim_omake")
     | `Disable ->
         ("omake", "omake")
     | `Auto ->
         if not (Sys.file_exists "boot/omake") && not (Sys.file_exists "boot/omake.exe")  then
           run_bootstrap self vars;
-        ("boot/omake", "src/main/omake")
+        ("boot/omake", "src/main/prelim_omake")
 
 let run_omake omake env vars args =
   let args1 =
@@ -250,6 +260,9 @@ let do_action self vars action omake1 omake2 =
           env
           vars
           [ "--dotomake"; ".omake"; "--force-dotomake"; "main" ];
+        (* Windows cannot replace running executables. Create a copy. *)
+        if omake1 <> omake2 then
+          copy_executable "src/main/omake" "src/main/prelim_omake";
         run_omake
           omake2
           env
@@ -273,11 +286,15 @@ let do_action self vars action omake1 omake2 =
         find "src"  ".*\\.a" |> safe_remove_list;
         find "src"  ".*\\.so" |> safe_remove_list;
         find "src"  ".*\\.dll" |> safe_remove_list;
+        find "src"  ".*\\.exe" |> safe_remove_list;
         safe_remove "src/env/omake_ast_parse.mly";
         safe_remove "src/libmojave/lm_thread_core.ml";
         safe_remove "src/libmojave/lm_thread_pool.ml";
         safe_remove "src/magic/omake_magic.ml";
         safe_remove "src/shell/omake_shell_sys.ml";
+        safe_remove "src/main/omake";
+        safe_remove "src/main/prelim_omake";
+        safe_remove "src/main/osh";
         safe_remove ".omakedb";
         safe_remove ".omakedb.lock"
 
