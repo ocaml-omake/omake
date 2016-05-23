@@ -116,7 +116,7 @@ let copy_executable src dest =
   let need_exe =
     Sys.file_exists (src ^ ".exe") in
   let with_exe file =
-    if need_exe then file ^ ".exe" else "" in
+    if need_exe then file ^ ".exe" else file in
   let src = with_exe src in
   let dest = with_exe dest in
   copy src dest;
