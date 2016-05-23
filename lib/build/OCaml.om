@@ -84,6 +84,9 @@ open configure/Configure
 # \var{OCAMLINCLUDES} Search path to pass to the OCaml compilers (default \verb+.+).
 #    The search path with the \verb+-I+ prefix is defined by the \verb+PREFIXED_OCAMLINCLUDES+
 #    variable.
+# \var{OCAMLINCLUDES_FOR_OCAMLDEP_MODULES} Extra path for searching files
+#    corresponding to dependencies returned by "ocamldep -modules". This
+#    defaults to ".". There is normally no reason to change this value.
 # \var{OCAMLFIND} The \verb+ocamlfind+ utility (default \verb+ocamlfind+ if
 #     \verb+USE_OCAMLFIND+ is set, otherwise empty).
 # \var{OCAMLFINDFLAGS} The flags to pass to \verb+ocamlfind+ (default empty, \verb+USE_OCAMLFIND+ must be set).
@@ -166,6 +169,7 @@ public.OCAMLOPTLINK = $`(OCAMLOPT)
 # Include path
 #
 public.OCAMLINCLUDES[] = .
+public.OCAMLINCLUDES_FOR_OCAMLDEP_MODULES[] = .
 public.PREFIXED_OCAMLINCLUDES = $`(mapprefix -I, $(OCAMLINCLUDES))
 
 #
@@ -310,6 +314,9 @@ public.OCAMLDEPFLAGS = $`(if $(and $(NATIVE_ENABLED), $(not $(OCAMLDEP_MODULES_E
 
 .PHONY: OCamlGeneratedFilesTarget
 
+# GS: The test on $(OCAMLDEP_MODULES_ENABLED) in only partially working.
+# What if we set this variable later?
+
 public.OCamlGeneratedFiles(files) =
     if $(OCAMLDEP_MODULES_ENABLED)
         # For now, we want to allow ``backwards-compatible'' projects.
@@ -391,11 +398,14 @@ public.PrintFileDependencies(filename, cmideps) =
 # associated with each module.
 #
 public.PrintDependencies(filename, modules) =
+    private.includes[] =
+        $(OCAMLINCLUDES_FOR_OCAMLDEP_MODULES)
+        $(OCAMLINCLUDES)
     if $(filename)
         #
         # Find the .cmi files that can be built
         #
-        private.cmideps = $(find-ocaml-targets-in-path-optional $(OCAMLINCLUDES), $(addsuffix .cmi, $(modules)))
+        private.cmideps = $(find-ocaml-targets-in-path-optional $(includes), $(addsuffix .cmi, $(modules)))
 
         # Now produce the dependencies
         if $(OCAMLDEP_PRESERVE_TARGETS)
@@ -405,7 +415,7 @@ public.PrintDependencies(filename, modules) =
             case .ml
                 protected.cmxdeps[] =
                 if $(NATIVE_ENABLED)
-                    cmxdeps = $(find-ocaml-targets-in-path-optional $(OCAMLINCLUDES), $(addsuffix .cmx, $(modules)))
+                    cmxdeps = $(find-ocaml-targets-in-path-optional $(includes), $(addsuffix .cmx, $(modules)))
                     export
                 PrintMLDependencies($(filename), $(cmideps), $(cmxdeps))
             case .mli
@@ -443,7 +453,7 @@ public.OCamlScannerPostproc(input) =
 Shell. +=
     ocamldep-postproc(argv) =
         if $(defined ocamldep-postproc)
-            ocamldep-postproc($(OCAMLINCLUDES), $(NATIVE_ENABLED))
+            ocamldep-postproc($(OCAMLINCLUDES_FOR_OCAMLDEP_MODULES) $(OCAMLINCLUDES), $(NATIVE_ENABLED))
         else
             OCamlScannerPostproc($(stdin))
 
