@@ -158,7 +158,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_CXX = $(toolchain-derive $(DEFAULT_CC), g++, `$(toolchain-derive $(DEFAULT_CC), c++, $(if $(GXX_FOUND1), g++, c++)))
         export
 
-    DEFAULT_CXX_FOUND = $(CheckProg $(DEFAULT_CXX))
+    DEFAULT_CXX_FOUND = $(CheckProg $(nth 0, $(DEFAULT_CXX)))
 
     DEFAULT_GXX_FOUND = false
     match $(DEFAULT_CXX)
@@ -178,7 +178,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_CPP = $(toolchain-derive $(DEFAULT_CC), cpp, $(DEFAULT_CC) -E)
         export
 
-    DEFAULT_CPP_FOUND = $(CheckProg $(DEFAULT_CPP))
+    DEFAULT_CPP_FOUND = $(CheckProg $(nth 0, $(DEFAULT_CPP)))
 
     # linker
 
@@ -189,7 +189,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_LD = $(toolchain-derive $(DEFAULT_CC), ld, ld)
         export
 
-    DEFAULT_LD_FOUND = $(CheckProg $(DEFAULT_LD))
+    DEFAULT_LD_FOUND = $(CheckProg $(nth 0, $(DEFAULT_LD)))
 
     # assembler
 
@@ -200,7 +200,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_AS = $(toolchain-derive $(DEFAULT_CC), as, as)
         export
 
-    DEFAULT_AS_FOUND = $(CheckProg $(DEFAULT_AS))
+    DEFAULT_AS_FOUND = $(CheckProg $(nth 0, $(DEFAULT_AS)))
 
     export
 
@@ -230,8 +230,8 @@ if $(equal $(CCOMPTYPE), msvc)
     public.CC = $(DEFAULT_CC)
     public.CXX = $(DEFAULT_CXX)
     public.CPP = $(DEFAULT_CPP)
-    public.CFLAGS = /nologo $(OS_CFLAGS)
-    public.CXXFLAGS = /nologo $(OS_CFLAGS)
+    public.CFLAGS = $(OS_CFLAGS)
+    public.CXXFLAGS = $(OS_CFLAGS)
     public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
     public.RANLIB = echo ranlib
