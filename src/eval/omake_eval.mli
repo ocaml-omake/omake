@@ -81,6 +81,7 @@ val compile_deps : Omake_env.t -> Omake_node.Node.t -> string -> (string list * 
 
 (*
  * Remove outermost applications.
+ * GS: Force lazy applications!
  *)
 val eval_value : Omake_env.t -> Omake_value_type.pos -> Omake_value_type.t -> Omake_value_type.t
 

@@ -264,6 +264,10 @@ let or_fun venv pos _ args =
  *)
 let empty_val : Omake_value_type.t = ValSequence []
 
+(* GS. Note that this is only the implementation for $(if ...), not for the
+   multiline-if (which is in Omake_eval).
+ *)
+
 let if_fun venv pos loc args =
    let pos = string_pos "if" pos in
       let test, v1, v2 =
@@ -272,10 +276,15 @@ let if_fun venv pos loc args =
           | [test; v1] -> test, v1, empty_val
           | _ -> raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
       in
-         if Omake_eval.bool_of_value venv pos test then
-            v1
+      (* The args are lazily evaluated (there is a ValStringExp around them).
+         Force the evaluation of the selected case.
+       *)
+      Omake_eval.eval_value venv pos
+        (if Omake_eval.bool_of_value venv pos test then
+           v1
          else
-            v2
+           v2
+        )
 
 (*
  * Match command.
@@ -2791,6 +2800,11 @@ let () =
      "AUTO_REHASH",                (fun _ -> Omake_builtin_util.val_false);
     ]
   in
+  (* GS: the first col says whether the primitive gets eagerly evaluated
+     arguments. If false, you need to run Omake_eval.eval_value to force
+     the evaluation of the lazy arguments. It is not possible to specify
+     this per arg - either all args are eager or all args are lazy.
+   *)
   let builtin_funs =
     [true,  "addprefix",             addprefix,           Omake_ir.ArityExact 2;
      true,  "mapprefix",             mapprefix,           ArityExact 2;
@@ -2843,7 +2857,7 @@ let () =
      false, "or",                    or_fun,              ArityAny;
      false, "and",                   and_fun,             ArityAny;
      true,  "equal",                 equal,               ArityExact 2;
-     true,  "if",                    if_fun,              ArityRange (2, 3);
+     false, "if",                    if_fun,              ArityRange (2, 3);
      true,  "defined",               defined,             ArityExact 1;
 
      (* List operations *)
