@@ -22,7 +22,8 @@ OCAMLDEP = ocamldep.opt
 # C configuration
 #
 CC = cl
-CFLAGS = /nologo /MT -I"$STDLIB)" /DWIN32 /DFAM_ENABLED /DFAM_PSEUDO
+CFLAGS = /nologo /MT -I"$(STDLIB)" /DWIN32
+#  /DFAM_ENABLED /DFAM_PSEUDO
 AR = lib /nologo /debugtype:CV
 AROUT = /out:
 EXT_OBJ = .obj
@@ -36,7 +37,7 @@ THREADSLIB = threads.cma
 THREADSLIB_OPT = threads.cmxa
 PREFERRED = .byte
 
-.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .o
+.SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cmx .cma .cmxa .obj
 
 .c.obj:
 	$(CC) $(CFLAGS) -c $*.c

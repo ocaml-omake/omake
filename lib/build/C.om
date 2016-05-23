@@ -230,8 +230,8 @@ if $(equal $(CCOMPTYPE), msvc)
     public.CC = $(DEFAULT_CC)
     public.CXX = $(DEFAULT_CXX)
     public.CPP = $(DEFAULT_CPP)
-    public.CFLAGS = $(OS_CFLAGS)
-    public.CXXFLAGS = $(OS_CFLAGS)
+    public.CFLAGS = /nologo $(OS_CFLAGS)
+    public.CXXFLAGS = /nologo $(OS_CFLAGS)
     public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
     public.RANLIB = echo ranlib
@@ -376,6 +376,9 @@ if $(equal $(CCOMPTYPE), msvc)
            case $'Note:.*including file: *\(.*\)$'
               depends[] += $(file $"$1")
               export
+           case $'Hinweis:.*Einlesen der Datei: *\(.*\)$'
+              depends[] += $(file $"$1")
+              export
            case $'.[(][0-9][0-9]*[)] : (warning|(fatal |)error) [A-Z][0-9]*: '
               eprintln($0)
            depends = $(string-escaped $(set $(depends)))
@@ -383,7 +386,7 @@ if $(equal $(CCOMPTYPE), msvc)
            println($"$(objname): $(depends)")
 
     .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /w /Zs /showIncludes $< |& builtin-cc-depend $<
 
 #    # Include default rule for backwards-compatibility
 #    .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
@@ -391,7 +394,7 @@ if $(equal $(CCOMPTYPE), msvc)
 
     foreach(CXX_EXT => ..., $(CXX_EXTS))
         .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /w /Zs /showIncludes $< |& builtin-cc-depend $<
 
 #        # Include default rule for backwards-compatibility
 #        .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)

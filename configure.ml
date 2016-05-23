@@ -31,7 +31,7 @@ let find_in_path prog =
 
 let prefix = 
   try
-    ref (find_in_path "ocamlc")
+    ref (Filename.dirname (find_in_path "ocamlc"))
   with
     | Not_found ->
         prerr_endline "ocamlc not found; aborting";

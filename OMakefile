@@ -29,7 +29,7 @@ if $(equal $(OSTYPE), Win32)
     # Extra options for the C compiler
     #
     if $(equal $(CCOMPTYPE), msvc)
-        CFLAGS += /MT /DWIN32 /W4 /WX
+        CFLAGS += /MT /DWIN32 /W4
         export
     else
 	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused

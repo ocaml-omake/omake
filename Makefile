@@ -14,7 +14,7 @@ force-bootstrap:
 	$(OCAML) build.ml -force-bootstrap OCAML="$(OCAML)"
 
 all:
-	$(OCAML) build.mk -build OCAML="$(OCAML)"
+	$(OCAML) build.ml -build OCAML="$(OCAML)"
 
 install: all
 	$(OCAML) build.ml -install OCAML="$(OCAML)"

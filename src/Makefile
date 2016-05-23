@@ -379,7 +379,7 @@ GENMAGIC_DEPS = lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_posit
 MAGIC_FILES =    --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml lm_map.ml lm_set.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_value_type.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
 
 omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
-	$(DOT)omake_gen_magic -o $@ --version version.txt --var "omake_cc=$(CC)" --var "omake_cflags=$(CFLAGS)"  --var "omake_ccomptype=cc" --magic $(MAGIC_FILES)
+	$(DOT)omake_gen_magic -o $@ --version version.txt --var "omake_cc=$(CC)" --var "omake_cflags=$(CFLAGS)"  --var "omake_ccomptype=$(CCOMPTYPE)" --magic $(MAGIC_FILES)
 
 SRC_magic = ..$(slash)src$(slash)magic
 

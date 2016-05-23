@@ -127,6 +127,12 @@ let touch file =
   close_out f
 
 
+let safe_mkdir file =
+  try Unix.mkdir file 0o777
+  with
+    | Unix.Unix_error(Unix.EEXIST,_,_) -> ()
+
+
 let is_dir dir =
   (* Sys.file_exists (Filename.concat dir ".") - doesn't work under Windows *)
   try
@@ -190,6 +196,7 @@ let have_ocamlopt vars =
   Sys.command cmd = 0
 
 let configure_bootstrap vars =
+  safe_mkdir "boot";
   copy "src/Makefile" "boot/Makefile";
   touch "boot/Makefile.dep";
   match get_system vars with
