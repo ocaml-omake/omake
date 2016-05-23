@@ -506,13 +506,19 @@ struct
        nfa_state_action  : nfa_action
      }
 
+   type group_info = int * int
+     (* GS: In the NFA and DFA, the groups are globally numbered, across all
+        clauses. This pair [(offset,length)] selects the [length] number of
+        global groups starting at [offset].
+      *)
+
    (*
     * The NFA has a start state,
     * and an array of states.
     *)
    type nfa =
      { nfa_hash          : NfaState.state;
-       nfa_actions       : action IntTable.t;
+       nfa_actions       : (action * group_info) IntTable.t;
        nfa_start         : NfaState.t;
        nfa_search_start  : NfaState.t;
        nfa_search_states : NfaStateSet.t;
@@ -581,7 +587,7 @@ struct
        mutable dfa_length : int;                  (* Index of the largest valid state *)
        mutable dfa_map    : int DfaStateTable.t;  (* Map from NFA state subsets to DFA states *)
        dfa_table          : nfa_state array;      (* The NFA *)
-       dfa_action_table   : action IntTable.t;    (* The map from clause id to actions *)
+       dfa_action_table   : (action * group_info) IntTable.t;    (* The map from clause id to actions *)
        dfa_search_states  : NfaStateSet.t;        (* Set of states for searching *)
        dfa_nfa_hash       : NfaState.state;       (* HashCons table for NFA states *)
        dfa_dfa_hash       : DfaState.state        (* HashCons table for DFA states *)
@@ -1661,18 +1667,24 @@ struct
 
      (* Compile the expressions *)
      let accum, depends, actions, starts, states =
-       List.fold_left (fun (accum, depends, actions, starts, states) (action, id, regex) ->
-           let info =
-             { nfa_clause      = id;
-               nfa_arg_number  = 0
-             }
-           in
-           let accum, _info, start, states = compile_clause accum info states regex in
-           let actions = IntTable.add actions id action in
-           let starts = start.nfa_state_index :: starts in
-           let states = start :: states in
-           accum, depends, actions, starts, states) (**)
-         (accum, IntTable.empty, IntTable.empty, [], []) exp.exp_clauses
+       List.fold_left
+         (fun (accum, depends, actions, starts, states) (action, id, regex) ->
+            let arg_offset = accum.nfa_arg_index in
+            let info =
+              { nfa_clause      = id;
+                nfa_arg_number  = 0
+              } in
+            let accum, _info, start, states =
+              compile_clause accum info states regex in
+            let arg_length = accum.nfa_arg_index - arg_offset in
+            let arg_info = (arg_offset, arg_length) in
+            let actions = IntTable.add actions id (action, arg_info) in
+            let starts = start.nfa_state_index :: starts in
+            let states = start :: states in
+            accum, depends, actions, starts, states
+         )
+         (accum, IntTable.empty, IntTable.empty, [], [])
+         exp.exp_clauses
      in
 
      (* Add the normal start state *)
@@ -2234,64 +2246,73 @@ struct
      else
        extend_args ("" :: args) (succ len1) len2
 
-   let dfa_args dfa_info lexeme =
+   let dfa_args dfa_info group_select lexeme =
      let { dfa_start_pos = start;
            dfa_stop_pos = stop;
            dfa_stop_args = args;
            _
          } = dfa_info
      in
+     let (group_offset, group_length) = group_select in
 
      (* Get the pairs of argument info *)
      let info, start_pos =
-       ArgTable.fold (fun (info, start) arg pos ->
-           match arg with
-             ArgLeft arg ->
-             let info =
-               IntTable.filter_add info arg (fun entry ->
-                   match entry with
-                     None ->
-                     ArgStart pos
-                   | Some (ArgStop right) ->
-                     ArgComplete (pos, right)
-                   | _ ->
-                     raise (Invalid_argument "dfa_args:left"))
-             in
-             info, start
-           | ArgRight arg ->
-             let info =
-               IntTable.filter_add info arg (fun entry ->
-                   match entry with
-                     None ->
-                     ArgStop pos
-                   | Some (ArgStart left) ->
-                     ArgComplete (left, pos)
-                   | _ ->
-                     raise (Invalid_argument "dfa_args:right"))
-             in
-             info, start
-           | ArgSearch ->
-             info, Some pos) (IntTable.empty, None) args
-     in
-
-     (* Get the argument text *)
-     let args =
-       IntTable.map (fun entry ->
-           match entry with
-             ArgComplete (left, right) ->
-             String.sub lexeme left (right - left)
-           | ArgStart left ->
-             String.sub lexeme left (stop - left)
-           | ArgStop right ->
-             String.sub lexeme start (right - start)) info
-     in
+       ArgTable.fold
+         (fun (info, start) arg pos ->
+            match arg with
+              | ArgLeft arg ->
+                  let info =
+                    IntTable.filter_add info arg
+                      (fun entry ->
+                         match entry with
+                           | None ->
+                               ArgStart pos
+                           | Some (ArgStop right) ->
+                               ArgComplete (pos, right)
+                           | _ ->
+                               raise (Invalid_argument "dfa_args:left")
+                      ) in
+                  info, start
+              | ArgRight arg ->
+                  let info =
+                    IntTable.filter_add info arg
+                      (fun entry ->
+                         match entry with
+                           | None ->
+                               ArgStop pos
+                           | Some (ArgStart left) ->
+                               ArgComplete (left, pos)
+                           | _ ->
+                               raise (Invalid_argument "dfa_args:right")
+                      ) in
+                  info, start
+              | ArgSearch ->
+                  info, Some pos
+         )
+         (IntTable.empty, None)
+         args in
 
      (* Flatten the arguments *)
      let args, _ =
-       IntTable.fold (fun (args, len) arg s ->
-           let args = s :: extend_args args len arg in
-           args, succ arg) ([], 0) args
-     in
+       IntTable.fold
+         (fun (args, len) arg entry ->
+            if arg >= group_offset && arg < group_offset + group_length then
+              let s =
+                (* Get the argument text *)
+                match entry with
+                  | ArgComplete (left, right) ->
+                      String.sub lexeme left (right - left)
+                  | ArgStart left ->
+                      String.sub lexeme left (stop - left)
+                  | ArgStop right ->
+                      String.sub lexeme start (right - start) in
+              let args = 
+                s :: extend_args args len (arg-group_offset) in
+              args, succ (arg-group_offset)
+            else
+              args, len
+         )
+         ([], 0) info in
      start_pos, List.rev args
 
    (*
@@ -2433,11 +2454,12 @@ struct
           *   2. Get the entire string.
           *   3. Get the arguments.
           *)
+     let action, group_info = IntTable.find dfa.dfa_action_table clause in
      let loc = Input.lex_loc channel stop in
      let lexeme = Input.lex_string channel stop in
-     let _, args = dfa_args dfa_info lexeme in
+     let _, args = dfa_args dfa_info group_info lexeme in
      Input.lex_stop channel stop;
-     IntTable.find dfa.dfa_action_table clause, loc, lexeme, args
+     action, loc, lexeme, args
 
    (*
     * Return the input followed by a regular expression
@@ -2485,9 +2507,10 @@ struct
              *   2. Get the entire string.
              *   3. Get the arguments.
              *)
+       let action, group_info = IntTable.find dfa.dfa_action_table clause in
        let loc = Input.lex_loc channel stop in
        let lexeme = Input.lex_string channel stop in
-       let start, args = dfa_args dfa_info lexeme in
+       let start, args = dfa_args dfa_info group_info lexeme in
        let skipped, lexeme =
          match start with
            Some pos ->
@@ -2496,7 +2519,7 @@ struct
            "", lexeme
        in
        Input.lex_stop channel stop;
-       Some (IntTable.find dfa.dfa_action_table clause, loc, skipped, lexeme, args)
+       Some (action, loc, skipped, lexeme, args)
 
    (*
     * This is a slightly different version of searching,
@@ -2556,9 +2579,10 @@ struct
              *   2. Get the entire string.
              *   3. Get the arguments.
              *)
+       let action, group_info = IntTable.find dfa.dfa_action_table clause in
        let loc = Input.lex_loc channel stop in
        let lexeme = Input.lex_string channel stop in
-       let start, args = dfa_args dfa_info lexeme in
+       let start, args = dfa_args dfa_info group_info lexeme in
        let skipped, lexeme =
          match start with
            Some pos ->
@@ -2567,7 +2591,7 @@ struct
            "", lexeme
        in
        Input.lex_stop channel stop;
-       LexMatched (IntTable.find dfa.dfa_action_table clause, loc, skipped, lexeme, args)
+       LexMatched (action, loc, skipped, lexeme, args)
 
    (*
     * Just check for a string match.
