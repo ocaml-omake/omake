@@ -580,6 +580,41 @@ if you really want to build this file.
 %.cmi: %.mli :scanner: scan-ocaml-%.mli
     $(OCamlC) -c $<
 
+# \begin{doc}
+# \fun{DeclareMLIOnly}
+#
+# Sometimes, MLI files only contain type and exception definitions. In fact,
+# the MLI file could also be parsed as ML file. For convenience, it is possible
+# to declare modules as MLI-only. In this case, an ML file needs not to be
+# written. Do this as follows:
+#
+# \verb+DeclareMLIOnly(<files>)+
+#
+# where the \verb+<files>+ are without suffixes.
+#
+# Note that this really only works if the MLI file can be parsed as ML file.
+# Also, it is possible this results in an object to be linked in, so don't
+# forget to link the modules into the library or executable.
+# \end{doc}
+
+DeclareMLIOnly(modules) =
+    foreach(mod => ..., $(modules))
+        if $(BYTE_ENABLED)
+            if $(NATIVE_ENABLED)
+               $(mod).cmi $(mod).cmo $(mod).cmx $(mod).o: $(mod).mli
+                   $(OCamlC) -c $(mod).mli
+                   $(OCamlC) -c -impl $(mod).mli
+                   $(OCamlOpt) -c -impl $(mod).mli
+            else
+               $(mod).cmi $(mod).cmo: $(mod).mli
+                   $(OCamlC) -c $(mod).mli
+                   $(OCamlC) -c -impl $(mod).mli
+        else
+           $(mod).cmi $(mod).cmx $(mod).o: $(mod).mli
+               $(OCamlC) -c $(mod).mli
+               $(OCamlOpt) -c -impl $(mod).mli
+        
+
 ########################################################################
 # Parser generators
 #
