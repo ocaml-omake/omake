@@ -8,6 +8,7 @@
 
 #warnings "-3";;
 #load "str.cma";;
+#load "unix.cma";;
 
 open Printf
 
@@ -36,6 +37,20 @@ let prefix =
     | Not_found ->
         prerr_endline "ocamlc not found; aborting";
         exit 1
+
+let bad_version1 = Str.regexp "^[0123]\\..*"
+let bad_version2 = Str.regexp "^4.0[01]\\..*"
+
+let check_ocaml_version() =
+  let ch = Unix.open_process_in "ocamlc -version" in
+  let line = input_line ch in
+  let status = Unix.close_process_in ch in
+  if status <> Unix.WEXITED 0 then
+    failwith "Cannot run: ocamlc -version";
+  if Str.string_match bad_version1 line 0 || Str.string_match bad_version2 line 0 then
+    failwith "The ocaml version is too old. Need at least 4.02";
+  ()
+
 
 let gnu_re1 = Str.regexp "--\\([-A-Za-z0-9]+\\)=\\(.*\\)$"
 let gnu_re2 = Str.regexp "--\\([-A-Za-z0-9]+\\)$"
@@ -79,6 +94,8 @@ let main() =
        raise(Arg.Bad ("Unexpected: " ^ s))
     )
     "usage: configure [options]";
+
+  check_ocaml_version();
   
   let f = open_out ".preconfig" in
   fprintf f "public.PREFIX = %s\n\n" !prefix;

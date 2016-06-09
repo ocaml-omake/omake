@@ -1,6 +1,6 @@
 OCAML = ocaml
 
-.PHONY: all bootstrap force-bootstrap install default
+.PHONY: all bootstrap force-bootstrap install default clean doc package
 
 #
 # Bootstrap program is omake-boot
@@ -19,6 +19,13 @@ all:
 install: all
 	$(OCAML) build.ml -install OCAML="$(OCAML)"
 
-.PHONY: clean
 clean:
 	$(OCAML) build.ml -clean OCAML="$(OCAML)"
+
+doc:
+	OMAKELIB=`pwd`/lib ./src/main/omake doc
+
+# omake version is taken from the version.txt file!
+
+package:
+	OMAKELIB=`pwd`/lib ./src/main/omake package

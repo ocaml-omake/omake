@@ -179,6 +179,11 @@ PUBFILES[] =
     OMakeroot
     Makefile
     configure
+    configure.ml
+    build
+    build.ml
+    make
+    make.ml
 
     src/OMakefile
     src/Makefile
@@ -214,6 +219,9 @@ PUBFILES[] =
     mk/defaults
     mk/make_config
     mk/make_gen
+    mk/osconfig_mingw.mk
+    mk/osconfig_msvc.mk
+    mk/osconfig_unix.mk
 
     doc/OMakefile
     doc/html/*.html
@@ -404,9 +412,10 @@ PUBFILES_EXCLUDE[] =
     src/magic/omake_magic.ml
     src/shell/omake_shell_sys.ml
 
-package: packages/$(BASENAME)
+package: packages/$(BASENAME).tar.gz
 
 packages/$(BASENAME):
+    rm -rf packages/$(BASENAME)
     mkdir -p packages/$(BASENAME)
     foreach(pat => ..., $(PUBFILES))
         files = $(glob $(pat))
@@ -418,8 +427,10 @@ packages/$(BASENAME):
         rm -f packages/$(BASENAME)/$(file)
 
 packages/$(BASENAME).tar.gz: packages/$(BASENAME)
-    cd packages
-    tar czf $(BASENAME).tar.gz $(BASENAME)
+    section
+        cd packages
+	rm -f $(BASENAME).tar.gz
+        tar czf $(BASENAME).tar.gz $(BASENAME)
 
 rpm: version.txt make_rpm make_checkout
     ./make_rpm

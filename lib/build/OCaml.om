@@ -84,7 +84,7 @@ open configure/Configure
 # \var{OCAMLINCLUDES} Search path to pass to the OCaml compilers (default \verb+.+).
 #    The search path with the \verb+-I+ prefix is defined by the \verb+PREFIXED_OCAMLINCLUDES+
 #    variable.
-# \var{OCAMLINCLUDES_FOR_OCAMLDEP_MODULES} Extra path for searching files
+# \varlabel{OCAMLINCLUDES_FOR_OCAMLDEP_MODULES}{OCAMLINCLUDES\_FOR\_OCAMLDEP\_MODULES} Extra path for searching files
 #    corresponding to dependencies returned by "ocamldep -modules". This
 #    defaults to ".". There is normally no reason to change this value.
 # \var{OCAMLFIND} The \verb+ocamlfind+ utility (default \verb+ocamlfind+ if
