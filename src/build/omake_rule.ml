@@ -721,14 +721,14 @@ let lazy_command venv pos (command : Omake_ir.exp) : Omake_value_type.command =
 
 let lazy_commands venv pos commands =
   match Omake_eval.eval_value venv pos commands with
-  | ValBody (el, export) ->
+  | ValBody ([], [], el, export) ->
     List.map (lazy_command venv pos) el, export
   | _ ->
     raise (Omake_value_type.OmakeFatalErr (pos, Omake_value_type.StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
   match Omake_eval.eval_value venv pos commands with
-  | ValBody (el, _) ->
+  | ValBody ([], [], el, _) ->
     el
   | _ ->
     raise (Omake_value_type.OmakeFatalErr (pos, 

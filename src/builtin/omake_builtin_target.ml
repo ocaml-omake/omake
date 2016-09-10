@@ -173,7 +173,7 @@ let split_command _ (values1, lines1) command =
       let v =
         match line with
           Omake_value_type.CommandSection (_, _, e) ->
-          Omake_value_type.ValBody (e, ExportNone)
+          Omake_value_type.ValBody ([], [], e, ExportNone)
         | CommandValue (_, exp, v) ->
           ValStringExp(exp,v)
       in

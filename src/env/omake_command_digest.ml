@@ -666,8 +666,12 @@ let rec squash_value pos buf v =
     | ValStringExp (_, e) ->
       add_code buf CodeValStringExp;
       squash_string_exp pos buf e
-    | ValBody (e, export) ->
+    | ValBody (keywords, params, e, export) ->
       add_code buf CodeValBody;
+      squash_keyword_param_values pos buf keywords;
+      add_code buf CodeSpace;
+      squash_params buf params;
+      add_code buf CodeArrow;
       squash_exp_list pos buf e;
       add_code buf CodeSpace;
       squash_export_info buf export
