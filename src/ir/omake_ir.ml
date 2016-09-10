@@ -2,6 +2,8 @@
  * Define an intermediate representation that is a little
  * easier to work with than the AST.
  *)
+(* GS: translation from AST to IR is in Omake_ir_ast *)
+
 
 (*
  * %%MAGICBEGIN%%
@@ -90,6 +92,52 @@ type return_id = Lm_location.t * string
  * The ordering of keyword arguments in the source is irrelevant.
  * Internally, we sort them by symbol name, for easy checking.
  *)
+(* GS. I guess this is no longer restricted to strings - it could be any
+   value.
+ *)
+(* GS:
+   NoneString                    corresponds to NullExp in the AST. Never
+                                 programmatically returned
+   IntString                     = Ast.IntExp
+   FloatString                   = Ast.StringExp
+   WhiteString                   = Ast.WhiteString (constant parsing as ws)
+   ConstString                   = Ast.String{Op|Id|Int|Float|Other|Keyword}String
+   FunString                     an anonymous function ("v => ..." arguments)
+   ApplyString                   variable (empty arg list) or function calls.
+                                 Always eager evaluation.
+   SuperApplyString
+   MethodApplyString
+   SequenceString                value sequence (list of words etc.)
+   ArrayString                   the body of a multiline variable[] definition
+   ArrayOfString                 the value of a singleline variable[] def, and
+                                 the value still needs to be split up
+   QuoteString                   = range quoted with $""
+   QuoteStringString             = range quoted with double quotes
+   ObjectString
+   BodyString                    marks an arg syntactically given as body
+                                 (except array args -> ArrayString)
+   ExpString                     include a general expression (type exp)
+   CasesString
+   KeyApplyString
+   VarString                     Unclear (variables are represented with
+                                 ApplyString(...,"varname",[])
+   ThisString                    $(this)
+   LazyString                    result of the transformation for lazy ranges.
+                                 Lazily evaluated parts are wrapped by
+                                 LazyString.
+   LetVarString                  used for internally generated variables
+                                 (for transformations)
+ *)
+ (* GS. so, QuoteString and QuoteStringString both indicate that the inner
+    expressions are concatenated as plain strings (no sequence structure).
+    The difference is that QuoteString discards the quotes while the
+    quotes of QuoteStringString are kept, e.g.
+      println($"hello world")     => prints hello world
+      println("hello world")      => prints "hello world"
+    An evaluated QuoteString returns ValData (if it is plain) or 
+    ValQuote (if it contains inner structure), whereas QuoteStringString returns
+    ValQuoteString.
+  *)
 type string_exp =
    NoneString        of Lm_location.t
  | IntString         of Lm_location.t * int

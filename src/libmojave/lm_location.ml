@@ -13,6 +13,8 @@
 type t = Lm_symbol.t * int * int * int * int
 (* %%MAGICEND%% *)
 
+(* GS TODO. type t = Lexing.position * Lexing.position *)
+
 (*
  * Comparison.
  *)

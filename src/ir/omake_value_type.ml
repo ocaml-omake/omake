@@ -19,6 +19,13 @@ type prim_channel = Lm_int_handle_table.handle
  * Possible values.
  * Someday we may want to include rules and functions.
  * For the function, the obj is the static scope.
+ *
+ * GS:
+ * ValQuote          This is just a concatenation of the inner stuff as string.
+ *                   Unlike ValSequence this doesn't generate a list of words.
+ * ValQuoteString    Concatenates the inner stuff and puts the quote char
+ *                   around it. Keeping that info seems reasonable because
+ *                   you can auto-escape the inner data.
  *)
 type t =
   | ValNone

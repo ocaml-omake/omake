@@ -138,6 +138,23 @@ let scan_body_flag code (e : Omake_ast.exp) =
   | _ ->
     code
 
+(* GS. The lexer/parser primarily works line by line. Many constructs have
+ * forms where the arguments are given by "bodies" starting on the next line
+ * (and indented). E.g.
+ * if <cond>
+ *    <body>
+ * else
+ *    <body>
+ * The parser returns first a version of "if" (ApplyExp(...,"if")) without args
+ * but also returns a marker that a body will come.
+ * The function calling the parser (which is funnily in the lexer module
+ * Omake_ast_lex) checks for such markers, and parses the body separately,
+ * and calls one of the following functions to enter the body into the
+ * originally returned expression as arguments. These specially handled
+ * bodies are marked in the expression with the special BodyExp and ArrayExp
+ * nodes (the latter for array bodies).
+ *)
+
 let update_body_args loc (code : Omake_ast.body_flag) body args =
   let body : Omake_ast.exp=
     match code with
@@ -294,6 +311,11 @@ let can_continue (e : Omake_ast.exp) =
 (************************************************************************
  * Sequence flattening.
 *)
+(* GS = collapse nested Sequence expressions into a single Sequence *)
+(* GS TODO: Define a generic mapper for AST expressions, and both sequence
+ * and string flattening with the help of this mapper.
+ *)
+
 let rec flatten_exp (e : Omake_ast.exp) =
   match e with
   | NullExp _
@@ -415,6 +437,9 @@ let flatten_sequence_prog = flatten_body
 (************************************************************************
  * String flattening.
 *)
+(* = collapse nested Sequence expressions into a single StringOtherExp.
+   Also give up on the special nodes for parsed strings (except StringQhiteExp)
+ *)
 let rec string_exp (e : Omake_ast.exp) =
   match e with
   | NullExp _

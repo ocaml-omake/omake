@@ -1,6 +1,10 @@
 (*
  * Secondary lexer for expressions.
  *
+ * GS: This is called after the first lexer/parser (Omake_ast_lex) and before
+ * the translation of the AST to the IR (Omake_ir_ast). It is a transformation
+ * of the AST.
+ * This implements "program mode", an undocumented feature.
  *)
 
 open Lm_symbol
@@ -167,6 +171,9 @@ let lex_main lexinfo _lexbuf =
  *)
 let lexbuf = Lexing.from_string "dummy lexbuf"
 
+(* GS: tokens: this is actually a list of AST nodes. These are back-translated
+   to tokens (lex_tok), and parsed with Omake_exp_parse.ast_exp.
+ *)
 let parse loc tokens =
    let lexinfo = create_lexinfo loc tokens in
       try Omake_exp_parse.ast_exp (lex_main lexinfo) lexbuf with
