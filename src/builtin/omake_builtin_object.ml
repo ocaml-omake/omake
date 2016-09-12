@@ -98,22 +98,25 @@ let object_length venv pos loc args =
 let object_map venv pos loc args _ =
   let pos = string_pos "map" pos in
   let pos = string_pos "map" pos in
-  let f, obj =
+  let f, env, obj =
     match args with
       [arg; fun_val] ->
       let obj = Omake_eval.eval_object venv pos arg in
-      let _, f = Omake_eval.eval_fun venv pos fun_val in
-      f, obj
+      let fun_val = Omake_eval.eval_value venv pos fun_val in
+      let _, f = Omake_eval.eval_fun ~caller_env:true venv pos fun_val in
+      let env = Omake_eval.definition_env_of_fun venv pos fun_val in
+      f, env, obj
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
   in
 
   (* If the body exports the environment, preserve it across calls *)
+  let init_venv = Omake_env.venv_with_env venv env in
   let venv, obj =
     Omake_env.venv_object_fold_internal (fun (venv, obj) v x ->
       let venv, x = f venv pos loc [ValString (Lm_symbol.to_string v); x] [] in
       let obj = Omake_env.venv_add_field_internal obj v x in
-      venv, obj) (venv, obj) obj
+      venv, obj) (init_venv, obj) obj
   in
   venv, Omake_value_type.ValObject obj
 
@@ -229,23 +232,26 @@ let map_remove venv pos loc args =
  *)
 let map_map venv pos loc args kargs =
   let pos = string_pos "map-map" pos in
-  let f, obj, map =
+  let f, env, obj, map =
     match args, kargs with
       [arg; fun_val], [] ->
       let obj = Omake_eval.eval_object venv pos arg in
       let map = map_of_object venv pos obj in
-      let _, f = Omake_eval.eval_fun venv pos fun_val in
-      f, obj, map
+      let fun_val = Omake_eval.eval_value venv pos fun_val in
+      let _, f = Omake_eval.eval_fun ~caller_env:true venv pos fun_val in
+      let env = Omake_eval.definition_env_of_fun venv pos fun_val in
+      f, env, obj, map
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
   in
 
   (* If the body exports the environment, preserve it across calls *)
+  let init_venv = Omake_env.venv_with_env venv env in
   let venv, map =
     Omake_env.venv_map_fold (fun (venv, map) v x ->
       let venv, x = f venv pos loc [v; x] [] in
       let map = Omake_env.venv_map_add map pos v x in
-      venv, map) (venv, map) map
+      venv, map) (init_venv, map) map
   in
   venv, wrap_map obj map
 
@@ -785,21 +791,23 @@ let sequence_rev venv pos loc args =
  *)
 let foreach_fun venv pos loc args kargs =
   let pos = string_pos "foreach" pos in
-  let f, args =
+  let f, env, args =
     match args, kargs with
-      [fun_val; arg], [] ->
-      let args = Omake_eval.values_of_value venv pos arg in
-      let _, f = Omake_eval.eval_fun venv pos fun_val in
-      f, args
-    | _ ->
-      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-  in
+      | [fun_val; arg], [] ->
+          let args = Omake_eval.values_of_value venv pos arg in
+          let fun_val = Omake_eval.eval_value venv pos fun_val in
+          let _, f = Omake_eval.eval_fun ~caller_env:true venv pos fun_val in
+          let env = Omake_eval.definition_env_of_fun venv pos fun_val in
+          f, env, args
+      | _ ->
+          raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args))) in
 
   (* If the body exports the environment, preserve it across calls *)
+  let init_venv = Omake_env.venv_with_env venv env in
   let venv, values =
     List.fold_left (fun (venv, values) v ->
       let venv, x = f venv pos loc [v] [] in
-      venv, x :: values) (venv, []) args
+      venv, x :: values) (init_venv, []) args
   in
   venv, Omake_value_type.ValArray (List.rev values)
 

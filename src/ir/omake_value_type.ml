@@ -53,7 +53,7 @@ type t =
 
   (* Raw expressions *)
   | ValStringExp   of env * Omake_ir.string_exp
-  | ValBody        of keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
+  | ValBody        of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
   | ValCases       of (Omake_ir.var * t * Omake_ir.exp list * Omake_ir.export) list
 
   (* Functions *)

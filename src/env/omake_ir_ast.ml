@@ -381,7 +381,7 @@ let build_bool_exp loc b =
  * Simple variables.
  *)
 let var_scope_of_var_info = function
-  |Omake_ir.VarPrivate _ ->
+  | Omake_ir.VarPrivate _ ->
     Omake_ir.VarScopePrivate
   | VarThis _ ->
     VarScopeThis
