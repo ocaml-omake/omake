@@ -1,0 +1,24 @@
+# private variables
+
+list-add(vals) =
+    private.p[] =
+    foreach(x => ..., $(vals))
+        p += $(add $(x), 1)
+        export p
+    value $(p)
+
+v1 = 45 89 322
+p1 = $(list-add $(v1))
+
+if $(equal $(length $(p1)), 3)
+    println($"length of p1 is 3")
+else
+    eprintln($"Error: length of p1 is not 3")
+    exit 1
+
+if $(equal $(nth 2, $(p1)), 323)
+    println($"last element of p1 is 323")
+else
+    eprintln($"Error: last element of p1 is not 323")
+    exit 1
+
