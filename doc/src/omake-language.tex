@@ -110,6 +110,13 @@ double-quotations is arbitrary.  The outermost quotations are not included in th
         The # character is not special"""
 \end{verbatim}
 
+Note that it is not possible to denote the empty string with this notation.
+As a workaround, call the \verb+string+ function without parameters, as in
+
+\begin{verbatim}
+    EMPTY = $(string)
+\end{verbatim}
+
 \section{Function definitions}
 \label{section:functions}
 \index{functions}
@@ -183,6 +190,30 @@ prints the string ``She says: Hello world''.
 
     Printer(She)
 \end{verbatim}
+
+\subsection{Passing parameterized bodies}
+\label{section:param-bodies}
+
+It is sometimes useful to pass an argument that can be evaluated. For example,
+the built-in function \verb+foreach+ takes an array of values, and runs some
+code for every array element:
+
+\begin{verbatim}
+    a[] =
+        p
+        q
+    foreach(x => ..., $(a))
+        println($"Next element: $(x)")
+\end{verbatim}
+
+Note that you really have to write three dots - this is {\it not} an omission.
+The three dots reference the indented subsection immediately following.
+
+This feature is very similar to passing anonymous functions. However, there
+are subtle differences, in particular with respect to scoping. The
+parameterized body behaves much like \verb+section+, and exports of
+private (statically-scoped) variables to the enclosing scope are possible.
+
 
 \subsection{Keyword arguments}
 \label{section:keyword-arguments}

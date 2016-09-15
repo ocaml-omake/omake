@@ -26,6 +26,12 @@ simultaneously.
 The \verb+private.+ qualifier is used to define variables that are private to the current file/scope.
 The values are not accessible outside the scope.  Private variables are statically (lexically) scoped.
 
+\begin{bf}
+Unforunately, private variables have always been incorrectly implemented
+in every omake version. Read the section below on the issues. In version
+0.10 the problems still exist, and will probably be tackled in 0.11.
+\end{bf}
+
 \begin{verbatim}
     Obj. =
        private.X = 1
@@ -86,6 +92,34 @@ Private variables have two additional properties.
        # FLAG is now false
   \end{verbatim}
 \end{enumerate}
+
+As mentioned above, there are issues with private variables. In particular,
+when a function closure is built, the current values are remembered with the
+closure, and any future updates are not seen. For example:
+
+\begin{verbatim}
+    private.X = foo
+    f() =
+        println($"The value of X is $(X)")
+    f()
+    X = bar
+    f()
+\end{verbatim}
+
+This prints \verb+foo+ twice! As this is probably not what you want, the
+recommendation is: 
+
+\begin{itemize}
+\item Use private variables only within functions, and do not expect that
+  updates work across function boundaries.
+\item Do not export private variables at the end of a function.
+\item If you want to pass an anonymous function around, and want to
+  export some private variable, consider to use
+  the \verb+=>+ notation (see Section~\ref{section:param-bodies}).
+\end{itemize}
+
+These issues will likely be fixed soon.
+
 
 \section{this.}
 \index{this.}

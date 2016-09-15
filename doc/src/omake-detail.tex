@@ -7,14 +7,15 @@
 
 \Prog{omake} provides a full programming-language including many
 system and IO functions.  The language is object-oriented -- everything is
-an object, including the base values like numbers and strings.  However,
-the \Prog{omake} language differs from other scripting languages in
-three main respects.
+an object, including the base values like numbers and strings.  The \Prog{omake}
+language can be characterized as follows:
 
 \begin{itemize}
-\item Scoping is dynamic.
-\item Apart from IO, the language is entirely functional -- there is no
-  assignment operator in the language.
+\item Scoping is by default dynamic.
+\item The language is mostly functional, and side effects on variables are
+  normally passed on
+  from scope to scope via an explicit \verb+export+ directive, instead of
+  directly mutating variables
 \item Evaluation is normally eager -- that is, expressions are evaluated as soon
   as they are encountered.
 \end{itemize}
@@ -124,37 +125,27 @@ definition in scope in the source text.
 
 \section{Functional evaluation}
 
-Apart from I/O, \Prog{omake} programs are entirely functional.  This has two parts:
-
-\begin{itemize}
-\item There is no assignment operator.
-\item Functions are values, and may be passed as arguments, and returned from
-      functions just like any other value.
-\end{itemize}
-
-The second item is straightforward.  For example, the following program defines
-an increment function by returning a function value.
+This has two aspects: First of all, functions are values like other values:
 
 \begin{verbatim}
-   incby(n) =
-      g(i) =
-         return $(add $(i), $(n))
-      return $(g)
-
-   f = $(incby 5)
-
-   value $(f 3)
-   - : 8 : Int
+    p(f, x) =
+        y = $(f $(x), 1)
+        println($"The value is $(y)")
+    p($(add), 5)       # prints 6
+    p($(sub), 5)       # prints 4
 \end{verbatim}
 
-The first item may be the most confusing initially.  Without assignment, how is
-it possible for a subproject to modify the global behavior of the project?  In fact,
-the omission is intentional.  Build scripts are much easier to write when there
-is a guarantee that subprojects do not interfere with one another.
+The other aspect is that variables (and thus the whole environment) can exist
+in several versions: The assignment to a variable creates first a second
+version in the current block, and is not directly applied to the orignal
+variable, unless it is finally ``exported''.
 
-However, there are times when a subproject needs to propagate
-information back to its parent object, or when an inner scope needs to
-propagate information back to the outer scope.
+(Note that in previous versions of the manual you could read here that there
+``is no assignment operator''. On the surface this is of course not true,
+as we provide such an operator. This comment referred to the implementation,
+which represents environments as functional maps from names to values,
+and reduces assignment to a functional update of the current environment,
+yielding to a new version.)
 
 \section{Exporting the environment}
 \label{section:export}\index{export}
