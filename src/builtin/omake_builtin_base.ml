@@ -135,17 +135,44 @@ let not_fun venv pos loc args =
  *       e2 : String
  * \end{verbatim}
  *
- * The \verb+equal+ function tests for equality of two values.
+ * The \verb+equal+ function tests for equality of two values. This is
+ * defined for anything that can be expanded to a string and for arrays.
  *
  * For example \verb+$(equal a, b)+ expands to \verb+false+, and \verb+$(equal hello world, hello world)+ expands to \verb+true+.
  * \end{doc}
  *)
+
+let rec is_equal venv pos v1 v2 =
+  let open Omake_value_type in
+  match v1, v2 with
+    | ValNone, ValNone ->
+        true
+    | (ValSequence _ | ValQuote _ | ValQuoteString _ | ValInt _ |
+       ValFloat _ | ValData _ | ValWhite _ | ValString _ | ValDir _ |
+       ValNode _),
+      (ValSequence _ | ValQuote _ | ValQuoteString _ | ValInt _ |
+       ValFloat _ | ValData _ | ValWhite _ | ValString _ | ValDir _ |
+       ValNode _) ->
+        (* this is string equality *)
+        Omake_eval.string_of_value venv pos v1 = Omake_eval.string_of_value venv pos v2
+    | ValArray _, _
+    | _, ValArray _ ->
+        (* the arrays need to be flattened first *)
+        let a1 = Omake_eval.values_of_value venv pos v1 in
+        let a2 = Omake_eval.values_of_value venv pos v2 in
+        List.length a1 = List.length a2 &&
+          List.for_all2 (is_equal venv pos) a1 a2
+    | _ ->
+        false
+
 let equal venv pos loc args =
    let _pos = string_pos "equal" pos in
       match args with
-         [s1; s2] ->
-            Omake_builtin_util.val_of_bool (Omake_eval.string_of_value venv pos s1 = Omake_eval.string_of_value venv pos s2)
-       | _ ->
+        | [v1; v2] ->
+            let v1 = Omake_eval.eval_value venv pos v1 in
+            let v2 = Omake_eval.eval_value venv pos v2 in
+            Omake_builtin_util.val_of_bool (is_equal venv pos v1 v2)
+        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
