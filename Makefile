@@ -28,4 +28,5 @@ doc:
 # omake version is taken from the version.txt file!
 
 package:
+	OMAKELIB=`pwd`/lib ./src/main/omake clean-package
 	OMAKELIB=`pwd`/lib ./src/main/omake package

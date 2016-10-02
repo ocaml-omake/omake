@@ -432,6 +432,11 @@ packages/$(BASENAME).tar.gz: packages/$(BASENAME)
 	rm -f $(BASENAME).tar.gz
         tar czf $(BASENAME).tar.gz $(BASENAME)
 
+.PHONY: clean-package
+    rm -rf packages/$(BASENAME)
+    rm -f packages/$(BASENAME).tar.gz
+
+
 rpm: version.txt make_rpm make_checkout
     ./make_rpm
 
