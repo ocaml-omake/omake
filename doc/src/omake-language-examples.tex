@@ -11,10 +11,40 @@ system are the topic of the Chapter~\ref{chapter:build-examples}).
 For most of these examples, we'll use the \verb+osh+ command interpreter.  For simplicity, the
 values printed by \verb+osh+ have been abbreviated.
 
-\section{Strings and arrays}
+\section{Strings, arrays, and sequences}
 
-The basic \OMake{} values are strings, sequences, and arrays of values.  Sequences are like arrays of
-values separated by whitespace; the sequences are split on demand by functions that expect arrays.
+The basic \OMake{} values are strings, sequences, and arrays of values:
+
+\begin{itemize}
+\item A string is immutable, and consists of bytes.
+\item An array is an immutable list of values that is automatically flattened, i.e.
+  there is no distinction between an array of arrays and a simple array.
+\item A sequence can either behave as a string, and the member values are
+  concatenated to a single string. Or, if the function expects an array,
+  the sequence is considered as an array, and if needed, even split into
+  elements.
+\end{itemize}
+
+How to define a string:
+
+\begin{verbatim}
+   osh> X = $"1 2"
+   - : <data "1 2"> : String
+\end{verbatim}
+
+Note that special characters trigger some pre-parsing, as in:
+
+\begin{verbatim}
+   osh> X = "1 2"
+   - : <string "
+          <data "1 2"> : String">
+          : String
+\end{verbatim}
+
+Despite the complex printing, the value of \verb+X+ is still \verb+"1 2"+
+(including double quotes). The double quotes as such do not have a meaning,
+but they still cause that the space character is not considered as a separator
+for the elements of a sequence, as in:
 
 \begin{verbatim}
    osh> X = 1 2
@@ -22,6 +52,9 @@ values separated by whitespace; the sequences are split on demand by functions t
    osh> addsuffix(.c, $X)
    - : <array 1.c 2.c> : Array
 \end{verbatim}
+
+As \verb+addsuffix+ operates on arrays, the sequence is split into elements
+before the suffices are added. The return value is an array.
 
 Sometimes you want to define an array explicitly.  For this, use the \verb+[]+ brackets after the
 variable name, and list each array entry on a single indented line.
@@ -48,6 +81,26 @@ useful, especially for filenames that contain whitespace.
     "fee"  "fi"  "foo"  "fum"  "Hello world"
 \end{verbatim}     
 
+As mentioned, nested arrays are automatically flattened:
+
+\begin{verbatim}
+    osh> a[] =
+           1
+           2
+    osh> b[] =
+           $(a)
+           3
+           $(a)
+    - : <array
+          <array "1" : Sequence "2" : Sequence> 
+          "3" : Sequence
+          <array "1" : Sequence "2" : Sequence> >
+    osh> println($(length $(b)))
+    5
+\end{verbatim}     
+
+The same holds for sequences when they are accessed as arrays.
+
 \section{Quoted strings}
 \label{section:quoted-strings}
 \index{quoted strings}
@@ -69,6 +122,26 @@ string itself.
     osh> C = 'Hello \'world\''
     - : "'Hello 'world''" : String
 \end{verbatim}
+
+The rationale for keeping the quotes as part of the string is that this
+makes it very convenient to construct commands that are executed by the
+Unix shell:
+
+\begin{verbatim}
+    osh> F = my thesis.pdf
+    osh> G = picture of me.png
+    osh> H = "$(F)" "$(G)"
+    osh> ls $(H)
+\end{verbatim}
+
+This constructs the command
+
+\begin{verbatim}
+ls "my thesis.pdf" "picture of me.png"
+\end{verbatim}
+
+which is then executed by the shell. The quoting remains under the control of
+the programmer (i.e. whether and how to quote).
 
 A second kind of quote is introduced with the \verb+$'+ and \verb+$"+
 quotes.  The number of opening and closing quote symbols is arbitrary.
@@ -94,6 +167,18 @@ These quotations have several properties:
     - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
 \end{verbatim}
 
+You can define an empty string as
+
+\begin{verbatim}
+    X =
+\end{verbatim}
+
+but in expression context it is often more convenient to get the empty
+string via the function call \verb+$(string)+.
+
+\section{Merging}
+\label{section:merging}
+
 Strings and sequences both have the property that they can be merged
 with adjacent non-whitespace text.
 
@@ -109,7 +194,12 @@ with adjacent non-whitespace text.
 \end{verbatim}
 
 Arrays are different.  The elements of an array are never merged with
-adjacent text of any kind.  Arrays are defined by adding square
+adjacent text of any kind (but are flattened into the enclosing array, if any).
+
+\section{Arrays}
+\label{section:arrays}
+
+Arrays are defined by adding square
 brackets \verb+[]+ after a variable name and defining the elements
 with an indented body.  The elements may include whitespace.
 
