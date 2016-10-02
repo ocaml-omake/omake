@@ -111,14 +111,26 @@ val eval_defined_field : Omake_env.t -> Omake_value_type.pos ->
   Lm_location.t -> Omake_ir.var_info -> Omake_ir.var list -> bool
 
 (*
- * Evaluate a Omake_value_type.t that should be a function.
+ * Evaluate a Omake_value_type.t that should be a function. If [caller_env]
+ * is set, extract the static evironment from the first arg so far the value is
+ * a body. Otherwise (the default), the static environment is taken from the
+ * definition site of the function.
+ *
  * Be careful with this: don't create a ValPrim using
  * this function, since marshaling will fail.
  *)
 val eval_fun : 
+  ?caller_env:bool ->
   Omake_env.t -> Omake_value_type.pos -> Omake_value_type.t ->
   bool * Omake_env.prim_fun_data
 
+(* Companion for [eval_fun]: Get the static environment from the definition
+ * of the function (or, in the case of primitives, from the call site).
+ *)
+val definition_env_of_fun :
+  Omake_env.t -> Omake_value_type.pos -> Omake_value_type.t ->
+  Omake_value_type.env
+           
 (*
  * Also, if the Omake_value_type.t is an array of 1 element,
  * return the element.

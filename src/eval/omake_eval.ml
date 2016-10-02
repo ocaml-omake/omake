@@ -1109,7 +1109,7 @@ and eval_body_value venv pos v : Omake_value_type.t =
     ValSequence (List.map (eval_body_value venv pos) sl)
   | ValArray sl ->
     ValArray (List.map (eval_body_value venv pos) sl)
-  | ValBody (body, _) ->
+  | ValBody (_, [], [], body, _) ->
     snd (eval_sequence_exp venv pos body)
   | ValNone
   | ValInt _
@@ -1134,6 +1134,7 @@ and eval_body_value venv pos v : Omake_value_type.t =
   | ValVar _
   | ValOther _ as result ->
     result
+  | ValBody _    (* it is an error when keyword/params <> [] *)
   | ValStringExp _
   | ValMaybeApply _
   | ValDelayed _ ->
@@ -1145,7 +1146,7 @@ and eval_body_exp venv pos x v : (Omake_env.t * Omake_value_type.t) =
     venv, ValSequence (List.map (eval_body_value venv pos) sl)
   | ValArray sl ->
     venv, ValArray (List.map (eval_body_value venv pos) sl)
-  | ValBody (body, export) ->
+  | ValBody (_, [], [], body, export) ->
     eval_sequence_export venv pos x body export
   | ValNone
   | ValInt _
@@ -1170,6 +1171,7 @@ and eval_body_exp venv pos x v : (Omake_env.t * Omake_value_type.t) =
   | ValVar _
   | ValOther _ as result ->
     venv, result
+  | ValBody _    (* it is an error when keyword/params <> [] *)
   | ValStringExp _
   | ValMaybeApply _
   | ValDelayed _ ->
@@ -1231,6 +1233,9 @@ and eval_apply venv pos loc v args kargs =
     snd (Omake_env.venv_apply_prim_fun f venv pos loc args kargs)
   | ValPrimCurry (_, _, f, args1, kargs1) ->
     snd (Omake_env.venv_apply_prim_fun f venv pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs))
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_apply venv pos loc v args kargs
   | v ->
     if args = [] && kargs = [] then
       v
@@ -1272,6 +1277,9 @@ and eval_apply_string_exp venv venv_obj pos loc v args kargs =
     let args = List.map (eval_prim_arg_exp be_eager venv pos) args in
     let kargs = List.map (fun (v, s) -> v, eval_prim_arg_exp true venv pos s) kargs in
     snd (Omake_env.venv_apply_prim_fun f venv_obj pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs))
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_apply_string_exp venv venv_obj pos loc v args kargs
   | v ->
     if args = [] && kargs = [] then
       v
@@ -1289,7 +1297,7 @@ and eval_apply_string_exp venv venv_obj pos loc v args kargs =
 (*
  * Get a function from a value.
  *)
-and eval_fun venv pos v =
+and eval_fun ?(caller_env=false) venv pos v =
   match eval_value venv pos v with
     ValFun (env, keywords, params, body, export) ->
     let f venv pos loc args kargs =
@@ -1314,17 +1322,33 @@ and eval_fun venv pos v =
       Omake_env.venv_apply_prim_fun f venv pos loc (List.rev_append args1 args2) (List.rev_append kargs1 kargs2)
     in
     be_eager, f
-  | ValBody (body, export) ->
+  | ValBody (defenv, keywords, params, body, export) ->
     let f venv pos loc args kargs =
-      if args <> [] || kargs <> [] then
-        raise (Omake_value_type.OmakeException (loc_pos loc pos, 
-            ArityMismatch (ArityExact 0, List.length args)));
-      eval_sequence_export_exp venv pos body export
+      let env =  (* diff to ValFun! *)
+        if caller_env then
+          Omake_env.venv_get_env venv
+        else
+          defenv in
+      let venv_new = Omake_env.venv_add_args venv pos loc env params args keywords kargs in
+      let venv_new, result = eval_sequence_exp venv_new pos body in
+      let venv = Omake_env.add_exports venv venv_new pos export in
+      venv, result
     in
     true, f
   | _ ->
     raise (Omake_value_type.OmakeException (pos, StringError "not a function"))
 
+and definition_env_of_fun venv pos v =
+  match eval_value venv pos v with
+    | ValFun (env, _, _, _, _) -> env
+    | ValFunCurry (env, _, _, _, _, _, _) -> env
+    | ValBody (env, _, _, _, _) -> env
+    | ValPrim _
+    | ValPrimCurry _ -> Omake_env.venv_get_env venv
+    | _ ->
+        raise (Omake_value_type.OmakeException (pos, StringError "not a function"))
+  
+          
 (*
  * Get an object from a variable.
  *)
@@ -1372,6 +1396,9 @@ and eval_object_exn venv pos x =
     create_object venv x Omake_var.file_object_var
   | ValDir _ ->
     create_object venv x Omake_var.dir_object_var
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let x = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_object_exn venv pos x
   | ValBody _ ->
     create_object venv x Omake_var.body_object_var
   | ValChannel (InChannel, _) ->
@@ -1618,7 +1645,13 @@ and eval_string_exp venv pos s =
   | FunString (_, opt_params, params, body, export) ->
     let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
     let env = Omake_env.venv_get_env venv in
-    ValFun (env, opt_params, params, body, export)
+    (* We use now ValBody with parameters instead of ValFun for translating
+       "=>..." blocks. ValFun has the disadvantage that it resets the
+       static (private) variables every time the function is invoked. This
+       doesn't play nice with foreach and potentially other imperative loop
+       constructs.
+     *)
+    ValBody (env, opt_params, params, body, export)
   | ApplyString (loc, v, [], []) ->
     eval_var venv pos loc (Omake_env.venv_find_var venv pos loc v)
   | ApplyString (loc, v, args, kargs) ->
@@ -1633,7 +1666,8 @@ and eval_string_exp venv pos s =
     ValSequence (List.map (eval_string_exp venv pos) sl)
   | ObjectString (_, e, export)
   | BodyString (_, e, export) ->
-    ValBody (e, export)
+    let env = Omake_env.venv_get_env venv in
+    ValBody (env, [], [], e, export)
   | ArrayString (_, el) ->
     ValArray (List.map (eval_string_exp venv pos) el)
   | ArrayOfString (_, e) ->
@@ -1732,6 +1766,9 @@ and eval_apply_export venv pos loc v args kargs =
     Omake_env.venv_apply_prim_fun f venv pos loc args kargs
   | ValPrimCurry (_, _, f, args1, kargs1) ->
     Omake_env.venv_apply_prim_fun f venv pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs)
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_apply_export venv pos loc v args kargs
   | v ->
     if args = [] && kargs = [] then
       venv, v
@@ -1783,6 +1820,9 @@ and eval_partial_apply venv pos loc v args kargs :  (Omake_env.t * Omake_value_t
       eval_partial_apply venv pos loc v rest_args []
     | PartialArity (arity, args) ->
       venv, ValPrimCurry (arity, eager, f, args, List.rev_append kargs kargs1))
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_partial_apply venv pos loc v args kargs
   | v ->
     if args = [] && kargs = [] then
       venv, v
@@ -1822,6 +1862,9 @@ and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
     let args = List.map (eval_prim_arg_exp be_eager venv pos) args in
     let kargs = List.map (fun (v, s) -> v, eval_prim_arg_exp be_eager venv pos s) kargs in
     Omake_env.venv_apply_prim_fun f venv_new pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs)
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_apply_string_export_exp venv venv_new pos loc v args kargs
   | v ->
     if args = [] && kargs = [] then
       venv, v
@@ -1866,6 +1909,9 @@ and eval_apply_method_export_exp venv venv_obj pos loc path v args kargs =
     let venv_new, result = Omake_env.venv_apply_prim_fun f venv_obj pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs) in
     let venv = Omake_env.hoist_this venv venv_new path in
     venv, result
+  | ValBody (env, keywords, params, body, exports) when keywords <> [] || params <> [] ->
+      let v = Omake_value_type.ValFun(env, keywords, params, body, exports) in
+      eval_apply_method_export_exp venv venv_obj pos loc path v args kargs
   | v ->
     if args = [] && kargs = [] then
       venv, v
@@ -1917,7 +1963,8 @@ and eval_string_export_exp venv pos ( s : Omake_ir.string_exp)
     venv, ValSequence (List.map (eval_string_exp venv pos) sl)
   | ObjectString (_, e, export)
   | BodyString (_, e, export) ->
-    venv, ValBody (e, export)
+    let env = Omake_env.venv_get_env venv in
+    venv, ValBody (env, [], [], e, export)
   | ArrayString (_, el) ->
     venv, ValArray (List.map (eval_string_exp venv pos) el)
   | ArrayOfString (_, e) ->

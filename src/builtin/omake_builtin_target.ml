@@ -163,7 +163,8 @@ let array_of_node_set nodes =
 
 let split_command _ (values1, lines1) command =
   let {Omake_env. command_values = values2;
-        command_body = lines2;
+       command_body = lines2;
+       command_env = venv;
         _
       } = command
   in
@@ -172,10 +173,11 @@ let split_command _ (values1, lines1) command =
     List.fold_left (fun lines line ->
       let v =
         match line with
-          Omake_value_type.CommandSection (_, _, e) ->
-          Omake_value_type.ValBody (e, ExportNone)
-        | CommandValue (_, exp, v) ->
-          ValStringExp(exp,v)
+          | Omake_value_type.CommandSection (_, _, e) ->
+              let env = Omake_env.venv_get_env venv in
+              Omake_value_type.ValBody (env, [], [], e, ExportNone)
+          | CommandValue (_, exp, v) ->
+              ValStringExp(exp,v)
       in
       v :: lines) lines1 lines2
   in

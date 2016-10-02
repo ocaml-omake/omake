@@ -1500,7 +1500,7 @@ let lex_search venv pos loc args _ =
 let lex_rule venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "lex-rule" pos in
   match args, kargs with
-    [_; action; _; pattern; _; ValBody (body, export)], [] ->
+    [_; action; _; pattern; _; ValBody (_, [], [], body, export)], [] ->
     let lexer = Omake_value.current_lexer venv pos in
     let action_name = Omake_value.string_of_value venv pos action in
     let action_sym = Lm_symbol.add action_name in
@@ -1828,7 +1828,7 @@ let parse_rule venv pos loc (args : Omake_value_type.t list) kargs =
   let pos = string_pos "parse-rule" pos in
   let action, head, rhs, options, body, export =
     match args, kargs with
-      [_; action; head; rhs; ValMap options; ValBody (body, export)], [] ->
+      [_; action; head; rhs; ValMap options; ValBody (_, [], [], body, export)], [] ->
       let action = Omake_value.string_of_value venv pos action in
       let head = Omake_value.string_of_value venv pos head in
       if head = "" then   (* Action name was omitted *)

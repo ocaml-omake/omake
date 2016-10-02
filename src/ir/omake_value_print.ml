@@ -111,9 +111,15 @@ let rec pp_print_value buf v =
     Format.fprintf buf "%a : File" Omake_node.pp_print_node node
   | ValStringExp (_, e) ->
     Format.fprintf buf "@[<hv 0>%a : Exp@]" Omake_ir_print.pp_print_string_exp e
-  | ValBody (el, export) ->
+  | ValBody (_, [], [], el, export) ->
     Format.fprintf buf "@[<v 0>%a%a@ : Body@]" 
-      Omake_ir_print.pp_print_exp_list el Omake_ir_print.pp_print_export_info export
+      Omake_ir_print.pp_print_exp_list el
+      Omake_ir_print.pp_print_export_info export
+  | ValBody (_, keywords, params, el, export) ->
+    Format.fprintf buf "@[<v 0>%a => %a%a@ : Body@]"
+      Omake_ir_print.pp_print_arity (fun_arity keywords params)
+      Omake_ir_print.pp_print_exp_list el
+      Omake_ir_print.pp_print_export_info export
   | ValObject env ->
     pp_print_env buf env
   | ValMap map ->

@@ -26,6 +26,11 @@ type prim_channel = Lm_int_handle_table.handle
  * ValQuoteString    Concatenates the inner stuff and puts the quote char
  *                   around it. Keeping that info seems reasonable because
  *                   you can auto-escape the inner data.
+ * ValBody/ValFun    These are now very similar - both can take parameters.
+ *                   The difference is that a ValFun sets the static env
+ *                   (i.e. private vars) to the scope of the time when the
+ *                   function was defined. ValBody doesn't do this, and hence
+ *                   the static env of the caller is used for the evaluation.
  *)
 type t =
   | ValNone
@@ -48,7 +53,7 @@ type t =
 
   (* Raw expressions *)
   | ValStringExp   of env * Omake_ir.string_exp
-  | ValBody        of Omake_ir.exp list * Omake_ir.export
+  | ValBody        of env * keyword_param_value list * Omake_ir.param list * Omake_ir.exp list * Omake_ir.export
   | ValCases       of (Omake_ir.var * t * Omake_ir.exp list * Omake_ir.export) list
 
   (* Functions *)
