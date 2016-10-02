@@ -1945,13 +1945,16 @@ let rm_aux unlink info filename =
  * Remove a directory or file recursively.
  *)
 let rec rm_rec info filename =
-   if is_dir filename then
-     begin
-       Array.iter (fun name -> rm_rec info (Filename.concat filename name))
-         ( Sys.readdir filename) ;
-       rm_aux Unix.rmdir info filename
-     end else
-     rm_aux Unix.unlink info filename
+  let rm_fun fn =
+    try
+      Unix.unlink fn
+    with
+      | Unix.Unix_error(Unix.EISDIR,_,_) ->
+          Array.iter
+            (fun name -> rm_rec info (Filename.concat fn name))
+            (Sys.readdir fn);
+          Unix.rmdir fn in
+  rm_aux rm_fun info filename
 
 (*
  * Main command.
@@ -1970,7 +1973,7 @@ let rm_command rm_fun venv pos loc args =
          Failure s ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, StringError s))
    in
-   let nodes = List.map (Omake_env.venv_intern venv PhonyProhibited) info.rm_files in
+   let nodes = List.rev_map (Omake_env.venv_intern venv PhonyProhibited) info.rm_files in
    let files = List.map Omake_node.Node.fullname nodes in
    let cache = Omake_env.venv_cache venv in
    let () =
