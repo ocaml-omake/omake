@@ -1,0 +1,11 @@
+- update version strings:
+
+   ./version.txt
+   ./doc/src/omake-doc.tex
+
+- rebuild
+  make clean
+  make
+  cd doc && omake clean && omake && omake distclean
+
+- check that docs have been rebuilt

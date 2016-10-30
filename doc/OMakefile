@@ -176,6 +176,7 @@ ALLOWED_HEVEA_VERSIONS[] =
     2.06
     2.25
     2.28
+    2.29
 
 public.HEVEA = hevea
 public.HACHA = hacha
@@ -217,7 +218,10 @@ if $(HEVEA_OK)
         omake-doc.html: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
-        $(HTML_FILES): omake-doc.html
+	index.html: ../src/index.html
+	    cp ../src/index.html .
+
+        $(HTML_FILES): omake-doc.html index.html
             $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
 
     .SUBDIRS: txt
@@ -247,11 +251,17 @@ if $(HEVEA_OK)
 
         LaTeXDocument(omake-doc, omake-doc)
 
+.DEFAULT: html tex txt info
+
 html: html/omake-doc.html $(HTML_FILES)
 tex: ps/omake-doc.ps ps/omake-doc.pdf
 txt: txt/omake-doc.txt
 info: $(INFO_FILES)
 
-clean:
+.PHONY: distclean
+distclean:
     rm -f {txt,html,info}/*.{hind,h{t,o,f,v,opt}ind,htoc,haux} *.omc
     rm -f ps/*.{aux,fls,log,out,{t,o,v,f,opt}ids,ind,toc,ilg,{,v}idx,opts} ps/omake-doc.tex tex/*.tex
+
+clean:
+    rm -f html/* info/* ps/* tex/* txt/*
