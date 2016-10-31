@@ -20,3 +20,7 @@
 - tag version!
 
 - scp packages/omake-<version>.tar.gz cityd@camlcity:
+
+- git tag omake-<version>
+  git push origin master --tags
+  
