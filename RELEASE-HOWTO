@@ -1,3 +1,5 @@
+- check that git is clean
+
 - update version strings:
 
    ./version.txt
@@ -9,3 +11,12 @@
   cd doc && omake clean && omake && omake distclean
 
 - check that docs have been rebuilt
+
+- (omake clean-package)
+  omake package
+
+- check packages/omake-<version>
+
+- tag version!
+
+- scp packages/omake-<version>.tar.gz cityd@camlcity:
