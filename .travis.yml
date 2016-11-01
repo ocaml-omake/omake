@@ -3,6 +3,7 @@ os:
   - linux
   - osx
 env:
+  - OCAML_VERSION=4.02 INSTALL_XQUARTZ=false
   - OCAML_VERSION=4.03 INSTALL_XQUARTZ=false
 sudo: required
 install:
