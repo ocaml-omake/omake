@@ -225,7 +225,8 @@ let run_bootstrap self vars =
   configure_bootstrap vars;
   let vars =
     if have_ocamlopt vars then
-      StrMap.add "PREFERRED" ".opt" vars
+      StrMap.add "PREFERRED" ".opt"
+        (StrMap.add "OCAMLSUFFIX" ".opt" vars)
     else
       vars in
   make self "boot" vars "Makefile.dep";
