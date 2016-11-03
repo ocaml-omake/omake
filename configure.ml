@@ -123,6 +123,7 @@ let () =
   with
     | Failure msg
     | Arg.Bad msg
+    | Arg.Help msg
     | Sys_error msg ->
         flush stdout;
         prerr_endline msg;
