@@ -12,11 +12,12 @@ system = null
 #
 # OCaml configuration
 #
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
+OCAMLSUFFIX =
+OCAMLC = ocamlc$(OCAMLSUFFIX)
+OCAMLOPT = ocamlopt$(OCAMLSUFFIX)
 OCAMLYACC = ocamlyacc
-OCAMLLEX = ocamllex.opt
-OCAMLDEP = ocamldep.opt
+OCAMLLEX = ocamllex$(OCAMLSUFFIX)
+OCAMLDEP = ocamldep$(OCAMLSUFFIX)
 
 #
 # C configuration
