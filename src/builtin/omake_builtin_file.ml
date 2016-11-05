@@ -20,6 +20,13 @@ let is_dir dir =
      Sys_error _ ->
          false
 
+let is_dir_no_symlink dir =
+  try
+    let st = Unix.lstat dir in
+    Unix.(st.st_kind = S_DIR)
+  with
+    | Unix.Unix_error _ -> false
+
 (*
  * Get the file from a string.
  *
@@ -1950,6 +1957,12 @@ let rec rm_rec info filename =
       Unix.unlink fn
     with
       | Unix.Unix_error(Unix.EISDIR,_,_) ->
+          Array.iter
+            (fun name -> rm_rec info (Filename.concat fn name))
+            (Sys.readdir fn);
+          Unix.rmdir fn
+      | Unix.Unix_error(Unix.EACCES,_,_) when is_dir_no_symlink fn ->
+          (* Windows *)
           Array.iter
             (fun name -> rm_rec info (Filename.concat fn name))
             (Sys.readdir fn);
