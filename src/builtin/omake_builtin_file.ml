@@ -1956,7 +1956,7 @@ let rec rm_rec info filename =
     try
       Unix.unlink fn
     with
-      | Unix.Unix_error(Unix.EISDIR,_,_) ->
+      | Unix.Unix_error((Unix.EISDIR | Unix.EPERM),_,_) ->
           Array.iter
             (fun name -> rm_rec info (Filename.concat fn name))
             (Sys.readdir fn);
