@@ -30,6 +30,7 @@
  * @end[license]
  */
 #include <memory.h>
+#include <string.h>
 #include <ctype.h>
 
 #include <caml/mlvalues.h>

@@ -82,16 +82,16 @@ static void search_pointer(char **pointers, char *name, unsigned bound, char *p,
     
 static void lm_heap_check_aux1(char *name)
 {
-    char *start, *ptr, *end;
+    /* char *start, *ptr, *end; */
     char *v;
     value p, *next;
     mlsize_t size;
     unsigned i, index, found;
 	 char *pointers[1 << 16];
 
-    start = caml_young_start;
-    ptr = caml_young_ptr;
-    end = caml_young_end;
+    /* start = caml_young_start; */
+    /* ptr = caml_young_ptr; */
+    /* end = caml_young_end; */
 
     fprintf(stderr, "AAA: %s: [0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx] (%ld/%ld/%ld bytes)\n",
             name,
@@ -167,15 +167,15 @@ static void lm_heap_check_aux1(char *name)
 
 static void lm_heap_check_aux2(char *name)
 {
-    char *start, *ptr, *end;
+    /* char *start, *ptr, *end; */
     char *v;
     header_t hd;
     mlsize_t size;
     unsigned i;
 
-    start = caml_young_start;
-    ptr = caml_young_ptr;
-    end = caml_young_end;
+    /* start = caml_young_start; */
+    /* ptr = caml_young_ptr; */
+    /* end = caml_young_end; */
 
     fprintf(stderr, "AAA: %s: [0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx] (%ld/%ld/%ld bytes)\n",
             name,

@@ -71,6 +71,46 @@ let with_command cmd parse =
           if name = "" then "" else name ^ ": " in
         raise (Sys_error(prefix ^ Unix.error_message code))
 
+let bytecomp_c_compiler_re = Str.regexp "^bytecomp_c_compiler: \\(.*\\)$"
+let ws_re = Str.regexp "[ \t]+"
+
+let ocaml_cc vars =
+  try
+    StrMap.find "OCAML_CC" vars
+  with Not_found ->
+    with_command
+      "ocamlc -config"
+      (fold_lines
+         (fun i line acc ->
+           if Str.string_match bytecomp_c_compiler_re line 0 then
+             let full = Str.matched_group 1 line in
+             let words = Str.split ws_re full in
+             List.hd words
+           else
+             acc
+         )
+         1
+         "cc"
+      )
+
+let ocaml_cflags vars =
+  try
+    StrMap.find "OCAML_CFLAGS" vars
+  with Not_found ->
+    with_command
+      "ocamlc -config"
+      (fold_lines
+         (fun i line acc ->
+           if Str.string_match bytecomp_c_compiler_re line 0 then
+             let full = Str.matched_group 1 line in
+             let words = Str.split ws_re full in
+             String.concat " " (List.tl words)
+           else
+             acc
+         )
+         1
+         ""
+      )
 
 let exec_command env prog args =
   try
@@ -199,15 +239,25 @@ let configure_bootstrap vars =
   safe_mkdir "boot";
   copy "src/Makefile" "boot/Makefile";
   touch "boot/Makefile.dep";
-  match get_system vars with
-    | "mingw"
-    | "mingw64" ->
-        copy "mk/osconfig_mingw.mk" "boot/osconfig.mk"
-    | "win32"
-    | "win64" ->
-        copy "mk/osconfig_msvc.mk" "boot/osconfig.mk"
-    | _ ->
-        copy "mk/osconfig_unix.mk" "boot/osconfig.mk"
+  ( match get_system vars with
+      | "mingw"
+        | "mingw64" ->
+          copy "mk/osconfig_mingw.mk" "boot/osconfig.mk"
+      | "win32"
+        | "win64" ->
+          copy "mk/osconfig_msvc.mk" "boot/osconfig.mk"
+      | _ ->
+          copy "mk/osconfig_unix.mk" "boot/osconfig.mk"
+  );
+  let ocaml_cc_val = ocaml_cc vars in
+  let ocaml_cflags_val = ocaml_cflags vars in
+  let f =
+    open_out_gen
+      [Open_wronly; Open_append; Open_binary] 0 "boot/osconfig.mk" in
+  fprintf f "\n\n# additions from build.ml:\n";
+  fprintf f "OCAML_CC = %s\n" ocaml_cc_val;
+  fprintf f "OCAML_CFLAGS = %s\n" ocaml_cflags_val;
+  close_out f
 
 let make self makedir vars target =
   let dir = Filename.dirname self in
