@@ -8,13 +8,15 @@ authors: [
 ]
 
 license: "GPL2"
-dev-repo: "https://github.com/gerdstolpmann/omake.git"
+dev-repo: "https://github.com/ocaml-omake/omake.git"
 homepage: "http://projects.camlcity.org/projects/omake.html"
-bug-reports: "https://github.com/gerdstolpmann/issues"
+bug-reports: "https://github.com/ocaml-omake/issues"
 
 build: [
-  [make "bootstrap" "PREFIX=%{prefix}%"]
-  [make "all" "PREFIX=%{prefix}%"]
+  ["./configure" "-prefix" "%{prefix}%"]
+  [make]
+  [make "install"]
 ]
 
 depends: ["ocamlfind"]
+available: [ ocaml-version >= "4.02.3" ]
