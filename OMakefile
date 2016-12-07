@@ -459,11 +459,10 @@ omake.spec: omake.spec.in
 ########################################################################
 # Documentation
 #
-.PHONY: txt info html tex doc
-
-doc: txt info html tex
-
 .SUBDIRS: doc
+
+.PHONY: doc
+doc: doc/txt doc/info doc/html doc/tex
 
 ########################################################################
 # Standard library

@@ -224,34 +224,35 @@ if $(HEVEA_OK)
         $(HTML_FILES): omake-doc.html index.html
             $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
 
-    .SUBDIRS: txt
-        omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
-            $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
+    if $(file-exists txt)
+        .SUBDIRS: txt
+            omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
+               $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
-    .SUBDIRS: info
-        $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
-            rm -f omake-doc.info*
-            $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
-            if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))
-                eprintln($"!!! Wrong number of info files!
-    Increase the NUM_INFOS variable in doc/OMakefile and make sure to add new info file(s) to svn")
-                exit 1
-            if $(not $(test -e $(INFO_BASE)-$(NUM_INFOS)))
-                eprintln($"!!! Wrong number of info files!
-    Decrease the NUM_INFOS variable in doc/OMakefile and make sure to remove old info file(s) from svn")
-                exit 1
+    if $(file-exists info)
+        .SUBDIRS: info
+            $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
+                rm -f omake-doc.info*
+                $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
+                if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))
+                    eprintln($"!!! Wrong number of info files!
+        Increase the NUM_INFOS variable in doc/OMakefile and make sure to add new info file(s) to svn")
+                    exit 1
+                if $(not $(test -e $(INFO_BASE)-$(NUM_INFOS)))
+                    eprintln($"!!! Wrong number of info files!
+        Decrease the NUM_INFOS variable in doc/OMakefile and make sure to remove old info file(s) from svn")
+                    exit 1
 
-    .SUBDIRS: ps
-        TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
+    if $(file-exists ps)
+       .SUBDIRS: ps
+           TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
 
-        omake-doc.tex: ../src/omake-doc.tex
-            ln-or-cp $< $@
+           omake-doc.tex: ../src/omake-doc.tex
+               ln-or-cp $< $@
 
-        TEXDEPS[] += $(TEX_FILES)
+           TEXDEPS[] += $(TEX_FILES)
 
-        LaTeXDocument(omake-doc, omake-doc)
-
-.DEFAULT: html tex txt info
+           LaTeXDocument(omake-doc, omake-doc)
 
 html: html/omake-doc.html $(HTML_FILES)
 tex: ps/omake-doc.ps ps/omake-doc.pdf
