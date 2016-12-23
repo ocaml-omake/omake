@@ -155,7 +155,7 @@ protected.toolchain-derive(cc, command, fallback) =
         DEFAULT_CXX = cl /nologo
         export
     else
-        DEFAULT_CXX = $(toolchain-derive $(DEFAULT_CC), g++, `$(toolchain-derive $(DEFAULT_CC), c++, $(if $(GXX_FOUND1), g++, c++)))
+        DEFAULT_CXX = $(toolchain-derive $(DEFAULT_CC), g++, $`(toolchain-derive $(DEFAULT_CC), c++, $(if $(GXX_FOUND1), g++, c++)))
         export
 
     DEFAULT_CXX_FOUND = $(CheckProg $(nth 0, $(DEFAULT_CXX)))
@@ -813,4 +813,3 @@ public.DynamicCXXLibraryInstall(tag, lib, name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
     return $(DynamicCLibraryInstall $(tag), $(lib), $(name), $(files))
-
