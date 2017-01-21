@@ -104,9 +104,18 @@ open configure/Configure
 # \varlabel{EXTENDED_DIGESTS}{EXTENDED\_DIGESTS} Whether to include more information into
 #   rule digests and make it more sensitive to structural changes at the cost
 #   of build speed (\verb+true+ or \verb+false+).
+# \varlabel{OCAML_CC}{OCAML\_CC} The C compiler used internally by OCaml
+# \varlabel{OCAML_CFLAGS}{OCAML\_CFLAGS} The C compiler flags used by OCaml
 # \end{doc}
 #
 public.USE_OCAMLFIND = false
+
+private.get_bytecomp_c_comp() =
+    private.config = $(concat $(unhexify 0a), $(shella ocamlc -config)))
+    private.configch = $(open-in-string $(config))
+    scan($(configch))
+    case $"bytecomp_c_compiler:"
+        return $(nth-tl 1, $*)
 
 .STATIC: :value: $(PATH)
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
@@ -140,6 +149,12 @@ public.USE_OCAMLFIND = false
     CMXS_ENABLED = false
     #
     EXTENDED_DIGESTS = false
+    #
+    # Figure out the params for the C compiler
+    #
+    private.bytecomp_c_comp = $(get_bytecomp_c_comp)
+    OCAML_CC = $(nth-hd 1, $(bytecomp_c_comp))
+    OCAML_CFLAGS = $(nth-tl 1, $(bytecomp_c_comp))
 
 public.OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
 public.OCAMLFINDFLAGS =

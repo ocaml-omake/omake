@@ -94,8 +94,10 @@
 /*
  * Name of the command completion callback.
  */
+#ifdef READLINE_ENABLED
 static char omake_filename_completion[] = "omake_filename_completion";
 static char omake_command_completion[]  = "omake_command_completion";
+#endif
 
 /************************************************************************
  * Completions.
@@ -115,6 +117,7 @@ typedef struct _completion_info {
 /*
  * Command completions use a callback.
  */
+#ifdef READLINE_ENABLED
 static char **readline_completion(char *omake_completion, const char *text)
 {
     CAMLparam0();
@@ -153,6 +156,7 @@ static char **readline_completion(char *omake_completion, const char *text)
     completions[i] = 0;
     CAMLreturnT(char **, completions);
 }
+#endif
 
 /************************************************************************
  * Readline simulation for Win32.
@@ -1349,8 +1353,10 @@ static void do_readline(ReadLine *readp, const char *promptp)
 /*
  * History file and length.
  */
+#ifdef READLINE_ENABLED
 static char readline_file[2048];
 static int readline_length;
+#endif
 
 static void do_readline_load_file(const char *filep)
 {

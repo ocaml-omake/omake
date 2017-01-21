@@ -30,6 +30,9 @@ EXTERNAL = ../libmojave-external
 
 # CGeneratedFiles($(CUTIL_FILES))
 
+CC = $(OCAML_CC)
+CFLAGS = $(OCAML_CFLAGS)
+
 open configure/snprintf
 open configure/posix_spawn
 open configure/fs_case_sensitive

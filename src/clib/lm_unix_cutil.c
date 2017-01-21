@@ -28,7 +28,6 @@ CAMLprim value
 caml_eff_string_compare(value s1, value s2)
 {
   mlsize_t len1, len2;
-  int res;
 
   if (s1 == s2) return Val_int(0);
   len1 = caml_string_length(s1);
@@ -336,6 +335,7 @@ static int flock_of_flock[] = {
 };
 #endif
 
+#if !defined(FLOCK_ENABLED) && defined(FCNTL_ENABLED)
 #if defined(F_RDLCK) && defined(F_WRLCK) && defined(F_UNLCK) && defined(F_SETLK) && defined(F_SETLKW) && defined(SEEK_SET)
 #define FCNTL_ENABLED
 static int fcntl_type_of_flock[] = {
@@ -354,7 +354,9 @@ static int fcntl_of_flock[] = {
     F_SETLK
 };
 #endif
+#endif
 
+#if !defined(FLOCK_ENABLED) && !defined(FCNTL_ENABLED) && defined(LOCKF_ENABLED)
 #if defined(F_ULOCK) && defined(F_LOCK) && defined(F_TLOCK)
 #define LOCKF_ENABLED
 static int lockf_of_flock[] = {
@@ -364,6 +366,7 @@ static int lockf_of_flock[] = {
     F_TLOCK,
     F_TLOCK
 };
+#endif
 #endif
 
 value lm_flock(value v_fd, value v_op)

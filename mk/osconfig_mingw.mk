@@ -22,8 +22,8 @@ OCAMLDEP = ocamldep$(OCAMLSUFFIX)
 #
 # C configuration
 #
-CC := $(shell sh -c "$(OCAMLC) -config | grep bytecomp_c_compiler | awk '{print $$2}'")
-CFLAGS = -I"$(STDLIB)" -I"$(STDLIB)/caml" 
+CC = $(OCAML_CC)
+CFLAGS = $(OCAML_CFLAGS) -I"$(STDLIB)" -I"$(STDLIB)/caml" 
 AR = ar cq
 AROUT =
 EXT_OBJ = .o
