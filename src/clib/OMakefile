@@ -31,7 +31,7 @@ EXTERNAL = ../libmojave-external
 # CGeneratedFiles($(CUTIL_FILES))
 
 CC = $(OCAML_CC)
-CFLAGS = $(OCAML_CFLAGS)
+CFLAGS += $(OCAML_CFLAGS) # append variables to propagate omake CFLAGS such as $(FAM_CFLAGS)
 
 open configure/snprintf
 open configure/posix_spawn
@@ -76,7 +76,7 @@ FILES[] =
 MakeStaticCLibrary(clib, $(FILES))
 
 clean:
-    $(CLEAN) 
+    $(CLEAN)
 
 #
 # Generate the Makefile
