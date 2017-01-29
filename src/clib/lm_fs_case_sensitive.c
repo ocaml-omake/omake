@@ -50,7 +50,7 @@
 #include <errno.h>
 
 typedef struct vol_caps_buf {
-    unsigned long size;
+    u_int32_t size;
     vol_capabilities_attr_t caps;
 } vol_caps_buf_t;
 
