@@ -23,8 +23,8 @@ public.PREFIX =
 
 PREFIX = $(dir $"$(PREFIX)")
 
-public.BINDIR = $(dir $"$(getenv BINDIR, $(PREFIX)/bin)")
-public.LIBDIR = $(dir $"$(getenv LIBDIR, $(PREFIX)/lib)")
+public.BINDIR = $(dir $"$(PREFIX)/bin")
+public.LIBDIR = $(dir $"$(PREFIX)/lib")
 
 public.DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
 
@@ -81,32 +81,17 @@ LIBDIR = $(dir $"$(LIBDIR)")
 section
    PREFIX = $(dir $(PREFIX))
    INSTALL_ROOT = $(getenv INSTALL_ROOT, $(EMPTY))
-   INSTALL_PREFIX = $(dir $(getenv PREFIX, $(PREFIX)))
 
    if $(INSTALL_ROOT)
       INSTALL_BINDIR=$(dir $(INSTALL_ROOT)$(absname $(BINDIR)))
       INSTALL_LIBDIR=$(dir $(INSTALL_ROOT)$(absname $(LIBDIR)))
       export
-   elseif $(not $(equal $(INSTALL_PREFIX), $(PREFIX)))
-      eprintln($"""
-!!! WARNING !!!
-   Your environment variable "PREFIX" points to $(absname $(INSTALL_PREFIX))
-   but the PREFIX variable in .config points to $(absname $(PREFIX)).
-   I am guessing you are using a packaging system (like GODI) that means the two
-   to be different, want the installation to happen in $(absname $(INSTALL_PREFIX))
-   and will then relocate files to $(absname $(PREFIX)). If this is wrong, please
-   make sure your PREFIX variables agree or remove the PREFIX variable from your
-   environment.
-""")
-      INSTALL_BINDIR=$(dir $(getenv BINDIR, $(INSTALL_PREFIX)/bin))
-      INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(INSTALL_PREFIX)/lib))
-      export
    else
-      INSTALL_BINDIR=$(dir $(getenv BINDIR, $(BINDIR)))
-      INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(LIBDIR)))
+      INSTALL_BINDIR=$(BINDIR)
+      INSTALL_LIBDIR=$(LIBDIR)
       export
 
-   export INSTALL_BINDIR INSTALL_LIBDIR INSTALL_PREFIX
+   export INSTALL_BINDIR INSTALL_LIBDIR
 
 if $(not $(file-exists $(CONFIG_FILE)))
     eprintln($(CONFIG_FILE) does not exist)
