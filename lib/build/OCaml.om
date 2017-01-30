@@ -975,8 +975,9 @@ public.OCamlPackage(name, files) =
       $(BYTE_TARGETS) $(NATIVE_TARGETS):
           section rule
              if $(target-exists $(MLI))
-                 $(BYTE_TARGETS) $(NATIVE_TARGETS): $(BYTE_DEPS) $(NATIVE_DEPS) $(CMI)
+                 $(BYTE_TARGETS): $(BYTE_DEPS) $(CMI)
                     $(BYTE_CMD)
+                 $(NATIVE_TARGETS): $(NATIVE_DEPS) $(CMI)
                     $(NATIVE_CMD)
              else
                  $(BYTE_TARGETS) $(NATIVE_TARGETS) $(CMI): $(BYTE_DEPS) $(NATIVE_DEPS)
