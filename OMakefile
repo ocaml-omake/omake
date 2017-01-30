@@ -76,6 +76,14 @@ if $(not $(defined CAMLLIB))
 # OCaml options
 #
 OCAMLFLAGS[] += -w +a-4-32-30-42-40-41 -g
+
+# OCaml library search path is broken in Cygwin.
+# In other words `ocamlc -config` returns wrong value.
+# Workaround for that.
+if $(equal $(OSTYPE), Cygwin)
+  OCAMLFLAGS[] += -nostdlib -I /usr/lib/ocaml -I /usr/lib/ocaml/threads
+  export
+
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
@@ -139,7 +147,7 @@ GENMAGIC = $(file src/magic/omake_gen_magic)
 CLEAN = rm -rf *.cm* *~ .\#* *.o *.obj *.a *.lib *.exe *.omc *.install *.tmp
 
 clean:
-    $(CLEAN) boot .config.omc .config.local.omc .omakedb* mk/*.omc .omake omake-boot$(EXE) lib/*.default download
+    $(CLEAN) .config.omc .config.local.omc .omakedb* mk/*.omc .omake lib/*.default download
 
 if $(not $(defined FORCE_REALCLEAN))
     FORCE_REALCLEAN = false
