@@ -944,6 +944,11 @@ public.OCamlPackage(name, files) =
    protected.BYTE_TARGETS   = $(CMO)
    protected.NATIVE_TARGETS = $(CMX) $(OBJ)
 
+   protected.BYTE_DEPS   = $(CMOFILES)
+   protected.NATIVE_DEPS = $(CMXFILES) $(OFILES)
+
+   # note that always returning $(CMI) is slightly incorrect, but we cannot
+   # do it better
    protected.TARGETS = $(CMI)
    if $(NATIVE_ENABLED)
        TARGETS += $(NATIVE_TARGETS)
@@ -953,48 +958,75 @@ public.OCamlPackage(name, files) =
        TARGETS += $(BYTE_TARGETS)
        export
 
+   BYTE_CMD = $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+              $(OCAMLCFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMO) $`(OCamlLinkSort $(CMOFILES))
+
+   NATIVE_CMD = $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                $(OCAMLOPTFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMX) $`(OCamlLinkSort $(CMXFILES))
+
    #
    # Link commands
    #
-   protected.BYTE_DEPS = $(CMOFILES)
-   $(BYTE_TARGETS): $(CMOFILES)
-      section rule
-         if $(or $(NATIVE_ENABLED), $(target-exists $(MLI)))
-             BYTE_DEPS += $(CMI)
-             export
-         else
-             BYTE_TARGETS += $(CMI)
-             export
-         $(BYTE_TARGETS): $(BYTE_DEPS)
-            $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                $(OCAMLCFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMO) $(OCamlLinkSort $(CMOFILES))
+   # NB. we use here section rules because we want to evaluate target-exists
+   # first when the build has started, and not NOW. The target could be
+   # defined later.
 
-   protected.NATIVE_DEPS = $(CMXFILES) $(OFILES)
-   $(NATIVE_TARGETS): $(NATIVE_DEPS)
-      section rule
-         if $(target-exists $(MLI))
-            NATIVE_DEPS += $(CMI)
-            export
-         else
-            NATIVE_TARGETS += $(CMI)
-            export
-         $(NATIVE_TARGETS): $(NATIVE_DEPS)
-            $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                $(OCAMLOPTFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMX) $(OCamlLinkSort $(CMXFILES))
-
-   $(CMI):
-      section rule
-         if $(target-exists $(MLI))
-            $(CMI): $(MLI) :scanner: scan-ocaml-$(name).mli
-                $(OCamlC) -c $<
-         elseif $(NATIVE_ENABLED)
-            $(NATIVE_TARGETS) $(CMI): $(NATIVE_DEPS)
-               $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                   $(OCAMLOPTFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMX) $(OCamlLinkSort $(CMXFILES))
-         else
-            $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
-               $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                   $(OCAMLCFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMO) $(OCamlLinkSort $(CMOFILES))
+   if $(and $(BYTE_ENABLED), $(NATIVE_ENABLED))
+      $(BYTE_TARGETS):
+          section rule
+             if $(target-exists $(MLI))
+                 $(BYTE_TARGETS): $(BYTE_DEPS) $(CMI)
+                    $(BYTE_CMD)
+             else
+                 $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
+                    $(BYTE_CMD)
+      $(NATIVE_TARGETS):
+          section rule
+             if $(target-exists $(MLI))
+                 $(NATIVE_TARGETS): $(NATIVE_DEPS) $(CMI)
+                    $(NATIVE_CMD)
+             else
+                 $(NATIVE_TARGETS): $(NATIVE_DEPS) $(CMI)
+                    $(NATIVE_CMD) -intf-suffix .cmi
+      $(CMI):
+          section rule
+             if $(target-exists $(MLI))
+                 $(CMI): $(MLI)
+             else
+                 $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
+                    $(BYTE_CMD)
+   elseif $(BYTE_ENABLED)
+      $(BYTE_TARGETS):
+          section rule
+             if $(target-exists $(MLI))
+                 $(BYTE_TARGETS): $(BYTE_DEPS) $(CMI)
+                    $(BYTE_CMD)
+             else
+                 $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
+                    $(BYTE_CMD)
+      $(CMI):
+          section rule
+             if $(target-exists $(MLI))
+                 $(CMI): $(MLI)
+             else
+                 $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
+                    $(BYTE_CMD)
+   elseif $(NATIVE_ENABLED)
+      $(NATIVE_TARGETS):
+          section rule
+             if $(target-exists $(MLI))
+                 $(NATIVE_TARGETS): $(NATIVE_DEPS) $(CMI)
+                    $(NATIVE_CMD)
+             else
+                 $(NATIVE_TARGETS) $(CMI): $(NATIVE_DEPS)
+                    $(NATIVE_CMD)
+      $(CMI):
+          section rule
+             if $(target-exists $(MLI))
+                 $(CMI): $(MLI)
+             else
+                 $(NATIVE_TARGETS) $(CMI): $(NATIVE_DEPS)
+                    $(NATIVE_CMD)
 
    return $(TARGETS)
 
