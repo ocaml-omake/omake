@@ -8,7 +8,7 @@
 - rebuild
   make clean
   make
-  cd doc && omake clean && omake && omake distclean
+  cd doc && omake clean && omake html txt tex info && omake distclean
 
 - check that docs have been rebuilt
 
