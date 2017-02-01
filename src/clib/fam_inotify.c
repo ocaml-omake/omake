@@ -11,16 +11,16 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation,
  * version 2.1 of the License.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
+ *
  * Additional permission is given to link this library with the
  * OpenSSL project's "OpenSSL" library, and with the OCaml runtime,
  * and you may distribute the linked executables.  See the file
@@ -47,8 +47,7 @@
 #ifdef HAVE_INOTIFY_H
 #  include <sys/inotify.h>
 #else
-#  include "inotify.h"
-#  include "inotify-syscalls.h"
+#  error "sys/inotify.h is not found"
 #endif
 
 /*
@@ -126,7 +125,7 @@ static int monitor_poll(FAMConnection *fc)
 {
     fd_set fd_in;
     struct timeval timeout;
-    
+
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
     FD_ZERO(&fd_in);
@@ -146,7 +145,7 @@ static FAMCodes fam_code(int mask)
         code = FAMMoved;
     else if(mask & IN_DELETE)
         code = FAMDeleted;
-    else 
+    else
         code = FAMChanged;
     return code;
 }
@@ -422,4 +421,3 @@ int FAMMonitorDirectoryTree(FAMConnection *fc, const char *name, FAMRequest *req
 #endif
 
 #endif /* FAM_INOTIFY */
-

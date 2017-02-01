@@ -18,34 +18,51 @@ open configure/Configure
         export
     else
         # Unix
-        ConfMsgChecking(for FAM)
 
-        # See if the FamOpen function exists
-        FAM_AVAILABLE = $(and $(CheckHeader fam.h), $(CheckLib fam, FAMOpen))
-
-        # If native FAM doesn't exist, try using kqueue
-        if $(FAM_AVAILABLE)
-            FAM_CLIBS = -lfam
-            FAM_CFLAGS = -DFAM_ENABLED
-            ConfMsgResult(found)
-            ConfMsgChecking($"whether FAM supports Gamin's extensions")
-            if $(ConfMsgYesNo $(CheckLib fam, FAMNoExists))
-               FAM_CFLAGS += -DHAVE_FAMNOEXISTS
-               export
-            export
-        elseif $(CheckHeader sys/event.h)
-            ConfMsgResult(using kqueue)
-            FAM_AVAILABLE = true
-            FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_KQUEUE
-            FAM_CLIBS =
-            if $(VerboseCheckHeader string.h)
-                FAM_CFLAGS += -DHAVE_STRING_H
-                export
-            if $(VerboseCheckHeader strings.h)
-                FAM_CFLAGS += -DHAVE_STRINGS_H
+        # check whether inotify can be used in Linux
+        if $(equal $(SYSNAME), Linux)
+            ConfMsgChecking(for inotify)
+            if $(CheckHeader sys/inotify.h)
+                ConfMsgResult(found)
+                FAM_AVAILABLE = true
+                FAM_CLIBS =
+                FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_INOTIFY
+                FAM_CFLAGS += -DHAVE_INOTIFY_H
                 export
             export
-        else
-            ConfMsgResult(NOT found)
+
+        # for another Unix systems
+        if $(not FAM_AVAILABLE)
+            ConfMsgChecking(for FAM)
+
+            # See if the FamOpen function exists
+            FAM_AVAILABLE = $(and $(CheckHeader fam.h), $(CheckLib fam, FAMOpen))
+
+            # If native FAM doesn't exist, try using kqueue
+            if $(FAM_AVAILABLE)
+                FAM_CLIBS = -lfam
+                FAM_CFLAGS = -DFAM_ENABLED
+                ConfMsgResult(found)
+                ConfMsgChecking($"whether FAM supports Gamin's extensions")
+                if $(ConfMsgYesNo $(CheckLib fam, FAMNoExists))
+                   FAM_CFLAGS += -DHAVE_FAMNOEXISTS
+                   export
+                export
+            elseif $(CheckHeader sys/event.h)
+                ConfMsgResult(using kqueue)
+                FAM_AVAILABLE = true
+                FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_KQUEUE
+                FAM_CLIBS =
+                if $(VerboseCheckHeader string.h)
+                    FAM_CFLAGS += -DHAVE_STRING_H
+                    export
+                if $(VerboseCheckHeader strings.h)
+                    FAM_CFLAGS += -DHAVE_STRINGS_H
+                    export
+                export
+            else
+                ConfMsgResult(NOT found)
+
+            export
 
         export
