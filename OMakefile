@@ -7,8 +7,6 @@
 # Turn it off when release
 # BYTE_ENABLED=true
 # NATIVE_ENABLED=false
-OCAMLCFLAGS += -w -3-40-48
-OCAMLOPTFLAGS += -w -3-40-48
 ###################################
 
 open build/C
@@ -75,7 +73,7 @@ if $(not $(defined CAMLLIB))
 #
 # OCaml options
 #
-OCAMLFLAGS[] += -w +a-4-32-30-42-40-41 -g
+OCAMLFLAGS[] += -w +a-3-4-32-30-42-40-41-48-50-52-60 -g
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
