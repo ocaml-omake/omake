@@ -34,9 +34,14 @@ let ocamldep_postproc venv pos loc args =
     try
       let name1 = String.uncapitalize name in
       let name2 = String.capitalize name in
+      let names = (* check name with orignal case first *)
+        if name1 = name then
+          [ name1; name2 ]
+        else
+          [ name2; name1 ] in
       let node_opt =
         Omake_target.target_is_buildable_in_path_1
-          cache venv pos path [name1;name2] in
+          cache venv pos path names in
       match node_opt with
         | Some node ->
             Some(Omake_env.venv_nodename venv node)
