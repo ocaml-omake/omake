@@ -32,7 +32,7 @@ open configure/Configure
             export
 
         # for another Unix systems
-        if $(not FAM_AVAILABLE)
+        if $(not $(FAM_AVAILABLE))
             ConfMsgChecking(for FAM)
 
             # See if the FamOpen function exists
