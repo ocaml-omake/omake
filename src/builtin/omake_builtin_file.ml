@@ -1931,7 +1931,7 @@ let rm_aux unlink info filename =
          if info.rm_interactive then
             begin
                Lm_printf.printf "Remove %s? " filename;
-               flush stdout;
+               Lm_printf.flush Lm_printf.std_formatter;
                match String.lowercase (Lm_string_util.trim (input_line stdin)) with
                   "y" | "yes" ->
                      true

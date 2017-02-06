@@ -11,7 +11,7 @@
 let copy_file force src dst =
    let prompt () =
       Lm_printf.printf "%s already exists, overwrite (yes/no)? " dst;
-      flush stdout;
+      Lm_printf.flush Lm_printf.std_formatter;
       String.lowercase (input_line stdin) = "yes"
    in
       if force || not (Sys.file_exists dst) || prompt () then
