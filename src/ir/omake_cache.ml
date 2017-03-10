@@ -983,8 +983,8 @@ let stat_changed cache node =
             None
    in
    match force_stat cache node with
-     | Some(_, dg) -> old_digest = Some dg
-     | None -> old_digest = None
+     | Some(_, dg) -> old_digest <> Some dg
+     | None -> old_digest <> None
 
 (*
  * Check if a file exists.

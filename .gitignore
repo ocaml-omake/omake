@@ -10,6 +10,8 @@
 *.cmx
 *.cmxs
 *.cmxa
+*.cmt
+*.cmti
 *.out
 *.install
 *.default
