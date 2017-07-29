@@ -114,7 +114,7 @@ private.get_bytecomp_c_comp() =
     private.config = $(concat $(unhexify 0a), $(shella ocamlc -config)))
     private.configch = $(open-in-string $(config))
     scan($(configch))
-    case $"bytecomp_c_compiler:"
+    case $"c_compiler:"
         return $(nth-tl 1, $*)
 
 .STATIC: :value: $(PATH)
