@@ -158,11 +158,6 @@ val pp_force_newline             : formatter -> unit -> unit
 val pp_print_flush               : formatter -> unit -> unit
 val pp_print_newline             : formatter -> unit -> unit
 val pp_print_if_newline          : formatter -> unit -> unit
-val pp_open_tbox                 : formatter -> unit -> unit
-val pp_close_tbox                : formatter -> unit -> unit
-val pp_print_tbreak              : formatter -> int -> int -> unit
-val pp_set_tab                   : formatter -> unit -> unit
-val pp_print_tab                 : formatter -> unit -> unit
 val pp_set_margin                : formatter -> int -> unit
 val pp_get_margin                : formatter -> unit -> int
 val pp_set_max_indent            : formatter -> int -> unit
