@@ -138,6 +138,7 @@ val flush_str_formatter          : unit -> string
 
 val formatter_of_buffer          : Buffer.t -> formatter
 val make_formatter               : (string -> int -> int -> unit) -> (unit -> unit) -> formatter
+val byte_formatter               : (bytes -> int -> int -> unit) -> (unit -> unit) -> formatter
 
 val pp_open_hbox                 : formatter -> unit -> unit
 val pp_open_vbox                 : formatter -> int -> unit

@@ -149,10 +149,10 @@ let string_of_root = function
    NullRoot ->
       separator_string
  | DriveRoot c ->
-      let s = String.make 3 c in
+      let s = Bytes.make 3 c in
          s.[1] <- ':';
          s.[2] <- separator_char;
-         s
+         Bytes.to_string s
 
 (*
  * Unescape a possibly quoted filename.

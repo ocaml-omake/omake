@@ -1,4 +1,5 @@
 OCAML = ocaml
+OCAMLFLAGS = -safe-string
 
 .PHONY: all bootstrap force-bootstrap install default clean doc package
 
@@ -8,19 +9,19 @@ OCAML = ocaml
 default: bootstrap
 
 bootstrap:
-	$(OCAML) build.ml -auto-bootstrap OCAML="$(OCAML)"
+	$(OCAML) $(OCAMLFLAGS) build.ml -auto-bootstrap OCAML="$(OCAML)"
 
 force-bootstrap:
-	$(OCAML) build.ml -force-bootstrap OCAML="$(OCAML)"
+	$(OCAML) $(OCAMLFLAGS) build.ml -force-bootstrap OCAML="$(OCAML)"
 
 all:
-	$(OCAML) build.ml -build OCAML="$(OCAML)"
+	$(OCAML) $(OCAMLFLAGS) build.ml -build OCAML="$(OCAML)"
 
 install: all
-	$(OCAML) build.ml -install OCAML="$(OCAML)"
+	$(OCAML) $(OCAMLFLAGS) build.ml -install OCAML="$(OCAML)"
 
 clean:
-	$(OCAML) build.ml -clean OCAML="$(OCAML)"
+	$(OCAML) $(OCAMLFLAGS) build.ml -clean OCAML="$(OCAML)"
 
 doc:
 	OMAKELIB=`pwd`/lib ./src/main/omake doc

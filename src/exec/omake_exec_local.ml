@@ -60,7 +60,7 @@ type fd_state =
 
         (* A temporary buffer for copying. *)
         job_buffer_len         : int;
-        job_buffer             : string * string;
+        job_buffer             : bytes * bytes;
       }
 
    (*
@@ -90,7 +90,7 @@ type fd_state =
     * Print an error to the error channel.
     *)
    let handle_exn handle_err pp_print_exn id exn =
-      let out = make_formatter (handle_err id) ignore in
+      let out = byte_formatter (handle_err id) ignore in
          fprintf out "@[<v 3>   *** process creation failed:@ %a@]@." pp_print_exn exn
 
    (*
@@ -197,8 +197,8 @@ type fd_state =
                     job_print_flag = false;
                     job_shell = shell;
                     job_buffer_len = buffer_len;
-                    job_buffer = String.create buffer_len, 
-                                 String.create buffer_len;
+                    job_buffer = Bytes.create buffer_len,
+                                 Bytes.create buffer_len;
                   }
                in
                let table = Omake_exec_util.FdTable.add table out_read job in
@@ -280,8 +280,8 @@ type fd_state =
                match job.job_state with
                   JobRunning v ->
                      (* Close output channels *)
-                     handle_out id "" 0 0;
-                     handle_err id "" 0 0;
+                     handle_out id (Bytes.create 0) 0 0;
+                     handle_err id (Bytes.create 0) 0 0;
                      job.job_state <- JobFinished (0, v, Unix.gettimeofday() -. job.job_start_time)
                 | JobStarted
                 | JobFinished _ ->

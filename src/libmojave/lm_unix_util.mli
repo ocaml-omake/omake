@@ -15,7 +15,7 @@ val application_dir : string
 (*
  * Really read some number of bytes.
  *)
-val really_read : Unix.file_descr -> string -> int -> int -> unit
+val really_read : Unix.file_descr -> bytes -> int -> int -> unit
 
 (*
  * Copy an entire file.

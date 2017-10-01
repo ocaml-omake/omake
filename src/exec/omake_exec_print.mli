@@ -63,7 +63,7 @@ val print_leaving_current_directory  : Omake_options.t -> unit
  * Print a status line.
  *)
 val print_status :
-   (string -> int -> int -> unit) ->    (* Diversion *)
+   (bytes -> int -> int -> unit) ->    (* Diversion *)
    Omake_options.t ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The context *)
    string option ->                     (* Remote host name *)

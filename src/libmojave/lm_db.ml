@@ -97,7 +97,7 @@ let seek_and_truncate fd pos =
 let bufsize = 4096
 
 let file_shift fd pos1 pos2 =
-   let buf = String.create bufsize in
+   let buf = Bytes.create bufsize in
    let rec copy pos1 pos2 =
       let _ = Unix.lseek fd pos2 Unix.SEEK_SET in
       let amount = Unix.read fd buf 0 bufsize in
@@ -133,18 +133,18 @@ let unmarshal_tag inx =
    input_binary_int inx
 
 let unmarshal_digest inx =
-   let s = String.create digest_length in
+   let s = Bytes.create digest_length in
       really_input inx s 0 digest_length;
-      s
+      Bytes.to_string s
 
 let unmarshal_string inx =
    let len = input_binary_int inx in
       if len < 0 || len >= 1024 then
          raise (Failure "unmarshal_string")
       else
-         let s = String.create len in
+         let s = Bytes.create len in
             really_input inx s 0 len;
-            s
+            Bytes.to_string s
 
 let unmarshal_strings_old inx =
    let magic = unmarshal_string inx in
@@ -182,7 +182,7 @@ let unmarshal_strings inx tag =
 let find_entry fd filename test =
    let _ = Unix.lseek fd 0 Unix.SEEK_SET in
    let inx = Unix.in_channel_of_descr fd in
-   let head = String.create Marshal.header_size in
+   let head = Bytes.create Marshal.header_size in
 
    (* Find the appropriate entry *)
    let unmarshal_entry () =

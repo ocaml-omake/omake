@@ -31,7 +31,7 @@ EXT_LIB = .a
 EXE = .exe
 CCOMPTYPE = cc
 
-OCAMLFLAGS = -thread -w +a-4-32-30-42-40-41-48-50-52-60 -g $(OCAMLFLAGS_EXTRA)
+OCAMLFLAGS = -safe-string -thread -w +a-4-32-30-42-40-41-48-50-52-60 -g $(OCAMLFLAGS_EXTRA)
 THREADSLIB = threads.cma
 THREADSLIB_OPT = threads.cmxa
 PREFERRED = .byte

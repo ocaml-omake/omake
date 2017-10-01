@@ -87,11 +87,11 @@ let of_core s =
  * Perform a substitution.
  *)
 let subst_in (slen, s) (plen, prefix, sflen, suffix) =
-  let res = String.create (slen + plen + sflen) in
+  let res = Bytes.create (slen + plen + sflen) in
   String.blit prefix 0 res 0 plen;
   String.blit s 0 res plen slen;
   String.blit suffix 0 res (plen + slen) sflen;
-  res
+  Bytes.to_string res
 
 let subst (_, s) strs =
    String.concat s strs

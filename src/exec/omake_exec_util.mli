@@ -27,7 +27,7 @@ val with_pipe : (Unix.file_descr -> Unix.file_descr -> 'a) -> 'a
 (*
  * Copy data to a file.
  *)
-val copy_file : string -> (Omake_exec_id.t -> string -> int -> int -> unit)
+val copy_file : string -> (Omake_exec_id.t -> bytes -> int -> int -> unit)
 
 (*
  * Tee to a file.
@@ -38,8 +38,8 @@ val tee_none        : tee
 val tee_create      : bool -> tee
 val tee_close       : tee -> unit
 val tee_file        : tee -> string option
-val tee_stdout      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
-val tee_stderr      : tee -> bool -> Omake_exec_id.t -> string -> int -> int -> unit
+val tee_stdout      : tee -> bool -> Omake_exec_id.t -> bytes -> int -> int -> unit
+val tee_stderr      : tee -> bool -> Omake_exec_id.t -> bytes -> int -> int -> unit
 val tee_file_descr  : tee -> Unix.file_descr option
 
 

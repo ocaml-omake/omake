@@ -1065,103 +1065,103 @@ let codeA = Char.code 'A'
  (*
  * Turn a string into an argument list.
 *)
-  let parse_args_list line =
+let parse_args_list line =
   let len = String.length line in
-  let buf = String.create len in
+  let buf = Bytes.create len in
     let rec skip i =
       if i = len then
     [[]]
       else
         match line.[i] with
-        ' ' | '\t' | '\n' | '\r' ->
-      skip (succ i)
-        | '"' ->
-      string 0 (succ i)
-        | '\\' ->
-          if len >= i + 2 && line.[i + 1] = '\\' then
-        [] :: skip (i + 2)
-          else
-      raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
-        | _ ->
-  collect i (succ i)
+            ' ' | '\t' | '\n' | '\r' ->
+                    skip (succ i)
+            | '"' ->
+                string 0 (succ i)
+            | '\\' ->
+                if len >= i + 2 && line.[i + 1] = '\\' then
+                  [] :: skip (i + 2)
+                else
+                  raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
+            | _ ->
+                collect i (succ i)
     and collect i j =
       if j = len then
-    [[String.sub line i (j - i)]]
+        [[String.sub line i (j - i)]]
       else
         match line.[j] with
-        ' ' | '\t' | '\n' | '\r' | '\\' ->
-        let s = String.sub line i (j - i) in
-           (match skip j with
-         [] -> [[s]]
-      | h :: tl -> (s :: h) :: tl)
-        | _ ->
-  collect i (succ j)
+            ' ' | '\t' | '\n' | '\r' | '\\' ->
+                    let s = String.sub line i (j - i) in
+                    (match skip j with
+                         [] -> [[s]]
+                       | h :: tl -> (s :: h) :: tl)
+            | _ ->
+                collect i (succ j)
     and string j k =
       if k = len then
-    raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
+        raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
       else
-      let c = line.[k] in
+        let c = line.[k] in
         if c = '"' then
-        let s = String.sub buf 0 j in
+          let s = Bytes.sub_string buf 0 j in
           match skip (succ k) with
-        [] -> raise (Invalid_argument "Lm_string_util.parse_args - internal error")
-      | h::tl -> (s::h)::tl
+              [] -> raise (Invalid_argument "Lm_string_util.parse_args - internal error")
+            | h::tl -> (s::h)::tl
         else if c = '\\' then
-      escape j (succ k)
+          escape j (succ k)
         else begin
-        buf.[j] <- c;
-      string (succ j) (succ k)
-  end
+            buf.[j] <- c;
+            string (succ j) (succ k)
+          end
     and escape j k =
       if k = len then
-    raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
+        raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
       else
         let c,k =
           match line.[k] with
-        't' -> '\t', succ k
-        | 'n' -> '\n', succ k
-        | 'r' -> '\r', succ k
-        | '\\' -> '\\', succ k
-          | ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') as c ->
-                    Char.chr (100 * (Char.code c) +
-                    10 * (Char.code line.[succ k]) +
-          (Char.code line.[k+2]) - 111 * code0),
-        k+3
-      | c -> c, succ k
-      in
-      buf.[j] <- c;
-  string (succ j) k
-  in
+              't' -> '\t', succ k
+            | 'n' -> '\n', succ k
+            | 'r' -> '\r', succ k
+            | '\\' -> '\\', succ k
+            | ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') as c ->
+                Char.chr (100 * (Char.code c) +
+                            10 * (Char.code line.[succ k]) +
+                            (Char.code line.[k+2]) - 111 * code0),
+                k+3
+            | c -> c, succ k
+        in
+        buf.[j] <- c;
+        string (succ j) k
+    in
     let _ =
       if !debug_string then
-  Format.eprintf "Lm_string_util.parse_args: %s@." (String.escaped line)
-  in
-  let args = skip 0 in
+        Format.eprintf "Lm_string_util.parse_args: %s@." (String.escaped line)
+    in
+    let args = skip 0 in
     if !debug_string then
-  Format.eprintf "Lm_string_util.parse_args: done@.";
-args
+      Format.eprintf "Lm_string_util.parse_args: done@.";
+    args
 
-  let parse_args s =
-    match parse_args_list s with
-  [] -> []
-  | [l] -> l
-| _ -> raise (Invalid_argument ("Lm_string_util.parse_args - line includes \\\\:" ^ s))
+let parse_args s =
+  match parse_args_list s with
+      [] -> []
+    | [l] -> l
+    | _ -> raise (Invalid_argument ("Lm_string_util.parse_args - line includes \\\\:" ^ s))
 
  (*
  * Concatenate strings.
 *)
-  let prepend sep sl =
+let prepend sep sl =
   let scratch_buf = Buffer.create 17 in
-    let collect s =
+  let collect s =
     Buffer.add_string scratch_buf sep;
-  Buffer.add_string scratch_buf s
+    Buffer.add_string scratch_buf s
   in
   Buffer.clear scratch_buf;
-    if sl = [] then
-  Buffer.add_string scratch_buf sep
-    else
-  List.iter collect sl;
-Buffer.contents scratch_buf
+  if sl = [] then
+    Buffer.add_string scratch_buf sep
+  else
+    List.iter collect sl;
+  Buffer.contents scratch_buf
 
  (*
  * Read a file into a string.
@@ -1187,7 +1187,8 @@ s
 
  (*
  * Create a new string containing garbage.
-*)
+ *)
+(*
   let create name i =
     if !debug_string then
       if i < 0  then
@@ -1196,6 +1197,7 @@ s
       raise (Failure "Lm_string_util.create")
   end;
 String.create i
+ *)
 
  (*
  * Make a string initialized with all chars the same.
@@ -1225,6 +1227,7 @@ String.make i c
     else
 String.sub s i len
 
+(*
   let blit name froms i tos j len =
     if !debug_string then
     let from_len = String.length froms in
@@ -1238,7 +1241,9 @@ String.sub s i len
   end
     else
 String.blit froms i tos j len
+ *)
 
+(*
   let set name s i c =
     if !debug_string then
     let len = String.length s in
@@ -1251,6 +1256,7 @@ String.blit froms i tos j len
   end
     else
 String.set s i c
+ *)
 
   let get name s i =
   let len = String.length s in
@@ -1282,22 +1288,22 @@ hex_char
 
   let hexify s =
   let len = String.length s in
-  let buf = String.create (2 * len) in
+  let buf = Bytes.create (2 * len) in
     for i = 0 to pred len do
     let code = Char.code s.[i] in
     buf.[2 * i] <- hex_char ((code lsr 4) land 15);
   buf.[2 * i + 1] <- hex_char (code land 15)
   done;
-buf
+  Bytes.to_string buf
 
   let hexify_sub s off len =
-  let buf = String.create (2 * len) in
+  let buf = Bytes.create (2 * len) in
     for i = 0 to pred len do
     let code = Char.code s.[off + i] in
     buf.[2 * i] <- hex_char ((code lsr 4) land 15);
   buf.[2 * i + 1] <- hex_char (code land 15)
   done;
-buf
+  Bytes.to_string buf
 
   let unhex i =
     match i with
@@ -1313,7 +1319,7 @@ raise (Failure "unhexify")
   let unhexify s =
   let len = String.length s in
     if len mod 2 = 0 then
-    let buf = create "String_util.unhexify" (len / 2) in
+    let buf = Bytes.create (len / 2) in
       let rec unhexify i j =
         if j < len then
           begin
@@ -1322,7 +1328,7 @@ raise (Failure "unhexify")
     end
     in
     unhexify 0 0;
-  buf
+  Bytes.to_string buf
     else
 raise (Failure "unhexify")
 
@@ -1498,13 +1504,13 @@ let unhex_char c1 c2 =
 *)
 let decode_hex_name uri =
   let len = String.length uri in
-  let buf = String.create len in
+  let buf = Bytes.create len in
   let rec convert i j =
     if j = len then
       if i = len then
-        buf
+        Bytes.to_string buf
       else
-        String.sub buf 0 i
+        Bytes.sub_string buf 0 i
     else if uri.[j] = '+' then
       begin
         buf.[i] <- ' ';
@@ -1534,10 +1540,10 @@ let hex_char code =
 
 let encode_hex_name uri =
   let len = String.length uri in
-  let buf = String.create (3 * len) in
+  let buf = Bytes.create (3 * len) in
   let rec convert i j =
     if i = len then
-      String.sub buf 0 j
+      Bytes.sub_string buf 0 j
     else
       match uri.[i] with
         ('0'..'9' | 'A'..'Z' | 'a'..'z' | '/' | '_' | '-' | '.') as c ->

@@ -667,7 +667,7 @@ let venv_add_formatter_channel _venv fmt =
       raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
    in
    let writer s off len =
-      Format.pp_print_string fmt (String.sub s off len);
+      Format.pp_print_string fmt (Bytes.to_string (Bytes.sub s off len));
       len
    in
       Lm_channel.set_id fd index;
