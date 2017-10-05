@@ -20,6 +20,13 @@ BUILDDIR=$(dir .)
 .PHONY: realclean clean install all main
 
 #
+# Location of the OCaml library
+#
+if $(not $(defined CAMLLIB))
+    CAMLLIB = $(dir $(string $(getenv CAMLLIB, $(getenv OCAMLLIB, $(OCAMLLIB)))))
+    export
+
+#
 # Architecture-specific configuration
 #
 if $(equal $(OSTYPE), Win32)
@@ -30,7 +37,7 @@ if $(equal $(OSTYPE), Win32)
         CFLAGS += /MT /DWIN32 /W4
         export
     else
-	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused
+	CFLAGS += -DWIN32 -g -O2 -Wall -Wno-unused -isystem$(CAMLLIB)
         export
 
     #
@@ -62,13 +69,6 @@ else
 # General options
 #
 SCANNER_MODE = error
-
-#
-# Location of the OCaml library
-#
-if $(not $(defined CAMLLIB))
-    CAMLLIB = $(dir $(string $(getenv CAMLLIB, $(getenv OCAMLLIB, $(OCAMLLIB)))))
-    export
 
 #
 # OCaml options

@@ -23,7 +23,7 @@ OCAMLDEP = ocamldep$(OCAMLSUFFIX)
 # C configuration
 #
 CC = $(OCAML_CC)
-CFLAGS = $(OCAML_CFLAGS) -isystem"$(STDLIB)" -isystem"$(STDLIB)/caml" 
+CFLAGS = $(OCAML_CFLAGS) -I"$(STDLIB)" -I"$(STDLIB)/caml"
 AR = ar cq
 AROUT =
 EXT_OBJ = .o
