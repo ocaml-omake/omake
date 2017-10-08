@@ -10,11 +10,10 @@ sudo: required
 install:
   - wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-ocaml.sh
   - bash -ex .travis-ocaml.sh
-  - ocamlc -version
-  - ocamldep -version
-  - ./configure
-  - make
-  - sudo make install
+  - `eval opam config env` && ocamlc -version
+  - `eval opam config env` && ./configure
+  - `eval opam config env` && make
+  - `eval opam config env` && sudo make install
 script:
   - cd test
-  - omake
+  - `eval opam config env` && omake
