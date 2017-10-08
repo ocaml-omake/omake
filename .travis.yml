@@ -3,9 +3,9 @@ os:
   - linux
   - osx
 env:
-  - OCAML_VERSION=4.02 INSTALL_XQUARTZ=false
   - OCAML_VERSION=4.03 INSTALL_XQUARTZ=false
   - OCAML_VERSION=4.04 INSTALL_XQUARTZ=false
+  - OCAML_VERSION=4.05 INSTALL_XQUARTZ=false
 sudo: required
 install:
   - wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-ocaml.sh
