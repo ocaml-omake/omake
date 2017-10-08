@@ -55,7 +55,6 @@ if $(MONCONTROL_AVAILABLE)
     export
 
 FILES[] =
-    lm_heap
     lm_channel
     lm_printf
     lm_ctype

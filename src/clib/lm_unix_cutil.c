@@ -48,6 +48,7 @@ caml_eff_string_compare(value s1, value s2)
 /*
  * Print the stack pointer for debugging.
  */
+#if 0
 value lm_print_stack_pointer(value v_arg)
 {
     int sp;
@@ -55,6 +56,7 @@ value lm_print_stack_pointer(value v_arg)
     fprintf(stderr, "Stack pointer: 0x%08lx\n", (unsigned long) &sp);
     return Val_unit;
 }
+#endif
 
 #ifdef WIN32
 #include <windows.h>
@@ -67,7 +69,7 @@ value lm_print_stack_pointer(value v_arg)
  */
 value int_of_fd(value fd)
 {
-    return Val_long((long) *(HANDLE *)Data_custom_val(fd));
+    return Val_long((intnat) *(HANDLE *)Data_custom_val(fd));
 }
 
 /*
@@ -176,7 +178,7 @@ value lockf_win32(value v_fd, value v_kind, value v_len)
                     (LPTSTR) &lpMsgBuf,
                     0, NULL);
 
-                sprintf(szBuf, "lockf_win32 failed with error %d: %s", error, lpMsgBuf); 
+                sprintf(szBuf, "lockf_win32 failed with error %u: %s", error, (char *) lpMsgBuf); 
                 LocalFree(lpMsgBuf);
 
                 failwith(szBuf);

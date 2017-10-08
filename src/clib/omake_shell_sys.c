@@ -188,7 +188,7 @@ static int string_escape_length(const char *strp)
     /* Check for special characters */
     extra = 0;
     escaped = 0;
-    while(c = *strp++) {
+    while((c = *strp++) != NULL) {
         switch(c) {
         case '"':
             escaped++;
@@ -221,7 +221,7 @@ static void string_copy_escaped(char *dstp, const char *srcp)
     char c;
 
     *dstp++ = '"';
-    while(c = *srcp) {
+    while((c = *srcp) != NULL) {
         if(c == '"')
             *dstp++ = '\\';
         *dstp++ = c;
@@ -760,7 +760,7 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
     /* Collect the processes and their handles */
     ncount = 1;
     handles[0] = state->changed;
-    for(processpp = &state->processes; processp = *processpp; processpp = &(*processpp)->next) {
+    for(processpp = &state->processes; processp = *processpp; (processpp = &(*processpp)->next) != NULL) {
         if((pgrp && processp->pgrp != pgrp)
            || (pgrp == 0 && processp->pgrp == INIT_PID)
            || (leader && processp->pid != processp->pgrp)
@@ -795,7 +795,7 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
 
         /* See if something has changed */
         if(index == WAIT_OBJECT_0) {
-            for(processpp = &state->processes; processp = *processpp; processpp = &(*processpp)->next) {
+            for(processpp = &state->processes; processp = *processpp; (processpp = &(*processpp)->next) != NULL) {
                 if(processp->pgrp == pgrp && processp->changed)
                     goto done;
             }
@@ -814,7 +814,7 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
 
     /* Adjust process */
     pid = processes[index];
-    for(processpp = &state->processes; processp = *processpp; processpp = &(*processpp)->next) {
+    for(processpp = &state->processes; processp = *processpp; (processpp = &(*processpp)->next) != NULL) {
         if(processp->pid == pid)
             break;
     }
@@ -1092,7 +1092,7 @@ static BOOL WINAPI console_ctrl_handler(DWORD code)
         ExitProcess(1);
         break;
     default:
-        fprintf(stderr, "console_ctrl_handler: unknown code: %d\n", code);
+        fprintf(stderr, "console_ctrl_handler: unknown code: %u\n", code);
         fflush(stderr);
         rval = FALSE;
         break;
