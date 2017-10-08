@@ -713,7 +713,7 @@ let sequence_rev venv pos loc args =
       let len = String.length s1 in
       let s2 = Bytes.create len in
       for i = 0 to len - 1 do
-        s2.[i] <- s1.[len - i - 1]
+        Bytes.set s2 i (s1.[len - i - 1])
       done;
       ValData (Bytes.to_string s2)
     | ValQuote vl ->
@@ -721,7 +721,7 @@ let sequence_rev venv pos loc args =
       let len = String.length s1 in
       let s2 = Bytes.create len in
       for i = 0 to len - 1 do
-        s2.[i] <- s1.[len - i - 1]
+        Bytes.set s2 i (s1.[len - i - 1])
       done;
       ValData (Bytes.to_string s2)
     | ValQuoteString (c, vl) ->
@@ -729,7 +729,7 @@ let sequence_rev venv pos loc args =
       let len = String.length s1 in
       let s2 = Bytes.create len in
       for i = 0 to len - 1 do
-        s2.[i] <- s1.[len - i - 1]
+        Bytes.set s2 i (s1.[len - i - 1])
       done;
       ValData (Bytes.to_string s2)
     | ValCases cases ->

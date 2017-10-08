@@ -66,13 +66,13 @@ let stat_with_toggle_case absdir name : bool =
     else
       match name.[i] with
       | 'A'..'Z'
-      | '\192' .. '\214'
-      | '\216' .. '\222' ->
-        String.lowercase name
+      (* | '\192' .. '\214'
+      | '\216' .. '\222' *) ->
+          String.lowercase_ascii name
       | 'a'..'z'
-      | '\224' .. '\246'
-      | '\248' .. '\254' ->
-        String.uppercase name
+      (* | '\224' .. '\246'
+      | '\248' .. '\254' *) ->
+        String.uppercase_ascii name
       | _ ->
         toggle_name_case name len (i+ 1)
   in
@@ -86,8 +86,8 @@ let rec check_already_lowercase name len i =
   else
     match name.[i] with
     | 'A'..'Z'
-    | '\192' .. '\214'
-    | '\216' .. '\222' -> ()
+    (* | '\192' .. '\214'
+    | '\216' .. '\222' *) -> ()
     | _ -> check_already_lowercase name len (i+1)
 
 

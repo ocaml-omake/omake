@@ -97,6 +97,7 @@
  */
 #define MAX(i, j)               ((i) < (j) ? (j) : (i))
 
+#if FAM_DEBUG
 static char *code_names[] = {
     "No Code",
     "Changed",
@@ -110,6 +111,7 @@ static char *code_names[] = {
     "EndExist",
     "DirectoryChanged"
 };
+#endif
 
 typedef struct kevent kevent_t;
 
@@ -144,8 +146,6 @@ char *FamErrlist[] = {
 
 /* We need a "zero" timespec for specifying non-blocking kevent calls */
 static struct timespec gTime0;
-
-static int gRequestNum = 0;
 
 /************************************************************************
  * LOCAL FUNCTIONS
@@ -259,8 +259,7 @@ static int add_famevent_of_kevent( FAMConnection *fc,
  */
 static int poll_kevent(FAMConnection *fc, struct timespec *timeptr)
 {
-    int result, more_events=1;
-    FAMEvent *fevent;
+    int result;
     kevent_t *kev;
 
 #ifdef FAM_DEBUG
@@ -443,7 +442,6 @@ int FAMCancelMonitor(FAMConnection *fc, FAMRequest *requestp)
 {
     DirInfo *dir;
     unsigned request;
-    int code = 0;
     kevent_t *kev;
 
     request = requestp->reqnum;

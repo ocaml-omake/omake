@@ -107,7 +107,7 @@ let append_list a = function
     [] -> a
   | hd :: tl ->
     let l = Array.length a in
-    let res = Array.create (l + List.length tl + 1) hd in
+    let res = Array.make (l + List.length tl + 1) hd in
     for i = 0 to pred l do Array.unsafe_set res i (Array.unsafe_get a i) done;
     let rec aux i = function
         [] -> res
@@ -122,7 +122,7 @@ let append_list_array a1 l a2 =
   | hd::tl ->
     let l1 = Array.length a1 and l2 = Array.length a2 in
     let offs = succ l1 + List.length tl in
-    let res = Array.create (offs + l2) hd in
+    let res = Array.make (offs + l2) hd in
     for i = 0 to pred l1 do Array.unsafe_set res i (Array.unsafe_get a1 i) done;
     let rec aux i = function
         [] -> ()
@@ -142,7 +142,7 @@ let replace a i j = function
     let ij = i + j in
     if i>=0 && j>0 && ij<=l then
       let dl = List.length tl - j +1 in
-      let res = Array.create (l+dl) hd in
+      let res = Array.make (l+dl) hd in
       for k=0 to (pred i) do
         Array.unsafe_set res k (Array.unsafe_get a k)
       done;
@@ -170,7 +170,7 @@ let sub_map f a i len =
     | 1 ->
       [| f (Array.unsafe_get a i) |]
     | _ ->
-      let a' = Array.create len (f (Array.unsafe_get a i)) in
+      let a' = Array.make len (f (Array.unsafe_get a i)) in
       for j = 1 to len - 1 do
         Array.unsafe_set a' j (f (Array.unsafe_get a (i + j)))
       done;

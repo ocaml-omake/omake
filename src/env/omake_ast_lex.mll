@@ -1058,7 +1058,7 @@ let prompt_prune prompt indent =
       if length > max_len then
          begin
             Bytes.blit_string prompt 0 s 0 max_len;
-            s.[max_len] <- '>'
+            Bytes.set s max_len '>'
          end
       else
          Bytes.blit_string prompt 0 s 0 length;

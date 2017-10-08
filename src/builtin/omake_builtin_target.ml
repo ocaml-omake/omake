@@ -309,7 +309,7 @@ let find_build_targets venv pos loc args =
   match args with
     [tag] ->
     let tag =
-      match String.lowercase (Omake_eval.string_of_value venv pos tag) with
+      match String.lowercase_ascii (Omake_eval.string_of_value venv pos tag) with
       | "succeeded" -> Omake_build_type.CommandSucceededTag
       | "failed" -> CommandFailedTag
       | tag ->

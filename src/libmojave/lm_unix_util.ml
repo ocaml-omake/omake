@@ -182,7 +182,7 @@ let home_dir =
    else
       application_dir
 
-let lockf =
+let[@ocaml.warning "-52"] lockf =
    if Sys.os_type = "Win32" then
       (fun fd cmd off ->
          try lockf_win32 fd cmd off with

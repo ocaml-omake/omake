@@ -881,7 +881,7 @@ struct
     * New buffer.
     *)
    let create () =
-      { digest = Array.create digest_length 0;
+      { digest = Array.make digest_length 0;
         code   = 0
       }
 
@@ -954,7 +954,7 @@ struct
      let digest = buf.digest in
      let s = Bytes.create digest_length in
      for i = 0 to  digest_length - 1 do
-       s.[i] <- Char.chr (digest.(i) land 0xff)
+       Bytes.set s i (Char.chr (digest.(i) land 0xff))
      done;
      Bytes.unsafe_to_string s
 

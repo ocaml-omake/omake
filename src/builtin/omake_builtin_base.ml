@@ -979,7 +979,7 @@ let get_registry venv pos loc (args : Omake_value_type.t list) : Omake_value_typ
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
   in
-  let hkey = String.uppercase (Omake_eval.string_of_value venv pos hkey) in
+  let hkey = String.uppercase_ascii (Omake_eval.string_of_value venv pos hkey) in
   let hkey_code =
     match hkey with
     | "HKEY_CLASSES_ROOT"   -> Lm_unix_util.HKEY_CLASSES_ROOT
@@ -993,7 +993,7 @@ let get_registry venv pos loc (args : Omake_value_type.t list) : Omake_value_typ
   let () =
     for i = 0 to Bytes.length key - 1 do
       if Bytes.get key i = '/' then
-        key.[i] <- '\\'
+        Bytes.set key i '\\'
     done
   in
   let key = Bytes.to_string key in
@@ -1636,9 +1636,9 @@ let id_char c =
       Char.chr (c + Char.code 'a')
 
 let id_add_quote s i c =
-   s.[i] <- '_';
-   s.[i + 1] <- id_char ((Char.code c) lsr 4);
-   s.[i + 2] <- id_char ((Char.code c) land 0x0f);
+   Bytes.set s i '_';
+   Bytes.set s (i + 1) (id_char ((Char.code c) lsr 4));
+   Bytes.set s (i + 2) (id_char ((Char.code c) land 0x0f));
    3
 
 let id_single_escaped s =
@@ -2383,7 +2383,7 @@ let capitalize venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.capitalize args in
+    let args = List.map String.capitalize_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2410,7 +2410,7 @@ let uncapitalize venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.uncapitalize args in
+    let args = List.map String.uncapitalize_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2436,7 +2436,7 @@ let uppercase venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.uppercase args in
+    let args = List.map String.uppercase_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2463,7 +2463,7 @@ let lowercase venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.lowercase args in
+    let args = List.map String.lowercase_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))

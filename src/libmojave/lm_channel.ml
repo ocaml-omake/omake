@@ -286,7 +286,7 @@ let of_substring s off len =
   of_string string_sym 1 0 (String.sub s off len)
 
 let of_string s =
-  of_string string_sym 1 0 (String.copy s)
+  of_string string_sym 1 0 s
 
 let info channel =
   let { channel_id = id;
@@ -674,7 +674,7 @@ let rec output_char info c =
     end
   else
     begin
-      buffer.[max] <- c;
+      Bytes.set buffer max c;
       info.out_max <- succ max
     end
 

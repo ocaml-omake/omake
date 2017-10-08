@@ -99,11 +99,11 @@ end   =
       match Sys.os_type with
       | "Win32"
       | "Cygwin" ->
-        (fun _ name -> String.lowercase name)
+        (fun _ name -> String.lowercase_ascii name)
       | _ ->
         (fun dir name ->
           try
-            if dir_is_sensitive true dir name then name else String.lowercase name
+            if dir_is_sensitive true dir name then name else String.lowercase_ascii name
           with Lm_fs_case_sensitive.Already_lowercase ->
             name)
 

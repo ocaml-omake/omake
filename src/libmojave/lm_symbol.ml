@@ -204,7 +204,7 @@ let string_of_ext_symbol v =
   let has_special_char s =
     try
       for i = 0 to String.length s - 1 do
-        let c = Char.lowercase (String.get s i) in
+        let c = Char.lowercase_ascii (String.get s i) in
         if not ((Char.code c >= Char.code 'a' && Char.code c <= Char.code 'z')
                 || (Char.code c >= Char.code '0' && Char.code c <= Char.code '9')
                 || c = '_')

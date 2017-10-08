@@ -789,313 +789,308 @@ let tokens_lex info s =
         tokens_wrap_token  = wrap_token;
         tokens_group       = group;
         _
-      } = info
-  in
+      } = info in
   let len = String.length s in
   
   (* Don't add empty strings *)
-    let wrap_data_prefix prefix s off len =
-      if len <> 0 then
-    wrap_data (String.sub s off len) :: prefix
-      else
-  prefix
-in
+  let wrap_data_prefix prefix s off len =
+    if len <> 0 then
+      wrap_data (String.sub s off len) :: prefix
+    else
+      prefix in
   
-    let wrap_string_prefix prefix s off len =
-      if len <> 0 then
-    wrap_string (String.sub s off len) :: prefix
-      else
-  prefix
-in
+  let wrap_string_prefix prefix s off len =
+    if len <> 0 then
+      wrap_string (String.sub s off len) :: prefix
+    else
+      prefix in
   
   (* Scanning whitespace *)
-    let rec scan_white tokens i =
-      if i = len then
-                  { info with tokens_list   = tokens;
-      tokens_prefix = NoPrefix
-    }
-      else
-        match buffer_get_token lexer s i len with
-        BufWhite ->
-      scan_white tokens (succ i)
+  let rec scan_white tokens i =
+    if i = len then
+      { info with tokens_list   = tokens;
+                  tokens_prefix = NoPrefix
+      }
+    else
+      match buffer_get_token lexer s i len with
+        | BufWhite ->
+          scan_white tokens (succ i)
         | BufQuote c ->
-      scan_quote tokens [] c (succ i) (succ i)
+            scan_quote tokens [] c (succ i) (succ i)
         | BufBackslash ->
-      scan_word tokens [] i (i + 2)
+            scan_word tokens [] i (i + 2)
         | BufChar ->
-      scan_word tokens [] i (succ i)
+            scan_word tokens [] i (succ i)
         | BufToken len ->
-        let head = wrap_token (String.sub s i len) in
-scan_white (head :: tokens) (i + len)
+            let head = wrap_token (String.sub s i len) in
+            scan_white (head :: tokens) (i + len)
   
   (* Scanning a quoted word *)
-    and scan_quote tokens prefix delim start i =
-      if i >= len then
+  and scan_quote tokens prefix delim start i =
+    if i >= len then
       let head = wrap_data_prefix prefix s start (len - start) in
-                  { info with tokens_list   = tokens;
-      tokens_prefix =  QuotePrefix (delim, head)
-    }
-      else
-        match buffer_get_quoted s i with
-        BufQuote c when c = delim ->
-        let prefix = wrap_data_prefix prefix s start (i - start) in
-      scan_word tokens prefix (succ i) (succ i)
-        | BufBackslash ->
-      scan_quote tokens prefix delim start (i + 2)
-      | BufQuote _
-      | BufWhite
-        | BufChar ->
-      scan_quote tokens prefix delim start (succ i)
-        | BufToken _ ->
-raise (Invalid_argument "Lm_string_util.tokens_lex: illegal token")
-  
-  (* Scanning a word *)
-    and scan_word tokens prefix start i =
-      if i >= len then
-      let head = wrap_string_prefix prefix s start (len - start) in
-                  { info with tokens_list   = tokens;
-      tokens_prefix = WordPrefix head
-    }
-      else
-        match buffer_get_token lexer s i len with
-        BufWhite ->
-        let head = group (wrap_string_prefix prefix s start (i - start)) in
-      scan_white (head :: tokens) (succ i)
-        | BufToken len ->
-        let head1 = group (wrap_string_prefix prefix s start (i - start)) in
-        let head2 = wrap_token (String.sub s i len) in
-      scan_white (head2 :: head1 :: tokens) (i + len)
-        | BufQuote c ->
-        let prefix = wrap_string_prefix prefix s start (i - start) in
-      scan_quote tokens prefix c (succ i) (succ i)
-        | BufBackslash ->
-      scan_word tokens prefix start (i + 2)
-        | BufChar ->
-scan_word tokens prefix start (succ i)
-  
-  in
-    if len = 0 then
-  info
+      { info with tokens_list   = tokens;
+                  tokens_prefix =  QuotePrefix (delim, head)
+      }
     else
-          let { tokens_list = tokens;
+      match buffer_get_quoted s i with
+        | BufQuote c when c = delim ->
+          let prefix = wrap_data_prefix prefix s start (i - start) in
+          scan_word tokens prefix (succ i) (succ i)
+        | BufBackslash ->
+            scan_quote tokens prefix delim start (i + 2)
+        | BufQuote _
+          | BufWhite
+          | BufChar ->
+            scan_quote tokens prefix delim start (succ i)
+        | BufToken _ ->
+            raise (Invalid_argument "Lm_string_util.tokens_lex: illegal token")
+
+  (* Scanning a word *)
+  and scan_word tokens prefix start i =
+    if i >= len then
+      let head = wrap_string_prefix prefix s start (len - start) in
+      { info with tokens_list   = tokens;
+                  tokens_prefix = WordPrefix head
+      }
+    else
+      match buffer_get_token lexer s i len with
+        | BufWhite ->
+          let head = group (wrap_string_prefix prefix s start (i - start)) in
+          scan_white (head :: tokens) (succ i)
+        | BufToken len ->
+            let head1 = group (wrap_string_prefix prefix s start (i - start)) in
+            let head2 = wrap_token (String.sub s i len) in
+            scan_white (head2 :: head1 :: tokens) (i + len)
+        | BufQuote c ->
+            let prefix = wrap_string_prefix prefix s start (i - start) in
+            scan_quote tokens prefix c (succ i) (succ i)
+        | BufBackslash ->
+            scan_word tokens prefix start (i + 2)
+        | BufChar ->
+            scan_word tokens prefix start (succ i) in
+  if len = 0 then
+    info
+  else
+    let { tokens_list = tokens;
           tokens_prefix = prefix;
-        _
-    } = info
+          _
+        } = info
     in
-      match prefix with
-      NoPrefix ->
-    scan_white tokens 0
+    match prefix with
+      | NoPrefix ->
+        scan_white tokens 0
       | WordPrefix prefix ->
-    scan_word tokens prefix 0 0
+          scan_word tokens prefix 0 0
       | QuotePrefix (c, prefix) ->
-scan_quote tokens prefix c 0 0
+          scan_quote tokens prefix c 0 0
 
  (*
  * Split a string based on a boundary.
 *)
-  let split_string boundary s =
+let split_string boundary s =
   let len_s = String.length s in
   let len_b = String.length boundary in
-    let c =
-      if len_b = 0 then
-    raise (Invalid_argument "split_string");
-  boundary.[0]
+  let c =
+    if len_b = 0 then
+      raise (Invalid_argument "split_string");
+    boundary.[0]
   in
-    let rec matches i j =
-      if j = len_b then
-    true
-      else
-  s.[i] = boundary.[j] && matches (succ i) (succ j)
+  let rec matches i j =
+    if j = len_b then
+      true
+    else
+      s.[i] = boundary.[j] && matches (succ i) (succ j)
   in
   let buf = Buffer.create 17 in
-    let rec split l i =
-      if len_s - i < len_b then
-        begin
+  let rec split l i =
+    if len_s - i < len_b then
+      begin
         Buffer.add_substring buf s i (len_s - i);
-      Buffer.contents buf :: l
-    end
-      else if s.[i] = c && matches i 0 then
+        Buffer.contents buf :: l
+      end
+    else if s.[i] = c && matches i 0 then
       let s' = Buffer.contents buf in
       Buffer.clear buf;
-    split (s' :: l) (i + len_b)
-      else
-        begin
+      split (s' :: l) (i + len_b)
+    else
+      begin
         Buffer.add_char buf s.[i];
-      split l (succ i)
-  end
+        split l (succ i)
+      end
   in
-List.rev (split [] 0)
+  List.rev (split [] 0)
 
- (*
+(*
  * Split a string based on a MIME boundary.
-*)
-  let split_mime_string boundary s =
+ *)
+let split_mime_string boundary s =
   let len_s = String.length s in
   let len_b = String.length boundary in
-    let rec matches i j =
-      if j = len_b then
-    true
-      else
-  s.[i] = boundary.[j] && matches (succ i) (succ j)
+  let rec matches i j =
+    if j = len_b then
+      true
+    else
+      s.[i] = boundary.[j] && matches (succ i) (succ j)
   in
-let buf = Buffer.create 17 in
+  let buf = Buffer.create 17 in
   
   (* Collect the delimited text *)
-    let rec split l i =
-      if len_s - i < len_b - 2 then
-    l
-      else if s.[i] = '-' && s.[i + 1] = '-' && matches (i + 2) 0 then
+  let rec split l i =
+    if len_s - i < len_b - 2 then
+      l
+    else if s.[i] = '-' && s.[i + 1] = '-' && matches (i + 2) 0 then
       let l = Buffer.contents buf :: l in
       Buffer.clear buf;
-    skip l (i + 2 + len_b)
-      else
-        begin
+      skip l (i + 2 + len_b)
+    else
+      begin
         Buffer.add_char buf s.[i];
-      split l (succ i)
-end
+        split l (succ i)
+      end
   
   (* Skip over garbage after the delimiter *)
-    and skip l i =
-      if len_s - i < 2 || (s.[i] = '-' && s.[i + 1] = '-') then
-    l
-      else
-        split l (i + 2)
-  
-  (* Skip to the first delimiter *)
-    and skip_start i =
-      if len_s - i < len_b - 2 then
-    []
-      else if s.[i] = '-' && s.[i + 1] = '-' && matches (i + 2) 0 then
-    skip [] (i + 2 + len_b)
-      else
-  skip_start (succ i)
-  in
-List.rev (skip_start 0)
+  and skip l i =
+    if len_s - i < 2 || (s.[i] = '-' && s.[i + 1] = '-') then
+      l
+    else
+      split l (i + 2)
 
- (*
+  (* Skip to the first delimiter *)
+  and skip_start i =
+    if len_s - i < len_b - 2 then
+      []
+    else if s.[i] = '-' && s.[i + 1] = '-' && matches (i + 2) 0 then
+      skip [] (i + 2 + len_b)
+    else
+      skip_start (succ i)
+  in
+  List.rev (skip_start 0)
+
+(*
  * Unescape a quoted string.
-*)
-  let unescape s =
+ *)
+let unescape s =
   let slen = String.length s in
   let buf = Buffer.create slen in
-    let off, len =
-      if slen < 2 then
-    0, slen
-      else if s.[0] = '"' && s.[slen - 1] = '"' then
-    1, slen - 1
-      else
-  0, slen
+  let off, len =
+    if slen < 2 then
+      0, slen
+    else if s.[0] = '"' && s.[slen - 1] = '"' then
+      1, slen - 1
+    else
+      0, slen
   in
-    let rec collect i =
-      if i = len then
-    Buffer.contents buf
-      else
+  let rec collect i =
+    if i = len then
+      Buffer.contents buf
+    else
       let c = s.[i] in
-        let c, i =
-          if c = '\\' && i + 1 < len then
-            match s.[i + 1] with
-          't' -> '\t', i + 2
-          | 'r' -> '\r', i + 2
-          | 'n' -> '\n', i + 2
-          | '\\' -> '\\', i + 2
+      let c, i =
+        if c = '\\' && i + 1 < len then
+          match s.[i + 1] with
+            | 't' -> '\t', i + 2
+            | 'r' -> '\r', i + 2
+            | 'n' -> '\n', i + 2
+            | '\\' -> '\\', i + 2
             | ('0'..'9') when i + 3 < len ->
-              let code =
-              100 * Char.code s.[i + 1]
-              + 10 * Char.code s.[i + 2]
-              + Char.code s.[i + 3]
-            - 111 * Char.code '0'
-            in
-          Char.chr (code land 0xff), i + 4
+                let code =
+                  100 * Char.code s.[i + 1]
+                  + 10 * Char.code s.[i + 2]
+                  + Char.code s.[i + 3]
+                  - 111 * Char.code '0'
+                in
+                Char.chr (code land 0xff), i + 4
             | c ->
-        c, i + 2
-          else
-      c, i + 1
+                c, i + 2
+        else
+          c, i + 1
       in
       Buffer.add_char buf c;
-  collect i
+      collect i
   in
-collect off
+  collect off
 
- (*
+(*
  * Trim all whitespace from a string, respecting quotes.
-*)
-  let trim_all quotes delims str =
+ *)
+let trim_all quotes delims str =
   let scratch_buf = Buffer.create 17 in
-      ignore (tokens_fold (fun first s off len ->
-        if not first then
-      Buffer.add_char scratch_buf ' ';
-      Buffer.add_substring scratch_buf s off len;
-  false) true quotes delims str);
-Buffer.contents scratch_buf
+  ignore (tokens_fold (fun first s off len ->
+              if not first then
+                Buffer.add_char scratch_buf ' ';
+              Buffer.add_substring scratch_buf s off len;
+              false) true quotes delims str);
+  Buffer.contents scratch_buf
 
 let trim_std = trim_all quotes white
 
- (*
+(*
  * Trim outer whitespace from a string.
-*)
-  let trim s =
+ *)
+let trim s =
   let length = String.length s in
   let is_whitespace = String.contains white in
-    let rec scan_for_first_nonws index =
-      if index < length && is_whitespace s.[index] then
-    scan_for_first_nonws (index + 1)
-      else
-  index
+  let rec scan_for_first_nonws index =
+    if index < length && is_whitespace s.[index] then
+      scan_for_first_nonws (index + 1)
+    else
+      index
   in
-    let rec scan_for_last_nonws index =
-      if index >= 0 && is_whitespace s.[index] then
-    scan_for_last_nonws (index - 1)
-      else
-  index
+  let rec scan_for_last_nonws index =
+    if index >= 0 && is_whitespace s.[index] then
+      scan_for_last_nonws (index - 1)
+    else
+      index
   in
   let first = scan_for_first_nonws 0 in
   let last  = scan_for_last_nonws (length - 1) in
-    if first > last then
-  ""
-    else
-String.sub s first (last - first + 1)
+  if first > last then
+    ""
+  else
+    String.sub s first (last - first + 1)
 
- (*
+(*
  * Need these for converting numbers.
-*)
+ *)
 let code0 = Char.code '0'
 let codea = Char.code 'a'
 let codeA = Char.code 'A'
 
- (*
+(*
  * Turn a string into an argument list.
-*)
+ *)
 let parse_args_list line =
   let len = String.length line in
   let buf = Bytes.create len in
     let rec skip i =
       if i = len then
-    [[]]
+        [[]]
       else
         match line.[i] with
-            ' ' | '\t' | '\n' | '\r' ->
-                    skip (succ i)
-            | '"' ->
-                string 0 (succ i)
-            | '\\' ->
-                if len >= i + 2 && line.[i + 1] = '\\' then
-                  [] :: skip (i + 2)
-                else
-                  raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
-            | _ ->
-                collect i (succ i)
+          | ' ' | '\t' | '\n' | '\r' ->
+              skip (succ i)
+          | '"' ->
+              string 0 (succ i)
+          | '\\' ->
+              if len >= i + 2 && line.[i + 1] = '\\' then
+                [] :: skip (i + 2)
+              else
+                raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
+          | _ ->
+              collect i (succ i)
     and collect i j =
       if j = len then
         [[String.sub line i (j - i)]]
       else
         match line.[j] with
-            ' ' | '\t' | '\n' | '\r' | '\\' ->
-                    let s = String.sub line i (j - i) in
-                    (match skip j with
-                         [] -> [[s]]
-                       | h :: tl -> (s :: h) :: tl)
-            | _ ->
-                collect i (succ j)
+          | ' ' | '\t' | '\n' | '\r' | '\\' ->
+              let s = String.sub line i (j - i) in
+              (match skip j with
+                   [] -> [[s]]
+                 | h :: tl -> (s :: h) :: tl)
+          | _ ->
+              collect i (succ j)
     and string j k =
       if k = len then
         raise (Invalid_argument ("Lm_string_util.parse_args: " ^ line))
@@ -1104,12 +1099,12 @@ let parse_args_list line =
         if c = '"' then
           let s = Bytes.sub_string buf 0 j in
           match skip (succ k) with
-              [] -> raise (Invalid_argument "Lm_string_util.parse_args - internal error")
+            | [] -> raise (Invalid_argument "Lm_string_util.parse_args - internal error")
             | h::tl -> (s::h)::tl
         else if c = '\\' then
           escape j (succ k)
         else begin
-            buf.[j] <- c;
+            Bytes.set buf j c;
             string (succ j) (succ k)
           end
     and escape j k =
@@ -1118,7 +1113,7 @@ let parse_args_list line =
       else
         let c,k =
           match line.[k] with
-              't' -> '\t', succ k
+            | 't' -> '\t', succ k
             | 'n' -> '\n', succ k
             | 'r' -> '\r', succ k
             | '\\' -> '\\', succ k
@@ -1129,7 +1124,7 @@ let parse_args_list line =
                 k+3
             | c -> c, succ k
         in
-        buf.[j] <- c;
+        Bytes.set buf j c;
         string (succ j) k
     in
     let _ =
@@ -1147,9 +1142,9 @@ let parse_args s =
     | [l] -> l
     | _ -> raise (Invalid_argument ("Lm_string_util.parse_args - line includes \\\\:" ^ s))
 
- (*
+(*
  * Concatenate strings.
-*)
+ *)
 let prepend sep sl =
   let scratch_buf = Buffer.create 17 in
   let collect s =
@@ -1166,20 +1161,21 @@ let prepend sep sl =
  (*
  * Read a file into a string.
 *)
-  let string_of_file name =
+let string_of_file name =
   let inx = open_in_bin name in
   let scratch_buf = Buffer.create 17 in
-    let rec loop () =
+  let rec loop () =
     Buffer.add_char scratch_buf (input_char inx);
-  loop ()
+    loop ()
   in
   Buffer.clear scratch_buf;
-    try loop () with
-    End_of_file ->
-    close_in inx;
-    let s = Buffer.contents scratch_buf in
-    Buffer.reset scratch_buf;
-s
+  try loop ()
+  with
+    | End_of_file ->
+       close_in inx;
+       let s = Buffer.contents scratch_buf in
+       Buffer.reset scratch_buf;
+       s
 
  (************************************************************************
  * DEBUG VERSIONS
@@ -1199,33 +1195,33 @@ s
 String.create i
  *)
 
- (*
+(*
  * Make a string initialized with all chars the same.
-*)
-  let make name i c =
-    if !debug_string then
-      if i < 0 then
-        begin
+ *)
+let make name i c =
+  if !debug_string then
+    if i < 0 then
+      begin
         Format.eprintf "Lm_string_util.make: %s: %d < 0@." name i;
-      raise (Failure "Lm_string_util.make")
-  end;
-String.make i c
+        raise (Failure "Lm_string_util.make")
+      end;
+  String.make i c
 
- (*
+(*
  * Substring.
-*)
-  let sub name s i len =
-    if !debug_string then
+ *)
+let sub name s i len =
+  if !debug_string then
     let len' = String.length s in
-      if i >= 0 && len >= 0 && i + len < len' then
-    String.sub s i len
-      else
-        begin
-        Format.eprintf "Lm_string_util.sub error: %s: %s.[%d]@." name s i;
-      raise (Failure "Lm_string_util.sub")
-  end
+    if i >= 0 && len >= 0 && i + len < len' then
+      String.sub s i len
     else
-String.sub s i len
+      begin
+        Format.eprintf "Lm_string_util.sub error: %s: %s.[%d]@." name s i;
+        raise (Failure "Lm_string_util.sub")
+      end
+  else
+    String.sub s i len
 
 (*
   let blit name froms i tos j len =
@@ -1258,128 +1254,124 @@ String.blit froms i tos j len
 String.set s i c
  *)
 
-  let get name s i =
+let get name s i =
   let len = String.length s in
-    if i >= 0 && i < len then
-  String.get s i
-    else
-      begin
+  if i >= 0 && i < len then
+    String.get s i
+  else
+    begin
       Format.eprintf "String_util.get error: %s: %s[%d]@." name s i;
-    raise (Failure "String_util.get")
-end
+      raise (Failure "String_util.get")
+    end
 
- (************************************************************************
-* Hex notation.
-*)
+(************************************************************************
+ * Hex notation.
+ *)
 
- (*
+(*
  * Turn a string into hex.
-*)
-  let hex_char =
+ *)
+let hex_char =
   let zero = Char.code '0' in
   let a = Char.code 'a' - 10 in
-    let hex_char code =
-      if code < 10 then
-    Char.chr (code + zero)
-      else
-  Char.chr (code + a)
+  let hex_char code =
+    if code < 10 then
+      Char.chr (code + zero)
+    else
+      Char.chr (code + a)
   in
-hex_char
+  hex_char
 
-  let hexify s =
+let hexify s =
   let len = String.length s in
   let buf = Bytes.create (2 * len) in
-    for i = 0 to pred len do
+  for i = 0 to pred len do
     let code = Char.code s.[i] in
-    buf.[2 * i] <- hex_char ((code lsr 4) land 15);
-  buf.[2 * i + 1] <- hex_char (code land 15)
+    Bytes.set buf (2 * i) (hex_char ((code lsr 4) land 15));
+    Bytes.set buf (2 * i + 1) (hex_char (code land 15))
   done;
   Bytes.to_string buf
 
-  let hexify_sub s off len =
+let hexify_sub s off len =
   let buf = Bytes.create (2 * len) in
-    for i = 0 to pred len do
+  for i = 0 to pred len do
     let code = Char.code s.[off + i] in
-    buf.[2 * i] <- hex_char ((code lsr 4) land 15);
-  buf.[2 * i + 1] <- hex_char (code land 15)
+    Bytes.set buf (2 * i) (hex_char ((code lsr 4) land 15));
+    Bytes.set buf (2 * i + 1) (hex_char (code land 15))
   done;
   Bytes.to_string buf
 
-  let unhex i =
-    match i with
-    '0' .. '9' ->
-  (Char.code i) - code0
-    | 'a' .. 'f' ->
-  (Char.code i) - codea + 10
-    | 'A' .. 'F' ->
-  (Char.code i) - codeA + 10
-    | _ ->
-raise (Failure "unhexify")
+let unhex i =
+  match i with
+    | '0' .. '9' -> (Char.code i) - code0
+    | 'a' .. 'f' -> (Char.code i) - codea + 10
+    | 'A' .. 'F' -> (Char.code i) - codeA + 10
+    | _ -> raise (Failure "unhexify")
 
-  let unhexify s =
+let unhexify s =
   let len = String.length s in
-    if len mod 2 = 0 then
+  if len mod 2 = 0 then
     let buf = Bytes.create (len / 2) in
-      let rec unhexify i j =
-        if j < len then
-          begin
-          buf.[i] <- Char.chr ((unhex s.[j]) * 16 + (unhex s.[succ j]));
-        unhexify (i + 1) (j + 2)
-    end
+    let rec unhexify i j =
+      if j < len then
+        begin
+          Bytes.set buf i (Char.chr ((unhex s.[j]) * 16 + (unhex s.[succ j])));
+          unhexify (i + 1) (j + 2)
+        end
     in
     unhexify 0 0;
-  Bytes.to_string buf
-    else
-raise (Failure "unhexify")
+    Bytes.to_string buf
+  else
+    raise (Failure "unhexify")
 
-  let unhexify_int s =
+let unhexify_int s =
   let len = String.length s in
-    let rec unhexify index i =
-      if i < len then
-    unhexify (index * 16 + (unhex s.[i])) (succ i)
-      else
-  index
+  let rec unhexify index i =
+    if i < len then
+      unhexify (index * 16 + (unhex s.[i])) (succ i)
+    else
+      index
   in
-unhexify 0 0
+  unhexify 0 0
 
- (*
+(*
  * Construct an argv string with proper quoting.
  *
  * We are given a list of arguments that may or may not contain
  * whitespace or quotes.  Quote them in a meaningful way before
  * parsing.
-*)
-    type mode =
+ *)
+type mode =
   ModeNormal
-  | ModeDouble
+| ModeDouble
 | ModeSingle
 
-  let rec needs_quotes mode s i len =
-    if i >= len then
-  mode <> ModeNormal
-    else
-      match mode, s.[i] with
-      _, '\\' ->
-    needs_quotes mode s (i + 2) len
-    | ModeNormal, ' '
-    | ModeNormal, '\t'
-    | ModeNormal, '\012'
-    | ModeNormal, '\n'
-      | ModeNormal, '\r' ->
-    true
+let rec needs_quotes mode s i len =
+  if i >= len then
+    mode <> ModeNormal
+  else
+    match mode, s.[i] with
+      |  _, '\\' ->
+           needs_quotes mode s (i + 2) len
+      | ModeNormal, ' '
+        | ModeNormal, '\t'
+        | ModeNormal, '\012'
+        | ModeNormal, '\n'
+        | ModeNormal, '\r' ->
+          true
       | ModeNormal, '"' ->
-    needs_quotes ModeDouble s (succ i) len
+          needs_quotes ModeDouble s (succ i) len
       | ModeNormal, '\'' ->
-    needs_quotes ModeSingle s (succ i) len
-    | ModeSingle, '\''
-      | ModeDouble, '"' ->
-    needs_quotes ModeNormal s (succ i) len
+          needs_quotes ModeSingle s (succ i) len
+      | ModeSingle, '\''
+        | ModeDouble, '"' ->
+          needs_quotes ModeNormal s (succ i) len
       | _ ->
-needs_quotes mode s (succ i) len
+          needs_quotes mode s (succ i) len
 
-  let needs_quotes s =
+let needs_quotes s =
   let len = String.length s in
-len = 0 || needs_quotes ModeNormal s 0 len
+  len = 0 || needs_quotes ModeNormal s 0 len
 
 let dquote = '"'
 let equote = "\\\""
@@ -1390,19 +1382,19 @@ let quotify buf s =
     if i <> len then
       let c = s.[i] in
       match c with
-        '"' ->
-        Buffer.add_string buf equote;
-        copy (succ i)
-      | '\\' ->
-        Buffer.add_char buf '\\';
-        if i < len - 1 then
-          begin
-            Buffer.add_char buf s.[i + 1];
-            copy (i + 2)
-          end
-      | _ ->
-        Buffer.add_char buf c;
-        copy (succ i)
+        | '"' ->
+            Buffer.add_string buf equote;
+            copy (succ i)
+        | '\\' ->
+            Buffer.add_char buf '\\';
+            if i < len - 1 then
+              begin
+                Buffer.add_char buf s.[i + 1];
+                copy (i + 2)
+              end
+        | _ ->
+            Buffer.add_char buf c;
+            copy (succ i)
   in
   Buffer.add_char buf dquote;
   copy 0;
@@ -1421,48 +1413,48 @@ let quote buf s =
 
 let rec concat_argv buf argv =
   match argv with
-    [arg] ->
-    quote buf arg
-  | arg :: argv ->
-    quote buf arg;
-    Buffer.add_char buf ' ';
-    concat_argv buf argv
-  | [] ->
-    ()
+    | [arg] ->
+        quote buf arg
+    | arg :: argv ->
+        quote buf arg;
+        Buffer.add_char buf ' ';
+        concat_argv buf argv
+    | [] ->
+        ()
 
 let concat_argv argv =
   let buf = Buffer.create 32 in
   concat_argv buf argv;
   Buffer.contents buf
 
- (*
+(*
  * For string quoting.
-*)
+ *)
 let rec concat_string buf argv =
   match argv with
-    [arg] ->
-    Buffer.add_string buf arg
-  | arg :: argv ->
-    Buffer.add_string buf arg;
-    Buffer.add_char buf ' ';
-    concat_string buf argv
-  | [] ->
-    ()
+    | [arg] ->
+        Buffer.add_string buf arg
+    | arg :: argv ->
+        Buffer.add_string buf arg;
+        Buffer.add_char buf ' ';
+        concat_string buf argv
+    | [] ->
+        ()
 
 let concat_string argv =
   match argv with
-    [arg] ->
-    arg
-  | _ :: _ ->
-    let buf = Buffer.create 32 in
-    concat_string buf argv;
-    Buffer.contents buf
-  | [] ->
-    ""
+    | [arg] ->
+        arg
+    | _ :: _ ->
+        let buf = Buffer.create 32 in
+        concat_string buf argv;
+        Buffer.contents buf
+    | [] ->
+        ""
 
- (*
+(*
  * This function adds quotes if needed.
-*)
+ *)
 let string_argv argv =
   let s = concat_string argv in
   if needs_quotes s then
@@ -1473,7 +1465,7 @@ let string_argv argv =
     s
 
  (*
- * This function always adds quotes.
+  * This function always adds quotes.
 *)
 let quote_string s =
   let len = String.length s in
@@ -1489,19 +1481,19 @@ let quote_argv argv =
 
 (************************************************************************
  * Translate between URI enconding.
-*)
+ *)
 
- (*
+(*
  * Convert two hex chars into a new 8-bit char.
-*)
+ *)
 let unhex_char c1 c2 =
   let i1 = unhex c1 in
   let i2 = unhex c2 in
   Char.chr (i1 * 16 + i2)
 
- (*
+(*
  * Decode hex characters in the URI.
-*)
+ *)
 let decode_hex_name uri =
   let len = String.length uri in
   let buf = Bytes.create len in
@@ -1513,17 +1505,17 @@ let decode_hex_name uri =
         Bytes.sub_string buf 0 i
     else if uri.[j] = '+' then
       begin
-        buf.[i] <- ' ';
+        Bytes.set buf i ' ';
         convert (i + 1) (j + 1)
       end
     else if uri.[j] = '%' && j < len - 2 then
       begin
-        buf.[i] <- unhex_char uri.[j + 1] uri.[j + 2];
+        Bytes.set buf i (unhex_char uri.[j + 1] uri.[j + 2]);
         convert (i + 1) (j + 3)
       end
     else
       begin
-        buf.[i] <- uri.[j];
+        Bytes.set buf i (uri.[j]);
         convert (i + 1) (j + 1)
       end
   in
@@ -1546,15 +1538,15 @@ let encode_hex_name uri =
       Bytes.sub_string buf 0 j
     else
       match uri.[i] with
-        ('0'..'9' | 'A'..'Z' | 'a'..'z' | '/' | '_' | '-' | '.') as c ->
-        buf.[j] <- c;
-        convert (succ i) (succ j)
-      | c ->
-        let code = Char.code c in
-        buf.[j] <- '%';
-        buf.[j + 1] <- hex_char ((code lsr 4) land 15);
-        buf.[j + 2] <- hex_char (code land 15);
-        convert (succ i) (j + 3)
+        | ('0'..'9' | 'A'..'Z' | 'a'..'z' | '/' | '_' | '-' | '.') as c ->
+            Bytes.set buf j c;
+            convert (succ i) (succ j)
+        | c ->
+            let code = Char.code c in
+            Bytes.set buf j '%';
+            Bytes.set buf (j + 1) (hex_char ((code lsr 4) land 15));
+            Bytes.set buf (j + 2) (hex_char (code land 15));
+            convert (succ i) (j + 3)
   in
   convert 0 0
 

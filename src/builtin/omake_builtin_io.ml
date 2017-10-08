@@ -409,7 +409,7 @@ let lseek venv pos loc args =
     let fd = Omake_value.channel_of_value venv pos fd in
     let off = Omake_value.int_of_value venv pos off in
     let whence =
-      match String.uppercase (Omake_value.string_of_value venv pos whence) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos whence) with
         "SET" | "SEEK_SET" ->
         Unix.SEEK_SET
       | "CUR" | "CURRENT" | "SEEK_CUR" ->
@@ -1090,7 +1090,7 @@ let socket venv pos loc args =
   match args with
   | [domain; ty; proto] ->
     let domain =
-      match String.uppercase (Omake_value.string_of_value venv pos domain) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos domain) with
         "PF_UNIX"
       | "UNIX" ->
         Unix.PF_UNIX
@@ -1108,7 +1108,7 @@ let socket venv pos loc args =
         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("bad domain", domain)))
     in
     let ty =
-      match String.uppercase (Omake_value.string_of_value venv pos ty) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos ty) with
         "SOCK_STREAM"
       | "STREAM" ->
         Unix.SOCK_STREAM

@@ -49,7 +49,8 @@ external fchdir : Unix.file_descr -> unit
   = "omake_shell_spawn_fchdir"
 
 
-let spawn ?(chdir = Wd_keep) ?(pg = Pg_keep) ?(fd_actions = [])
+let[@ocaml.warning "-52"]
+    spawn ?(chdir = Wd_keep) ?(pg = Pg_keep) ?(fd_actions = [])
           ?(sig_actions = []) ?(env = Unix.environment()) 
           ?(no_posix_spawn=false) cmd args =
   (* Check whether we can use the faster posix_spawn *)

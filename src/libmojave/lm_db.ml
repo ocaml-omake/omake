@@ -262,7 +262,7 @@ let marshal_magic fd =
       Pervasives.flush outx
 
 let remove_entry fd _filename test =
-   let head = String.create Marshal.header_size in
+   let head = Bytes.create Marshal.header_size in
 
    (* Find the appropriate entry *)
    let unmarshal_entry inx =

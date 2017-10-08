@@ -2183,7 +2183,7 @@ let create_environ () =
          let name = String.sub s 0 j in
          let name =
             if Sys.os_type = "Win32" then
-               String.uppercase name
+               String.uppercase_ascii name
             else
                name
          in

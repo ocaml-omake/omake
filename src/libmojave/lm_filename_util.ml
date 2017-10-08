@@ -84,9 +84,9 @@ let has_drive_letters,
     is_executable =
    match Sys.os_type with
    | "Win32" ->
-         true, String.lowercase, List.map String.lowercase, ';', win32_is_executable
+       true, String.lowercase_ascii, List.map String.lowercase_ascii, ';', win32_is_executable
    | "Cygwin" ->
-       false, String.lowercase, List.map String.lowercase, ':', cygwin_is_executable
+       false, String.lowercase_ascii, List.map String.lowercase_ascii, ':', cygwin_is_executable
    | "Unix" ->
        false, (fun s -> s), (fun s -> s),  ':', unix_is_executable
    | s ->
@@ -150,9 +150,9 @@ let string_of_root = function
       separator_string
  | DriveRoot c ->
       let s = Bytes.make 3 c in
-         s.[1] <- ':';
-         s.[2] <- separator_char;
-         Bytes.to_string s
+      Bytes.set s 1 ':';
+      Bytes.set s 2 separator_char;
+      Bytes.to_string s
 
 (*
  * Unescape a possibly quoted filename.
@@ -235,13 +235,13 @@ let unescape_string s =
 let filename_string name =
    let len = String.length name in
       if has_drive_letters && len >= 3 && is_drive_letter name.[0] && name.[1] = ':' && (name.[2] = '/' || name.[2] = '\\') then
-         let root = DriveRoot (Char.lowercase name.[0]) in
+         let root = DriveRoot (Char.lowercase_ascii name.[0]) in
          let path = String.sub name 3 (len - 3) in
-            AbsolutePath (root, path)
+         AbsolutePath (root, path)
       else if len >= 1 && name.[0] = '/' then
          let root = NullRoot in
          let path = String.sub name 1 (len - 1) in
-            AbsolutePath (root, path)
+         AbsolutePath (root, path)
       else
          RelativePath name
 
