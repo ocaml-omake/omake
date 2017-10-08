@@ -15,5 +15,4 @@ install:
   - eval `opam config env` && make
   - eval `opam config env` && sudo make install
 script:
-  - cd test
-  - `eval opam config env` && omake
+  - cd test && eval `opam config env` && omake
