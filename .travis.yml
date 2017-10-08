@@ -10,6 +10,7 @@ sudo: required
 install:
   - wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-ocaml.sh
   - bash -ex .travis-ocaml.sh
+  - echo "OCaml version: $(ocamlc -version)"
   - ./configure
   - make
   - sudo make install
