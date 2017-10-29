@@ -8,7 +8,13 @@
 - rebuild
   make clean
   make
-  cd doc && omake clean && omake html txt tex info && omake distclean
+
+- doc: (need hevea and latex, otherwise it'll fail)
+  cd doc
+  mkdir -p html tex txt ps info
+  omake clean
+  omake html txt tex info
+  omake distclean
 
 - check that docs have been rebuilt
 
