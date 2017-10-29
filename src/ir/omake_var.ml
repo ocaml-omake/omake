@@ -120,7 +120,7 @@ let create_numeric_var =
    let numeric_vars = ref [||] in
    let resize i =
       let size = (i + 1) * 2 in
-      let table = Array.create size wild_var in
+      let table = Array.make size wild_var in
          for j = 0 to pred size do
             table.(j) <- create_pervasives_var (Lm_symbol.add (string_of_int j))
          done;

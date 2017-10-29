@@ -197,7 +197,8 @@ type profile = {
 let tbl = Hashtbl.create 19
 
 let compare (_,t1) (_,t2) =
-  (t1.ok.wtime +. t1.exn.wtime) <= (t2.ok.wtime +. t2.exn.wtime)
+  Pervasives.compare
+    (t1.ok.wtime +. t1.exn.wtime) (t2.ok.wtime +. t2.exn.wtime)
 
 let report1 s t =
   let calls_f = float_of_int t.calls in
@@ -224,7 +225,7 @@ let add s t l = (s,t) :: l
 
 let report_timing () =
   if Hashtbl.length tbl > 0 then
-    List.iter report (Sort.list compare (Hashtbl.fold add tbl []))
+    List.iter report (List.sort compare (Hashtbl.fold add tbl []))
 
 let () = at_exit report_timing
 

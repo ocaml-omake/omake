@@ -24,7 +24,7 @@ let pid_of_string pos s =
  * Signal numbers.
  *)
 let signal_of_string s =
-  match String.uppercase s with
+  match String.uppercase_ascii s with
     "-ABRT" -> Omake_shell_type.SigAbrt
   | "-ALRM" -> SigAlrm
   | "-HUP"  -> SigHup

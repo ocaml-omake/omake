@@ -39,7 +39,7 @@ let prefix =
         exit 1
 
 let bad_version1 = Str.regexp "^[0123]\\..*"
-let bad_version2 = Str.regexp "^4.0[01]\\..*"
+let bad_version2 = Str.regexp "^4.0[012]\\..*"
 
 let check_ocaml_version() =
   let ch = Unix.open_process_in "ocamlc -version" in
@@ -48,7 +48,7 @@ let check_ocaml_version() =
   if status <> Unix.WEXITED 0 then
     failwith "Cannot run: ocamlc -version";
   if Str.string_match bad_version1 line 0 || Str.string_match bad_version2 line 0 then
-    failwith "The ocaml version is too old. Need at least 4.02";
+    failwith "The ocaml version is too old. Need at least 4.03";
   ()
 
 

@@ -36,9 +36,9 @@ sig
 
    (* IO *)
    val input_byte    : in_channel -> int
-   val input_buffer  : in_channel -> string -> int -> int -> unit
+   val input_buffer  : in_channel -> bytes -> int -> int -> unit
    val output_byte   : out_channel -> int -> unit
-   val output_buffer : out_channel -> string -> int -> int -> unit
+   val output_buffer : out_channel -> bytes -> int -> int -> unit
 end
 
 (*  Marshal module. *)
@@ -221,7 +221,7 @@ struct
          (* eprintf "String: %s%t" s eflush; *)
          output_magic out string_magic;
          output_size out len;
-         IO.output_buffer out s 0 len
+         IO.output_buffer out (Bytes.of_string s) 0 len
 
    (*
     * Marshaler
@@ -305,10 +305,10 @@ struct
          if len < 0 then
             raise (Failure "unmarshal_string: string length is negative")
       in
-      let s = String.create len in
+      let s = Bytes.create len in
          IO.input_buffer inc s 0 len;
          (* eprintf "String: %s%t" s eflush; *)
-         String s
+         String (Bytes.to_string s)
 
    (*
     * Build a value from the input.

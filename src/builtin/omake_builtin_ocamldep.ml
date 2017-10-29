@@ -32,8 +32,8 @@ let ocamldep_postproc venv pos loc args =
 
   let search_in_path path name =
     try
-      let name1 = String.uncapitalize name in
-      let name2 = String.capitalize name in
+      let name1 = String.uncapitalize_ascii name in
+      let name2 = String.capitalize_ascii name in
       let names = (* check name with orignal case first *)
         if name1 = name then
           [ name1; name2 ]

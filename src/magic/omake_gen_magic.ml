@@ -143,7 +143,7 @@ let omake_magic (buf : out_channel)
   let tm =  Unix.(localtime (time ())) in 
   Printf.fprintf buf {|
 let default_save_interval = %F
-let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s
+let input_magic inx = let s = Bytes.make %d ' ' in really_input inx s 0 %d; Bytes.to_string s
 let output_magic = output_string
 let cache_magic = "%s"
 let ir_magic = "%s"

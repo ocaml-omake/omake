@@ -7,5 +7,5 @@ and documentation.
 
 Resources:
 
- - Travis: https://travis-ci.org/ocaml-omake/omake
-
+ - Travis (Linux and Mac CI): https://travis-ci.org/ocaml-omake/omake
+ - Appveyor (Windows CI): https://ci.appveyor.com/project/gerdstolpmann/omake

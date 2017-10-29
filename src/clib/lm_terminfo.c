@@ -33,8 +33,6 @@ static int loaded_terminfo = 0;
 
 static int load_terminfo() {
 
-   char *termname = NULL;
-
    /* Check to see if we already loaded the terminal data */
    if(loaded_terminfo) return(0);
 

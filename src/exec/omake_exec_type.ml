@@ -60,7 +60,7 @@ type ('exp, 'pid, 'value) shell =
    }
 
 type ('exp, 'pid, 'value) status_fun = Omake_exec_id.t -> ('exp, 'pid, 'value) print_flag -> unit
-type output_fun = Omake_exec_id.t -> string -> int -> int -> unit
+type output_fun = Omake_exec_id.t -> bytes -> int -> int -> unit
 
 (*
  * Internal execution server has a few extra functions.

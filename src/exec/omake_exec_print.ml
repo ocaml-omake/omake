@@ -157,8 +157,8 @@ let should_print options flag =
           false
 
 let print_status handle_out options shell remote name flag =
-   let print_flush () = handle_out "" 0 0 in
-   let out = make_formatter handle_out print_flush in
+   let print_flush () = handle_out (Bytes.create 0) 0 0 in
+   let out = byte_formatter handle_out print_flush in
    let pp_print_host buf =
       match remote with
          Some host ->

@@ -979,7 +979,7 @@ let get_registry venv pos loc (args : Omake_value_type.t list) : Omake_value_typ
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
   in
-  let hkey = String.uppercase (Omake_eval.string_of_value venv pos hkey) in
+  let hkey = String.uppercase_ascii (Omake_eval.string_of_value venv pos hkey) in
   let hkey_code =
     match hkey with
     | "HKEY_CLASSES_ROOT"   -> Lm_unix_util.HKEY_CLASSES_ROOT
@@ -989,13 +989,14 @@ let get_registry venv pos loc (args : Omake_value_type.t list) : Omake_value_typ
     | "HKEY_USERS"          -> Lm_unix_util.HKEY_USERS
     | s -> raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("unknown hkey", s)))
   in
-  let key = String.copy (Omake_eval.string_of_value venv pos key) in
+  let key = Bytes.of_string (Omake_eval.string_of_value venv pos key) in
   let () =
-    for i = 0 to String.length key - 1 do
-      if key.[i] = '/' then
-        key.[i] <- '\\'
+    for i = 0 to Bytes.length key - 1 do
+      if Bytes.get key i = '/' then
+        Bytes.set key i '\\'
     done
   in
+  let key = Bytes.to_string key in
   let field = Omake_eval.string_of_value venv pos field in
   try ValString (Lm_unix_util.registry_find hkey_code key field) with
     Not_found ->
@@ -1565,7 +1566,7 @@ let escape_length test extra s =
       collect 0 0
 
 let copy_string test add_escape esc_length src_length s =
-   let esc_string = String.create esc_length in
+   let esc_string = Bytes.create esc_length in
    let rec copy esc_index src_index =
       if src_index <> src_length then
          let c = s.[src_index] in
@@ -1579,7 +1580,7 @@ let copy_string test add_escape esc_length src_length s =
             end
    in
       copy 0 0;
-      esc_string
+      Bytes.to_string esc_string
 
 (*
  * Escape special symbols.
@@ -1635,9 +1636,9 @@ let id_char c =
       Char.chr (c + Char.code 'a')
 
 let id_add_quote s i c =
-   s.[i] <- '_';
-   s.[i + 1] <- id_char ((Char.code c) lsr 4);
-   s.[i + 2] <- id_char ((Char.code c) land 0x0f);
+   Bytes.set s i '_';
+   Bytes.set s (i + 1) (id_char ((Char.code c) lsr 4));
+   Bytes.set s (i + 2) (id_char ((Char.code c) land 0x0f));
    3
 
 let id_single_escaped s =
@@ -2382,7 +2383,7 @@ let capitalize venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.capitalize args in
+    let args = List.map String.capitalize_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2409,7 +2410,7 @@ let uncapitalize venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.uncapitalize args in
+    let args = List.map String.uncapitalize_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2435,7 +2436,7 @@ let uppercase venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.uppercase args in
+    let args = List.map String.uppercase_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2462,7 +2463,7 @@ let lowercase venv pos loc args =
   match args with
     [arg] ->
     let args = Omake_eval.strings_of_value venv pos arg in
-    let args = List.map String.lowercase args in
+    let args = List.map String.lowercase_ascii args in
     Omake_value.concat_strings args
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))

@@ -667,7 +667,7 @@ let venv_add_formatter_channel _venv fmt =
       raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
    in
    let writer s off len =
-      Format.pp_print_string fmt (String.sub s off len);
+      Format.pp_print_string fmt (Bytes.to_string (Bytes.sub s off len));
       len
    in
       Lm_channel.set_id fd index;
@@ -2183,7 +2183,7 @@ let create_environ () =
          let name = String.sub s 0 j in
          let name =
             if Sys.os_type = "Win32" then
-               String.uppercase name
+               String.uppercase_ascii name
             else
                name
          in

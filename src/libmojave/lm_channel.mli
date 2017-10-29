@@ -28,7 +28,7 @@ val set_id        : t -> int -> unit
 val of_string     : string -> t
 val of_substring  : string -> int -> int -> t
 val of_loc_string : string -> int -> int -> string -> t
-val of_fun        : (string -> int -> int -> int) -> (string -> int -> int -> int) -> t
+val of_fun        : (bytes -> int -> int -> int) -> (bytes -> int -> int -> int) -> t
 
 (* Output to strings *)
 val create_string     : unit -> t
@@ -46,8 +46,8 @@ val set_binary_mode : t -> bool -> unit
 
 (* The write function is arbitrary and can be replaced *)
 val set_io_functions : t ->
-   (string -> int -> int -> int) ->  (* Reader *)
-   (string -> int -> int -> int) ->  (* Writer *)
+   (bytes -> int -> int -> int) ->  (* Reader *)
+   (bytes -> int -> int -> int) ->  (* Writer *)
    unit
 
 (* Positioning *)
@@ -61,10 +61,10 @@ val poll          : t -> bool
 (* Buffered IO *)
 val input_char    : t -> char
 val input_byte    : t -> int
-val input_buffer  : t -> string -> int -> int -> unit
+val input_buffer  : t -> bytes -> int -> int -> unit
 val input_line    : t -> string
 val input_entire_line : t -> string
-val read          : t -> string -> int -> int -> int
+val read          : t -> bytes -> int -> int -> int
 
 (* Flush data to the channel *)
 val flush         : t -> unit
@@ -72,9 +72,9 @@ val flush         : t -> unit
 (* Buffered IO *)
 val output_char   : t -> char -> unit
 val output_byte   : t -> int -> unit
-val output_buffer : t -> string -> int -> int -> unit
+val output_buffer : t -> bytes -> int -> int -> unit
 val output_string : t -> string -> unit
-val write         : t -> string -> int -> int -> int
+val write         : t -> bytes -> int -> int -> int
 
 (* Select *)
 val select        : t list -> t list -> t list -> float -> t list * t list * t list

@@ -1020,7 +1020,7 @@ let search_target_in_path_aux fail venv cache pos loc path files name =
 
 let search_ocaml_target_in_path_aux venv cache pos _loc path files name =
   let names =
-    [ String.uncapitalize name; String.capitalize name ] in
+    [ String.uncapitalize_ascii name; String.capitalize_ascii name ] in
   match Omake_target.target_is_buildable_in_path cache venv pos path names with
     | Some node ->
         Omake_value_type.ValNode node :: files
@@ -1932,7 +1932,7 @@ let rm_aux unlink info filename =
             begin
                Lm_printf.printf "Remove %s? " filename;
                Lm_printf.flush Lm_printf.std_formatter;
-               match String.lowercase (Lm_string_util.trim (input_line stdin)) with
+               match String.lowercase_ascii (Lm_string_util.trim (input_line stdin)) with
                   "y" | "yes" ->
                      true
                 | _ ->
@@ -2125,7 +2125,7 @@ let mv_prompt info file1 file2 =
          if info.mv_interactive && Sys.file_exists file2 then
             begin
                Lm_printf.printf "Remove %s? @?" file2;
-               match String.lowercase (Lm_string_util.trim (input_line stdin)) with
+               match String.lowercase_ascii (Lm_string_util.trim (input_line stdin)) with
                   "y" | "yes" ->
                      true
                 | _ ->
@@ -2207,7 +2207,7 @@ let cp_file info file1 file2 =
       in
          try
             let max = 4096 in
-            let buffer = String.create max in
+            let buffer = Bytes.create max in
             let rec loop () =
                let count = Unix.read fdr buffer 0 max in
                   if count <> 0 then

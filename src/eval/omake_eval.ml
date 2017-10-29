@@ -39,7 +39,7 @@ let print_files =
     }
 
 let bool_of_string s =
-  match String.lowercase s with
+  match String.lowercase_ascii s with
   | ""
   | "0"
   | "no"

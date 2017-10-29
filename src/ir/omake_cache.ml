@@ -1566,7 +1566,7 @@ let ls_exe_path_win32 cache auto_rehash dirs =
                         let entries2 = ls_dir cache auto_rehash dir in
                            Lm_string_set.StringTable.fold (fun entries name _ ->
                                  let info = dir, name in
-                                 let name = String.lowercase name in
+                                 let name = String.lowercase_ascii name in
                                  let entries = Lm_string_set.StringMTable.add entries name info in
                                     if List.exists (Filename.check_suffix name) win32_suffixes then
                                        let name = Filename.chop_extension name in
@@ -1654,9 +1654,9 @@ let is_exe_cygwin cache dir s =
 
 let ls_exe_path, is_exe, name_exe, exe_suffixes =
    if Sys.os_type = "Win32" then
-      ls_exe_path_win32, is_exe_win32, String.lowercase, "" :: win32_suffixes
+      ls_exe_path_win32, is_exe_win32, String.lowercase_ascii, "" :: win32_suffixes
    else if Sys.os_type = "Cygwin" then
-      ls_exe_path_win32, is_exe_cygwin, String.lowercase, "" :: win32_suffixes
+      ls_exe_path_win32, is_exe_cygwin, String.lowercase_ascii, "" :: win32_suffixes
    else
       ls_exe_path_unix, is_exe_unix, (fun s -> s), [""]
 

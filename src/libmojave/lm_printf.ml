@@ -28,7 +28,11 @@ let prerr_string  = pp_print_string err_formatter
 let flush buf  = pp_print_flush buf ()
 let eflush buf = pp_print_newline buf ()
  
- 
+let byte_formatter out flush =
+  make_formatter
+    (fun s pos len -> out (Bytes.of_string (String.sub s pos len)) 0 len)
+    flush
+
  
 (*
 * List separated by semicolons.

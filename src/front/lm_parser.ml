@@ -1562,13 +1562,13 @@ struct
        * Build an array of the edges.
        *)
       let length = StateItem.length info.info_hash_state_item in
-      let marked = Array.create length false in
+      let marked = Array.make length false in
       let graph =
          match prop_edges with
             [] ->
                [||]
           | edge :: _ ->
-               let graph = Array.create length edge in
+               let graph = Array.make length edge in
                   List.iter (fun edge ->
                         graph.(StateItem.hash edge.prop_edge_src) <- edge) prop_edges;
                   graph

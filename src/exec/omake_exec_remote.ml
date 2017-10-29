@@ -40,8 +40,8 @@ type ('exp, 'pid, 'value) request =
 type ('exp, 'pid, 'value) response =
    ResponseCreate of bool
  | ResponseExited of Omake_exec_id.t * int * 'value
- | ResponseStdout of Omake_exec_id.t * string
- | ResponseStderr of Omake_exec_id.t * string
+ | ResponseStdout of Omake_exec_id.t * bytes
+ | ResponseStderr of Omake_exec_id.t * bytes
  | ResponseStatus of Omake_exec_id.t * ('exp, 'pid, 'value) print_flag
 
 (*
@@ -144,10 +144,10 @@ module Server = struct
    * Handle output.
    *)
   let handle_stdout id buf off len =
-    send_response (ResponseStdout (id, String.sub buf off len))
+    send_response (ResponseStdout (id, Bytes.sub buf off len))
                   
   let handle_stderr id buf off len =
-    send_response (ResponseStderr (id, String.sub buf off len))
+    send_response (ResponseStderr (id, Bytes.sub buf off len))
                   
   let handle_status id flag =
     send_response (ResponseStatus (id, flag))
@@ -395,7 +395,7 @@ type 'value job_state =
              raise (Invalid_argument "Omake_exec_remote.handle_stdout: no such job")
     in
     let { job_handle_out = handle_out ; _} = job in
-    handle_out id buf 0 (String.length buf);
+    handle_out id buf 0 (Bytes.length buf);
     false
 
  let handle_stderr server id buf =
@@ -405,7 +405,7 @@ type 'value job_state =
              raise (Invalid_argument "Omake_exec_remote.handle_stderr: no such job")
     in
     let { job_handle_err = handle_err ; _} = job in
-    handle_err id buf 0 (String.length buf);
+    handle_err id buf 0 (Bytes.length buf);
     false
 
  let handle_status server id flag =

@@ -1225,7 +1225,7 @@ and eval_shell_output venv pos loc e =
       let _ = Unix.lseek fd 0 Unix.SEEK_SET in
       let data = Bytes.create len in
       Lm_unix_util.really_read fd data 0 len;
-      Success data
+      Success (Bytes.to_string data)
     with
       exn ->
       Exception exn  in

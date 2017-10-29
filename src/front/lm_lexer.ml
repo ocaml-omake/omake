@@ -289,7 +289,7 @@ struct
             [|key, value|]
          else
             let i = binary_search table key (-1) len in
-            let new_array = Array.create (len + 1) (key, value) in
+            let new_array = Array.make (len + 1) (key, value) in
                Array.blit table 0 new_array 0 i;
                Array.blit table i new_array (i + 1) (len - i);
                new_array
@@ -1088,7 +1088,7 @@ struct
     *)
    and regex_chars_get_class chars name s i len =
      let charclass =
-       match String.lowercase name with
+       match String.lowercase_ascii name with
          "alnum" ->
          alnum_chars
        | "alpha" ->
@@ -1703,7 +1703,7 @@ struct
 
      (* Build the table *)
      let length = List.length states in
-     let table = Array.create length start in
+     let table = Array.make length start in
      let counters =
        let rec collect l i =
          if i = 0 then
@@ -2342,7 +2342,7 @@ struct
          (* Add to the state array *)
          let length = Array.length states in
          if dfa_id = length then
-           let new_states = Array.create (length * 2) dfa_state in
+           let new_states = Array.make (length * 2) dfa_state in
            Array.blit states 0 new_states 0 length;
            dfa.dfa_states <- new_states
          else
@@ -2639,7 +2639,7 @@ struct
      let map = DfaStateTable.empty in
      let map = DfaStateTable.add map nfa_start 0 in
      let map = DfaStateTable.add map nfa_search_start 1 in
-     let states = Array.create 64 start in
+     let states = Array.make 64 start in
      states.(1) <- search_start;
 
      { dfa_states        = states;

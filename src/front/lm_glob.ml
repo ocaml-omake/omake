@@ -61,7 +61,7 @@ let tilde_insert (dir : string) (name : string) =
          table.(i) <- dir, name)
     else
       let i = succ i in
-      let ntable = Array.create (len + 1) table.(0) in
+      let ntable = Array.make (len + 1) table.(0) in
       Array.blit table 0 ntable 0 i;
       ntable.(i) <- dir, name;
       Array.blit table i ntable (i + 1) (len - i);
@@ -97,11 +97,11 @@ let tilde_collapse dir =
     if len' <= len && tilde_matches dir' dir len' 0 then
       let namelen = String.length name in
       let length = len - len' + namelen + 1 in
-      let s = String.make length ' ' in
-      s.[0] <- '~';
-      String.blit name 0 s 1 namelen;
-      String.blit dir len' s (namelen + 1) (len - len');
-      s
+      let s = Bytes.make length ' ' in
+      Bytes.set s 0 '~';
+      Bytes.blit_string name 0 s 1 namelen;
+      Bytes.blit_string dir len' s (namelen + 1) (len - len');
+      Bytes.to_string s
     else
       dir
 

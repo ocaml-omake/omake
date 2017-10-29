@@ -1183,7 +1183,7 @@ let save_and_finish_scanner_success
       let options = env_options env in
       let divert_only = not (Omake_options.opt_output options OutputNormal) in
       let handle_err = Omake_exec_util.tee_stderr command.command_tee divert_only Omake_exec_id.null_id in
-      let out = Lm_printf.make_formatter handle_err (fun () -> handle_err "" 0 0) in
+      let out = Lm_printf.byte_formatter handle_err (fun () -> handle_err (Bytes.create 0) 0 0) in
       Format.fprintf out "@?*** omake: scanner produced ill-formed output@.";
       Omake_exec_print.pp_status_lines out options shell "scan" lines;
       Format.fprintf out "*** omake: @[<hv0>scanner output is saved in@ %s@]@." filename;
@@ -2261,7 +2261,7 @@ let print_summary ?(unlink = true) (env : Omake_build_type.t) =
   let inx = open_in_bin env.env_summary in
   let buffer = Bytes.create 256 in
   let rec copy () =
-    let amount = input inx buffer 0 (String.length buffer) in
+    let amount = input inx buffer 0 (Bytes.length buffer) in
     if amount > 0 then begin
       Pervasives.output Pervasives.stderr buffer 0 amount;
       copy ()

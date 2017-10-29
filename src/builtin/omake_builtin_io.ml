@@ -277,7 +277,7 @@ let read venv pos loc args =
          [fd; amount] ->
             let fd = Omake_value.channel_of_value venv pos fd in
             let amount = Omake_value.int_of_value venv pos amount in
-            let s = String.make amount '\000' in
+            let s = Bytes.make amount '\000' in
             let count =
                try Lm_channel.read fd s 0 amount with
                   Sys_error _
@@ -285,11 +285,11 @@ let read venv pos loc args =
                      raise (Omake_value_type.UncaughtException (pos, exn))
             in
                if count = amount then
-                  Omake_value_type.ValData s
+                  Omake_value_type.ValData (Bytes.to_string s)
                else if count = 0 then
                   raise (Omake_value_type.UncaughtException (pos, End_of_file))
                else
-                  ValData (String.sub s 0 count)
+                  ValData (Bytes.sub_string s 0 count)
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -370,7 +370,7 @@ let write venv pos loc args =
       String.length buf
   in
   let count =
-    try Lm_channel.write fd buf off len with
+    try Lm_channel.write fd (Bytes.of_string buf) off len with
       Sys_error _
     | Invalid_argument _ as exn ->
       raise (Omake_value_type.UncaughtException (pos, exn))
@@ -409,7 +409,7 @@ let lseek venv pos loc args =
     let fd = Omake_value.channel_of_value venv pos fd in
     let off = Omake_value.int_of_value venv pos off in
     let whence =
-      match String.uppercase (Omake_value.string_of_value venv pos whence) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos whence) with
         "SET" | "SEEK_SET" ->
         Unix.SEEK_SET
       | "CUR" | "CURRENT" | "SEEK_CUR" ->
@@ -1090,7 +1090,7 @@ let socket venv pos loc args =
   match args with
   | [domain; ty; proto] ->
     let domain =
-      match String.uppercase (Omake_value.string_of_value venv pos domain) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos domain) with
         "PF_UNIX"
       | "UNIX" ->
         Unix.PF_UNIX
@@ -1108,7 +1108,7 @@ let socket venv pos loc args =
         raise (Omake_value_type.OmakeException (loc_pos loc pos, StringStringError ("bad domain", domain)))
     in
     let ty =
-      match String.uppercase (Omake_value.string_of_value venv pos ty) with
+      match String.uppercase_ascii (Omake_value.string_of_value venv pos ty) with
         "SOCK_STREAM"
       | "STREAM" ->
         Unix.SOCK_STREAM
@@ -1588,7 +1588,7 @@ struct
     * Create the buffers and channels.
     *)
   let create_channel venv pos loc channel =
-    let fmt = Format.make_formatter (Lm_channel.output_buffer channel) (fun () -> Lm_channel.flush channel) in
+    let fmt = Lm_printf.byte_formatter (Lm_channel.output_buffer channel) (fun () -> Lm_channel.flush channel) in
     let fd = Omake_env.venv_add_formatter_channel venv fmt in
     let channel = Omake_env.venv_find_channel venv pos fd in
     { print_venv    = venv;

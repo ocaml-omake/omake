@@ -51,7 +51,7 @@ external fchdir : Unix.file_descr -> unit
 
 let spawn ?(chdir = Wd_keep) ?(pg = Pg_keep) ?(fd_actions = [])
           ?(sig_actions = []) ?(env = Unix.environment()) 
-          ?(no_posix_spawn=false) cmd args =
+          ?(no_posix_spawn=false) cmd args = (
   (* Check whether we can use the faster posix_spawn *)
   let use_posix_spawn =
     not no_posix_spawn &&
@@ -98,3 +98,4 @@ let spawn ?(chdir = Wd_keep) ?(pg = Pg_keep) ?(fd_actions = [])
           else
             sig_actions in
         compat_spawn chdir pg fd_actions sig_actions env cmd args
+  )[@ocaml.warning "-52"]

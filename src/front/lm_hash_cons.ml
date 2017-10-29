@@ -33,9 +33,9 @@ struct
      let table = state.ints in
      let len = Array.length table in
      if len = 0 then
-       state.ints <- Array.create 32 x
+       state.ints <- Array.make 32 x
      else if i = len then
-       let table2 = Array.create (len * 2) x in
+       let table2 = Array.make (len * 2) x in
        Array.blit table 0 table2 0 len;
        state.ints <- table2
      else

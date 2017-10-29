@@ -45,7 +45,7 @@ let eprint_file_exn copy name =
   Unix.close fd
 
 let rec copy_stderr buf fd =
-  let amount = Unix.read fd buf 0 (String.length buf) in
+  let amount = Unix.read fd buf 0 (Bytes.length buf) in
   if amount > 0 then begin
     let _ = Unix.write Unix.stderr buf 0 amount in
     copy_stderr buf fd
@@ -71,11 +71,11 @@ let rec format_string_with_nl buf s =
   end
 
 let rec copy_with_nl_exn out pending_nl buf fd =
-  let amount = Unix.read fd buf 0 (String.length buf) in
+  let amount = Unix.read fd buf 0 (Bytes.length buf) in
   if amount > 0 then begin
     if pending_nl then
       Format.pp_force_newline out ();
-    let pending_nl = format_string_with_nl out (String.sub buf 0 amount) in
+    let pending_nl = format_string_with_nl out (Bytes.sub_string buf 0 amount) in
     copy_with_nl_exn out pending_nl buf fd
   end
 

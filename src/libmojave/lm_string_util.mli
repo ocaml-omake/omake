@@ -239,11 +239,11 @@ val string_of_file : string -> string
 (*
  * Lm_debug versions of standard library.
  *)
-val create : string -> int -> string
+(* val create : string -> int -> string *)
 val make : string -> int -> char -> string
 val sub : string -> string -> int -> int -> string
-val blit : string -> string -> int -> string -> int -> int -> unit
-val set : string -> string -> int -> char -> unit
+(* val blit : string -> string -> int -> string -> int -> int -> unit *)
+(* val set : string -> string -> int -> char -> unit *)
 val get : string -> string -> int -> char
 
 (*
