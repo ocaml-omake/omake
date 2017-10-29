@@ -117,6 +117,7 @@ private.get_c_comp() =
     scan($(configch))
     case $"c_compiler:"
         return $(nth-tl 1, $*)
+    return $(string)
 
 private.get_bytecomp_cflags() =
     # since OCaml-4.06
@@ -125,6 +126,7 @@ private.get_bytecomp_cflags() =
     scan($(configch))
     case $"ocamlc_cflags:"
         return $(nth-tl 1, $*)
+    return $(string)
 
 private.get_bytecomp_cppflags() =
     # since OCaml-4.06
@@ -133,6 +135,7 @@ private.get_bytecomp_cppflags() =
     scan($(configch))
     case $"ocamlc_cppflags:"
         return $(nth-tl 1, $*)
+    return $(string)
 
 private.get_bytecomp_c_comp() =
     private.config = $(concat $(unhexify 0a), $(shella ocamlc -config)))
@@ -140,6 +143,7 @@ private.get_bytecomp_c_comp() =
     scan($(configch))
     case $"bytecomp_c_compiler:"
         return $(nth-tl 1, $*)
+    return $(string)
 
 .STATIC: :value: $(PATH)
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
@@ -177,7 +181,8 @@ private.get_bytecomp_c_comp() =
     # Figure out the params for the C compiler
     #
     private.c_comp = $(get_c_comp)
-    if $(equal X$(c_comp)X, XX))
+    echo c_comp=$(c_comp)
+    if $(equal $(c_comp), $(string))
         private.bytecomp_c_comp = $(get_bytecomp_c_comp)
         OCAML_CC = $(nth-hd 1, $(bytecomp_c_comp))
         OCAML_CFLAGS = $(nth-tl 1, $(bytecomp_c_comp))
