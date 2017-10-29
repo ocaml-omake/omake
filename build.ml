@@ -334,7 +334,8 @@ let do_action self vars action omake1 omake2 =
           [ "--dotomake"; ".omake"; "--force-dotomake"; "install" ]
     | `Clean ->
         safe_remove ".config";
-        find "boot" ".*" |> safe_remove_list;
+        if Sys.file_exists "boot" then
+          find "boot" ".*" |> safe_remove_list;
         find "."    ".*\\.omc" |> safe_remove_list;
         find "src"  ".*\\.cmi" |> safe_remove_list;
         find "src"  ".*\\.cmo" |> safe_remove_list;

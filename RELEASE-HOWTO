@@ -6,6 +6,7 @@
    ./doc/src/omake-doc.tex
 
 - rebuild
+  ./configure
   make clean
   make
 
