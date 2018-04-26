@@ -1460,10 +1460,13 @@ let rev_fun venv pos loc args : Omake_value_type.t =
  *       sequence : Sequence
  * \end{verbatim}
  *
- * The \verb+string+ function flattens a sequence into a single string.
+ * The \verb+string+ function flattens a non-empty sequence into a single string.
  * This is similar to the \verb+concat+ function, but the elements are
  * separated by whitespace.  The result is treated as a unit; whitespace
  * is significant.
+ *
+ * Note: function~\verb+string+ cannot construct an empty string;
+ * use \verb+$(empty-string)+ for that purpose.
  * \end{doc}
  *)
 let string venv pos loc args : Omake_value_type.t =
@@ -1475,6 +1478,25 @@ let string venv pos loc args : Omake_value_type.t =
     ValData s
   | _ ->
     raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{empty-string}
+ *
+ * \begin{verbatim}
+ *    $(empty-string) : String
+ * \end{verbatim}
+ *
+ * Answer an empty string.
+ * \end{doc}
+ *)
+let empty_string _venv pos loc args : Omake_value_type.t =
+  let pos' = string_pos "empty-string" pos
+  and n = List.length args in
+    if n = 0 then
+      ValData ""
+    else
+      raise (Omake_value_type.OmakeException (loc_pos loc pos', ArityMismatch (ArityExact 0, n)))
 
 (*
  * \begin{doc}
@@ -2847,6 +2869,7 @@ let () =
 
      (* String operations *)
      true,  "string",                string,              ArityExact 1;
+     true,  "empty-string",          empty_string,        ArityExact 0;
      true,  "string-escaped",        string_escaped,      ArityExact 1;
      true,  "string-length",         string_length,       ArityExact 1;
      true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
