@@ -1093,7 +1093,7 @@ let setvar venv pos loc args kargs =
  *        elements : Sequence
  * \end{verbatim}
  *
- * The \verb+array+ function creates an array from a sequence.
+ * The \verb+array+ function creates an array from a non-empty sequence.
  * If the \verb+<arg>+ is a string, the elements of the array
  * are the whitespace-separated elements of the string, respecting
  * quotes.
@@ -1110,6 +1110,9 @@ let setvar venv pos loc args kargs =
  * In this case, the elements of the array are exactly
  * \verb+<val1>+, ..., \verb+<valn>+, and whitespace is
  * preserved literally.
+ *
+ * Note: function~\verb+array+ cannot construct an empty array;
+ * use \verb+$(empty-array)+ for that purpose.
  * \end{doc}
 *)
 let array_fun venv pos _ args : Omake_value_type.t =
@@ -1120,6 +1123,27 @@ let array_fun venv pos _ args : Omake_value_type.t =
                List.rev_append args' args) [] args
    in
       ValArray (List.rev args)
+
+(*
+ * Create an empty array.
+ *
+ * \begin{doc}
+ * \fun{empty-array}
+ *
+ * \begin{verbatim}
+ *    $(empty-array) : Array
+ * \end{verbatim}
+ *
+ * Answer an empty array.
+ * \end{doc}
+ *)
+let empty_array_fun _venv pos loc args : Omake_value_type.t =
+  let pos' = string_pos "empty-array" pos
+  and n = List.length args in
+    if n = 0 then
+      ValArray []
+    else
+      raise (Omake_value_type.OmakeException (loc_pos loc pos', ArityMismatch (ArityExact 0, n)))
 
 (*
  * Concatenate the strings with a separator.
@@ -2913,6 +2937,7 @@ let () =
 
      (* List operations *)
      true,  "array",                 array_fun,           ArityAny;
+     true,  "empty-array",           empty_array_fun,     ArityExact 0;
      true,  "split",                 split_fun,           ArityRange (1, 2);
      true,  "concat",                concat_fun,          ArityExact 2;
      true,  "filter",                filter,              ArityExact 2;
