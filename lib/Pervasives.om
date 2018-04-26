@@ -72,8 +72,8 @@ shell-success-null(argv) =
    rm(-f $(tmp))
    return $(res)
 
-last(array) =
-   return $(nth $(sub $(length $(array)), 1), $(array))
+last(an_array) =
+   return $(nth $(sub $(length $(an_array)), 1), $(an_array))
 
 Bool(v) =
    value $(not $(not $v))
