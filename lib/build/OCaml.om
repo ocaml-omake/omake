@@ -117,7 +117,7 @@ private.get_c_comp() =
     scan($(configch))
     case $"c_compiler:"
         return $(nth-tl 1, $*)
-    return $(string)
+    return $(empty-string)
 
 private.get_bytecomp_cflags() =
     # since OCaml-4.06
@@ -126,7 +126,7 @@ private.get_bytecomp_cflags() =
     scan($(configch))
     case $"ocamlc_cflags:"
         return $(nth-tl 1, $*)
-    return $(string)
+    return $(empty-string)
 
 private.get_bytecomp_cppflags() =
     # since OCaml-4.06
@@ -135,7 +135,7 @@ private.get_bytecomp_cppflags() =
     scan($(configch))
     case $"ocamlc_cppflags:"
         return $(nth-tl 1, $*)
-    return $(string)
+    return $(empty-string)
 
 private.get_bytecomp_c_comp() =
     private.config = $(concat $(unhexify 0a), $(shella ocamlc -config)))
@@ -143,7 +143,7 @@ private.get_bytecomp_c_comp() =
     scan($(configch))
     case $"bytecomp_c_compiler:"
         return $(nth-tl 1, $*)
-    return $(string)
+    return $(empty-string)
 
 .STATIC: :value: $(PATH)
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)

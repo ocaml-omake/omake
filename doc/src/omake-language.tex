@@ -110,11 +110,11 @@ double-quotations is arbitrary.  The outermost quotations are not included in th
         The # character is not special"""
 \end{verbatim}
 
-Note that it is not possible to denote the empty string with this notation.
-As a workaround, call the \verb+string+ function without parameters, as in
+Note that it is \emph{not} possible to denote the empty string with
+this notation; use function~\verb+empty-string+ for that purpose
 
 \begin{verbatim}
-    EMPTY = $(string)
+    EMPTY = $(empty-string)
 \end{verbatim}
 
 \section{Function definitions}

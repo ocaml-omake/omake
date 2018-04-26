@@ -96,7 +96,7 @@ open configure/Configure
 # if foo-g++ exists, and fallback otherwise
 
 protected.toolchain-derive(cc, command, fallback) =
-    empty = $(array)
+    empty = $(empty-array)
     match $(cc)
     case $"\(.*\)-g?cc"
         fullcmd = $(concat $(empty), $1 $(command))
