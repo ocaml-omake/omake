@@ -7,11 +7,11 @@
 
 Shell commands, this is, commands to be executed by the operating system, can be freely mixed with
 other code.  The syntax of shell commands is similar but not identical to the syntax used by the
-Un*x-shell~\verb+bash+.
+Un*x-shell~\Cmd{bash}{1}.
 
 \textbf{NOTE}: the syntax and shell usage is identical on all platforms, including Win32.  To avoid
 portability problems on Win32, it is recommended that you avoid the use of the native shell
-interpreter \verb+cmd+.
+interpreter~\Cmd{cmd}{1}.
 
 \begin{verbatim}
     LIB = $(dir lib)
@@ -21,8 +21,8 @@ interpreter \verb+cmd+.
 
 Every command has an integer exit code, which is zero or some other integer.  A command is said to
 \emph{succeed} if its exit code is zero.  If a command terminates with a non-zero exit code,
-\verb+osh+ considers the execution to have failed and tells \verb+omake+ to abort the current
-\verb+omake+~process with an error.
+\Cmd{osh}{1} considers the execution to have failed and tells \OMake{} to abort the current process
+with an error.
 
 \section{Simple commands}
 
@@ -35,11 +35,11 @@ to this executable.  Here are some examples:
     echo Hello world
 \end{verbatim}
 
-The command is found using the current search path in the variable \verb+PATH[]+, which should
+The command is found using the current search path in the variable~\verb+PATH[]+, which should
 define an array of directories containing the favored executables.
 
 A command may be prefixed by environment variable definitions with the help of the
-utility~\verb+env+.
+utility~\Cmd{env}{1}.
 
 \begin{verbatim}
     # Prints "Hello world"
@@ -64,19 +64,19 @@ of regular expression.  Patterns are expanded before the function is executed.
    mv {hello,foo}.ml
 \end{verbatim}
 
-A comprehensive description of \OMake{} glob patterns is given in Section~\ref{section:globbing}.
+A comprehensive description of \OMake~glob patterns is given in Section~\ref{section:globbing}.
 
 \section{Background jobs}
 
 A command may also be placed in the background by placing an ampersand~(\verb+&+) after the command.
-Control returns to the shell without waiting for the job to complete.  The job continues to run in
-the background.
+Control immediately returns to the shell without waiting for the job to complete.  The job continues
+to run in the background.
 
 \begin{verbatim}
     gcc -o hugeprogram *.c &
 \end{verbatim}
 
-In \verb+osh+ the ampersand acts command terminator, whereas for \verb+bash+ it is a command
+In \Cmd{osh}{1} the ampersand acts command terminator, whereas for \Cmd{bash}{1} it is a command
 separator.
 
 \section{Command sequence}\label{section:command-sequence}
@@ -88,7 +88,7 @@ executed.  The exit codes of all other commands are \emph{ignored}.
 Notes:
 
 \begin{itemize}
-  \item In \verb+osh+ the semicolon strictly acts as a separator.
+  \item In \Cmd{osh}{1} the semicolon strictly acts as a separator.
   \item Each command in a sequence is executed in its own sub-shell.
   \item The property of ignoring all but the last command's exit code can be used to simulate
     GNU~Make's \verb+-+~command-prefix in recipes.
@@ -154,7 +154,7 @@ The pipeline's exit code is the value of the rightmost command to exit with a no
 if all commands exit successfully.  Note that this behavior is different from ordinary command
 sequences (see Section~\ref{section:command-sequence}) and from most other Un*x~shells (those which
 supply \verb+pipefail+ set it to \verb+false+ by default), but desirable inside
-\verb+omake+~recipes.
+\OMake~recipes.
 
 \section{Conditional execution}
 
@@ -176,7 +176,7 @@ succeeds.  The expression \verb+command1 || command2+ executes \verb+command2+ o
 Parenthesis are used for grouping in a pipeline or conditional command.  The grouped commands are
 executed in a separate sub-shell.
 
-In the following expression, the \verb+test+ function is used to test whether the \verb+foo.exe+
+In the following expression, the \verb+test+~function is used to test whether the \verb+foo.exe+
 file is executable.  If it is, the \verb+foo.exe+ file is executed.  If the file is not executable
 (or if the \verb+foo.exe+ command fails), the message \verb+"foo.exe is not executable"+ is printed.
 
@@ -185,7 +185,7 @@ file is executable.  If it is, the \verb+foo.exe+ file is executed.  If the file
    (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 \end{verbatim}
 
-Currently \verb+osh+ does not support grouping within the current shell as does Bash with curly
+Currently \Cmd{osh}{1} does not support grouping within the current shell as does Bash with curly
 braces~(\verb+{}+).
 
 \section{What is a shell command?}
