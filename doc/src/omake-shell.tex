@@ -107,8 +107,22 @@ tsort:
 
 \section{File redirection}
 
-Input and output can be redirected to files by using the \verb+<+, \verb+>+, and \verb+>&+
-directives after the command.
+The input and the output of a command can be redirected from and to files by adding redirection
+operators after the command.
+
+\begin{description}
+\item[Redirect input] \Prog{command} \verb+<+ \File{input-file}.
+
+\item[Redirect output] \Prog{command} \verb+>+ \File{output-file}, \Prog{command} \verb+>>+
+  \File{output-file}.  The first form truncates \File{output-file}, the
+  second form appends to it.
+
+\item[Redirect output and error messages] \Prog{command} \verb+>&+ \File{output-file},
+  \Prog{command} \verb+>>&+ \File{output-file}.  Again, the first form truncates \File{output-file}
+  and the second form appends to it.
+\end{description}
+
+Some examples:
 
 \begin{verbatim}
     # Write to the "foo" file
