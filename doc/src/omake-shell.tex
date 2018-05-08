@@ -5,13 +5,40 @@
 \label{chapter:shell}
 \cutname{omake-shell.html}
 
-Shell commands, this is, commands to be executed by the operating system, can be freely mixed with
-other code.  The syntax of shell commands is similar but not identical to the syntax used by the
+\section{What is considered a shell command?}
+
+Syntactically, shell commands are any line starting with
+\begin{itemize}
+\item The name of an executable, which is looked up along \verb+PATH[]+ if it is not specified with
+  a relative or an absolute path,
+\item A builtin, or
+\item An alias (see the documentation for the \hyperobj{Shell} for more information),
+\end{itemize}
+
+but \emph{not} one of the following:
+
+\begin{itemize}
+\item A variable definition of the form \verb+VAR=string+,
+\item A function call \verb+f(...)+ or method call \verb+o.f(...)+,
+\item A rule definition containing a colon \verb+string: ...+, or
+\item A special command, including the following:
+  \begin{itemize}
+  \item \verb+if ...+
+  \item \verb+switch ...+
+  \item \verb+match ...+
+  \item \verb+section ...+
+  \item \verb+return ...+
+  \end{itemize}
+\end{itemize}
+
+The syntax of shell commands is similar but not identical to the syntax used by the
 Un*x-shell~\Cmd{bash}{1}.
 
-\textbf{NOTE}: the syntax and shell usage is identical on all platforms, including Win32.  To avoid
-portability problems on Win32, it is recommended that you avoid the use of the native shell
+Note: The syntax and shell usage is identical on all platforms, including Win32.  To avoid
+portability problems on Win32, it is recommended to avoid the use of the native shell
 interpreter~\Cmd{cmd}{1}.
+
+Commands can be freely mixed with other code, for example
 
 \begin{verbatim}
     LIB = $(dir lib)
@@ -33,6 +60,7 @@ to this executable.  Here are some examples:
     ls
     ls -AF .
     echo Hello world
+    /usr/local/bin/cc --version
 \end{verbatim}
 
 The command is found using the current search path in the variable~\verb+PATH[]+, which should
@@ -44,6 +72,7 @@ utility~\Cmd{env}{1}.
 \begin{verbatim}
     # Prints "Hello world"
     env X="Hello world" Y=2 printenv X
+
     # Pass the include path to the Visual C++
     env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
 \end{verbatim}
@@ -68,7 +97,7 @@ A comprehensive description of \OMake~glob patterns is given in Section~\ref{sec
 
 \section{Background jobs}
 
-A command may also be placed in the background by placing an ampersand~(\verb+&+) after the command.
+A command may also be placed in the background by adding an ampersand~(\verb+&+) after the command.
 Control immediately returns to the shell without waiting for the job to complete.  The job continues
 to run in the background.
 
@@ -78,6 +107,8 @@ to run in the background.
 
 In \Cmd{osh}{1} the ampersand acts command terminator, whereas for \Cmd{bash}{1} it is a command
 separator.
+
+See Section~\ref{section:job-control-builtin-functions} for some built-in job-control commands.
 
 \section{Command sequence}\label{section:command-sequence}
 
@@ -187,27 +218,6 @@ file is executable.  If it is, the \verb+foo.exe+ file is executed.  If the file
 
 Currently \Cmd{osh}{1} does not support grouping within the current shell as does Bash with curly
 braces~(\verb+{}+).
-
-\section{What is a shell command?}
-
-Syntactically, shell commands are any line that is not one of the following:
-
-\begin{itemize}
-\item A variable definition of the form \verb+VAR=string+
-\item A function call \verb+f(...)+ or method call \verb+o.f(...)+
-\item A rule definition containing a colon \verb+string: ...+
-\item A special command, including the following:
-\begin{itemize}
-\item \verb+if ...+
-\item \verb+switch ...+
-\item \verb+match ...+
-\item \verb+section ...+
-\item \verb+return ...+
-\end{itemize}
-\end{itemize}
-
-Commands may also be builtin (aliases).  See the documentation for the
-\hyperobj{Shell} for more information.
 
 % -*-
 % Local Variables:
