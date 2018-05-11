@@ -168,7 +168,7 @@ CAMLprim value omake_shell_spawn_compat_nat(value v_chdir,
     sub_argv = malloc((Wosize_val(v_args) + 1) * sizeof(char *));
     if (sub_argv == NULL) MAIN_ERROR(ENOMEM, "Omake_shell_spawn/malloc [020]");
     for (k = 0; k < Wosize_val(v_args); k++) {
-	sub_argv[k] = String_val(Field(v_args, k));
+	sub_argv[k] = Bp_val(Field(v_args, k));
     }
     sub_argv[ Wosize_val(v_args)] = NULL;
     cleanup_sub_argv = 1;
@@ -176,7 +176,7 @@ CAMLprim value omake_shell_spawn_compat_nat(value v_chdir,
     sub_env = malloc((Wosize_val(v_env) + 1) * sizeof(char *));
     if (sub_env == NULL) MAIN_ERROR(ENOMEM, "Omake_shell_spawn/malloc [021]");
     for (k = 0; k < Wosize_val(v_env); k++) {
-	sub_env[k] = String_val(Field(v_env, k));
+	sub_env[k] = Bp_val(Field(v_env, k));
     }
     sub_env[ Wosize_val(v_env)] = NULL;
     cleanup_sub_env = 1;
@@ -585,7 +585,7 @@ CAMLprim value omake_shell_spawn_posix_nat(value v_pg,
     sub_argv = malloc((Wosize_val(v_args) + 1) * sizeof(char *));
     if (sub_argv == NULL) MAIN_ERROR(ENOMEM, "omake_shell_spawn_posix/malloc [1]");
     for (k = 0; k < Wosize_val(v_args); k++) {
-	sub_argv[k] = String_val(Field(v_args, k));
+	sub_argv[k] = Bp_val(Field(v_args, k));
     }
     sub_argv[ Wosize_val(v_args)] = NULL;
     cleanup_sub_argv = 1;
@@ -593,7 +593,7 @@ CAMLprim value omake_shell_spawn_posix_nat(value v_pg,
     sub_env = malloc((Wosize_val(v_env) + 1) * sizeof(char *));
     if (sub_env == NULL) MAIN_ERROR(ENOMEM, "omake_shell_spawn_posix/malloc [2]");
     for (k = 0; k < Wosize_val(v_env); k++) {
-	sub_env[k] = String_val(Field(v_env, k));
+	sub_env[k] = Bp_val(Field(v_env, k));
     }
     sub_env[ Wosize_val(v_env)] = NULL;
     cleanup_sub_env = 1;

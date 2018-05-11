@@ -1552,7 +1552,7 @@ value omake_readline(value v_prompt)
 
     /* Copy it to the buffer */
     v_str = caml_alloc_string(readp->length);
-    memcpy(String_val(v_str), readp->buffer, readp->length);
+    memcpy(Bp_val(v_str), readp->buffer, readp->length);
 
     /* Reset the current buffer */
     readp->index = 0;
@@ -1566,7 +1566,8 @@ value omake_readline(value v_prompt)
 value omake_readstring(value v_prompt, value v_buf, value v_off, value v_len)
 {
     int off, len, amount;
-    char *buf, *prompt;
+    char *buf;
+    const char *prompt;
 
     /* If the buffer is empty, read the next line */
     prompt = String_val(v_prompt);
@@ -1577,7 +1578,7 @@ value omake_readstring(value v_prompt, value v_buf, value v_off, value v_len)
     }
 
     /* Get as much as possible */
-    buf = String_val(v_buf);
+    buf = Bp_val(v_buf);
     off = Int_val(v_off);
     len = Int_val(v_len);
     amount = readp->length - readp->index;

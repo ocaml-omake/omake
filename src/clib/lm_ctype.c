@@ -61,7 +61,7 @@ static value get_chars(int (*f)(int))
             *p++ = (char) i;
     }
     s = alloc_string(p - buf);
-    memcpy(String_val(s), buf, p - buf);
+    memcpy(Bp_val(s), buf, p - buf);
     return s;
 }
 
