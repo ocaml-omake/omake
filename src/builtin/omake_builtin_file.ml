@@ -96,6 +96,39 @@ let dir venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{tmpdir}
+ *
+ * \begin{verbatim}
+ *     $(tmpdir prefix) : Dir
+ *     $(tmpdir prefix, suffix) : Dir
+ *         prefix : String
+ *         suffix : String
+ * \end{verbatim}
+ *
+ * The \verb+tmpdir+ function returns the name of a fresh temporary directory in
+ * the temporary directory.
+ *
+ * Override the current temporary directory from \OMake{} with \verb+setenv+.
+ *
+ * See also function~\verb+tmpfile+ for creating a single temporary file.
+ * \end{doc}
+ *)
+let tmpdir venv pos loc args : Omake_value_type.t =
+  let pos' = string_pos "tmpdir" pos in
+    let prefix, suffix =
+      match args with
+      | [prefix] ->
+         Omake_value.string_of_value venv pos' prefix, ".omake"
+      | [prefix; suffix] ->
+         Omake_value.string_of_value venv pos' prefix, Omake_value.string_of_value venv pos' suffix
+      | _ ->
+         raise (Omake_value_type.OmakeException (loc_pos loc pos',
+                                                 ArityMismatch (ArityRange (1, 2), List.length args)))
+    in
+      Omake_value_type.ValDir (Omake_env.venv_intern_dir venv (Lm_unix_util.temporary_directory prefix suffix))
+
+(*
+ * \begin{doc}
  * \fun{tmpfile}
  *
  * \begin{verbatim}
@@ -107,6 +140,22 @@ let dir venv pos loc args =
  *
  * The \verb+tmpfile+ function returns the name of a fresh temporary file in
  * the temporary directory.
+ *
+ * Override the current temporary directory from \OMake{} with \verb+setenv+.
+ *
+ * One typical usage of \verb+tmpfile+ is within a \verb+section+:
+ * \begin{verbatim}
+ *     section
+ *         setenv(TMPDIR, /dev/shm) # migrate to fast device
+ *         test_file = $(tmpfile compilation-test, .c)
+ *         try
+ *             # Do something with test_file, which might fail.
+ *             # ...
+ *         finally
+ *             rm -f $(test_file)
+ * \end{verbatim}
+ *
+ * See also function~\verb+tmpdir+ for creating a temporary directory.
  * \end{doc}
  *)
 let tmpfile venv pos loc args : Omake_value_type.t =
@@ -2868,6 +2917,7 @@ let () =
      true, "fullname",                fullname,                 ArityExact 1;
      true, "absname",                 absname,                  ArityExact 1;
      true, "suffix",                  suffix,                   ArityExact 1;
+     true, "tmpdir",                  tmpdir,                   ArityRange (1, 2);
      true, "tmpfile",                 tmpfile,                  ArityRange (1, 2);
      true, "file",                    file,                     ArityExact 1;
      true, "dir",                     dir,                      ArityExact 1;

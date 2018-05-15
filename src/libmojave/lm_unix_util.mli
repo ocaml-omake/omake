@@ -23,6 +23,11 @@ val really_read : Unix.file_descr -> bytes -> int -> int -> unit
 val copy_file : string -> string -> int -> unit
 
 (*
+ * Create a temporary directory.
+ *)
+val temporary_directory: ?root_directory:string -> string -> string -> string
+
+(*
  * Make all the directories in a path.
  *)
 val mkdirhier : string -> unit
