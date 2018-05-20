@@ -10,6 +10,7 @@ type eval_flag =
  * Diversion control.
  *)
 type output_flag =
+  | OutputDirect
   | OutputNormal
   | OutputPostponeSuccess
   | OutputPostponeError
@@ -338,6 +339,9 @@ let rec opt_output (opts : t) (flag : output_flag) : bool =
   | None, OutputPostponeSuccess ->
     (* off by default *)
     false
+  | None, OutputDirect ->
+    (* off by default *)
+    false
 
 let set_output_opt flag opts on =
    let flags = (flag, on) :: (List.remove_assoc flag opts.output) in
@@ -476,6 +480,9 @@ let output_spec =
 
     "-w", Lm_arg.SetFold set_print_dir_opt,
     "Print the directory in \"make format\" as commands are executed";
+
+    "--output-direct", Lm_arg.SetFold (set_output_opt OutputDirect),
+    "Do not redirect the output on the local machine in any way.";
 
     "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), 
     "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";

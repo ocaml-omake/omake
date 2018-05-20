@@ -87,6 +87,7 @@ sig
     * Start a command, and return the process ID.
     *)
    val spawn :
+      bool ->                                   (* Bypass all redirections? *)
       ('exp, 'pid, 'value) t ->                 (* Current state *)
       ('exp, 'pid, 'value) shell ->             (* The shell that does evaluation *)
       Omake_exec_id.t ->                                     (* Id for the new process *)
@@ -116,7 +117,7 @@ sig
    (*
     * Special actions for EOF. (Including closing fd's.)
     *)
-   val handle_eof : ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
+   val handle_eof : bool -> ('exp, 'pid, 'value) t -> Omake_options.t -> Unix.file_descr -> unit
 
    (*
     * Wait for any one of the commands to finish.
