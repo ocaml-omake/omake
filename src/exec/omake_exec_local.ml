@@ -129,7 +129,7 @@ type fd_state =
     * Start a command.  Takes the output channels, and returns a pid.
     *)
    let start_command direct_output _server (shell : _ Omake_exec_type.shell) stdout stderr command =
-     if direct_output (*match Sys.getenv_opt "OMAKE_OUTPUT_DIRECT" with Some _ -> true | None -> false*) then
+     if direct_output then
        shell.shell_eval Unix.stdout Unix.stderr command
      else
        shell.shell_eval stdout stderr command
