@@ -97,7 +97,7 @@ val command_list_head : Omake_build_type.t ->
   Omake_build_type.command_tag -> Omake_build_type.command
 
 val command_iter : Omake_build_type.t ->
-  Omake_build_type.command_tag -> (Omake_build_type.command -> 'a) -> unit
+  Omake_build_type.command_tag -> (Omake_build_type.command -> unit) -> unit
 
 val command_list_is_empty : Omake_build_type.t -> Omake_build_type.command_tag -> bool
 
