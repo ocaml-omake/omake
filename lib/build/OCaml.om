@@ -905,7 +905,7 @@ OCamlLinkSort(nodes) =
 #
 # \begin{verbatim}
 # CMXS_ENABLED = CMXS_SUPPORTED
-# \end{verbatime}
+# \end{verbatim}
 #
 # before calling \verb+OCamlLibrary+. For compatibility with older omake
 # versions, \verb+CMXS_ENABLED+ defaults to \verb+false+.
