@@ -254,8 +254,8 @@ val encode_hex_name : string -> string
 
 val fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
 val fold_lefti : ('a -> int -> char -> 'a) -> 'a -> string -> 'a
- 
+
 val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
 val fold_righti : (int -> char -> 'a -> 'a) -> string -> 'a -> 'a
 
-val iteri : (int -> char -> 'a) -> string -> unit
+val iteri : (int -> char -> unit) -> string -> unit

@@ -89,7 +89,7 @@ sig
    type id
 
    val enabled : bool
-   val create : ('a -> 'b) -> 'a -> t
+   val create : ('a -> unit) -> 'a -> t
    val self : unit -> t
    val join : t -> unit
    val id : t -> int

@@ -73,7 +73,7 @@ SCANNER_MODE = error
 #
 # OCaml options
 #
-OCAMLFLAGS[] = -safe-string -g -w -a-40
+OCAMLFLAGS[] = -safe-string -strict-sequence -g -w -a-40
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export

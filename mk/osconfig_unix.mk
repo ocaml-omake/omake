@@ -31,7 +31,7 @@ EXT_LIB = .a
 EXE =
 CCOMPTYPE = cc
 
-OCAMLFLAGS = -safe-string -g -w -40 $(OCAMLFLAGS_EXTRA)
+OCAMLFLAGS = -safe-string -strict-sequence -g -w -40 $(OCAMLFLAGS_EXTRA)
 THREADSLIB =
 THREADSLIB_OPT =
 PREFERRED = .byte
