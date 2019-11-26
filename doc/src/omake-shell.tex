@@ -5,12 +5,40 @@
 \label{chapter:shell}
 \cutname{omake-shell.html}
 
-Shell commands (commands to be executed by the operating system) can be freely mixed with other
-code.
+\section{What is considered a shell command?}
 
-\textbf{NOTE}: the syntax and shell usage is identical on all platforms, including Win32.  To avoid
-portability problems on Win32, it is recommended that you avoid the use of the native shell
-interpreter \verb+cmd+.
+Syntactically, shell commands are any line starting with
+\begin{itemize}
+\item The name of an executable, which is looked up along \verb+PATH[]+ if it is not specified with
+  a relative or an absolute path,
+\item A builtin, or
+\item An alias (see the documentation for the \hyperobj{Shell} for more information),
+\end{itemize}
+
+but \emph{not} one of the following:
+
+\begin{itemize}
+\item A variable definition of the form \verb+VAR=string+,
+\item A function call \verb+f(...)+ or method call \verb+o.f(...)+,
+\item A rule definition containing a colon \verb+string: ...+, or
+\item A special command, including the following:
+  \begin{itemize}
+  \item \verb+if ...+
+  \item \verb+switch ...+
+  \item \verb+match ...+
+  \item \verb+section ...+
+  \item \verb+return ...+
+  \end{itemize}
+\end{itemize}
+
+The syntax of shell commands is similar but not identical to the syntax used by the
+Un*x-shell~\Cmd{bash}{1}.
+
+Note: The syntax and shell usage is identical on all platforms, including Win32.  To avoid
+portability problems on Win32, it is recommended to avoid the use of the native shell
+interpreter~\Cmd{cmd}{1}.
+
+Commands can be freely mixed with other code, for example
 
 \begin{verbatim}
     LIB = $(dir lib)
@@ -18,26 +46,33 @@ interpreter \verb+cmd+.
     ls $(LIB)
 \end{verbatim}
 
+Every command has an integer exit code, which is zero or some other integer.  A command is said to
+\emph{succeed} if its exit code is zero.  If a command terminates with a non-zero exit code,
+\Cmd{osh}{1} considers the execution to have failed and tells \OMake{} to abort the current process
+with an error.
+
 \section{Simple commands}
 
-The syntax of shell commands is similar to the syntax used by the Unix shell \verb+bash+.  In
-general, a command is a \emph{pipeline}.  A basic command is part of a pipeline.  It is specified
-with the name of an executable and some arguments.  Here are some examples.
+A simple command is specified with the name of an executable optionally followed by arguments passed
+to this executable.  Here are some examples:
 
 \begin{verbatim}
     ls
     ls -AF .
     echo Hello world
+    /usr/local/bin/cc --version
 \end{verbatim}
 
-The command is found using the current search path in the variable \verb+PATH[]+, which should
-define an array of directories containing executables.
+The command is found using the current search path in the variable~\verb+PATH[]+, which should
+define an array of directories containing the favored executables.
 
-A command may also be prefixed by environment variable definitions.
+A command may be prefixed by environment variable definitions with the help of the
+utility~\Cmd{env}{1}.
 
 \begin{verbatim}
     # Prints "Hello world"
     env X="Hello world" Y=2 printenv X
+
     # Pass the include path to the Visual C++
     env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
 \end{verbatim}
@@ -58,22 +93,67 @@ of regular expression.  Patterns are expanded before the function is executed.
    mv {hello,foo}.ml
 \end{verbatim}
 
-A comprehensive description of \OMake{} glob patterns is given in Section~\ref{section:globbing}.
+A comprehensive description of \OMake~glob patterns is given in Section~\ref{section:globbing}.
 
 \section{Background jobs}
 
-The command may also be placed in the background by placing an ampersand after the command.  Control
-returns to the shell without waiting for the job to complete.  The job continues to run in the
-background.
+A command may also be placed in the background by adding an ampersand~(\verb+&+) after the command.
+Control immediately returns to the shell without waiting for the job to complete.  The job continues
+to run in the background.
 
 \begin{verbatim}
     gcc -o hugeprogram *.c &
 \end{verbatim}
 
+In \Cmd{osh}{1} the ampersand acts command terminator, whereas for \Cmd{bash}{1} it is a command
+separator.
+
+See Section~\ref{section:job-control-builtin-functions} for some built-in job-control commands.
+
+\section{Command sequence}\label{section:command-sequence}
+
+Sequence commands by separating them with a semi-colon~(\verb+;+).  The commands get executed from
+left to right.  The exit code of the whole sequence is the exit code of the \emph{last} command
+executed.  The exit codes of all other commands are \emph{ignored}.
+
+Notes:
+
+\begin{itemize}
+  \item In \Cmd{osh}{1} the semicolon strictly acts as a separator.
+  \item Each command in a sequence is executed in its own sub-shell.
+  \item The property of ignoring all but the last command's exit code can be used to simulate
+    GNU~Make's \verb+-+~command-prefix in recipes.
+\begin{verbatim}
+# GNU Make: ignore exit code of toposort
+tsort:
+        - toposort --in-place ids.list
+\end{verbatim}
+    becomes
+\begin{verbatim}
+# OMake
+tsort:
+        toposort --in-place ids.list; true
+\end{verbatim}
+\end{itemize}
+
 \section{File redirection}
 
-Input and output can be redirected to files by using the \verb+<+, \verb+>+, and \verb+>&+
-directives after the command.
+The input and the output of a command can be redirected from and to files by adding redirection
+operators after the command.
+
+\begin{description}
+\item[Redirect input] \Prog{command} \verb+<+ \File{input-file}.
+
+\item[Redirect output] \Prog{command} \verb+>+ \File{output-file}, \Prog{command} \verb+>>+
+  \File{output-file}.  The first form truncates \File{output-file}, the
+  second form appends to it.
+
+\item[Redirect output and error messages] \Prog{command} \verb+>&+ \File{output-file},
+  \Prog{command} \verb+>>&+ \File{output-file}.  Again, the first form truncates \File{output-file}
+  and the second form appends to it.
+\end{description}
+
+Some examples:
 
 \begin{verbatim}
     # Write to the "foo" file
@@ -88,9 +168,10 @@ directives after the command.
 
 \section{Pipelines}
 
-Pipelines are sequences of commands, where the output from each command is sent to the next.
-Pipelines are defined with the \verb+|+ and \verb+|&+ syntax.  With \verb+|+ the output is
-redirected, but errors are not.  With \verb+|&+ both output and errors are redirected.
+Pipelines are sequences of commands, where the output of the command on the left-hand side of the
+pipe~operator (\verb+|+ and \verb+|&+) is sent to the input of the command on the right-hand side.
+With \verb+|+ the output is redirected, but errors are not; with \verb+|&+ both output and errors
+are redirected.  Each command in a pipeline is executed in its own sub-shell.
 
 \begin{verbatim}
    # Send the output of the ls command to the printer
@@ -100,13 +181,18 @@ redirected, but errors are not.  With \verb+|&+ both output and errors are redir
    gcc -o hugefile *.c |& mail jyh
 \end{verbatim}
 
+The pipeline's exit code is the value of the rightmost command to exit with a non-zero code, or zero
+if all commands exit successfully.  Note that this behavior is different from ordinary command
+sequences (see Section~\ref{section:command-sequence}) and from most other Un*x~shells (those which
+supply \verb+pipefail+ set it to \verb+false+ by default), but desirable inside
+\OMake~recipes.
+
 \section{Conditional execution}
 
 Commands may also be composed though conditional evaluation using the \verb+||+ and \verb+&&+
-syntax.  Every command has an integer exit code, which may be zero or some other integer.  A command
-is said to \emph{succeed} if its exit code is zero.  The expression \verb+command1 && command2+
-executes \verb+command2+ only if \verb+command1+ succeeds.  The expression
-\verb+command1 || command2+ executes \verb+command2+ only if \verb+command1+ fails.
+syntax.  The expression \verb+command1 && command2+ executes \verb+command2+ only if \verb+command1+
+succeeds.  The expression \verb+command1 || command2+ executes \verb+command2+ only if
+\verb+command1+ fails.
 
 \begin{verbatim}
    # Display the x/y file if possible
@@ -118,36 +204,20 @@ executes \verb+command2+ only if \verb+command1+ succeeds.  The expression
 
 \section{Grouping}
 
-Parenthesis are used for grouping in a pipeline or conditional command.  In the following
-expression, the \verb+test+ function is used to test whether the \verb+foo.exe+ file is executable.
-If it is, the \verb+foo.exe+ file is executed.  If the file is not executable (or if the
-\verb+foo.exe+ command fails), the message \verb+"foo.exe is not executable"+ is printed.
+Parenthesis are used for grouping in a pipeline or conditional command.  The grouped commands are
+executed in a separate sub-shell.
+
+In the following expression, the \verb+test+~function is used to test whether the \verb+foo.exe+
+file is executable.  If it is, the \verb+foo.exe+ file is executed.  If the file is not executable
+(or if the \verb+foo.exe+ command fails), the message \verb+"foo.exe is not executable"+ is printed.
 
 \begin{verbatim}
    # Run foo.exe, or print an error message
    (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 \end{verbatim}
 
-\section{What is a shell command?}
-
-Syntactially, shell commands are any line that is not one of the following:
-
-\begin{itemize}
-\item A variable definition of the form \verb+VAR=string+
-\item A function call \verb+f(...)+ or method call \verb+o.f(...)+
-\item A rule definition containing a colon \verb+string: ...+
-\item A special command, including the following:
-\begin{itemize}
-\item \verb+if ...+
-\item \verb+switch ...+
-\item \verb+match ...+
-\item \verb+section ...+
-\item \verb+return ...+
-\end{itemize}
-\end{itemize}
-
-Commands may also be builtin (aliases).  See the documentation for the
-\hyperobj{Shell} for more information.
+Currently \Cmd{osh}{1} does not support grouping within the current shell as does Bash with curly
+braces~(\verb+{}+).
 
 % -*-
 % Local Variables:

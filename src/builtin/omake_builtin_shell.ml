@@ -225,6 +225,7 @@ let cd_fun venv pos loc args kargs =
 (*
  * \begin{doc}
  * \section{Job control builtin functions}
+ * \label{section:job-control-builtin-functions}
  * \fun{jobs}
  *
  * The \verb+jobs+ function prints a list of jobs.
