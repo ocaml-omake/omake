@@ -123,7 +123,6 @@ static char **readline_completion(char *omake_completion, const char *text)
     CAMLparam0();
     CAMLlocal2(request, response);
     char *namep, **completions;
-    value *callbackp;
     int i, length;
 
 #ifdef WIN32
@@ -131,15 +130,17 @@ static char **readline_completion(char *omake_completion, const char *text)
     (void) caml__dummy_request;
 #endif
 
-    /* Find the callback, abort if it doesn't exist */
-    callbackp = caml_named_value(omake_completion);
-    if(callbackp == 0 || *callbackp == 0)
-        CAMLreturnT(char **, 0);
+    {
+        /* Find the callback, abort if it doesn't exist */
+        const value *callbackp = caml_named_value(omake_completion);
+        if(callbackp == 0 || *callbackp == 0)
+            CAMLreturnT(char **, 0);
 
-    /* The callback returns an array of strings */
-    request = caml_copy_string(text);
-    response = caml_callback(*callbackp, request);
-    
+        /* The callback returns an array of strings */
+        request = caml_copy_string(text);
+        response = caml_callback(*callbackp, request);
+    }
+
     /* Copy the array of strings */
     length = Wosize_val(response);
     if(length == 0)
