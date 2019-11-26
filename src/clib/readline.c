@@ -123,7 +123,6 @@ static char **readline_completion(char *omake_completion, const char *text)
     CAMLparam0();
     CAMLlocal2(request, response);
     char *namep, **completions;
-    value *callbackp;
     int i, length;
 
 #ifdef WIN32
@@ -131,15 +130,17 @@ static char **readline_completion(char *omake_completion, const char *text)
     (void) caml__dummy_request;
 #endif
 
-    /* Find the callback, abort if it doesn't exist */
-    callbackp = caml_named_value(omake_completion);
-    if(callbackp == 0 || *callbackp == 0)
-        CAMLreturnT(char **, 0);
+    {
+        /* Find the callback, abort if it doesn't exist */
+        const value *callbackp = caml_named_value(omake_completion);
+        if(callbackp == 0 || *callbackp == 0)
+            CAMLreturnT(char **, 0);
 
-    /* The callback returns an array of strings */
-    request = caml_copy_string(text);
-    response = caml_callback(*callbackp, request);
-    
+        /* The callback returns an array of strings */
+        request = caml_copy_string(text);
+        response = caml_callback(*callbackp, request);
+    }
+
     /* Copy the array of strings */
     length = Wosize_val(response);
     if(length == 0)
@@ -1552,7 +1553,7 @@ value omake_readline(value v_prompt)
 
     /* Copy it to the buffer */
     v_str = caml_alloc_string(readp->length);
-    memcpy(String_val(v_str), readp->buffer, readp->length);
+    memcpy(Bp_val(v_str), readp->buffer, readp->length);
 
     /* Reset the current buffer */
     readp->index = 0;
@@ -1566,7 +1567,8 @@ value omake_readline(value v_prompt)
 value omake_readstring(value v_prompt, value v_buf, value v_off, value v_len)
 {
     int off, len, amount;
-    char *buf, *prompt;
+    char *buf;
+    const char *prompt;
 
     /* If the buffer is empty, read the next line */
     prompt = String_val(v_prompt);
@@ -1577,7 +1579,7 @@ value omake_readstring(value v_prompt, value v_buf, value v_off, value v_len)
     }
 
     /* Get as much as possible */
-    buf = String_val(v_buf);
+    buf = Bp_val(v_buf);
     off = Int_val(v_off);
     len = Int_val(v_len);
     amount = readp->length - readp->index;

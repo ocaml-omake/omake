@@ -29,7 +29,7 @@
 value ml_print_char(value v_fmt, value v_char)
 {
     char buffer[BUFSIZE];
-    char *fmt = String_val(v_fmt);
+    const char *fmt = String_val(v_fmt);
     char c = (char) Int_val(v_char);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, c) < 0)
@@ -47,7 +47,7 @@ value ml_print_char(value v_fmt, value v_char)
 value ml_print_int(value v_fmt, value v_int)
 {
     char buffer[BUFSIZE];
-    char *fmt = String_val(v_fmt);
+    const char *fmt = String_val(v_fmt);
     int i = Int_val(v_int);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, i) < 0)
@@ -66,7 +66,7 @@ value ml_print_int(value v_fmt, value v_int)
 value ml_print_float(value v_fmt, value v_float)
 {
     char buffer[BUFSIZE];
-    char *fmt = String_val(v_fmt);
+    const char *fmt = String_val(v_fmt);
     double x = Double_val(v_float);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, x) < 0)
@@ -85,7 +85,7 @@ value ml_print_string(value v_fmt, value v_string)
 {
     char buffer[BUFSIZE], *bufp;
     int len, size, code;
-    char *fmt, *s;
+    const char *fmt, *s;
     value v_result;
 
     /* Degenerate case if the format is %s */
@@ -130,7 +130,7 @@ value ml_print_string2(value v_width, value v_fmt, value v_string)
 {
     char buffer[BUFSIZE], *bufp;
     int width, len, size, code;
-    char *fmt, *s;
+    const char *fmt, *s;
     value v_result;
 
     /* Degenerate case if the format is %s */
