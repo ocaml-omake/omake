@@ -177,6 +177,7 @@ ALLOWED_HEVEA_VERSIONS[] =
     2.25
     2.28
     2.29
+    2.32
 
 public.HEVEA = hevea
 public.HACHA = hacha
