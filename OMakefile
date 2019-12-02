@@ -78,6 +78,8 @@ if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
 
+OCAMLOPTFLAGS[] = $(OCAMLFLAGS)
+
 #
 # Support for profiling
 #
