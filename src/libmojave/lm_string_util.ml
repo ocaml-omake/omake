@@ -84,6 +84,55 @@ let strchr s c =
   aux 0
 
  (*
+* Find a string in a another string starting at a given index.
+*)
+let string_index_from_opt a_haystack an_initial_index a_needle =
+  let rec is_prefix index_needle index_haystack =
+    index_needle < 0 ||
+      Char.equal (String.unsafe_get a_needle index_needle) (String.unsafe_get a_haystack index_haystack) &&
+        is_prefix (pred index_needle) (pred index_haystack) in
+    let length_haystack = String.length a_haystack
+    and pred_length_needle = pred (String.length a_needle) in
+      let rec search index_needle =
+        let index_haystack = an_initial_index + index_needle + pred_length_needle in
+          if index_haystack >= length_haystack then
+            None
+          else if is_prefix pred_length_needle index_haystack then
+            Some (an_initial_index + index_needle)
+          else
+            search (succ index_needle)
+      in
+        search 0
+
+ (*
+* Find/replace matching prefix in a string
+*)
+let substitute_prefix a_prefix a_replacement a_text =
+  match string_index_from_opt a_text 0 a_prefix with
+    None -> a_text
+  | Some _index ->
+     let length_prefix = String.length a_prefix in
+       a_replacement ^ String.sub a_text length_prefix (String.length a_text - length_prefix)
+
+ (*
+* Find/replace all occurrences in a string
+*)
+let substitute_all a_search_text a_replacement a_text =
+  let length_search_text = String.length a_search_text
+  and result = Buffer.create (String.length a_text) in
+    let rec replace_at initial_index =
+      match string_index_from_opt a_text initial_index a_search_text with
+        None ->
+         Buffer.add_substring result a_text initial_index (String.length a_text - initial_index)
+      | Some index ->
+         Buffer.add_substring result a_text initial_index (index - initial_index);
+         Buffer.add_string result a_replacement;
+         replace_at (index + length_search_text)
+    in
+      replace_at 0;
+      Buffer.contents result
+
+ (*
  * A more efficient reimplementation of String.contains.
 *)
 let contains =
