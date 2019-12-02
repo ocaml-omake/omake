@@ -560,14 +560,14 @@ if you really want to build this file.
             raise $(err)
         elseif $(target-exists %.mli)
             %.cmx %$(EXT_OBJ): %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCamlOpt) -c $<
+                $(OCamlOpt) -o $@ -c $<
         elseif $(BYTE_ENABLED)
             %.cmx %.cmi %$(EXT_OBJ) %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlC) -c $<
-                $(OCamlOpt) -c $<
+                $(OCamlC) -o $@ -c $<
+                $(OCamlOpt) -o $(replacesuffixes .cmx, $(EXT_OBJ), $@) -c $<
         else
             %.cmx %.cmi %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlOpt) -c $<
+                $(OCamlOpt) -o $@ -c $<
 
 %$(EXT_OBJ): %.ml
     section rule
@@ -583,14 +583,14 @@ if you really want to build this file.
             raise $(err)
         elseif $(target-exists %.mli)
             %$(EXT_OBJ) %.cmx: %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCamlOpt) -c $<
+                $(OCamlOpt) -o $@ -c $<
         elseif $(BYTE_ENABLED)
             %$(EXT_OBJ) %.cmi %.cmx %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlC) -c $<
-                $(OCamlOpt) -c $<
+                $(OCamlC) -o $(replacesuffixes $(EXT_OBJ), .cmo, $@) -c $<
+                $(OCamlOpt) -o $@ -c $<
         else
             %$(EXT_OBJ) %.cmi %.cmx: %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlOpt) -c $<
+                $(OCamlOpt) -o $@ -c $<
 
 # This is an experimental rule
 %.i.mli: %.ml
@@ -611,31 +611,31 @@ if you really want to build this file.
             raise $(err)
         elseif $(target-exists %.mli)
             %.cmo: %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCamlC) -c $<
+                $(OCamlC) -o $@ -c $<
         elseif $(NATIVE_ENABLED)
             %.cmo %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlC) -c $<
-                $(OCamlOpt) -c $<
+                $(OCamlC) -o $@ -c $<
+                $(OCamlOpt) -o $(replacesuffixes .cmo, .cmx, $@) -c $<
         else
             %.cmo %.cmi: %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlC) -c $<
+                $(OCamlC) -o $@ -c $<
 
 %.cmi: %.ml
     section rule
         if $(BYTE_ENABLED)
             if $(NATIVE_ENABLED)
                 %.cmi %.cmo %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                    $(OCamlC) -c $<
-                    $(OCamlOpt) -c $<
+                    $(OCamlC) -o $@ -c $<
+                    $(OCamlOpt) -o $(replacesuffixes .cmi, .cmx, $@) -c $<
             else
                 %.cmi %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCamlC) -c $<
+                    $(OCamlC) -o $@ -c $<
         else
             %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                $(OCamlOpt) -c $<
+                $(OCamlOpt) -o $@ -c $<
 
 %.cmi: %.mli :scanner: scan-ocaml-%.mli
-    $(OCamlC) -c $<
+    $(OCamlC) -o $@ -c $<
 
 # \begin{doc}
 # \fun{DeclareMLIOnly}
@@ -658,19 +658,19 @@ DeclareMLIOnly(modules) =
     foreach(mod => ..., $(modules))
         if $(BYTE_ENABLED)
             if $(NATIVE_ENABLED)
-               $(mod).cmi $(mod).cmo $(mod).cmx $(mod).o: $(mod).mli
-                   $(OCamlC) -c $(mod).mli
-                   $(OCamlC) -c -impl $(mod).mli
-                   $(OCamlOpt) -c -impl $(mod).mli
+               $(mod).cmi $(mod).cmo $(mod).cmx $(mod)$(EXT_OBJ): $(mod).mli
+                   $(OCamlC) -o $@ -c $(mod).mli
+                   $(OCamlC) -o $(replacesuffixes .cmi, .cmo, $@) -c -impl $(mod).mli
+                   $(OCamlOpt) -o $(replacesuffixes .cmi, .cmx, $@) -c -impl $(mod).mli
             else
                $(mod).cmi $(mod).cmo: $(mod).mli
-                   $(OCamlC) -c $(mod).mli
-                   $(OCamlC) -c -impl $(mod).mli
+                   $(OCamlC) -o $@ -c $(mod).mli
+                   $(OCamlC) -o $(replacesuffixes .cmi, .cmo, $@) -c -impl $(mod).mli
         else
-           $(mod).cmi $(mod).cmx $(mod).o: $(mod).mli
-               $(OCamlC) -c $(mod).mli
-               $(OCamlOpt) -c -impl $(mod).mli
-        
+           $(mod).cmi $(mod).cmx $(mod)$(EXT_OBJ): $(mod).mli
+               $(OCamlC) -o $@ -c $(mod).mli
+               $(OCamlOpt) -o $(replacesuffixes .cmi, .cmx, $@) -c -impl $(mod).mli
+
 
 ########################################################################
 # Parser generators
