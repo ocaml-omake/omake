@@ -226,6 +226,10 @@ public.OCAMLOPTLINK = $`(OCAMLOPT)
 # Include path
 #
 public.OCAMLINCLUDES[] = .
+section
+        vmounts = $(vmount-map)
+        OCAMLINCLUDES[] += $(vmounts.keys)
+        export OCAMLINCLUDES
 public.OCAMLINCLUDES_FOR_OCAMLDEP_MODULES[] = .
 public.PREFIXED_OCAMLINCLUDES = $`(mapprefix -I, $(OCAMLINCLUDES))
 
