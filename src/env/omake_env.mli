@@ -360,6 +360,8 @@ val venv_find_field_internal_exn  : Omake_value_type.obj -> Omake_ir.var -> Omak
 val venv_defined_field_internal   : Omake_value_type.obj -> Omake_ir.var -> bool
 val venv_object_fold_internal     : ('a -> Omake_ir.var -> Omake_value_type.t -> 'a) -> 'a -> Omake_value_type.obj -> 'a
 
+val venv_get_mount_listing    : t -> (Omake_node.Dir.t * Omake_node.Dir.t) list
+
 val venv_add_included_file    : t -> Omake_node.Node.t -> t
 val venv_is_included_file     : t -> Omake_node.Node.t -> bool
 val venv_find_ir_file_exn     : t -> Omake_node.Node.t -> Omake_ir.t

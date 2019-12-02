@@ -2802,6 +2802,37 @@ let vmount venv pos loc args kargs =
 
 (*
  * \begin{doc}
+ * \fun{vmount-map}
+ *
+ * \begin{verbatim}
+ *     vmount-map() : Map
+ * \end{verbatim}
+ *
+ * Answer a Map object with the currently active virtual mounts.
+ * \end{doc}
+ *)
+
+let vmount_table venv pos loc args =
+  let pos = string_pos "vmount-map" pos in
+    if args = [] then
+      let table = List.fold_left
+                    (fun partial_table (dest, src) ->
+                      (* Note that we swap source and destination here
+                       * to generate a map from the source directories
+                       * to the destination ("build") directories. *)
+                      Omake_env.venv_map_add partial_table pos (ValDir src) (ValDir dest))
+                    Omake_env.venv_map_empty
+                    (Omake_env.venv_get_mount_listing venv)
+      in
+        Omake_value_type.ValObject (Omake_env.venv_add_field_internal
+                                      (Omake_env.venv_find_object_or_empty venv Omake_var.map_object_var)
+                                      Omake_symbol.map_sym
+                                      (ValMap table))
+    else
+      raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
+
+(*
+ * \begin{doc}
  * \fun{add-project-directories}
  *
  * \begin{verbatim}
@@ -2916,7 +2947,8 @@ let () =
      true, "find-ocaml-targets-in-path-optional", find_ocaml_targets_in_path_optional, ArityExact 2;
 
      true, "add-project-directories", add_project_directories,  ArityExact 1;
-     true, "remove-project-directories", remove_project_directories,  ArityExact 1] in
+     true, "remove-project-directories", remove_project_directories,  ArityExact 1;
+     true, "vmount-map",              vmount_table,             ArityExact 0] in
   let builtin_kfuns =
     [true, "vmount",                  vmount,                   Omake_ir.ArityRange (2, 3);
     ]
