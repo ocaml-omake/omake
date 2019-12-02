@@ -73,13 +73,29 @@ let ocamldep_postproc venv pos loc args =
   let ext_obj_val = Omake_builtin_util.get_sym venv pos loc "EXT_OBJ" in
   let ext_obj = Omake_value.string_of_value venv pos ext_obj_val in
 
+  let mount_table =
+    let cwd = Omake_env.venv_dir venv in
+      List.sort
+        (fun (dest_a, _src_a) (dest_b, _src_b) ->
+          let delta_length = String.length dest_b - String.length dest_a in
+            if delta_length = 0 then String.compare dest_a dest_b else delta_length)
+        (List.map
+           (fun (dest_dir, src_dir) -> Omake_node.Dir.name cwd dest_dir, Omake_node.Dir.name cwd src_dir)
+           (Omake_env.venv_get_mount_listing venv)) in
+
+  let fix_vmounted_path path =
+      List.fold_left
+        (fun patched_path (dest, src) -> Lm_string_util.substitute_prefix src dest patched_path)
+        path
+        mount_table in
+
   let output_dep path target deps enable_cmx =
     let cmideps = accumulate_over_path path deps ".cmi" in
     let cmideps_str = String.concat " " (List.map String.escaped cmideps) in
     if Filename.check_suffix target ".mli" then
       begin
         if cmideps <> [] then
-          let targetbase = Filename.chop_suffix target ".mli" in
+          let targetbase = fix_vmounted_path (Filename.chop_suffix target ".mli") in
             Lm_channel.output_string
               stdout_fd
               (sprintf
@@ -90,7 +106,7 @@ let ocamldep_postproc venv pos loc args =
     else
       if Filename.check_suffix target ".ml" then
         begin
-          let targetbase = Filename.chop_suffix target ".ml" in
+          let targetbase = fix_vmounted_path (Filename.chop_suffix target ".ml") in
           let targetbase_esc = String.escaped targetbase in
           let cmxdeps =
             if enable_cmx then

@@ -493,10 +493,19 @@ public.OCamlScannerPostproc(input) =
     #
     protected.filename =
     protected.modules[] =
+    protected.vmounts = $(vmount-map)
+    protected.vmount_source_dirs = $(vmounts)
+    protected.compare_by_length_descending(a, b) =
+        delta_length = $(sub $(b.length), $(a.length))
+        value $(if $(eq $(delta_length), $(int 0)), $(compare $a, $b), $(delta_length))
+    protected.sorted_vmount_source_dirs = $(vmount_source_dirs.sort $(compare_by_length_descending))
     awk(b, $(input))
     case $'^\(.*\):[[:space:]]*\(.*\)$'
         PrintDependencies($(filename), $(modules))
         filename = $1
+        sorted_vmount_source_dirs.foreach(src) =>
+            filename = $(subst $(src), $(vmounts.find $(src)), $(filename))
+            export
         modules[] = $(split $' ', $2)
         export
     case $'^	\(.*\)'
