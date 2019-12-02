@@ -78,7 +78,25 @@ if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
 
-OCAMLOPTFLAGS[] = $(OCAMLFLAGS)
+static. =
+    OCAMLOPT_OPTIMIZER_FLAGS[] =
+    ConfMsgChecking($'if ocamlopt knows its own configuration')
+    if $(equal $(shell-code $(OCAMLOPT) -config >& /dev/null), 0)
+        ConfMsgResult($'yes')
+        ConfMsgChecking($'if ocamlopt was compiled with flambda')
+        HAVE_FLAMBDA = $(shell $(OCAMLOPT) -config-var flambda)
+        if $(equal $(HAVE_FLAMBDA), true)
+            ConfMsgResult($'yes')
+            OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
+            export
+        else
+            ConfMsgResult($'no')
+        export
+    else
+        ConfMsgResult($'no')
+
+OCAMLOPTFLAGS[] = $(OCAMLFLAGS) $(OCAMLOPT_OPTIMIZER_FLAGS)
+
 
 #
 # Support for profiling
