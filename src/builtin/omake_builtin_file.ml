@@ -94,6 +94,13 @@ let dir venv pos loc args =
        | _ ->
             raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
+let get_temp_dir_name venv =
+  let envvar = Lm_symbol.add (match Sys.os_type with "Win32" -> "TEMP" | _ -> "TMPDIR") in
+    try
+      let root_directory = Omake_env.venv_getenv venv envvar in
+        if root_directory = "" then "." else root_directory
+    with Not_found -> "."
+
 (*
  * \begin{doc}
  * \fun{tmpdir}
@@ -125,7 +132,9 @@ let tmpdir venv pos loc args : Omake_value_type.t =
          raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                  ArityMismatch (ArityRange (1, 2), List.length args)))
     in
-      Omake_value_type.ValDir (Omake_env.venv_intern_dir venv (Lm_unix_util.temporary_directory prefix suffix))
+      Omake_value_type.ValDir (Omake_env.venv_intern_dir
+                                 venv
+                                 (Lm_unix_util.temporary_directory ~root_directory:(get_temp_dir_name venv) prefix suffix))
 
 (*
  * \begin{doc}
@@ -169,7 +178,10 @@ let tmpfile venv pos loc args : Omake_value_type.t =
     | _ ->
       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
   in
-  ValNode (Omake_env.venv_intern venv PhonyProhibited (Filename.temp_file prefix suffix))
+    ValNode (Omake_env.venv_intern
+               venv
+               PhonyProhibited
+               (Filename.temp_file ~temp_dir:(get_temp_dir_name venv) prefix suffix))
 
 (*
  * Display something from a different directory.
