@@ -538,6 +538,44 @@ public.OCamlScanner(src_file) =
 # from being called twice: once to generate the .cmi file, and again
 # for the .cmo or .cmx file.
 #
+NativeCompilerNotEnabledBuildError. =
+        extends $(UnbuildableException)
+        class NativeCompilerNotEnabledBuildError
+
+        new(a_target) =
+                if $(OCAMLOPT_EXISTS)
+                        export
+                        message = $"""You are trying to build OCaml native-code file "$(a_target)".
+However, the NATIVE_ENABLED flag is not set.
+Include the following definition in the relevant OMakefile:
+        NATIVE_ENABLED = true"""
+                else
+                        export
+                        message = $"""You are trying to build OCaml native-code file "$(a_target)".
+However, no OCaml native-code compiler (ocamlopt or ocamlopt.opt) was found during configuration."""
+                this.target = $(a_target)
+                this.message = $(string $(message))
+                value $(this)
+
+ByteCompilerNotEnabledBuildError. =
+        extends $(UnbuildableException)
+        class ByteCompilerNotEnabledBuildError
+
+        new(a_target) =
+                if $(OCAMLC_EXISTS)
+                        export
+                        message = $"""You are trying to build OCaml byte-code file "$(a_target)".
+However, the BYTE_ENABLED flag is not set.
+Include the following definition in the relevant OMakefile:
+        BYTE_ENABLED = true"""
+                else
+                        export
+                        message = $"""You are trying to build OCaml byte-code file "$(a_target)".
+However, no OCaml byte-code compiler (ocamlc or ocamlc.opt) was found during configuration."""
+                this.target = $(a_target)
+                this.message = $(string $(message))
+                value $(this)
+
 public.OCamlC() =
     value $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
               $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
@@ -549,15 +587,7 @@ public.OCamlOpt() =
 %.cmx: %.ml
     section rule
         if $(not $(NATIVE_ENABLED))
-            err. =
-                extends $(UnbuildableException)
-                message = $(string $"You are trying to build OCaml native code file: "%.cmx$"
-However, the NATIVE_ENABLED flag is not set.
-Include the following definition in your OMakefile
-if you really want to build this file.
-       NATIVE_ENABLED = true")
-                target = $(file %.cmx)
-            raise $(err)
+            raise $(NativeCompilerNotEnabledBuildError.new $(file %.cmx))
         elseif $(target-exists %.mli)
             %.cmx %$(EXT_OBJ): %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlOpt) -c $<
@@ -572,15 +602,7 @@ if you really want to build this file.
 %$(EXT_OBJ): %.ml
     section rule
         if $(not $(NATIVE_ENABLED))
-            err. =
-                extends $(UnbuildableException)
-                message = $(string $"You are trying to build OCaml native code file: "%$(EXT_OBJ)$"
-However, the NATIVE_ENABLED flag is not set.
-Include the following definition in your OMakefile
-if you really want to build this file.
-       NATIVE_ENABLED = true")
-                target = $(file %.cmx)
-            raise $(err)
+            raise $(NativeCompilerNotEnabledBuildError.new $(file %$(EXT_OBJ)))
         elseif $(target-exists %.mli)
             %$(EXT_OBJ) %.cmx: %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlOpt) -c $<
@@ -595,20 +617,12 @@ if you really want to build this file.
 # This is an experimental rule
 %.i.mli: %.ml
     section rule
-	%.i.mli: %.ml %.cmi  :scanner: scan-ocaml-%.ml
+	%.i.mli: %.ml %.cmi :scanner: scan-ocaml-%.ml
 		$(OCamlC) -i -c %.ml > $@
 %.cmo: %.ml
     section rule
         if $(not $(BYTE_ENABLED))
-            err. =
-                extends $(UnbuildableException)
-                message = $(string $"You are trying to build OCaml native code file: "%.cmo$"
-However, the BYTE_ENABLED flag is not set.
-Include the following definition in your OMakefile
-if you really want to build this file.
-       BYTE_ENABLED = true")
-                target = $(file %.cmx)
-            raise $(err)
+            raise $(ByteCompilerNotEnabledBuildError.new $(file %.cmo))
         elseif $(target-exists %.mli)
             %.cmo: %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlC) -c $<
@@ -670,7 +684,7 @@ DeclareMLIOnly(modules) =
            $(mod).cmi $(mod).cmx $(mod).o: $(mod).mli
                $(OCamlC) -c $(mod).mli
                $(OCamlOpt) -c -impl $(mod).mli
-        
+
 
 ########################################################################
 # Parser generators
