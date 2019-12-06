@@ -345,7 +345,7 @@ public.OCAML_LIB_FLAGS =
 # \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} is true.
 #
 # \subsubsection{Automatic discovery of generated files during dependency analysis}
-# Having to specify the generated files manualy when \OMake{} could discover them automatically is
+# Having to specify the generated files manually when \OMake{} could discover them automatically is
 # obviously suboptimal.  To address this, we tell \verb+ocamldep+ to \emph{only}
 # find the free module names in a file and then post-process the results internally.
 #
@@ -424,7 +424,7 @@ public.PrintMLIDependencies(filename, cmideps) =
 
 public.PrintMLDependencies(filename, cmideps, cmxdeps) =
     protected.base = $(string-escaped $(removesuffix $(filename)))
-    protected.esc = $' \'
+    protected.esc = $' \' # '
     protected.text =
     if $(cmideps)
         cmideps = $(string-escaped $(cmideps))
@@ -538,43 +538,51 @@ public.OCamlScanner(src_file) =
 # from being called twice: once to generate the .cmi file, and again
 # for the .cmo or .cmx file.
 #
-NativeCompilerNotEnabledBuildError. =
+CompilerNotEnabledBuildError. =
         extends $(UnbuildableException)
+        class CompilerNotEnabledBuildError
+
+        new(a_target) =
+                this.target = $(a_target)
+                this.message = $"""Compiler to build "$(a_target)" is either not enabled or not available."""
+
+NativeCompilerNotEnabledBuildError. =
+        extends $(CompilerNotEnabledBuildError)
         class NativeCompilerNotEnabledBuildError
 
         new(a_target) =
+                this = $(CompilerNotEnabledBuildError::new $(a_target))
+                lead_in_sencence = $"""You are trying to build OCaml native-code file "$(a_target)"."""
                 if $(OCAMLOPT_EXISTS)
-                        export
-                        message = $"""You are trying to build OCaml native-code file "$(a_target)".
+                        this.message = $"""$(lead_in_sencence)
 However, the NATIVE_ENABLED flag is not set.
 Include the following definition in the relevant OMakefile:
         NATIVE_ENABLED = true"""
+                        return $(this)
                 else
-                        export
-                        message = $"""You are trying to build OCaml native-code file "$(a_target)".
-However, no OCaml native-code compiler (ocamlopt or ocamlopt.opt) was found during configuration."""
-                this.target = $(a_target)
-                this.message = $(string $(message))
-                value $(this)
+                        this.message = $"""$(lead_in_sencence)
+However, no OCaml native-code compiler (ocamlopt or ocamlopt.opt)
+was found during configuration."""
+                        return $(this)
 
 ByteCompilerNotEnabledBuildError. =
-        extends $(UnbuildableException)
+        extends $(CompilerNotEnabledBuildError)
         class ByteCompilerNotEnabledBuildError
 
         new(a_target) =
+                this = $(CompilerNotEnabledBuildError::new $(a_target))
+                lead_in_sencence = $"""You are trying to build OCaml byte-code file "$(a_target)"."""
                 if $(OCAMLC_EXISTS)
-                        export
-                        message = $"""You are trying to build OCaml byte-code file "$(a_target)".
+                        this.message = $"""$(lead_in_sencence)
 However, the BYTE_ENABLED flag is not set.
 Include the following definition in the relevant OMakefile:
         BYTE_ENABLED = true"""
+                        return $(this)
                 else
-                        export
-                        message = $"""You are trying to build OCaml byte-code file "$(a_target)".
-However, no OCaml byte-code compiler (ocamlc or ocamlc.opt) was found during configuration."""
-                this.target = $(a_target)
-                this.message = $(string $(message))
-                value $(this)
+                        this.message = $"""$(lead_in_sencence)
+However, no OCaml byte-code compiler (ocamlc or ocamlc.opt)
+was found during configuration."""
+                        return $(this)
 
 public.OCamlC() =
     value $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
@@ -617,8 +625,8 @@ public.OCamlOpt() =
 # This is an experimental rule
 %.i.mli: %.ml
     section rule
-	%.i.mli: %.ml %.cmi :scanner: scan-ocaml-%.ml
-		$(OCamlC) -i -c %.ml > $@
+        %.i.mli: %.ml %.cmi :scanner: scan-ocaml-%.ml
+                $(OCamlC) -i -c %.ml > $@
 %.cmo: %.ml
     section rule
         if $(not $(BYTE_ENABLED))
