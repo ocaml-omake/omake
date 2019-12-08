@@ -78,19 +78,23 @@ if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
 
+compiler_config(a_compiler) =
+        config = $(Map)
+        foreach(key_value_line => ..., $(shella $(a_compiler) -config))
+            export config
+            lex($(open-in-string $(key_value_line)))
+            case $'^\([^:]*\):[[:blank:]]*\(.*\)$'
+                export config
+                config = $(config.add $1, $2)
+        return $(config)
+
 static. =
+    OCAMLOPT_CONFIG = $(compiler_config $(OCAMLOPT))
     OCAMLOPT_OPTIMIZER_FLAGS[] =
-    ConfMsgChecking($'if ocamlopt knows its own configuration')
-    if $(equal $(shell-code $(OCAMLOPT) -config >& /dev/null), 0)
+    ConfMsgChecking($'if ocamlopt was compiled with flambda')
+    if $(and $(OCAMLOPT_CONFIG.mem flambda), $(equal $(OCAMLOPT_CONFIG.find flambda), true))
         ConfMsgResult($'yes')
-        ConfMsgChecking($'if ocamlopt was compiled with flambda')
-        HAVE_FLAMBDA = $(shell $(OCAMLOPT) -config-var flambda)
-        if $(equal $(HAVE_FLAMBDA), true)
-            ConfMsgResult($'yes')
-            OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
-            export
-        else
-            ConfMsgResult($'no')
+        OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
         export
     else
         ConfMsgResult($'no')
