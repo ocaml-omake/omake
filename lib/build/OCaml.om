@@ -552,15 +552,15 @@ NativeCompilerNotEnabledBuildError. =
 
         new(a_target) =
                 this = $(CompilerNotEnabledBuildError::new $(a_target))
-                lead_in_sencence = $"""You are trying to build OCaml native-code file "$(a_target)"."""
+                lead_in_sentence = $"""You are trying to build OCaml native-code file "$(a_target)"."""
                 if $(OCAMLOPT_EXISTS)
-                        this.message = $"""$(lead_in_sencence)
+                        this.message = $"""$(lead_in_sentence)
 However, the NATIVE_ENABLED flag is not set.
 Include the following definition in the relevant OMakefile:
         NATIVE_ENABLED = true"""
                         return $(this)
                 else
-                        this.message = $"""$(lead_in_sencence)
+                        this.message = $"""$(lead_in_sentence)
 However, no OCaml native-code compiler (ocamlopt or ocamlopt.opt)
 was found during configuration."""
                         return $(this)
@@ -571,15 +571,15 @@ ByteCompilerNotEnabledBuildError. =
 
         new(a_target) =
                 this = $(CompilerNotEnabledBuildError::new $(a_target))
-                lead_in_sencence = $"""You are trying to build OCaml byte-code file "$(a_target)"."""
+                lead_in_sentence = $"""You are trying to build OCaml byte-code file "$(a_target)"."""
                 if $(OCAMLC_EXISTS)
-                        this.message = $"""$(lead_in_sencence)
+                        this.message = $"""$(lead_in_sentence)
 However, the BYTE_ENABLED flag is not set.
 Include the following definition in the relevant OMakefile:
         BYTE_ENABLED = true"""
                         return $(this)
                 else
-                        this.message = $"""$(lead_in_sencence)
+                        this.message = $"""$(lead_in_sentence)
 However, no OCaml byte-code compiler (ocamlc or ocamlc.opt)
 was found during configuration."""
                         return $(this)
