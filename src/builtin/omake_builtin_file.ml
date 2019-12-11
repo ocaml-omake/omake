@@ -96,10 +96,8 @@ let dir venv pos loc args =
 
 let get_temp_dir_name venv =
   let envvar = Lm_symbol.add (match Sys.os_type with "Win32" -> "TEMP" | _ -> "TMPDIR") in
-    try
-      let root_directory = Omake_env.venv_getenv venv envvar in
-        if root_directory = "" then "." else root_directory
-    with Not_found -> "."
+    try Omake_env.venv_getenv venv envvar
+    with Not_found -> ""
 and default_temp_suffix = ".omake-temp"
 
 (*
@@ -127,28 +125,28 @@ and default_temp_suffix = ".omake-temp"
  *)
 let tmpdir venv pos loc args : Omake_value_type.t =
   let pos' = string_pos "tmpdir" pos in
-    let prefix, suffix, root_directory =
-      match args with
-      | [prefix] ->
-         Omake_value.string_of_value venv pos' prefix,
-         default_temp_suffix,
-         get_temp_dir_name venv
-      | [prefix; suffix] ->
-         Omake_value.string_of_value venv pos' prefix,
-         Omake_value.string_of_value venv pos' suffix,
-         get_temp_dir_name venv
-      | [prefix; suffix; root_directory'] ->
-         Omake_value.string_of_value venv pos' prefix,
-         Omake_value.string_of_value venv pos' suffix,
-         Omake_value.filename_of_value venv pos' root_directory'
-      | _ ->
-         raise (Omake_value_type.OmakeException (loc_pos loc pos',
-                                                 ArityMismatch (ArityRange (1, 3), List.length args)))
-    in
-      Omake_value_type.ValDir
-        (Omake_env.venv_intern_dir
-           venv
-           (Lm_unix_util.temporary_directory ~root_directory prefix suffix))
+  let prefix, suffix, root_directory =
+    match args with
+    | [prefix] ->
+       Omake_value.string_of_value venv pos' prefix,
+       default_temp_suffix,
+       get_temp_dir_name venv
+    | [prefix; suffix] ->
+       Omake_value.string_of_value venv pos' prefix,
+       Omake_value.string_of_value venv pos' suffix,
+       get_temp_dir_name venv
+    | [prefix; suffix; root_directory'] ->
+       Omake_value.string_of_value venv pos' prefix,
+       Omake_value.string_of_value venv pos' suffix,
+       Omake_value.filename_of_value venv pos' root_directory'
+    | _ ->
+       raise (Omake_value_type.OmakeException (loc_pos loc pos',
+                                               ArityMismatch (ArityRange (1, 3), List.length args)))
+  in
+    let directory_name = if root_directory = "" || root_directory = "."
+                         then Lm_unix_util.temporary_directory prefix suffix
+                         else Lm_unix_util.temporary_directory ~root_directory prefix suffix in
+      Omake_value_type.ValDir (Omake_env.venv_intern_dir venv directory_name)
 
 (*
  * \begin{doc}
@@ -204,10 +202,10 @@ let tmpfile venv pos loc args : Omake_value_type.t =
        raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                ArityMismatch (ArityRange (1, 3), List.length args)))
   in
-    Omake_value_type.ValNode (Omake_env.venv_intern
-                                venv
-                                PhonyProhibited
-                                (Filename.temp_file ~temp_dir prefix suffix))
+    let filename = if temp_dir = "" || temp_dir = "."
+                   then Filename.temp_file prefix suffix
+                   else Filename.temp_file ~temp_dir prefix suffix in
+      Omake_value_type.ValNode (Omake_env.venv_intern venv PhonyProhibited filename)
 
 (*
  * Display something from a different directory.
