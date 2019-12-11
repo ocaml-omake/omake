@@ -320,7 +320,8 @@ option \verb+-inline 10+, but files in \verb+my_project/src/lib+ are compiled no
 
 \section{OCaml~Library with C~Dependencies}
 
-Build an OCaml~library that depends on both, OCaml~code and C~code.
+Build the OCaml~library~\verb+libstring_extra+, which depends on both,
+OCaml~code and C~code.
 
 \begin{verbatim}
     lib/
@@ -330,39 +331,49 @@ Build an OCaml~library that depends on both, OCaml~code and C~code.
     |---> index_from_opt_interface.c
 \end{verbatim}
 
-The example \verb+libstring_extra+ defines the single
-function~\verb+index_from_opt+, which searches for the
-string~\verb+a_needle+ in the string~\verb+a_haystack+ starting at
-\verb+an_initial_index+ in \verb+a_haystack+; it returns \verb+None+
-if \verb+a_needle+ was not found or \verb+Some index+, where
-\verb+index+ is the starting index of \verb+a_needle+ in
-\verb+a_haystack+ (after \verb+an_initial_index+).
-
 This is the OCaml interface file~\verb+string_extra.mli+:
 
 \begin{verbatim}
-(** [index_from_opt a_haystack an_initial_index a_needle] *)
-external index_from_opt: string -> int -> string -> int option = "index_from_opt_interface"
+(** [index_from_opt a_haystack an_initial_index a_needle]
+ *  @raise Invalid_argument if the initial index is out of range. *)
+val index_from_opt: string -> int -> string -> int option
+
+(** [index_from a_haystack an_initial_index a_needle]
+ *  @raise Invalid_argument if the initial index is out of range.
+ *  @raise Not_found if there is no needle in haystack after the initial index. *)
+val index_from: string -> int -> string -> int
 \end{verbatim}
 
-In our example the OCaml code file~\verb+string_extra.ml+ has the same
-contents as the interface file.
+The associated OCaml code file~\verb+string_extra.ml+ looks like this:
+
+\begin{verbatim}
+external index_from_opt: string -> int -> string -> int option = "index_from_opt_interface"
+
+let index_from a_haystack an_initial_index a_needle =
+  match index_from_opt a_haystack an_initial_index a_needle with
+    None -> raise Not_found
+  | Some index -> index
+\end{verbatim}
 
 The C~code in \verb+index_from_opt_interface.c+ is gross because we
-want to play nice with OCaml's garbage collector.  Note that we must
-use function~\verb+memmem+ of the GNU C-library, because OCaml~strings
-are not null-terminated.
+must play nice with OCaml's garbage collector.  We use
+function~\verb+memmem+ of the GNU~C-library because OCaml~strings are
+not null-terminated.
 
 \begin{verbatim}
 #define _GNU_SOURCE           /* Pull memmem(3) into scope. */
+#include <string.h>           /* NULL, size_t; _GNU_SOURCE: memmem() */
 
-#include <string.h>           /* _GNU_SOURCE: memmem() */
-
+#define CAML_NAME_SPACE       /* Only define objects with "caml_" prefix. */
 #include <caml/alloc.h>       /* caml_alloc() */
-#include <caml/memory.h>      /* CAMLlocal1(), CAMLparam1(), CAMLparam3() */
-#include <caml/mlvalues.h>    /* value */
+#include <caml/fail.h>        /* caml_invalid_argument() */
+#include <caml/memory.h>      /* CAMLlocal1(), CAMLparam1(), CAMLparam3(),
+                               * CAMLreturn(), Store_field() */
+#include <caml/mlvalues.h>    /* Long_val(), String_val(), Val_int(),
+                               * caml_string_length(), value */
 
 #define Val_none Val_int(0)
+
 
 inline static
 value
@@ -377,19 +388,31 @@ Val_some(value a_value)
     CAMLreturn(some);
 }
 
-CAMLprim value
+
+CAMLprim
+value
 index_from_opt_interface(value a_haystack, value an_initial_index, value a_needle)
 {
     CAMLparam3(a_haystack, an_initial_index, a_needle);
 
     const char *const haystack = String_val(a_haystack);
-    const size_t initial_index = (size_t) Long_val(an_initial_index);
-    const char *const index = memmem(haystack + initial_index,
-                                     caml_string_length(a_haystack) - initial_index,
-                                     String_val(a_needle),
-                                     caml_string_length(a_needle));
+    const size_t haystack_length = caml_string_length(a_haystack);
+    const long initial_index = Long_val(an_initial_index);
 
-    CAMLreturn((index == NULL) ? Val_none : Val_some(Val_int(index - haystack)));
+    if (initial_index >= 0L && (size_t) initial_index < haystack_length)
+    {
+        const char *const index =
+             memmem(haystack + initial_index,
+                    caml_string_length(a_haystack) - (size_t) initial_index,
+                    String_val(a_needle),
+                    caml_string_length(a_needle));
+
+        CAMLreturn((index == NULL) ? Val_none : Val_some(Val_int(index - haystack)));
+    }
+    else
+    {
+        caml_invalid_argument("index_from_opt_interface");
+    }
 }
 \end{verbatim}
 
