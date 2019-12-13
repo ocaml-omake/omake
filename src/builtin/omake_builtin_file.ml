@@ -98,6 +98,10 @@ let get_temp_dir_name venv =
   let envvar = Lm_symbol.add (match Sys.os_type with "Win32" -> "TEMP" | _ -> "TMPDIR") in
     try Omake_env.venv_getenv venv envvar
     with Not_found -> ""
+and canonicalize_path a_path =
+  Lm_filename_util.split_path a_path |>
+    Lm_filename_util.simplify_path |>
+    Lm_filename_util.concat_path
 and default_temp_suffix = ".omake-temp"
 
 (*
@@ -125,7 +129,7 @@ and default_temp_suffix = ".omake-temp"
  *)
 let tmpdir venv pos loc args : Omake_value_type.t =
   let pos' = string_pos "tmpdir" pos in
-  let prefix, suffix, root_directory =
+  let prefix, suffix, directory =
     match args with
     | [prefix] ->
        Omake_value.string_of_value venv pos' prefix,
@@ -143,9 +147,13 @@ let tmpdir venv pos loc args : Omake_value_type.t =
        raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                ArityMismatch (ArityRange (1, 3), List.length args)))
   in
-    let directory_name = if root_directory = "" || root_directory = "."
-                         then Lm_unix_util.temporary_directory prefix suffix
-                         else Lm_unix_util.temporary_directory ~root_directory prefix suffix in
+    let root_directory = canonicalize_path directory in
+    let directory_name =
+      if root_directory = "" || root_directory = "." then
+        Lm_unix_util.temporary_directory prefix suffix
+      else
+        Lm_unix_util.temporary_directory ~root_directory prefix suffix
+    in
       Omake_value_type.ValDir (Omake_env.venv_intern_dir venv directory_name)
 
 (*
@@ -184,7 +192,7 @@ let tmpdir venv pos loc args : Omake_value_type.t =
  *)
 let tmpfile venv pos loc args : Omake_value_type.t =
   let pos' = string_pos "tmpfile" pos in
-  let prefix, suffix, temp_dir =
+  let prefix, suffix, directory =
     match args with
     | [prefix] ->
        Omake_value.string_of_value venv pos' prefix,
@@ -202,10 +210,14 @@ let tmpfile venv pos loc args : Omake_value_type.t =
        raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                ArityMismatch (ArityRange (1, 3), List.length args)))
   in
-    let filename = if temp_dir = "" || temp_dir = "."
-                   then Filename.temp_file prefix suffix
-                   else Filename.temp_file ~temp_dir prefix suffix in
-      Omake_value_type.ValNode (Omake_env.venv_intern venv PhonyProhibited filename)
+    let temp_dir = canonicalize_path directory in
+    let filename =
+      if temp_dir = "" || temp_dir = "." then
+        Filename.temp_file prefix suffix
+      else
+        Filename.temp_file ~temp_dir prefix suffix
+    in
+    Omake_value_type.ValNode (Omake_env.venv_intern venv PhonyProhibited filename)
 
 (*
  * Display something from a different directory.
