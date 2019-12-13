@@ -260,10 +260,10 @@ The listing is only a bit different.
 my_project/OMakeroot:
     # Include the standard configuration for OCaml applications
     open build/OCaml
-    
+
     # Process the command-line vars
     DefineCommandVars()
-    
+
     # Include the OMakefile in this directory.
     .SUBDIRS: .
 
@@ -317,6 +317,117 @@ my_project/src/main/OMakefile:
 In this case, most of the configuration here is defined in the file \verb+build/OCaml.om+.  In this
 particular configuration, files in \verb+my_project/src/lib+ are compiled aggressively with the
 option \verb+-inline 10+, but files in \verb+my_project/src/lib+ are compiled normally.
+
+\section{OCaml~Library with C~Dependencies}
+
+Build the OCaml~library~\verb+libstring_extra+, which depends on both,
+OCaml~code and C~code.
+
+\begin{verbatim}
+    lib/
+    |---> OMakefile
+    |---> string_extra.mli
+    |---> string_extra.ml
+    |---> index_from_opt_interface.c
+\end{verbatim}
+
+This is the OCaml interface file~\verb+string_extra.mli+:
+
+\begin{verbatim}
+(** [index_from_opt a_haystack an_initial_index a_needle]
+ *  @raise Invalid_argument if the initial index is out of range. *)
+val index_from_opt: string -> int -> string -> int option
+
+(** [index_from a_haystack an_initial_index a_needle]
+ *  @raise Invalid_argument if the initial index is out of range.
+ *  @raise Not_found if there is no needle in haystack after the initial index. *)
+val index_from: string -> int -> string -> int
+\end{verbatim}
+
+The associated OCaml code file~\verb+string_extra.ml+ looks like this:
+
+\begin{verbatim}
+external index_from_opt: string -> int -> string -> int option = "index_from_opt_interface"
+
+let index_from a_haystack an_initial_index a_needle =
+  match index_from_opt a_haystack an_initial_index a_needle with
+    None -> raise Not_found
+  | Some index -> index
+\end{verbatim}
+
+The C~code in \verb+index_from_opt_interface.c+ is gross because we
+must play nice with OCaml's garbage collector.  We use
+function~\verb+memmem+ of the GNU~C-library because OCaml~strings are
+not null-terminated.
+
+\begin{verbatim}
+#define _GNU_SOURCE           /* Pull memmem(3) into scope. */
+#include <string.h>           /* NULL, size_t; _GNU_SOURCE: memmem() */
+
+#define CAML_NAME_SPACE       /* Only define objects with "caml_" prefix. */
+#include <caml/alloc.h>       /* caml_alloc() */
+#include <caml/fail.h>        /* caml_invalid_argument() */
+#include <caml/memory.h>      /* CAMLlocal1(), CAMLparam1(), CAMLparam3(),
+                               * CAMLreturn(), Store_field() */
+#include <caml/mlvalues.h>    /* Long_val(), String_val(), Val_int(),
+                               * caml_string_length(), value */
+
+#define Val_none Val_int(0)
+
+
+inline static
+value
+Val_some(value a_value)
+{
+    CAMLparam1(a_value);
+    CAMLlocal1(some);
+
+    some = caml_alloc(1, 0);
+    Store_field(some, 0, a_value);
+
+    CAMLreturn(some);
+}
+
+
+CAMLprim
+value
+index_from_opt_interface(value a_haystack, value an_initial_index, value a_needle)
+{
+    CAMLparam3(a_haystack, an_initial_index, a_needle);
+
+    const char *const haystack = String_val(a_haystack);
+    const size_t haystack_length = caml_string_length(a_haystack);
+    const long initial_index = Long_val(an_initial_index);
+
+    if (initial_index >= 0L && (size_t) initial_index < haystack_length)
+    {
+        const char *const index =
+             memmem(haystack + initial_index,
+                    caml_string_length(a_haystack) - (size_t) initial_index,
+                    String_val(a_needle),
+                    caml_string_length(a_needle));
+
+        CAMLreturn((index == NULL) ? Val_none : Val_some(Val_int(index - haystack)));
+    }
+    else
+    {
+        caml_invalid_argument("index_from_opt_interface");
+    }
+}
+\end{verbatim}
+
+The \verb+OMakefile+ however is very simple; we just have to add the
+path to the OCaml~compiler's interface files to \verb+CFLAGS+.
+
+\begin{verbatim}
+OCAMLFLAGS = -g -strict-formats -strict-sequence -w +a
+CFLAGS = -O2 -g -Wall -Wextra -Wconversion -I$(OCAMLLIB)
+
+OCamlMixedLibrary(libstring_extra, string_extra, index_from_opt_interface)
+\end{verbatim}
+
+To use the library put \verb+OCAML_LIBS = libstring_extra+ in the
+relevant \verb+OMakefile+.
 
 \section{Handling new languages}
 \index{cats and dogs}

@@ -902,9 +902,10 @@ OCamlLinkSort(nodes) =
 # Generic rule to build an ML library
 #
 # \begin{doc}
+# \subsection{Building OCaml programs and Libraries}
 # \fun{OCamlLibrary}
 #
-# The \verb+OCamlLibrary+ function builds an OCaml library.
+# The \verb+OCamlLibrary+ function builds an OCaml~library.
 #
 # \verb+OCamlLibrary(<libname>, <files>)+
 #
@@ -921,49 +922,121 @@ OCamlLinkSort(nodes) =
 # OCamlLibrary(libfoo, foo bar)
 # \end{verbatim}
 #
-# If the variable \verb+CMXS_ENABLED+ is set, additionally the cmxs plugin
-# is created. Note that \verb+CMXS_SUPPORTED+ returns whether the compiler
+# If the variable \verb+CMXS_ENABLED+ is set, additionally the cmxs~plugin
+# is created.  Note that \verb+CMXS_SUPPORTED+ returns whether the compiler
 # installation supports plugins, so you can simply set
 #
 # \begin{verbatim}
 # CMXS_ENABLED = CMXS_SUPPORTED
 # \end{verbatim}
 #
-# before calling \verb+OCamlLibrary+. For compatibility with older omake
+# before calling \verb+OCamlLibrary+.  For compatibility with older omake
 # versions, \verb+CMXS_ENABLED+ defaults to \verb+false+.
 # \end{doc}
 #
-public.OCamlLibrary(name, files) =
-   # XXX: JYH: these variables should be marked private in 0.9.9
-   protected.name = $(file $(name))
+public.OCamlLibrary(library_name, ocaml_module_names) =
+        # XXX: JYH: these variables should be marked private in 0.9.9
+        protected.LIBRARY_NAME = $(file $(library_name))
 
-   protected.OFILES   = $(addsuffix $(EXT_OBJ), $(files))
-   protected.CMOFILES = $(addsuffix .cmo, $(files))
-   protected.CMXFILES = $(addsuffix .cmx, $(files))
+        protected.OFILES = $(addsuffix $(EXT_OBJ), $(ocaml_module_names))
+        protected.CMOFILES = $(addsuffix .cmo, $(ocaml_module_names))
+        protected.CMXFILES = $(addsuffix .cmx, $(ocaml_module_names))
 
-   protected.CLIB      = $(file $(name)$(EXT_LIB))
-   protected.BYTELIB   = $(file $(name).cma)
-   protected.NATIVELIB = $(file $(name).cmxa)
-   protected.SHAREDLIB = $(file $(name).cmxs)
+        protected.CLIB = $(file $(LIBRARY_NAME)$(EXT_LIB))
+        protected.BYTELIB = $(file $(LIBRARY_NAME).cma)
+        protected.NATIVELIB = $(file $(LIBRARY_NAME).cmxa)
+        protected.SHAREDLIB = $(file $(LIBRARY_NAME).cmxs)
 
-   #
-   # Link commands
-   #
-   $(BYTELIB): $(CMOFILES)
-        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS) \
-                $(OCAML_LIB_FLAGS) -a -o $@ $(OCamlLinkSort $(CMOFILES))
+        #
+        # Link commands
+        #
+        $(BYTELIB): $(CMOFILES)
+                $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                          $(OCAMLFLAGS) $(OCAMLCFLAGS)  \
+                                          $(OCAML_LIB_FLAGS) -a  \
+                                          -o $@  \
+                                          $(OCamlLinkSort $(CMOFILES))
 
-   $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
-        $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) \
-                $(OCAML_LIB_FLAGS) -a -o $(NATIVELIB) $(OCamlLinkSort $(CMXFILES))
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
+                $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                             $(OCAMLFLAGS) $(OCAMLOPTFLAGS)  \
+                                             $(OCAML_LIB_FLAGS) -a  \
+                                             -o $(NATIVELIB)  \
+                                             $(OCamlLinkSort $(CMXFILES))
 
-   $(SHAREDLIB): $(NATIVELIB) $(CLIB)
-      $(OCAMLFIND) $(OCAMLOPTLINK) -shared -cclib -L. -o $(SHAREDLIB) $(NATIVELIB)
+        $(SHAREDLIB): $(NATIVELIB) $(CLIB)
+                $(OCAMLFIND) $(OCAMLOPTLINK) -shared -cclib -L. -o $@ $(NATIVELIB)
 
-   return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)), $(if $(CMXS_ENABLED), $(SHAREDLIB)))
+        return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)),  \
+                       $(if $(NATIVE_ENABLED), $(CLIB)),  \
+                       $(if $(BYTE_ENABLED), $(BYTELIB)),  \
+                       $(if $(CMXS_ENABLED), $(SHAREDLIB)))
 
 #
-# Generic rule to build an ML library
+# Generic rule to build an ML library that also depends on foreign (e.g. C) objects
+#
+# \begin{doc}
+# \fun{OCamlMixedLibrary}
+#
+# The \verb+OCamlMixedLibrary+ function builds an OCaml~library from
+# ML~files and foreign objects.
+#
+# \verb+OCamlMixedLibrary(<libname>, <ml-files>, <foreign-files>)+
+#
+# It is particularly useful if one or more ml-files contain
+# \verb+external+~definitions that are satisifed by the foreign-files.
+# It works similarly to \verb+OCamlLibrary+, but also
+# \begin{enumerate}
+#   \item adds dependencies of \verb+<foreign-files>+ to
+#         \verb+<libname>+ and
+#   \item appends all objects defined by \verb+<foreign-files>+ to
+#         \verb+<libname>+.
+# \end{enumerate}
+#
+# The \verb+<libname>+, \verb+<files>+, and \verb+<foreign-files>+ are
+# listed \emph{without} suffixes.
+# \end{doc}
+#
+public.OCamlMixedLibrary(library_name, ocaml_module_names, foreign_module_names) =
+        protected.LIBRARY_NAME = $(file $(library_name))
+
+        protected.OFILES = $(addsuffix $(EXT_OBJ), $(ocaml_module_names))
+        protected.FOREIGN_OFILES = $(addsuffix $(EXT_OBJ), $(foreign_module_names))
+        protected.CMOFILES = $(addsuffix .cmo, $(ocaml_module_names))
+        protected.CMXFILES = $(addsuffix .cmx, $(ocaml_module_names))
+
+        protected.CLIB = $(file $(LIBRARY_NAME)$(EXT_LIB))
+        protected.BYTELIB = $(file $(LIBRARY_NAME).cma)
+        protected.NATIVELIB = $(file $(LIBRARY_NAME).cmxa)
+        protected.SHAREDLIB = $(file $(LIBRARY_NAME).cmxs)
+
+        #
+        # Link commands
+        #
+        $(BYTELIB): $(CMOFILES) $(FOREIGN_OFILES)
+                $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                          $(OCAMLFLAGS) $(OCAMLCFLAGS)  \
+                                          $(OCAML_LIB_FLAGS) -a  \
+                                          -o $@  \
+                                          $(OCamlLinkSort $(CMOFILES)) $(FOREIGN_OFILES)
+
+        $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES) $(FOREIGN_OFILES)
+                $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                             $(OCAMLFLAGS) $(OCAMLOPTFLAGS)  \
+                                             $(OCAML_LIB_FLAGS) -a  \
+                                             -o $(NATIVELIB)  \
+                                             $(OCamlLinkSort $(CMXFILES)) $(FOREIGN_OFILES)
+
+        $(SHAREDLIB): $(NATIVELIB) $(CLIB)
+                $(OCAMLFIND) $(OCAMLOPTLINK) -shared -cclib -L. -o $@ $(NATIVELIB)
+
+        return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)),  \
+                       $(if $(NATIVE_ENABLED), $(CLIB)),  \
+                       $(if $(BYTE_ENABLED), $(BYTELIB)),  \
+                       $(if $(CMXS_ENABLED), $(SHAREDLIB)))
+
+#
+# Generic rule to build an ML package
 #
 # \begin{doc}
 # \fun{OCamlPackage}
@@ -1198,73 +1271,170 @@ public.OCamlLibraryInstall(tag, lib, name, files) =
 # \begin{doc}
 # \fun{OCamlProgram}
 #
-# The \verb+OCamlProgram+ function builds an OCaml program. It returns the array with all
-# the targets for which it has defined the rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+
-# and/or \verb+$(name).opt+, depending on the \verb+NATIVE_ENABLED+ and \verb+BYTE_ENABLED+
-# variables).
+# The \verb+OCamlProgram+~function builds an OCaml~program.  It
+# returns the array with all the targets for which it has defined the
+# rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+ and/or
+# \verb+$(name).opt+, depending on the \verb+NATIVE_ENABLED+ and
+# \verb+BYTE_ENABLED+ variables).
 #
 # \verb+OCamlProgram(<name>, <files>)+
 #
 # Additional variables used:
 # \begin{description}
-# \item[\hypervarxn{OCAML_LIBS}{OCAML\_LIBS}] Additional libraries passed to the linker, without suffix.  These files
+# \item[\hypervarxn{OCAML_LIBS}{OCAML\_LIBS}] Additional libraries
+#    passed to the linker, without suffix.  These files
 #    become dependencies of the target program.
-# \item[\hypervarxn{OCAML_OTHER_LIBS}{OCAML\_OTHER\_LIBS}] Additional libraries passed to the linker, without suffix.  These
+# \item[\hypervarxn{OCAML_OTHER_LIBS}{OCAML\_OTHER\_LIBS}] Additional
+#    libraries passed to the linker, without suffix.  These
 #    files do \emph{not} become dependencies of the target program.
-# \item[\hypervarxn{OCAML_CLIBS}{OCAML\_CLIBS}] C libraries to pass to the linker.
-# \item[\hypervarxn{OCAML_BYTE_LINK_FLAGS}{OCAML\_BYTE\_LINK\_FLAGS}] Flags to pass to the bytecode linker.
-# \item[\hypervarxn{OCAML_NATIVE_LINK_FLAGS}{OCAML\_NATIVE\_LINK\_FLAGS}] Flags to pass to the native code linker.
-# \item[\hypervarxn{OCAML_LINK_FLAGS}{OCAML\_LINK\_FLAGS}] Flags to pass to both linkers.
+# \item[\hypervarxn{OCAML_CLIBS}{OCAML\_CLIBS}] C~libraries to pass to
+#    the linker.
+# \item[\hypervarxn{OCAML_BYTE_LINK_FLAGS}{OCAML\_BYTE\_LINK\_FLAGS}] Flags
+#    to pass to the bytecode~linker.
+# \item[\hypervarxn{OCAML_NATIVE_LINK_FLAGS}{OCAML\_NATIVE\_LINK\_FLAGS}] Flags
+#    to pass to the native-code~linker.
+# \item[\hypervarxn{OCAML_LINK_FLAGS}{OCAML\_LINK\_FLAGS}] Flags to
+#    pass to both linkers.
 # \end{description}
 # \end{doc}
 #
-public.OCamlProgram(name, files) =
-   # XXX: JYH: these variables should be marked private in 0.9.9
-   protected.CMOFILES  = $(addsuffix .cmo, $(files))
-   protected.CMXFILES  = $(addsuffix .cmx, $(files))
-   protected.OFILES    = $(addsuffix $(EXT_OBJ), $(files))
+public.OCamlProgram(program_name, ocaml_module_names) =
+        # XXX: JYH: these variables should be marked private in 0.9.9
+        protected.PROGRAM_NAME = $(file $(program_name))
 
-   protected.CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
-   protected.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
-   protected.ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
-   protected.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
-   protected.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+        protected.CMOFILES = $(addsuffix .cmo, $(ocaml_module_names))
+        protected.CMXFILES = $(addsuffix .cmx, $(ocaml_module_names))
+        protected.OFILES = $(addsuffix $(EXT_OBJ), $(ocaml_module_names))
 
-   protected.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+        protected.CMAFILES = $(addsuffix .cma,  $(OCAML_LIBS))
+        protected.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+        protected.ARFILES = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+        protected.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+        protected.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
 
-   protected.name = $(file $(name))
+        protected.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
 
-   protected.PROG     = $(file $(name)$(EXE))
-   protected.BYTEPROG = $(file $(name).run)
-   protected.OPTPROG  = $(file $(name).opt)
+        protected.PROGRAM = $(file $(PROGRAM_NAME)$(EXE))
+        protected.BYTEPROGRAM = $(file $(PROGRAM_NAME).run)
+        protected.OPTPROGRAM = $(file $(PROGRAM_NAME).opt)
 
-   #
-   # Rules to build byte-code and native targets
-   #
-   $(BYTEPROG): $(CMAFILES) $(CMOFILES) $(CLIBS)
-        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
-                $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS)\
-                -o $@ $(CMA_OTHER_FILES) $(CMAFILES) $(OCamlLinkSort $(CMOFILES))\
-                $(CLIBS) $(OCAML_LINK_FLAGS)
+        #
+        # Rules to build byte-code and native targets
+        #
+        $(BYTEPROGRAM): $(CMAFILES) $(CMOFILES) $(CLIBS)
+                $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                          $(OCAMLFLAGS) $(OCAMLCFLAGS)  \
+                                          $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS) \
+                                          -o $@  \
+                                          $(CMA_OTHER_FILES) $(CMAFILES)  \
+                                          $(OCamlLinkSort $(CMOFILES)) \
+                                          $(CLIBS) $(OCAML_LINK_FLAGS)
 
-   $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(CLIBS)
-        $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
-                $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
-                -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) $(OCamlLinkSort $(CMXFILES))\
-                $(CLIBS) $(OCAML_LINK_FLAGS)
+        $(OPTPROGRAM): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(CLIBS)
+                $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                             $(OCAMLFLAGS) $(OCAMLOPTFLAGS)  \
+                                             $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)  \
+                                             -o $@  \
+                                             $(CMXA_OTHER_FILES) $(CMXAFILES)  \
+                                             $(OCamlLinkSort $(CMXFILES))  \
+                                             $(CLIBS) $(OCAML_LINK_FLAGS)
 
-   #
-   # Link the actual executables.
-   # Always prefer native executables.
-   #
-   if $(NATIVE_ENABLED)
-        $(PROG): $(OPTPROG)
-            ln-or-cp $< $@
-   else
-        $(PROG): $(BYTEPROG)
-            ln-or-cp $< $@
+        #
+        # Link the actual executables.
+        # Always prefer native executables.
+        #
+        if $(NATIVE_ENABLED)
+             $(PROGRAM): $(OPTPROGRAM)
+                 ln-or-cp $< $@
+        else
+             $(PROGRAM): $(BYTEPROGRAM)
+                 ln-or-cp $< $@
 
-   return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
+        return $(array $(PROGRAM),  \
+                       $(if $(NATIVE_ENABLED), $(OPTPROGRAM)),  \
+                       $(if $(BYTE_ENABLED), $(BYTEPROGRAM)))
+
+#
+# Generic rule to build an OCaml program that also depends on foreign (e.g. C) objects
+#
+# \begin{doc}
+# \fun{OCamlMixedProgram}
+#
+# The \verb+OCamlMixedProgram+ function builds an OCaml~program from
+# ML files and foreign objects.
+#
+# \verb+OCamlMixedProgram(<programname>, <ml-files>, <foreign-files>)+
+#
+# It is particularly useful if one or more ml-files contain
+# \verb+external+~definitions that are satisifed by the foreign-files.
+# It works similarly to \verb+OCamlProgram+, but also
+# \begin{enumerate}
+#   \item adds dependencies of \verb+<foreign-files>+ to
+#         \verb+<programname>+ and
+#   \item appends all objects defined by \verb+<foreign-files>+ to
+#         \verb+<programname>+.
+# \end{enumerate}
+#
+# The \verb+<programname>+, \verb+<files>+, and \verb+<foreign-files>+ are
+# listed \emph{without} suffixes.
+# \end{doc}
+#
+public.OCamlMixedProgram(program_name, ocaml_module_names, foreign_module_names) =
+        # XXX: JYH: these variables should be marked private in 0.9.9
+        protected.PROGRAM_NAME = $(file $(program_name))
+
+        protected.CMOFILES = $(addsuffix .cmo, $(ocaml_module_names))
+        protected.CMXFILES = $(addsuffix .cmx, $(ocaml_module_names))
+        protected.OFILES = $(addsuffix $(EXT_OBJ), $(ocaml_module_names))
+        protected.FOREIGN_OFILES = $(addsuffix $(EXT_OBJ), $(foreign_module_names))
+
+        protected.CMAFILES = $(addsuffix .cma,  $(OCAML_LIBS))
+        protected.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+        protected.ARFILES = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+        protected.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+        protected.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+
+        protected.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+
+        protected.PROGRAM = $(file $(PROGRAM_NAME)$(EXE))
+        protected.BYTEPROGRAM = $(file $(PROGRAM_NAME).run)
+        protected.OPTPROGRAM = $(file $(PROGRAM_NAME).opt)
+
+        #
+        # Rules to build byte-code and native targets
+        #
+        $(BYTEPROGRAM): $(CMAFILES) $(CMOFILES) $(CLIBS) $(FOREIGN_OFILES)
+                $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                          $(OCAMLFLAGS) $(OCAMLCFLAGS)  \
+                                          $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS) \
+                                          -o $@  \
+                                          $(CMA_OTHER_FILES) $(CMAFILES)  \
+                                          $(OCamlLinkSort $(CMOFILES)) $(FOREIGN_OFILES)  \
+                                          $(CLIBS) $(OCAML_LINK_FLAGS)
+
+        $(OPTPROGRAM): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(CLIBS) $(FOREIGN_OFILES)
+                $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS)  \
+                                             $(OCAMLFLAGS) $(OCAMLOPTFLAGS)  \
+                                             $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)  \
+                                             -o $@  \
+                                             $(CMXA_OTHER_FILES) $(CMXAFILES)  \
+                                             $(OCamlLinkSort $(CMXFILES)) $(FOREIGN_OFILES)  \
+                                             $(CLIBS) $(OCAML_LINK_FLAGS)
+
+        #
+        # Link the actual executables.
+        # Always prefer native executables.
+        #
+        if $(NATIVE_ENABLED)
+             $(PROGRAM): $(OPTPROGRAM)
+                 ln-or-cp $< $@
+        else
+             $(PROGRAM): $(BYTEPROGRAM)
+                 ln-or-cp $< $@
+
+        return $(array $(PROGRAM),  \
+                       $(if $(NATIVE_ENABLED), $(OPTPROGRAM)),  \
+                       $(if $(BYTE_ENABLED), $(BYTEPROGRAM)))
 
 #
 # Copy to $(BIN) directory
