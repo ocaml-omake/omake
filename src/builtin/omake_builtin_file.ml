@@ -143,9 +143,12 @@ let tmpdir venv pos loc args : Omake_value_type.t =
        raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                ArityMismatch (ArityRange (1, 3), List.length args)))
   in
-    let directory_name = if root_directory = "" || root_directory = "."
-                         then Lm_unix_util.temporary_directory prefix suffix
-                         else Lm_unix_util.temporary_directory ~root_directory prefix suffix in
+    let directory_name =
+      if root_directory = "" || root_directory = "." then
+        Lm_unix_util.temporary_directory prefix suffix
+      else
+        Lm_unix_util.temporary_directory ~root_directory prefix suffix
+    in
       Omake_value_type.ValDir (Omake_env.venv_intern_dir venv directory_name)
 
 (*
@@ -202,9 +205,12 @@ let tmpfile venv pos loc args : Omake_value_type.t =
        raise (Omake_value_type.OmakeException (loc_pos loc pos',
                                                ArityMismatch (ArityRange (1, 3), List.length args)))
   in
-    let filename = if temp_dir = "" || temp_dir = "."
-                   then Filename.temp_file prefix suffix
-                   else Filename.temp_file ~temp_dir prefix suffix in
+    let filename =
+      if temp_dir = "" || temp_dir = "." then
+        Filename.temp_file prefix suffix
+      else
+        Filename.temp_file ~temp_dir prefix suffix
+    in
       Omake_value_type.ValNode (Omake_env.venv_intern venv PhonyProhibited filename)
 
 (*
