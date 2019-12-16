@@ -56,23 +56,11 @@ const.TAB = $'	'
 const.false = false
 const.true = true
 
-shell-success(argv) =
+shell-success-null(argv) =
     try
-        value $(equal $(shell-code $(argv)), 0)
+        value $(equal $(shell-code $(argv) > $(NULL_DEVICE) >& $(NULL_DEVICE)), 0)
     default
         value $(not true)
-
-shell-success-null(argv) =
-   # XXX: HACK: Is there a portable /dev/null?
-   #            Perhaps we should fix http://bugzilla.metaprl.org/show_bug.cgi?id=619
-   #            and use a string out channel?
-   tmp = $(tmpfile omake.shell-success-null)
-   stdout = $(fopen $(tmp), w)
-   stderr = $(stdout)
-   res = $(shell-success $(argv))
-   close($(stdout))
-   rm(-f $(tmp))
-   return $(res)
 
 last(array) =
    return $(nth $(sub $(length $(array)), 1), $(array))
