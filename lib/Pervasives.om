@@ -38,6 +38,7 @@ public. =
     declare GLOB_IGNORE
     declare GLOB_OPTIONS
     declare NF
+    declare NULL_DEVICE
     declare OMAKEPATH
     declare PATH
     declare RS
@@ -50,6 +51,7 @@ public. =
 
 const.EMPTY =
 const.EMPTY_ARRAY[] =
+const.NULL_DEVICE = $(if $(equal $(OSTYPE), Win32), NUL, /dev/null)
 const.TAB = $'	'
 const.false = false
 const.true = true
