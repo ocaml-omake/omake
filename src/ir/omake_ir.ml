@@ -28,6 +28,7 @@ type arity =
  | ArityExact of int
  | ArityNone
  | ArityAny
+ | ArityConstructor
 
 (*
  * Kinds of matches.

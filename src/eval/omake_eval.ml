@@ -208,7 +208,7 @@ let arity_apply_args ( arity : Omake_ir.arity ) args1 args2 =
       concat_n_args args1 args2 i
   | ArityNone ->
     FullArity ([], List.rev_append args1 args2)
-  | ArityAny ->
+  | ArityAny | ArityConstructor ->
     FullArity (List.rev_append args1 args2, [])
 
 (************************************************************************
