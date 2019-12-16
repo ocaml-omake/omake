@@ -56,7 +56,7 @@ const.TAB = $'	'
 const.false = false
 const.true = true
 
-shell-success-null(argv) =
+shell-success(argv) =
     try
         value $(equal $(shell-code $(argv) > $(NULL_DEVICE) >& $(NULL_DEVICE)), 0)
     default

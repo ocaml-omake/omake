@@ -155,13 +155,13 @@ $(prog)
     
     # Compile it
     fprint($(tmp_c), $(program))
-    protected.result = $(shell-success-null $(command))
+    protected.result = $(shell-success $(command))
 
     export result
     if $(result)
         switch $(extra)
         case Runs
-            result = $(shell-success-null $(file $(tmp)$(EXE)))
+            result = $(shell-success $(file $(tmp)$(EXE)))
         case Output
             result =
                 try

@@ -13,7 +13,7 @@ static. =
         CWD = $(dir .)
         cd .conftest.dir
         fprintln(Imakefile, $(EMPTY))
-        if $(and $(shell-success-null xmkmf), $(test -r Makefile))
+        if $(and $(shell-success xmkmf), $(test -r Makefile))
             awk(Makefile)
             case $'^[[:space:]]*INCROOT[[:space:]]*=[[:space:]]*\(.*\)$'
                 FOUND_INCLUDES = true
