@@ -3,7 +3,7 @@
 #
 
 ###################################
-# DEV MODE 
+# DEV MODE
 # Turn it off when release
 # BYTE_ENABLED=true
 # NATIVE_ENABLED=false
@@ -17,7 +17,8 @@ include mk/make_gen
 
 BOOTDIR=$(dir boot)
 BUILDDIR=$(dir .)
-.PHONY: realclean clean install all main
+.PHONY: realclean distclean clean install all main
+.PHONY: dvi html info pdf ps txt # documentation targets
 
 #
 # Location of the OCaml library
