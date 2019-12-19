@@ -27,6 +27,7 @@ src/shell/omake_shell_parse.mli
 
 omake-boot
 .config
+.preconfig
 boot/
 
 src/env/omake_ast_lex.ml
@@ -42,6 +43,7 @@ src/magic/omake_magic.ml
 src/main/cvs_realclean
 src/main/omake
 src/main/osh
+src/main/prelim_omake
 src/util/ocaml_patch.ml
 src/libmojave/lm_thread_core.ml
 src/libmojave/lm_thread_pool.ml
@@ -76,3 +78,6 @@ test/targets/Test1/A/
 test/targets/Test3/b
 test/targets/Test5/b
 test/vmount/Test1/build/foo
+
+.pc
+patches
