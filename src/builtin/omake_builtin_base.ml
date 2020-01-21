@@ -1507,6 +1507,59 @@ let string_length venv pos loc args : Omake_value_type.t =
 
 (*
  * \begin{doc}
+ *     \fun{subst}
+ *
+ *     \begin{verbatim}
+ *         $(subst from, to, text) : String
+ *             from : Sequence
+ *             to : Sequence
+ *             text : Sequence
+ *     \end{verbatim}
+ *
+ *     Answer \verb+text+ with all occurences of \verb+from+ replaced
+ *     with \verb+to+.  The find-strings \verb+from+ are taken
+ *     literally, this is, they are \emph{not} interpreted as regular
+ *     expressions.
+ *
+ *     If \verb+to+ is a single word all \verb+from+~strings are
+ *     replaced with it.  For more than one \verb+to+~word, the number
+ *     of \verb+from+~strings must match and each \verb+from+~string
+ *     is replaced with the corresponding \verb+to+~string.
+ * \end{doc}
+ *)
+let subst venv pos loc args : Omake_value_type.t =
+  let pos = string_pos "subst" pos in
+    match args with
+      [from_arg; to_arg; text_arg] ->
+       let find_strings = Omake_eval.strings_of_value venv pos from_arg
+       and replace_strings = Omake_eval.strings_of_value venv pos to_arg
+       and text = Omake_eval.string_of_value venv pos text_arg in
+         let number_of_find_strings = List.length find_strings
+         and number_of_replace_strings = List.length replace_strings in
+           if number_of_find_strings = number_of_replace_strings then
+             ValData (List.fold_left2
+                        (fun partially_substituted_text find replace ->
+                          Lm_string_util.substitute_all find replace partially_substituted_text)
+                        text
+                        find_strings
+                        replace_strings)
+           else if number_of_find_strings >= 2 && number_of_replace_strings = 1 then
+             ValData (List.fold_left
+                        (fun partially_substituted_text find ->
+                          Lm_string_util.substitute_all
+                            find
+                            (List.hd replace_strings)
+                            partially_substituted_text)
+                        text
+                        find_strings)
+           else
+             raise (Omake_value_type.OmakeException (loc_pos loc pos,
+                                                     StringError "either the number of \"FROM\" and \"TO\" strings must match or there is only one \"TO\" string"))
+    | _ ->
+       raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+
+(*
+ * \begin{doc}
  * \fourfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}
  * \fourfuns{c-escaped}{id-escaped}{sql-escaped}{uri-escaped}
  *
@@ -2849,6 +2902,7 @@ let () =
      true,  "string",                string,              ArityExact 1;
      true,  "string-escaped",        string_escaped,      ArityExact 1;
      true,  "string-length",         string_length,       ArityExact 1;
+     true,  "subst",                 subst,               ArityExact 3;
      true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
      true,  "c-escaped",             c_escaped,           ArityExact 1;
      true,  "sql-escaped",           sql_escaped,         ArityExact 1;

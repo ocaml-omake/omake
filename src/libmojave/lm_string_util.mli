@@ -33,6 +33,12 @@ val unhexify_int : string -> int
 val strchr : string -> char -> int
 
 (*
+ * Find/replace in a string
+ *)
+val substitute_prefix : string -> string -> string -> string
+val substitute_all : string -> string -> string -> string
+
+(*
  * Membership.
  *    contains s c : true iff c appears in s
  *    contains_string s1 s2 : true iff any char in s2 appears in s1

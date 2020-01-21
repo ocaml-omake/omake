@@ -93,6 +93,11 @@ sig
     *       copy: if true, auto-copy the files from the source to the target
     *)
    val mount : t -> mount_option list -> dir -> dir -> t
+
+   (*
+    * Get the mount table.
+    *)
+   val mount_listing : t -> (dir * dir) list
 end
 
 (*

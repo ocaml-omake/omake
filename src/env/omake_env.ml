@@ -331,6 +331,8 @@ module IntTable = Lm_map.LmMake (IntCompare);;
 let venv_globals venv =
    venv.venv_inner.venv_globals
 
+let venv_get_mount_listing venv =
+  Omake_node.Mount.mount_listing venv.venv_inner.venv_mount
 
 let venv_protect globals f =
   Lm_thread.Mutex.lock globals.venv_mutex;

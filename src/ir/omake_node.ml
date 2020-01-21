@@ -1098,6 +1098,10 @@ struct
    (*     Add a mount point. *)
    let mount info options dir_src dir_dst =
       (dir_dst, dir_src, options) :: info
+
+   (* Retrieve an association list of all mounts. *)
+   let mount_listing info =
+     List.map (fun (dir_dst, dir_src, _opt) -> dir_dst, dir_src) info
 end;;
 
 
