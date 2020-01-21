@@ -765,10 +765,11 @@ osh> println($"$X")  # force the evaluation and print
 
 \section{Programming syntax}
 \label{section:program-syntax}
+\index{program syntax}
 
 \newinkeyword
 
-The standard OMake language is designed to make it easy to specify strings.  By default, all values
+The standard OMake~language is designed to make it easy to specify strings.  By default, all values
 are strings, and strings are any sequence of text and variable references; quote symbols are not
 necessary.
 
@@ -780,16 +781,22 @@ The tradeoff is that variable references are a bit longer, requiring the syntax 
 
 The ``\emph{program syntax}'' inverts this behavior.  The main differences are the following.
 
-\begin{enumerate}
+\begin{itemize}
 \item Identifiers represent variables.
 \item Strings must be quoted.
 \item Function application is written \verb+f(exp1, ..., expN)+.
-\end{enumerate}
+\end{itemize}
 
-It is only the syntax of expressions that changes.  The large scale program is as before: a program
-is a sequence of definitions, commands, indentation is significant, etc.  However, the syntax of expressions
-changes, where an expression is 1) the value on the right of a variable definition \verb+Var = <exp>+, or 2)
-an argument to a function.
+It is only the syntax of expressions that changes.  The large scale
+program is as before: a program is a sequence of definitions,
+commands, indentation is significant, etc.  However, the syntax of
+expressions changes, where an expression is
+
+\begin{itemize}
+\item the value on the right of a variable definition
+  \verb+Var = <exp>+, or
+\item an argument to a function.
+\end{itemize}
 
 The following table lists the syntax for expressions.
 
@@ -813,37 +820,202 @@ e & ::= & 0, 1, 2, ...    & integers\\
   & |   & \verb+$(+ ... \verb+)+ & variables and applications
 \end{tabular}
 
-Note that the \verb+$+-style expressions are still permitted.
+Note that the \verb+$+-style expressions are still permitted and even
+\emph{required} for
+
+\begin{itemize}
+\item accessing instance methods of objects as well as
+\item interpolation of variables or code inside of double-quoted
+  strings.
+\end{itemize}
+
+\subsection{Usage}
+
+Switch back and forth between conventional OMake syntax and program
+syntax with\index{.LANGUAGE}
+
+\begin{verbatim}
+.LANGUAGE: program
+\end{verbatim}
+
+and
+
+\begin{verbatim}
+.LANGUAGE: make
+\end{verbatim}
+
+where \verb+make+ is the default.  You can mix normal and program
+syntax in the same file.
+
 
 \subsection{Examples}
 
-The program-syntax is specified with the directive \verb+program-syntax+, which is scoped in the normal way.
+First, let us recover some list functions from OCaml.
 
 \begin{verbatim}
-    program-syntax
+.LANGUAGE: program
 
-    i = 0
-    l[] =
-    while i < 10
-        l[] += i
-        i = i + 1
-    println($"The indexes are: $l")
+##  Answer whether [xs] is empty.
+is_empty(xs) =
+        value length(xs) = 0
+
+##  Answer the first element of [xs].
+hd(xs) =
+        value nth(0, xs)
+
+##  Answer [xs] with the first element removed.
+tl(xs) =
+        value nth-tl(1, xs)
+
+##  Re-implement the OCaml List function `map':
+##      val map: ('a -> 'b) -> 'a list -> 'b list
+##  which applies [f] to all elements of [xs].
+map(f, xs) =
+        if is_empty(xs)
+                value xs
+        else
+                value array(apply(f, hd(xs)), map(f, tl(xs)))
+
+##  Re-implement the OCaml List function `mapi':
+##      val mapi: (int -> 'a -> 'b) -> 'a list -> 'b list
+##  which applies [f] to all elements of [xs] and passes the element's
+##  index along with the element itself.
+mapi(f, xs) =
+        iter(n, xs1) =
+                if is_empty(xs1)
+                        value xs1
+                else
+                        value array(apply(f, n, hd(xs1)), iter(n + int(1), tl(xs1)))
+        value iter(int(0), xs)
+
+##  Re-implement the OCaml List function `iteri':
+##      val iteri: (int -> 'a -> unit) -> 'a list -> unit
+##  Apply [f] to all elements in [xs] and pass the array index as well
+##  as the array element itself.
+iteri(f, xs) =
+        iter(n, xs1) =
+                if is_empty(xs1)
+                        return
+                else
+                        apply(f, n, hd(xs1))
+                        iter(add(n, int(1)), tl(xs1))
+        iter(int(0), xs)
+
+##  Re-implement the OCaml List function `fold_left':
+##      val fold_left: ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+##  with the usual semantics of
+##       f (... (f (f a x_1) x_2) ...) x_n.
+fold_left(f, a, xs) =
+        if is_empty(xs)
+                value a
+        else
+                value fold_left(f, apply(f, a, hd(xs)), tl(xs))
+
+##  Select all elements of [xs] that match predicate [p].
+select_if(p, xs) =
+        if is_empty(xs)
+                value xs
+        else
+                x = hd(xs)
+                rest = tl(xs)
+                if apply(p, x)
+                        value array(x, select_if(p, rest))
+                else
+                        value select_if(p, rest)
 \end{verbatim}
 
-You can mix normal and program syntax.
+When defining or using objects the program-syntax cannot be used
+throughout as method calls -- and every function application within --
+must be written in conventional syntax.  The following example
+implements the container data-type of a double-ended queue ("deque")
+on top OMake arrays.
 
 \begin{verbatim}
-program-syntax
+.LANGUAGE: program
 
-add2(i) =
-    eprintln($"add2($i)")
-    return i + 2
+Deque. =
+        class Deque
 
-mul2(i, j) =
-    eprintln($"mul2($i, $j)")
-    return i * j
+        empty() =
+                this.container_[] =
+                value this
 
-println(mul2(mul2(3, 4), $(add2 1 << 20)))
+        new(a_sequence) =
+                this.container_ = array(a_sequence)
+                value this
+
+        is_empty() =
+                value not($(this.container_.is-nonempty))
+
+        length() =
+                value $(this.container_.length)
+
+        contents() =
+                value this.container_
+
+        ##  Access the first element.
+        front() =
+                value nth(0, this.container_)
+
+        ##  Access the last element.
+        back() =
+                size = $(this.container_.length)
+                value nth(size - 1, this.container_)
+
+        ##  Append [an_element] to the rear end of the deque.
+        push_back(an_element) =
+                this.container_ = array(this.container_, an_element)
+                value this
+
+        ##  Prepend [an_element] to the front end of the deque.
+        push_front(an_element) =
+                this.container_ = array(an_element, this.container_)
+                value this
+
+        ##  Remove the last element of the deque.
+        pop_back() =
+                size = $(this.container_.length)
+                this.container_ = nth-hd(size - 1, this.container_)
+                value this
+
+        ##  Remove the first element of the deque.
+        pop_front() =
+                this.container_ = nth-tl(1, this.container_)
+                value this
+
+        ##  Answer the reversed deque.
+        reverse() =
+                this.container_ = this.container_.rev
+                value this
+
+        ##  Answer the result of mapping [a_function] over the whole
+        ##  deque (preserving the order of the elements).
+        map(a_function) =
+                this.container_ = $(this.container_.map $(a_function))
+                value this
+
+##  Simply define SELFTEST and run the file with osh(1):
+##          env SELFTEST= osh class--deque.om
+if defined-env($'SELFTEST')
+        ws = Deque.empty
+        printvln(ws)
+        println($"empty? ws: $(ws.is_empty)")
+        println($"length ws: $(ws.length)")
+        println($'----------------------------------------')
+        xs = $(Deque.new $(array $(int 10), $(int 11), $(int 12)))
+        printvln(xs)
+        println($"empty? xs: $(xs.is_empty)")
+        println($"length xs: $(xs.length)")
+        println($'----------------------------------------')
+        xs0 = $(xs.push_front $(int 1))
+        xs1 = $(xs0.push_back $(int 99))
+        printvln(xs1.back)
+        xs2 = xs1.pop_back
+        printvln(xs2)
+        println($'----------------------------------------')
+        printvln(xs2.back)
+        xs2_back = xs2.back
+        printvln($(xs2_back.instanceof Int))
 \end{verbatim}
 
 % -*-

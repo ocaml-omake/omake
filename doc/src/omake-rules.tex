@@ -154,6 +154,36 @@ if it exists, otherwise \verb+hello.c+ is created from the file \verb+default.c+
                  cp default.c hello.c
 \end{verbatim}
 
+In an implicit rule, any special variables, for example the one for the current target~(\verb+$@+)
+or the first prerequisite~(\verb+$<+) are undefined; substitute \verb+$(file TARGET-PATTERN)+ and
+\verb+$(file SOURCE-PATTERN)+:
+
+\begin{verbatim}
+    %.foo: %.bar
+        section rule
+            println($"target: $(file %.foo)")
+            println($"prereq: $(file %.bar)")
+            /usr/bin/printf "prerequisite was $(file %.bar)\n"  > $(file %.foo)
+\end{verbatim}
+
+However, if the \verb+section rule+ defines its own rule heads, all special variables work as usual
+with respect to their rule heads:
+
+\begin{verbatim}
+    %.cmx: %.ml
+        section rule
+            if $(target-exists %.mli)
+                %.cmx %.o: %.ml %.cmi :scanner: scan-ocaml-%.ml
+                    $(OCamlOpt) -c $<
+            elseif $(BYTE_ENABLED)
+                %.cmx %.cmi %.o %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCamlC) -c $<
+                    $(OCamlOpt) -c $<
+            else
+                %.cmx %.cmi %.o: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCamlOpt) -c $<
+\end{verbatim}
+
 \section{Special dependencies}
 \index{rule, options}
 

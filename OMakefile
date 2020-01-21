@@ -3,7 +3,7 @@
 #
 
 ###################################
-# DEV MODE 
+# DEV MODE
 # Turn it off when release
 # BYTE_ENABLED=true
 # NATIVE_ENABLED=false
@@ -17,7 +17,8 @@ include mk/make_gen
 
 BOOTDIR=$(dir boot)
 BUILDDIR=$(dir .)
-.PHONY: realclean clean install all main
+.PHONY: realclean distclean clean install all main
+.PHONY: dvi html info pdf ps txt # documentation targets
 
 #
 # Location of the OCaml library
@@ -77,6 +78,30 @@ OCAMLFLAGS[] = -safe-string -strict-sequence -g -w -a-40
 if $(THREADS_ENABLED)
     OCAMLFLAGS += -thread
     export
+
+compiler_config(a_compiler) =
+        config = $(Map)
+        foreach(key_value_line => ..., $(shella $(a_compiler) -config))
+            export config
+            lex($(open-in-string $(key_value_line)))
+            case $'^\([^:]*\):[[:blank:]]*\(.*\)$'
+                export config
+                config = $(config.add $1, $2)
+        return $(config)
+
+static. =
+    OCAMLOPT_CONFIG = $(compiler_config $(OCAMLOPT))
+    OCAMLOPT_OPTIMIZER_FLAGS[] =
+    ConfMsgChecking($'if ocamlopt was compiled with flambda')
+    if $(and $(OCAMLOPT_CONFIG.mem flambda), $(equal $(OCAMLOPT_CONFIG.find flambda), true))
+        ConfMsgResult($'yes')
+        OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
+        export
+    else
+        ConfMsgResult($'no')
+
+OCAMLOPTFLAGS[] = $(OCAMLFLAGS) $(OCAMLOPT_OPTIMIZER_FLAGS)
+
 
 #
 # Support for profiling

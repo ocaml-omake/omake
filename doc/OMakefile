@@ -157,7 +157,7 @@ HTML_FILES = $(file $(addprefix html/, $(HTML_FILES)))
 #
 # XXX: HACK: we do not know how many pieces we'd have. For now we hardcode the number.
 #
-NUM_INFOS = 10
+NUM_INFOS = 11
 INFO_BASE = $(file info/omake-doc.info)
 INFO_FILES[] = $(INFO_BASE)
 section
@@ -201,13 +201,13 @@ public.HACHA = hacha
 If you think this is a mistake, edit the ALLOWED_HEVEA_VERSIONS variable
 in $(in $(ROOT), $(file OMakefile))
 (HEVEA DISABLED)""")
-            export 
+            export
         export HEVEA_DIR HEVEA_OK HEVEA_VERSION
 
 HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic -O -exec xxdate.exe
 HACHA_OPTIONS = -tocter -nolinks
 
-HEVEA_DEPS[] = 
+HEVEA_DEPS[] =
     $(glob src/*hva)
 
 if $(not $(VERBOSE))
@@ -255,12 +255,13 @@ if $(HEVEA_OK)
 
            LaTeXDocument(omake-doc, omake-doc)
 
+dvi: ps/omake-doc.dvi
 html: html/omake-doc.html $(HTML_FILES)
-tex: ps/omake-doc.ps ps/omake-doc.pdf
-txt: txt/omake-doc.txt
 info: $(INFO_FILES)
+pdf: ps/omake-doc.pdf
+ps: ps/omake-doc.ps
+txt: txt/omake-doc.txt
 
-.PHONY: distclean
 distclean:
     rm -f {txt,html,info}/*.{hind,h{t,o,f,v,opt}ind,htoc,haux} *.omc
     rm -f ps/*.{aux,fls,log,out,{t,o,v,f,opt}ids,ind,toc,ilg,{,v}idx,opts} ps/omake-doc.tex tex/*.tex
