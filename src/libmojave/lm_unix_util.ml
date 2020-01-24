@@ -88,6 +88,38 @@ let copy_file from_name to_name mode =
 
 
 (*
+ * Create a temporary directory without referring to mkdtemp(3).
+ * Code borrows heavily from Standard Library's {!Filename.temp_file}.
+ *)
+let pseudo_random_number_generator = lazy (Random.State.make_self_init ())
+
+let macgyver_temporary_filename a_root_directory a_prefix a_suffix =
+  let pseudo_random_number =
+    Random.State.bits (Lazy.force pseudo_random_number_generator) land 0xFFFFFF
+  in
+    Filename.concat
+      a_root_directory
+      (Printf.sprintf "%s%06x%s" a_prefix pseudo_random_number a_suffix)
+
+let temporary_directory ?(root_directory = Filename.get_temp_dir_name ()) a_prefix a_suffix =
+  let rec try_name retry_counter =
+    let directory_name = macgyver_temporary_filename root_directory a_prefix a_suffix in
+      try
+        Unix.mkdir directory_name 0o700;
+        directory_name
+      with Unix.Unix_error (error_code, _, _) as unix_error ->
+        (* We only need to try again if [directory_name] already exists in
+         * [root_directory], otherwise we can immediately abort and pass
+         * on the error. *)
+        if error_code = Unix.EEXIST && retry_counter > 0 then
+          (try_name [@ocaml.tailcall]) (pred retry_counter)
+        else
+          raise unix_error
+  in
+    try_name 1000
+
+
+(*
  * Make a directory hierarchy.
  *)
 let mkdirhier name =
