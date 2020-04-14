@@ -134,6 +134,8 @@ CAMLprim value omake_shell_spawn_compat_nat(value v_chdir,
     marshalled_error_t marshalled_error;
 
     struct sigaction sigact;
+    struct sigaction old_sigact;
+    pid_t old_pgrp = -1;
 
     value v_sig_actions_l;
 
@@ -272,14 +274,21 @@ CAMLprim value omake_shell_spawn_compat_nat(value v_chdir,
             if (sigemptyset(&(sigact.sa_mask)) == -1) {
                 RAISE_SUB_ERROR(EINVAL, "Omake_shell_spawn/sigemptyset [142]");
             }
-            if (sigaction(SIGTTOU, &sigact, NULL) == -1) {
+            /* Save the current signal handler of SIGTTOU and the
+               process group's pid in case exec-ing fails and we must
+               restore the old associations. */
+            if (sigaction(SIGTTOU, &sigact, &old_sigact) == -1) {
                 RAISE_SUB_ERROR(errno, "Omake_shell_spawn/sigaction [143]");
             }
+            old_pgrp = tcgetpgrp(ttyfd);
+            if (old_pgrp == -1) {
+                RAISE_SUB_ERROR(errno, "Omake_shell_spawn/tcgetpgrp [144]");
+            }
             if (tcsetpgrp(ttyfd, pid) == -1) {
-                RAISE_SUB_ERROR(errno, "Omake_shell_spawn/tcsetpgrp [144]");
+                RAISE_SUB_ERROR(errno, "Omake_shell_spawn/tcsetpgrp [145]");
             }
             if (close(ttyfd) == -1) {
-                RAISE_SUB_ERROR(errno, "Omake_shell_spawn/close [145]");
+                RAISE_SUB_ERROR(errno, "Omake_shell_spawn/close [146]");
             }
             break;
         }
@@ -422,6 +431,19 @@ CAMLprim value omake_shell_spawn_compat_nat(value v_chdir,
 
     /* exec the new program */
     if (execve(String_val(v_cmd), sub_argv, sub_env) == -1) {
+        /* execve(2) failed and we must undo the association of the
+           terminal with the current pid as well as restore the
+           previous signal handler for SIGTTOU. */
+        if (old_pgrp != -1) {
+            char term[L_ctermid];
+            const char *ttyname = ctermid(term);
+            if (*ttyname != '\0') {
+                const int ttyfd = open(ttyname, O_RDWR);
+                tcsetpgrp(ttyfd, old_pgrp);
+                close(ttyfd);
+            }
+            sigaction(SIGTTOU, &old_sigact, NULL);
+        }
         RAISE_SUB_ERROR(errno, "Omake_shell_spawn/execve [290]");
     }
 
