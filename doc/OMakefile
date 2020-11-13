@@ -167,60 +167,38 @@ section
         i = $(add $i, 1)
     export INFO_FILES
 
-#
-# At least 1.10 is needed, future versions may work as well.
-# Please do not add old versions here, as they will produce very different output. :-(
-#
-ALLOWED_HEVEA_VERSIONS[] =
-    1.10
-    2.06
-    2.25
-    2.28
-    2.29
-    2.32
-
 public.HEVEA = hevea
 public.HACHA = hacha
 .STATIC:
     HEVEA_DIR =
     HEVEA_VERSION =
-    HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
-    if $(HEVEA_OK)
+    HAVE_HEVEA_PROG = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
+    if $(HAVE_HEVEA_PROG)
         ConfMsgChecking(for $(HEVEA) configs and version)
         HEVEA_VERSION = $(shell $(HEVEA) -version)
         HEVEA_DIR = $(dir $(last $(HEVEA_VERSION)))
         HEVEA_VERSION = $(nth 1, $(HEVEA_VERSION))
         ConfMsgResult($(HEVEA_VERSION) in $(HEVEA_DIR))
-        if $(mem $(HEVEA_VERSION), $(ALLOWED_HEVEA_VERSIONS))
-            ConfMsgChecking(if $(HEVEA_DIR) exists)
-            HEVEA_OK = $(ConfMsgYesNo $(test -d $(HEVEA_DIR)))
-            export
-        else
-            HEVEA_OK = false
-            ConfMsgWarn($"""Hevea version $(HEVEA_VERSION) is not allowed; allowed versions: $(concat $', ', $(ALLOWED_HEVEA_VERSIONS)).
-If you think this is a mistake, edit the ALLOWED_HEVEA_VERSIONS variable
-in $(in $(ROOT), $(file OMakefile))
-(HEVEA DISABLED)""")
-            export
-        export HEVEA_DIR HEVEA_OK HEVEA_VERSION
+        export HEVEA_DIR HEVEA_VERSION
+    HEVEA_OK = $(and $(HAVE_HEVEA_PROG) $(test -d $(HEVEA_DIR)) $(test -f $(HEVEA_DIR)/hevea.sty))
+    if $(not $(HEVEA_OK))
+        ConfMsgWarn($'Hevea not found or Hevea installation is incomplete;')
+        ConfMsgWarn($'will neither be able to build plain text, Info,')
+        ConfMsgWarn($'nor HTML version of OMake documentation')
 
-HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic -O -exec xxdate.exe
+HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -O -exec xxdate.exe
 HACHA_OPTIONS = -tocter -nolinks
 
 HEVEA_DEPS[] =
-    $(glob src/*hva)
-
-if $(not $(VERBOSE))
-    HEVEA_OPTIONS += -s
-    export
+    $(glob src/*.hva)
 
 if $(HEVEA_OK)
     .SUBDIRS: html
         omake-doc.html: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
-	index.html: ../src/index.html
-	    cp ../src/index.html .
+        index.html: ../src/index.html
+            cp ../src/index.html .
 
         $(HTML_FILES): omake-doc.html index.html
             $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
@@ -236,24 +214,24 @@ if $(HEVEA_OK)
                 rm -f omake-doc.info*
                 $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
                 if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))
-                    eprintln($"!!! Wrong number of info files!
-        Increase the NUM_INFOS variable in doc/OMakefile and make sure to add new info file(s) to svn")
+                    eprintln($'Wrong number of info files: too many!')
+                    eprintln($"Increase the NUM_INFOS (=$(NUM_INFOS)) variable in doc/OMakefile")
                     exit 1
                 if $(not $(test -e $(INFO_BASE)-$(NUM_INFOS)))
-                    eprintln($"!!! Wrong number of info files!
-        Decrease the NUM_INFOS variable in doc/OMakefile and make sure to remove old info file(s) from svn")
+                    eprintln($'Wrong number of info files: too few!')
+                    eprintln($"Decrease the NUM_INFOS (=$(NUM_INFOS)) variable in doc/OMakefile")
                     exit 1
 
-    if $(file-exists ps)
-       .SUBDIRS: ps
-           TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
+if $(file-exists ps)
+   .SUBDIRS: ps
+       TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
 
-           omake-doc.tex: ../src/omake-doc.tex
-               ln-or-cp $< $@
+       omake-doc.tex: ../src/omake-doc.tex
+           ln-or-cp $< $@
 
-           TEXDEPS[] += $(TEX_FILES)
+       TEXDEPS[] += $(TEX_FILES)
 
-           LaTeXDocument(omake-doc, omake-doc)
+       LaTeXDocument(omake-doc, omake-doc)
 
 dvi: ps/omake-doc.dvi
 html: html/omake-doc.html $(HTML_FILES)
