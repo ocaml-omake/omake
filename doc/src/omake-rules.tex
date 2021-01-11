@@ -187,11 +187,27 @@ with respect to their rule heads:
 \section{Special dependencies}
 \index{rule, options}
 
+\subsection{:effects:}
+\index{:effects:}
+
+Some commands produce files by side-effect.  For example, the
+\Cmd{latex}{1}~command produces an \verb+.aux+~file as a side-effect
+of generating a \verb+.dvi+~file.  In this case, the
+\verb+:effects:+~qualifier can be used to list the side-effect
+explicitly.  \Prog{omake} is careful to avoid simultaneously running
+programs that have overlapping side-effects.
+
+\begin{verbatim}
+    paper.dvi: paper.tex :effects: paper.aux
+        latex paper
+\end{verbatim}
+
 \subsection{:exists:}
 \index{:exists:}
 
-In some cases, the contents of a dependency do not matter, only whether the file exists or not.  In
-this case, the \verb+:exists:+ qualifier can be used for the dependency.
+In some cases, the contents of a dependency do not matter, only
+whether the file exists or not.  In this case, the
+\verb+:exists:+~qualifier can be used for the dependency.
 
 \begin{verbatim}
     foo.c: a.c :exists: .flag
@@ -199,38 +215,66 @@ this case, the \verb+:exists:+ qualifier can be used for the dependency.
            $(CP) a.c $@
 \end{verbatim}
 
-\subsection{:effects:}
-\index{:effects:}
+\noindent In contrary to a \verb+:normal:+~dependency the target of an
+\verb+:exists:+~prerequisite must be rebuilt if the specified file
+appears or disappears, but not if its contents changes.  In particular
+a target can be built without any prerequisites marked with
+\verb+:exists:+.
 
-Some commands produce files by side-effect.  For example, the
-\Cmd{latex}{1} command produces a \verb+.aux+ file as a side-effect of
-producing a \verb+.dvi+ file.  In this case, the \verb+:effects:+
-qualifier can be used to list the side-effect explicitly.
-\Prog{omake} is careful to avoid simultaneously running programs that
-have overlapping side-effects.
+\subsection{:key:}
+\index{:key:}
 
-\begin{verbatim}
-    paper.dvi: paper.tex :effects: paper.aux
-        latex paper
-\end{verbatim}
+See section~\ref{sec:special-dependency-key}.
+
+\subsection{:normal:}
+\index{:normal:}
+
+The keyword~\verb+:normal:+ switches back to normal dependency
+processing after it may have been altered by any of the other special
+dependency modifiers.
+
+\subsection{:optional:}
+\index{:optional:}
+
+\verb+:optional:+~dependencies are similar to
+\verb+:exists:+~dependencies in that they cause a rebuild if they
+appear or disappear.  If they exist, however, they take part in the
+normal comparison with the target (opposite to
+\verb+:squash:+~dependencies).
+
+\subsection{:scanner:}
+\index{:scanner:}
+
+\verb+:scanner:+ indicates that the subsequent prerequisites are the
+names of \verb+.SCANNER+~rules for the target to be built.  See
+section~\ref{sec:scanner-rules}.
+
+\subsection{:squash:}
+\index{:squash:}
+
+A \verb+:squash:+~dependency is only active once to build the target
+then it is ``squashed'' which means, if the prerequisite changes after
+the target was built the target will \emph{not} be considered
+out-of-date.
 
 \subsection{:value:}
 \index{:value:}
 
-The \verb+:value:+ dependency is used to specify that the rule execution depends on the value of an
-expression.  For example, the following rule
+The \verb+:value:+~dependency is used to specify that the rule
+execution depends on the value of an expression.  For example, the
+following rule
 
 \begin{verbatim}
     a: b c :value: $(X)
         ...
 \end{verbatim}
 
-specifies that ``a'' should be recompiled if the value of \verb+$(X)+ changes
-(X does not have to be a filename).  This is intended to allow greater
-control over dependencies.
+\noindent specifies that ``a'' should be recompiled if the value of
+\verb+$(X)+ changes (\verb+X+ does not have to be a filename).  This
+is intended to allow greater control over dependencies.
 
-In addition, it can be used instead of other kinds of dependencies. For example,
-the following rule:
+In addition, it can be used instead of other kinds of
+dependencies. For example, the following rule:
 
 \begin{verbatim}
     a: b :exists: c
@@ -244,14 +288,16 @@ is the same as
         commands
 \end{verbatim}
 
-Notes:
+\noindent Notes:
+
 \begin{itemize}
-\item The values are arbitrary (they are not limited to variables)
+\item The values are arbitrary (they are not limited to variables).
+
 \item The values are evaluated at rule expansion time, so expressions
-containing variables like \verb+$@+, \verb+$^+, etc are legal.
+  containing variables like \verb+$@+, \verb+$^+, etc.\ are legal.
 \end{itemize}
 
-\section{\code{.SCANNER} rules}
+\section{\label{sec:scanner-rules}\code{.SCANNER} rules}
 \targetref{.SCANNER}
 
 Scanner rules define a way to specify automatic dependency scanning.  A \verb+.SCANNER+ rule has the
