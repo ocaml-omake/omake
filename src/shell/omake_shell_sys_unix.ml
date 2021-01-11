@@ -200,7 +200,7 @@ let create_thread info =
  * Create a process.
  *)
 let create_process info =
-  match info with 
+  match info with
     {Omake_shell_sys_type.create_process_stdin = stdin;
      create_process_stdout = stdout;
      create_process_stderr = stderr;
@@ -209,36 +209,26 @@ let create_process info =
      create_process_env = env;
      create_process_exe = exe;
      create_process_argv = argv;
-     create_process_background = bg
-    }  -> 
+     create_process_background = bg} ->
 
-(*
-      Format.eprintf "@[<v 3>";
-      Array.iter (fun s ->
-            Format.eprintf "@ %s" s) argv;
-      Format.eprintf "@]@.";
- *)
-    Unix.handle_unix_error
-      (fun () ->
-         Lm_unix_util.moncontrol false;
-         let workfd = Unix.openfile "." [Unix.O_RDONLY] 0 in
-         let pid =
-           Omake_shell_spawn.spawn
-             ~chdir:(Omake_shell_spawn.Wd_chdir dir)
-             ~env
-             ~pg:( if !interact && pgrp = 0 then (
-                     if bg then
-                       Omake_shell_spawn.Pg_new_bg_group
-                     else
-                       Omake_shell_spawn.Pg_new_fg_group
-                   ) else
-                     Omake_shell_spawn.Pg_keep
-                 )
-             ~fd_actions:(dup_actions workfd stdin stdout stderr)
-             exe
-             argv in
-         Unix.close workfd;
-         Lm_unix_util.moncontrol true;
-         pid
-      )
-      ()
+    Lm_unix_util.moncontrol false;
+    let workfd = Unix.openfile "." [Unix.O_RDONLY] 0 in
+      let pid =
+        Omake_shell_spawn.spawn
+          ~chdir:(Omake_shell_spawn.Wd_chdir dir)
+          ~env
+          ~pg:(if !interact && pgrp = 0 then
+                 begin
+                   if bg then
+                     Omake_shell_spawn.Pg_new_bg_group
+                   else
+                     Omake_shell_spawn.Pg_new_fg_group
+                 end
+               else
+                 Omake_shell_spawn.Pg_keep)
+          ~fd_actions:(dup_actions workfd stdin stdout stderr)
+          exe
+          argv in
+        Unix.close workfd;
+        Lm_unix_util.moncontrol true;
+        pid
