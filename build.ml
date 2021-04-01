@@ -317,7 +317,7 @@ let do_action self vars action omake1 omake2 =
           omake1
           env
           vars
-          [ "--dotomake"; ".omake"; "--force-dotomake"; "main" ];
+          [ "--dotomake"; ".omake"; "--force-dotomake"; "-j1"; "main" ];
         (* Windows cannot replace running executables. Create a copy. *)
         if omake1 <> omake2 then
           copy_executable "src/main/omake" "src/main/prelim_omake";
@@ -325,7 +325,7 @@ let do_action self vars action omake1 omake2 =
           omake2
           env
           vars
-          [ "--dotomake"; ".omake"; "--force-dotomake"; "all" ]
+          [ "--dotomake"; ".omake"; "--force-dotomake"; "-j1"; "all" ]
     | `Install ->
         run_omake
           omake2
