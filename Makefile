@@ -17,7 +17,7 @@ force-bootstrap:
 all:
 	$(OCAML) $(OCAMLFLAGS) build.ml -build OCAML="$(OCAML)"
 
-install: all
+install:
 	$(OCAML) $(OCAMLFLAGS) build.ml -install OCAML="$(OCAML)"
 
 clean:
