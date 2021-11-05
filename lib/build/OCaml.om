@@ -498,7 +498,7 @@ public.OCamlScannerPostproc(input) =
     protected.filename =
     protected.modules[] =
     protected.vmounts = $(vmount-map)
-    protected.vmount_source_dirs = $(vmounts)
+    protected.vmount_source_dirs = $(vmounts.keys)
     protected.compare_by_length_descending(a, b) =
         delta_length = $(sub $(b.length), $(a.length))
         value $(if $(eq $(delta_length), $(int 0)), $(compare $a, $b), $(delta_length))
