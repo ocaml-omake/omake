@@ -164,6 +164,7 @@ module Server = struct
   let handle_spawn local shell id target commands =
     let code =
       Omake_exec_local.spawn (**)
+        false
         local
         shell
         id
@@ -195,7 +196,7 @@ module Server = struct
       let closed = Omake_exec_local.handle local options fd in
       if closed then (
         Omake_exec_local.acknowledge_eof local options fd;
-        Omake_exec_local.handle_eof local options fd
+        Omake_exec_local.handle_eof false local options fd
       )
                               
   (*
@@ -347,7 +348,7 @@ type 'value job_state =
  (*
   * Start a new job.
   *)
- let spawn server shell id handle_out handle_err handle_status target commands =
+ let spawn _direct_output server shell id handle_out handle_err handle_status target commands =
     if !debug_remote then
        eprintf "*** remote: spawn: %a@." pp_print_node target;
 
@@ -474,7 +475,7 @@ type 'value job_state =
              handle_normal server fd
 
 
- let handle_eof _ _ _ = ()
+ let handle_eof _ _ _ _ = ()
  let acknowledge_eof _ _ _ = ()
 
 

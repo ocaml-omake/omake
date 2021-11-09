@@ -149,7 +149,7 @@ struct
             false
 
 
-   let handle_eof _ _ _ = ()
+   let handle_eof _ _ _ _ = ()
    let acknowledge_eof _ _ _ = ()
 
    (*

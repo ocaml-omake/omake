@@ -15,6 +15,7 @@ type eval_flag =
  * Diversion control.
  *)
 type output_flag =
+  | OutputDirect
   | OutputNormal
   | OutputPostponeSuccess
   | OutputPostponeError

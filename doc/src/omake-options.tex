@@ -98,6 +98,24 @@ Print termination codes when commands complete.
 Make \OMake{} very verbose. This option is equivalent to
 \verb+--no-S --print-status --print-exit VERBOSE=true+
 
+\option{--output-direct} \verb+--output-direct+
+
+For jobs executed on the local machine leave \verb+stdout+ and \verb+stderr+ alone; do not redirect
+them as \OMake{} normally does.  This is useful for commands that test for or need a TTY, like for
+example pagers and (text-)browsers.
+
+Example:
+\begin{verbatim}
+section
+    OMakeFlags(--output-direct)
+
+    .PHONY: view-doc
+    view-doc: index.html
+        w3m -o confirm_qq=false index.html
+\end{verbatim}
+
+Option~\verb+--output-direct+ overrules all other output options.
+
 \option{--output-normal} \verb+--output-normal+
 
 As rule commands are executed, relay their output to the \OMake{} output right away. This is enabled

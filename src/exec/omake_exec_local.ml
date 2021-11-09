@@ -128,8 +128,11 @@ type fd_state =
    (*
     * Start a command.  Takes the output channels, and returns a pid.
     *)
-   let start_command _server (shell : _ Omake_exec_type.shell) stdout stderr command =
-    shell.shell_eval stdout stderr command
+   let start_command direct_output _server (shell : _ Omake_exec_type.shell) stdout stderr command =
+     if direct_output then
+       shell.shell_eval Unix.stdout Unix.stderr command
+     else
+       shell.shell_eval stdout stderr command
 
 
    let likely_blocking server =
@@ -149,7 +152,7 @@ type fd_state =
    (*
     * Start a job.
     *)
-   let rec spawn_exn server shell id handle_out handle_err handle_status target commands =
+   let rec spawn_exn direct_output server shell id handle_out handle_err handle_status target commands =
       let command, commands =
          match commands with
             command :: commands ->
@@ -163,7 +166,7 @@ type fd_state =
       in
       if shell.shell_eval_is_nop command && commands <> [] then (* quickly skip over nop's *)
         spawn_exn
-          server shell id handle_out handle_err handle_status target commands
+          direct_output server shell id handle_out handle_err handle_status target commands
       else
          Omake_exec_util.with_pipe (fun out_read out_write ->
          Omake_exec_util.with_pipe (fun err_read err_write ->
@@ -178,7 +181,7 @@ type fd_state =
                   Unix.set_close_on_exec err_read
                in
                let now = Unix.gettimeofday() in
-               let pid = start_command server shell out_write err_write command in
+               let pid = start_command direct_output server shell out_write err_write command in
                let job =
                   { job_id = id;
                     job_target = target;
@@ -219,8 +222,8 @@ type fd_state =
        | [] ->
             ()
 
-   let spawn server shell id handle_out handle_err handle_status target commands =
-      try spawn_exn server shell id handle_out handle_err handle_status target commands with
+   let spawn direct_output server shell id handle_out handle_err handle_status target commands =
+      try spawn_exn direct_output server shell id handle_out handle_err handle_status target commands with
          exn ->
             err_print_status commands handle_status id;
             handle_exn handle_err shell.shell_print_exn id exn;
@@ -232,7 +235,7 @@ type fd_state =
    (*
     * Start the next part of the job.
     *)
-   let rec spawn_next_part_exn server job =
+   let rec spawn_next_part_exn direct_output server job =
       let { job_id = id;
             job_shell = shell;
             job_target = _target;
@@ -249,7 +252,7 @@ type fd_state =
                if shell.shell_eval_is_nop command then (
                  (* quickly skip over nop's *)
                  job.job_commands <- commands;
-                 spawn_next_part_exn server job
+                 spawn_next_part_exn direct_output server job
                ) 
                else
                  Omake_exec_util.with_pipe (fun out_read out_write ->
@@ -259,7 +262,7 @@ type fd_state =
                           Unix.set_close_on_exec out_read;
                           Unix.set_close_on_exec err_read
                        in
-                       let pid = start_command server shell out_write err_write command in
+                       let pid = start_command direct_output server shell out_write err_write command in
                        let table = Omake_exec_util.FdTable.add table out_read job in
                        let table = Omake_exec_util.FdTable.add table err_read job in
                           if !Omake_exec_util.debug_exec then
@@ -287,8 +290,8 @@ type fd_state =
                 | JobFinished _ ->
                      raise (Invalid_argument "spawn_next_part")
 
-   let spawn_next_part server job =
-      try spawn_next_part_exn server job with
+   let spawn_next_part direct_output server job =
+      try spawn_next_part_exn direct_output server job with
          exn ->
             let shell = job.job_shell in
                err_print_status job.job_commands job.job_handle_status job.job_id;
@@ -318,7 +321,7 @@ type fd_state =
    (*
     * Wait for the current part to finish.
     *)
-   let wait_for_job server options job =
+   let wait_for_job direct_output server options job =
       let { job_pid = pid; job_command = command; job_shell = shell ; _} = job in
       let () =
          if !Omake_exec_util.debug_exec then
@@ -333,7 +336,7 @@ type fd_state =
          else
             begin
                job.job_state <- JobRunning v;
-               spawn_next_part server job
+               spawn_next_part direct_output server job
             end
 
    let acknowledge_eof server _options fd =
@@ -354,7 +357,7 @@ type fd_state =
          done, and that we can reuse the job record for the next command
        *)
 
-   let handle_eof server options fd =
+   let handle_eof direct_output server options fd =
      let job_opt =
        try Some (Omake_exec_util.FdTable.find server.server_table fd)
        with Not_found -> None in
@@ -382,7 +385,7 @@ type fd_state =
              unix_close "handle_eof (stderr)" job.job_stderr;
            );
            if job.job_stdout_done = Fd_closed && job.job_stderr_done = Fd_closed then
-             wait_for_job server options job
+             wait_for_job direct_output server options job
 
    let unix_read fd buf pos len =
      try Unix.read fd buf pos len

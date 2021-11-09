@@ -190,17 +190,18 @@ struct
       in
 
       (* Handle a status message *)
-      let handle_status = print_status (handle_sys_out id) options shell server name in
+      let handle_status = print_status (handle_sys_out id) options shell server name
+      and direct_output = Omake_options.(opt_output options OutputDirect) in
 
       (* Start the job *)
       let status =
          match handle with
             LocalServer local ->
-               Omake_exec_local.spawn  local  shell id handle_out handle_err handle_status target commands
+              Omake_exec_local.spawn direct_output local  shell id handle_out handle_err handle_status target commands
           | RemoteServer remote ->
-               Omake_exec_remote.spawn remote shell id handle_out handle_err handle_status target commands
+               Omake_exec_remote.spawn false remote shell id handle_out handle_err handle_status target commands
           | NotifyServer notify ->
-               Notify.spawn notify shell id handle_out handle_err handle_status target commands
+               Notify.spawn false notify shell id handle_out handle_err handle_status target commands
       in
       let () =
          match status with
@@ -224,7 +225,8 @@ struct
    let handle_eof server_info options fd =
      match server_info.server_handle with
        | LocalServer local ->
-           Omake_exec_local.handle_eof local options fd
+          let direct_output = Omake_options.(opt_output options OutputDirect) in
+           Omake_exec_local.handle_eof direct_output local options fd
        | RemoteServer _ ->
            ()
        | NotifyServer _ ->
