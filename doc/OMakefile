@@ -1,8 +1,18 @@
-BUILTIN = $(dir $(ROOT)/src/builtin)
+#
+# Manual Page
+#
+
+install:
+    mkdir -p $(INSTALL_MANDIR)/man1
+    cp -f -m 444 omake.1 $(INSTALL_MANDIR)/man1
+
 
 #
 # Documentation files
 #
+
+BUILTIN = $(dir $(ROOT)/src/builtin)
+
 MAN_BASE_FILES[] =
     $(BUILTIN)/omake_builtin_base.ml
     $(BUILTIN)/omake_builtin_arith.ml

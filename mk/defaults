@@ -1,3 +1,5 @@
+# -*- Makefile -*-
+
 #
 # Default values for the configuration variables
 #
@@ -25,6 +27,7 @@ PREFIX = $(dir $"$(PREFIX)")
 
 public.BINDIR = $(dir $"$(PREFIX)/bin")
 public.LIBDIR = $(dir $"$(PREFIX)/lib")
+public.MANDIR = $(dir $"$(PREFIX)/man")
 
 public.DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
 
@@ -85,13 +88,15 @@ section
    if $(INSTALL_ROOT)
       INSTALL_BINDIR=$(dir $(INSTALL_ROOT)$(absname $(BINDIR)))
       INSTALL_LIBDIR=$(dir $(INSTALL_ROOT)$(absname $(LIBDIR)))
+      INSTALL_MANDIR=$(dir $(INSTALL_ROOT)$(absname $(MANDIR)))
       export
    else
       INSTALL_BINDIR=$(BINDIR)
       INSTALL_LIBDIR=$(LIBDIR)
+      INSTALL_MANDIR=$(MANDIR)
       export
 
-   export INSTALL_BINDIR INSTALL_LIBDIR
+   export INSTALL_BINDIR INSTALL_LIBDIR INSTALL_MANDIR
 
 if $(not $(file-exists $(CONFIG_FILE)))
     eprintln($(CONFIG_FILE) does not exist)

@@ -1,0 +1,715 @@
+.\"  This file is distributed under the terms and conditions of the GNU GPL
+.\"  (General Public License), as detailed in the file LICENSE.
+.\"
+.\"  Copyright (C) 2021 by Christoph L. Spiel.
+.\"
+.\"  ========================================================================
+.\"
+.\"  The macros in this section are taken from "an-ext.tmac".
+.\"  Written by Eric S. Raymond <esr@thyrsus.com> and Werner Lemberg <wl@gnu.org>
+.\"
+.\"  Copyright (C) 2007-2018 Free Software Foundation, Inc.
+.\"
+.\"
+.\" Check whether we are using grohtml.
+.nr mH 0
+.if \n(.g \
+.  if '\*(.T'html' \
+.    nr mH 1
+.
+.
+.\" Map mono-width fonts to standard fonts for groff's TTY device.
+.if n \{\
+.  do ftr CR R
+.  do ftr CI I
+.  do ftr CB B
+.\}
+.
+.
+.ie \n(.g \{\
+.  \" groff has glyph entities for angle brackets.
+.  ds la \(la\"
+.  ds ra \(ra\"
+.\}
+.el \{\
+.  ds la <\"
+.  ds ra >\"
+.  \" groff's man macros control hyphenation with this register.
+.  nr HY 1
+.\}
+.
+.nr mS 0
+.
+.
+.\"  Start example.
+.de EX
+.  do ds mF \\n[.fam]
+.  nr mE \\n(.f
+.  nf
+.  nh
+.  do fam C
+.  ft CW
+..
+.
+.
+.\"  End example.
+.de EE
+.  do fam \\*(mF
+.  ft \\n(mE
+.  fi
+.  hy \\n(HY
+..
+.
+.
+.\"  ========================================================================
+.IX Title "OMake 1"
+.TH OMAKE 1 "2021-11-17"
+.SH NAME
+omake, osh \- make-like build utility and its shell
+.SH SYNOPSIS
+.B omake
+[\fI\s-1OPTION\s0\fP.\|.\|.] [\fI\s-1TARGET\s0\fP.\|.\|.]
+.br
+.B osh
+[\fI\s-1OPTION\s0\fP.\|.\|.]
+.SH DESCRIPTION
+OMake constructs projects in a way similar to
+.BR make (1)
+in particular
+.SM GNU-\c
+Make.
+When OMake needs to spawn a shell it uses its own shell, Osh.
+The shell can also be used standalone either as \f(CWomake \-\-shell\fP or as
+.BR osh (1)
+if the appropriate link has been installed.
+.SS OMake
+OMake is designed for building projects that have source files in several directories.
+Projects are normally specified using an \fIOMakefile\fP in each of the project directories, and
+an \fIOMakeroot\fP file in the root directory of the project.
+The \fIOMakeroot\fP file specifies general build rules, and the \fIOMakefile\fPs specify the
+build parameters specific to each of the subdirectories.
+When OMake runs, it walks the configuration tree, evaluating rules from all of the
+\fIOMakefile\fPs.
+The project is then built from the entire collection of build rules.
+.SS Osh
+OMake also includes the standalone command-line interpreter \fBosh\fP that can be used as an
+interactive shell.
+This shell uses the same syntax, and provides the same features on all platforms that OMake
+supports, including Win32.
+.PP
+See also the OMake Manual, chapters 11, \(lqShell commands\(rq and
+15, \(lqThe Osh shell\(rq.
+.\"  Sort options in case-insensitive alphabetical order!
+.SH OPTIONS
+The options are presented in functionally related sections.  Within these the options are sorted
+alphabetically in case-insensitive order.
+.PP
+.\" .ds NO <\s-1N\s0>   \" NO => Negatable Option
+.ds NO \*(la\s-1N\s0\*(ra
+Options marked with \(oq\*(NO\(cq can be negated by prefixing them with
+\(oq\f(CW\-\-no\fP\(cq
+as, e.g.,
+.BR \-\-no\-S " or " \-\-no\-\-print-status .
+Note the conserved inner double dash of the latter, though.
+.SS Build Control
+.RS 4
+.TP
+.B \-\-absname
+Enforce that filenames always expand to their absolute pathnames.
+\*(NO
+.IP
+\fBNote:\fP This is an experimental option.
+It may become deprecated.
+.TP
+.B \-\-all\-dependencies
+If the options
+.BR \-\-print\-dependencies " or " \-\-show\-dependencies
+are given print transitive dependencies.
+This means that all dependencies will be printed recursively.
+Otherwise no effect.
+\*(NO
+.TP
+.B \-\-configure
+Recompute \f(CWstatic.\fP sections of the included omake files, instead of trusting the cached
+results.
+\*(NO
+.TP
+.B \-\-depend
+Do not trust the cached dependency information.
+This will force files to be rescanned for dependency information.
+\*(NO
+.TP
+.B \-\-flush\-includes
+Do not trust cached \fI*.omc\fP files.
+\*(NO
+.TP
+\fB\-j\fP \fI\s-1JOB-SPEC\s0\fP
+\fI\s-1JOB-SPEC\s0\fP is either the maximum number of jobs to run in parallel.
+.IP
+Or, \fI\s-1JOB-SPEC\s0\fP specifies servers for remote execution of commands
+in the form of a colon separated list
+of \fI\s-1SERVER-NAME\s0\fP\f(CW=\fP\fI\s-1NUMBER-OF-JOBS\s0\fP pairs.
+For example, the option
+.IP
+.in +4n
+.EX
+-j 2:small.host.org=1:large.host.org=4
+.EE
+.IP
+would specify that up to 2 jobs can be executed locally, 1 on the server
+\f(CWsmall.host.org\fP and 4 on \f(CWlarge.host.org\fP.
+Each remote server must use the same filesystem location for the project.
+.IP
+Remote execution is currently an experimental feature.
+Remote filesystems like
+.SM NFS
+do not provide adequate file consistency for this to work.
+.TP
+.B \-k
+Do not stop when an error occurs; continue to build as much of the project as possible.
+This option is implied by
+.BR \-p " and " \-P .
+\*(NO
+.IP
+Mnemonic: \(lqkeep on making\(rq.
+.TP
+.B \-n
+Print commands, but do not execute them.
+\*(NO
+.IP
+Mnemonic: \(lqno operation\(rq.
+.TP
+.B \-P
+Keep on polling the filesystem for changes \(lqforever\(rq; implies
+.BR \-k " and " \-p .
+\*(NO
+.TP
+.B \-p
+Watch the filesystem for changes, and continue the build until it succeeds.
+If this option is specified, OMake will restart the build whenever source files are modified.
+This option implies
+.BR \-k .
+\*(NO
+.IP
+Mnemonic: \(lqpoll filesystem\(rq.
+.TP
+.B \-\-print\-dependencies
+Collect and print dependency information for the \fI\s-1TARGET\s0\fPs on the command line.
+\*(NO
+.TP
+.B \-\-project
+Ignore the current directory and build the project.
+\*(NO
+.TP
+.B \-R
+Ignore the current directory and build the project from its root directory.
+When OMake is run in a subdirectory of a project and no explicit targets are given on the
+command line, it would normally only build files within the current directory and its
+subdirectories.
+More precisely: it builds all the \f(CW\s-1.DEFAULT\s0\fP targets in the current directory and
+its subdirectories.
+If the \fB-R\fP option is specified, the build is performed as if OMake were run in the project
+root.
+.IP
+In other words, with the \fB-R\fP option all the relative targets specified on the command line
+will be taken relative to the project root instead of relative to the current directory.
+When no targets are given on the command line, all the \f(CW\s-1.DEFAULT\s0\fP targets in the
+project will be built regardless of the current directory.
+\*(NO
+.IP
+Mnemonic: \(lqroot build\(rq.
+.TP
+\fB\-\-show\-dependencies\fP \fI\s-1TARGET\s0\fP
+Show dependencies (only) if \fI\s-1TARGET\s0\fP is built.
+.TP
+.B \-t
+Update the OMake database to force all target files of the project are considered up-to-date.
+\*(NO
+.TP
+.B \-U
+Do not trust the dependency cache or cached \fIOMakefiles\fP.
+This will force the entire project to be rebuilt.
+\*(NO
+.TP
+.B \-\-verbose\-dependencies
+If either one of the options
+.BR \-\-print\-dependencies " or " \-\-show\-dependencies
+is in effect, print transitive dependencies.
+That is, print all dependencies recursively.
+If neither of the above options is specified, this option has no effect.
+\*(NO
+.TP
+.B \-warn\-error
+Treat warnings as errors.
+\*(NO
+.TP
+.B \-Wdeclare
+Warn about undeclared variables.
+\*(NO
+.RE
+.SS Output
+.RS 4
+.TP
+\fB\-o\fP \fI\s-1SHORT-OPTION\s0\fP.\|.\|.
+Short output options alias the functionality of some options or combinations thereof.
+In general, an uppercase character turns the option on, whereas a lowercase character turns the
+option off.
+\fI\s-1SHORT-OPTION\s0\fP is one of following letters.
+.RS
+.TP +4n
+.B 0
+Equivalent to
+.IP
+.in +4n
+.EX
+\-s \-\-output\-only\-errors \-\-no\-progress
+.EE
+.IP
+This option specifies that omake should be as quiet as possible.
+If any errors occur during the build, the output is delayed until the build terminates.
+Output from successful commands is discarded.
+.TP
+.B 1
+Equivalent to
+.IP
+.in +4n
+.EX
+\-S \-\-progress \-\-output\-only\-errors
+.EE
+.IP
+This is a slightly more relaxed version of \(lqquiet\(rq output.
+The output from successful commands is discarded.
+The output from failed commands is printed immediately after the command complete.
+The output from failed commands is displayed twice: once immediately after the command
+completes, and again when the build completes.
+A progress bar is displayed so that you know when the build is active.
+Include the \fB\-p\fP option if you want to turn off the progress bar
+(for example \f(CWomake \-o 1p\fP).
+.TP
+.B 2
+Equivalent to
+.IP
+.in +4n
+.EX
+\-\-progress \-\-output\-postpone
+.EE
+.IP
+The is even more relaxed, output from successful commands is printed.
+This is often useful for deinterleaving the output when using option \fB\-j\fP.
+.TP
+.BR P "\ \ (uppercase)"
+Equivalent to
+.BR \-\-progress .
+.TP
+.BR p "\ \ (lowercase)"
+Equivalent to
+.BR \-\-no\-\-progress .
+.TP
+.BR S "\ \ (uppercase)"
+Equivalent to
+.BR \-S .
+.TP
+.BR s "\ \ (lowercase)"
+Equivalent to
+.BR \-\-no\-S .
+.TP
+.BR W "\ \ (uppercase)"
+Equivalent to
+.BR \-w .
+.TP
+.BR w "\ \ (lowercase)"
+Equivalent to
+.BR \-\-no\-w .
+.TP
+.BR X "\ \ (uppercase)"
+Equivalent to
+.BR \-\-print\-exit .
+.TP
+.BR x "\ \ (lowercase)"
+Equivalent to
+.BR \-\-no\-print\-exit .
+.RE
+.TP
+.B \-\-output\-at\-end
+The output of the failed commands will be printed after OMake has finished.
+Off by default, unless
+.B \-k
+is enabled (directly or via
+.BR \-p / \-P ).
+\*(NO
+.TP
+.B \-\-output\-normal
+Relay the output of the rule commands to the OMake output right away.
+This is the default when no
+.BR \-\-output\-postpone " and no " \-\-output\-only\-errors
+flags are given.
+\*(NO
+.TP
+.B \-\-output\-only\-errors
+Same as
+.BR \-\-output\-postpone ,
+but postponed output will only be printed for commands that fail.
+.IP
+This can be useful in reducing unwanted output so that the user can concentrate on any errors.
+\*(NO
+.TP
+.B \-\-output\-postpone
+Postpone printing command output until a rule terminates.
+Then print it as a single block.
+.IP
+This is useful in combination with the \fB-j\fP option, where the output of multiple
+subprocesses can be garbled.
+The diversion is printed as a single coherent unit.
+\*(NO
+.TP
+.B \-\-print\-exit
+Print the exit codes of all commands that have been run.
+\*(NO
+.TP
+.B \-\-print\-status
+Print status lines (starting with \f(CW\(oq+\(cq\fP or \f(CW\(oq-\(cq\fP).
+This is the default setting.
+\*(NO
+.TP
+.B \-\-progress
+Print a progress indicator;
+enabled by default if \fIstdout\fP is a terminal and disabled if the output has been redirected.
+\*(NO
+.TP
+.B \-S
+Do not print commands as they are executed unless they produce any output or they fail.
+This is the default.
+\*(NO
+.TP
+.B \-s
+Never print commands before they are executed.
+\*(NO
+.IP
+Mnemonic: \(lqsilent\(rq.
+.TP
+.B \-\-verbose
+Switch on very verbose output.
+This option is equivalent to
+.IP
+.in +4n
+.EX
+\-\-no\-S \-\-print-status \-\-print\-exit VERBOSE=true
+.EE
+.TP
+.B \-w
+Print the directory in \(lqmake format\(rq as commands are executed.
+This is mainly useful for editors that expect make-style directory information for determining
+the location of errors.
+\*(NO
+.RE
+.SS Cache Management
+.RS 4
+.TP
+.B \-\-force\-dotomake
+Always use the directory \fI\s-1$HOME\s0/.omake\fP for \fI*.omc\fP-cache files.
+\*(NO
+.TP
+\fB\-\-dotomake\fP \fI\s-1DIRECTORY\s0\fP
+Use the specified \fI\s-1DIRECTORY\s0\fP in place of \fI\s-1$HOME\s0/.omake\fP for the storage
+of \fI*.omc\fP-files.
+.TP
+\fB\-\-save\-interval\fP \fI\s-1DURATION\s0\fP
+Save the build
+.SM DB
+(\fI.omakedb\fP) every \fI\s-1DURATION\s0\fP seconds (0 disables, default: 60).
+.RE
+.SS Shell Related
+.RS 4
+.TP
+\fB\-c\fP \fI\s-1COMMAND\s0\fP
+Execute \fI\s-1COMMAND\s0\fP.
+.TP
+.B \-i
+Treat the session as interactive.
+\*(NO
+.TP
+.B \-\-shell
+Run the OMake shell: \fBosh\fP.
+\*(NO
+.RE
+.SS Debugging
+.RS 4
+.TP
+.B \-allow\-exceptions
+Do not catch top-level exceptions.
+This option is useful if running with \f(CWOCAMLRUNPARAM=b\fP.
+\*(NO
+.TP
+.B \-debug\-active\-rules
+Debug active rules.
+\*(NO
+.TP
+.B \-debug\-ast\-lex
+Print tokens as they are scanned.
+\*(NO
+.TP
+.B \-debug\-build
+Display debugging information during the build.
+\*(NO
+.TP
+.B \-debug\-cache
+Display cache debugging information.
+\*(NO
+.TP
+.B \-debug\-db
+Debug the file database.
+\*(NO
+.TP
+.B \-debug\-deps
+Display dependency information as scanned.
+\*(NO
+.TP
+.B \-debug\-eval
+Debug the evaluator.
+\*(NO
+.TP
+.B \-debug\-exec
+Display execution debugging information.
+\*(NO
+.TP
+.B \-debug\-hash
+Show \f(CWLm_hash\fP statistics.
+\*(NO
+.TP
+.B \-debug\-implicit
+Display debugging information for implicit rule selection.
+\*(NO
+.TP
+.B \-debug\-lex
+Debug the lexer.
+\*(NO
+.TP
+.B \-debug\-lexgen
+Debug the lexer generator.
+\*(NO
+.TP
+.B \-debug\-notify
+Debug the
+.SM FAM
+.RB ( \-p
+filesystem watch) operations.
+\*(NO
+.TP
+.B \-debug\-parse
+Debug the parser.
+\*(NO
+.TP
+.B \-debug\-parsegen
+Debug the parser generator.
+\*(NO
+.TP
+.B \-debug\-parsing
+Debug OMake parsing operations.
+\*(NO
+.TP
+.B \-debug\-pos
+Print source position information on error.
+\*(NO
+.TP
+.B \-debug\-remote
+Debug remote execution.
+\*(NO
+.TP
+.B \-debug\-rule
+Display debugging information about rule execution.
+\*(NO
+.TP
+.B \-debug\-scanner
+Display debugging information for scanner selection.
+\*(NO
+.TP
+.B \-debug\-shell
+Debug shell operations.
+\*(NO
+.TP
+.B \-debug\-thread
+Show thread operations.
+\*(NO
+.TP
+.B \-extended\-rusage
+Print more about resource usage.
+\*(NO
+.TP
+.B \-instrument
+Do instrument functions.
+\*(NO
+.TP
+.B \-print\-ast
+Print the
+.SM AST
+after parsing.
+\*(NO
+.TP
+.B \-print\-files
+Print the files as they are read.
+\*(NO
+.TP
+.B \-print\-ir
+Print the
+.SM IR\c
+\&.
+\*(NO
+.TP
+.B \-print\-loc
+Also print locations.
+\*(NO
+.TP
+.B \-trace\-pos
+Trace the program execution.
+\*(NO
+.TP
+.B \-print\-rules
+Print the rules after evaluation.
+\*(NO
+.RE
+.SS Miscellaneous
+.RS 4
+.TP
+.B \-\-install
+Install default files \fIOMakefile\fP and \fIOMakeroot\fP of an OMake project into the current
+directory.
+This is typically done only once to start an OMake project in the current directory.
+\*(NO
+.TP
+.B \-\-install\-all
+In addition to installing the default files \fIOMakefile\fP and \fIOMakeroot\fP of an OMake
+project into the current directory install default \fIOMakefile\fPs into each subdirectory of
+the current directory.
+.BR cvs (1)
+rules are used for filtering the subdirectory list.
+For example, \fIOMakefile\fPs are not copied into directories called
+.SM CVS\c
+\&,
+.SM RCCS\c
+\&, etc.
+\*(NO
+.TP
+.B \-\-install\-force
+Normally, OMake will prompt before it overwrites any existing \fIOMakefile\fP.
+If this option is given, all files are overwritten without prompting; implies
+.BR \-\-install .
+\*(NO
+.TP
+.B \-\-help
+Display help message and exit.
+.TP
+.B \-\-help\-all
+Display help message for all options and exit.
+.TP
+.B \-\-help\-debug
+Display help message just for the debugging-related options and exit.
+.TP
+\fB\-\-server\fP \fI\s-1SERVER-NAME\s0\fP
+Run as a remote server called \fI\s-1SERVER-NAME\s0\fP.
+.TP
+.B \-\-version
+Print the version string and the default library directory then exit.
+.RE
+.SH EXIT STATUS
+.TP +4n
+0
+No problems; everything went well.
+.TP
+1
+Build failure caused by a program with non-zero exit code.
+.TP
+2
+Not a build-related error, for example a syntax error in one of the files that constitute the
+OMake project.
+.TP
+3
+Bogus command-line option.
+.SH ENVIRONMENT
+.TP
+\fI\s-1OMAKEFLAGS\s0\fP
+If defined, \fI\s-1OMAKEFLAGS\s0\fP should contain a set of options exactly as they are specified on
+the command line.
+.TP
+\fI\s-1OMAKELIB\s0\fP
+If defined, \fI\s-1OMAKELIB\s0\fP refers to the installed location of the OMake standard library.
+This is the directory that contains \fIPervasives.om\fP etc.
+On a Unix system, this is often \fI/usr/lib/omake\fP or \fI/usr/local/lib/omake\fP, and on Win32
+systems it is often \fIc:\eProgram\ Files\eOMake\elib\fP.
+.IP
+If not defined, OMake uses the default configured location,
+which can be inquired with option \fB\-\-version\fP.
+.IP
+Normally, this variable should not be set.
+.SH FILES
+.TP
+\fIOMakeroot\fP
+This file is required; it serves to identify the project root,
+and it contains code that sets up the project.
+.TP
+\fIOMakefile\fP
+Any project-specific configuration lives in the \fIOMakefile\fPs.
+.TP
+\fI.om\fP
+Conventional filename extension for OMake \(lqlibrary\(rq files.
+.TP
+\fI.omc\fP
+For performance OMake compiles all OMake-source files on the fly.  Compiled OMake files receive
+extension \fI.omc\fP.
+.SH EXAMPLES
+.SS OMake
+.IP \(bu +4n
+This is an almost minimal \fIOMakeroot\fP file.
+.in +4n
+.EX
+##  Setup for building a C- or C++-project.
+open build/C
+
+##  Define according our configuration.
+DefineCommandVars()
+
+##  Include the OMakefile in this directory.
+\&.SUBDIRS: .
+.EE
+.IP \(bu
+Small \fIOMakefile\fP file to build the famous \(lqHello, world!\(rq example.
+.in +4n
+.EX
+##  Define target-source relationship of a C-program.
+CProgram(hello, hello) # we can be extension agnostic
+
+##  Define the default (and only) target.
+\&.DEFAULT: hello$(EXE)
+.EE
+.SS Osh
+.IP \(bu +4n
+Call \fBdate(1)\fP with some options via OMake.
+.in +4n
+.EX
+$ omake --shell -c 'date --universal --iso-8601=seconds'
+2021-11-20T14:52:10+00:00
+.EE
+.IP \(bu
+Call \fBupdate(1)\fP via Osh.
+.in +4n
+.EX
+$ osh -c uptime
+ 15:54:03 up  6:41,  1 user,  load average: 0.02, 0.04, 0.11
+.EE
+.IP \(bu
+Interactive use.
+.in +4n
+.EX
+$ osh
+% uname --kernel-release --kernel-version
+5.10.0-9-amd64 #1 SMP Debian 5.10.70-1 (2021-09-30)
+% ^D
+$
+.EE
+.SH SEE ALSO
+.BR make (1),
+.BR sh (1).
+.
+.\"  Local Variables:
+.\"  compile-command: "groff -Tpdf -dpaper=a4 -fU-P -man -wall ./omake.1 > omake.man.pdf"
+.\"  fill-column: 96
+.\"  End:
