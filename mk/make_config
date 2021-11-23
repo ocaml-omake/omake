@@ -1,3 +1,5 @@
+# -*- makefile -*-
+
 #
 # If you add a new variable to this file (mk/make_config),
 # make sure to also add a default value to mk/defaults.
@@ -33,6 +35,7 @@ MakeConfig(CONFIG_FILE) =
         include $(PRECONFIG_FILE)
         BINDIR = $(PREFIX)/bin
         LIBDIR = $(PREFIX)/lib
+        MANDIR = $(PREFIX)/man
         export
 
     #
@@ -44,6 +47,10 @@ MakeConfig(CONFIG_FILE) =
 
     if $(equal $(LIBDIR), $(dir $(PREFIX)/lib))
         LIBDIR = $'$(PREFIX)/lib'
+        export
+
+    if $(equal $(MANDIR), $(dir $(PREFIX)/man))
+        MANDIR = $'$(PREFIX)/man'
         export
 
     cc = $(shell $(OCAMLC) -config | extract-cc)
@@ -69,10 +76,12 @@ MakeConfig(CONFIG_FILE) =
 # following directories.
 #    BINDIR: program executables
 #    LIBDIR: omake standard library
+#    MANDIR: root directory for the manual pages
 #
 PREFIX = $$(dir $$'$(PREFIX)')
 BINDIR = $$(dir $$"$(BINDIR)")
 LIBDIR = $$(dir $$"$(LIBDIR)")
+MANDIR = $$(dir $$"$(MANDIR)")
 
 #
 # What C compiler do you want to use?

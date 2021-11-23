@@ -5,6 +5,7 @@
 install:
     mkdir -p $(INSTALL_MANDIR)/man1
     cp -f -m 444 omake.1 $(INSTALL_MANDIR)/man1
+    ln-or-cp $(INSTALL_MANDIR)/man1/omake.1 $(INSTALL_MANDIR)/man1/osh.1
 
 
 #

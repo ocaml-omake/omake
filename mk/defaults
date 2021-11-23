@@ -77,6 +77,7 @@ if $(file-exists $(CONFIG_FILE).local)
 PREFIX = $(dir $"$(PREFIX)")
 BINDIR = $(dir $"$(BINDIR)")
 LIBDIR = $(dir $"$(LIBDIR)")
+MANDIR = $(dir $"$(MANDIR)")
 
 #
 # XXX This is a big hack.
