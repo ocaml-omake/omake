@@ -110,7 +110,7 @@ public. =
           export
        export
 
-    if $(and $(LATEX_USABLE), $(shell-success-null latex -help))
+    if $(and $(LATEX_USABLE), $(shell-success latex -help))
         ConfMsgChecking(LaTeX capabilities)
 
         #

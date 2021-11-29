@@ -156,14 +156,14 @@ private.get_bytecomp_c_comp() =
     ConfMsgChecking(whether ocamlc understands the "z" warnings)
     OCAML_ACCEPTS_Z_WARNING =
         if $(OCAMLC_EXISTS)
-            value $(ConfMsgYesNo $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az))
+            value $(ConfMsgYesNo $(shell-success ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az))
         else
             ConfMsgResult($"FAILED - ocamlc not found")
             value false
     ConfMsgChecking(whether ocamlopt can create cmxs plugins)
     CMXS_SUPPORTED =
         if $(OCAMLOPT_EXISTS)
-            ok = $(ConfMsgYesNo $(shell-success-null ocamlopt -shared -o .dummy.cmxs))
+            ok = $(ConfMsgYesNo $(shell-success ocamlopt -shared -o .dummy.cmxs))
             rm(-f .dummy.cmxs)
             value $(ok)
         else
@@ -367,7 +367,7 @@ public.OCAML_LIB_FLAGS =
 #
 .STATIC:
     ConfMsgChecking(if ocamldep understands -modules)
-    OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
+    OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success ocamldep -modules))
 
 public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
@@ -730,7 +730,7 @@ public.MENHIR_ENABLED = false
     MENHIR_RAW_DEPEND = false
     if $(MENHIR_AVAILABLE)
         ConfMsgChecking(if $(MENHIR) supports the --raw-depend option)
-        MENHIR_RAW_DEPEND = $(ConfMsgYesNo $(shell-success-null $(MENHIR) -help | grep $'^ *--raw-depend'))
+        MENHIR_RAW_DEPEND = $(ConfMsgYesNo $(shell-success $(MENHIR) -help | grep $'^ *--raw-depend'))
         export
 
 # Menhir is being requested.  Check that it is installed.
