@@ -2,7 +2,7 @@
  * When to print output.
  *)
 type eval_flag =
-  |  EvalNever
+  | EvalNever
   | EvalLazy
   | EvalEager
 
@@ -18,7 +18,7 @@ type output_flag =
 (*
  * Make the default state explicit (the actual value may depend on the value of other settings).
  *)
-type  setting =
+type setting =
   | Default
   | Set of bool
 
@@ -28,14 +28,14 @@ type  setting =
 type t =
    { job_count            : int;
      remote_servers       : (string * int) list;
-     terminate_on_error   :  setting;
+     terminate_on_error   : setting;
      dry_run              : bool;
      print_command        : eval_flag;
      print_dir            : bool;
      print_file           : bool;
      print_status         : bool;
      print_exit           : bool;
-     mutable print_progress :  setting;
+     mutable print_progress : setting;
      verbose              : bool;
      touch_only           : bool;
      flush_cache          : bool;
@@ -46,7 +46,7 @@ type t =
      verbose_dependencies : bool;
      cd_root              : bool;
      project              : bool;
-     poll                 :  setting;
+     poll                 : setting;
      osh                  : bool;
      poll_on_done         : bool;
      flush_include        : bool;
@@ -83,27 +83,27 @@ let set_job_count_and_servers_opt opts cnt srvs =
  *    3. a machine=count: a remote server that will handle <count> jobs
  *)
 
-let get_job_count (s : string) : int * (string * int) list = 
+let get_job_count (s : string) : int * (string * int) list =
   let set_job (job_count, remote_servers) job =
-    match Lm_string_util.bi_split '=' job with 
-    | (machine,count) -> 
+    match Lm_string_util.bi_split '=' job with
+    | (machine,count) ->
       let count =
         try int_of_string count with
           Failure _ -> 1
       in
       job_count, (machine, count) :: remote_servers
-    | exception Not_found -> 
+    | exception Not_found ->
       try int_of_string job, remote_servers with
         Failure _ ->
         job_count, (job, 1) :: remote_servers
   in
-  let job_count, remote_servers = 
+  let job_count, remote_servers =
     List.fold_left (fun acc x -> set_job acc x)  (1, []) (Lm_string_util.split ":" s) in
-  job_count , List.rev remote_servers 
+  job_count , List.rev remote_servers
 
 let set_job_count (options : t) (s: string) : t   =
   let job_count, remote_servers = get_job_count s in
-  set_job_count_and_servers_opt options (max  1 job_count) remote_servers 
+  set_job_count_and_servers_opt options (max  1 job_count) remote_servers
 
 
 
@@ -390,45 +390,46 @@ let default_options =
  * put in the option list in Omake_main, not here.
  *)
 let options_spec =
-   ["-j", Lm_arg.StringFold set_job_count, (**)
-       "Specify parallel jobs and remote servers";
-    "-k", Lm_arg.ClearFold set_terminate_on_error_opt, (**)
-       "Do not stop when an error occurs; implied by -p and -P";
-    "-p", Lm_arg.SetFold set_poll_opt, (**)
-       "Poll filesystem for changes (until build succeeds); implies -k";
-    "-P", Lm_arg.SetFold set_poll_on_done_opt, (**)
-       "Poll filesystem for changes (keep polling \"forever\"); implies -k and -p";
-    "-n", Lm_arg.SetFold set_dry_run_opt, (**)
-       "Print commands, but do not execute them";
-    "--project", Lm_arg.SetFold set_project_opt, (**)
-       "Ignore the current directory and build the project";
-    "-t", Lm_arg.SetFold set_touch_only_opt, (**)
-       "Update database to force files to be up-to-date";
-    "--depend", Lm_arg.SetFold set_flush_dependencies_opt, (**)
-       "Do not trust cached dependecy information";
-    "-U", Lm_arg.SetFold set_flush_cache_opt, (**)
-       "Do not trust the dependency cache or cached OMakefiles";
-    "--flush-includes", Lm_arg.SetFold set_flush_include_opt, (**)
-       "Do not trust cached .omc files";
-    "--configure", Lm_arg.SetFold set_flush_static_opt, (**)
-       "Recompute static. sections";
-    "-R", Lm_arg.SetFold set_cd_root_opt, (**)
-       "Command-line targets are relative to the project root; builds all .DEFAULT targets if no targets given";
-    "--print-dependencies", Lm_arg.SetFold set_print_dependencies_opt, (**)
-       "Build and print dependencies";
-    "--show-dependencies", Lm_arg.StringFold add_show_dependency_opt, (**)
-       "Show dependencies if the file is built";
-    "--all-dependencies", Lm_arg.SetFold set_all_dependencies_opt, (**)
-       "For --print-dependencies and --show-dependencies, print dependencies recursively";
-    "--verbose-dependencies", Lm_arg.SetFold set_verbose_dependencies_opt, (**)
-       "For --print-dependencies and --show-dependencies, print all dependencies too";
-    "--absname", Lm_arg.SetFold set_absname_opt, (**)
-       "Filenames are always displayed as absolute paths";
-    "-Wdeclare", Lm_arg.SetFold set_warn_declare_opt, (**)
-       "Warn about undeclared variables";
-    "-warn-error", Lm_arg.SetFold set_warn_error_opt, (**)
-       "Treat warnings as errors"
-   ]
+  ["-j", Lm_arg.StringFold set_job_count, (**)
+   "N  specify maximum number N of parallel jobs and remote servers";
+   "-k", Lm_arg.ClearFold set_terminate_on_error_opt, (**)
+   " do not stop when an error occurs; implied by -p and -P";
+   "-p", Lm_arg.SetFold set_poll_opt, (**)
+   " poll filesystem for changes (until build succeeds); implies -k";
+   "-P", Lm_arg.SetFold set_poll_on_done_opt, (**)
+   " poll filesystem for changes (keep polling \"forever\"); implies -k and -p";
+   "-n", Lm_arg.SetFold set_dry_run_opt, (**)
+   " print commands, but do not execute them";
+   "--project", Lm_arg.SetFold set_project_opt, (**)
+   " ignore the current directory and build the project";
+   "-t", Lm_arg.SetFold set_touch_only_opt, (**)
+   " update database to force files to be up-to-date";
+   "--depend", Lm_arg.SetFold set_flush_dependencies_opt, (**)
+   " do not trust cached dependency information";
+   "-U", Lm_arg.SetFold set_flush_cache_opt, (**)
+   " do not trust the dependency cache or cached OMakefiles";
+   "--flush-includes", Lm_arg.SetFold set_flush_include_opt, (**)
+   " do not trust cached .omc files";
+   "--configure", Lm_arg.SetFold set_flush_static_opt, (**)
+   " recompute static. sections";
+   "-R", Lm_arg.SetFold set_cd_root_opt, (**)
+   " command-line targets are relative to the project root; \
+    builds all .DEFAULT targets if no targets given";
+   "--print-dependencies", Lm_arg.SetFold set_print_dependencies_opt, (**)
+   " build and print dependencies";
+   "--show-dependencies", Lm_arg.StringFold add_show_dependency_opt, (**)
+   "TARGET  show dependencies if TARGET is built";
+   "--all-dependencies", Lm_arg.SetFold set_all_dependencies_opt, (**)
+   " for --print-dependencies and --show-dependencies, print dependencies recursively";
+   "--verbose-dependencies", Lm_arg.SetFold set_verbose_dependencies_opt, (**)
+   " for --print-dependencies and --show-dependencies, print all dependencies too";
+   "--absname", Lm_arg.SetFold set_absname_opt, (**)
+   " filenames are always displayed as absolute paths";
+   "-Wdeclare", Lm_arg.SetFold set_warn_declare_opt, (**)
+   " warn about undeclared variables";
+   "-warn-error", Lm_arg.SetFold set_warn_error_opt, (**)
+   " treat warnings as errors"
+  ]
 
 let progress_usage =
    match Sys.os_type with
@@ -442,7 +443,7 @@ let progress_usage =
  *)
 let output_spec =
   [
-    "--verbose", 
+    "--verbose",
     Lm_arg.UnitFold
       (fun options ->
          { options with
@@ -452,13 +453,14 @@ let output_spec =
            print_exit = true;
            print_file = true
          }),
-    "Verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
-   
-    "--print-exit", Lm_arg.SetFold set_print_exit_opt, "Print the exit codes of commands";
+    " verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
+
+    "--print-exit", Lm_arg.SetFold set_print_exit_opt,
+    " print the exit codes of commands";
 
     "-S", Lm_arg.SetFold
-      (fun options b -> { options with print_command = if b then EvalLazy else EvalEager }), 
-    "Print command only if the command prints output (default)";
+      (fun options b -> { options with print_command = if b then EvalLazy else EvalEager }),
+    " print command only if the command prints output (default)";
 
     "-s", Lm_arg.ClearFold (fun options b ->
         { options with print_status  = b;
@@ -466,30 +468,31 @@ let output_spec =
                        print_file    = b;
                        print_exit    = b;
                        print_command = if b then EvalEager else EvalNever }),
-    "Never print commands before they are executed";
+    " never print commands before they are executed";
 
     "--progress", Lm_arg.SetFold set_print_progress_opt,
-    ("Print a progress indicator " ^ progress_usage);
+    (" print a progress indicator " ^ progress_usage);
 
     "--print-status", Lm_arg.SetFold set_print_status_opt,
-    "Print status lines (default)";
+    " print status lines (default)";
 
     "-w", Lm_arg.SetFold set_print_dir_opt,
-    "Print the directory in \"make format\" as commands are executed";
+    " print the directory in \"make format\" as commands are executed";
 
-    "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), 
-    "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
+    "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal),
+    " relay the output of the rule commands to the OMake output right away; \
+     this is the default when no --output-postpone and no --output-only-errors flags are given.";
 
     "--output-postpone", Lm_arg.SetFold (fun opt flag ->
-        set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag), 
-    "Postpone printing command output until a rule terminates.";
+        set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag),
+    " postpone printing command output until a rule terminates";
 
-    "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), 
-    "Same as --output-postpone, but postponed output will only be printed for commands that fail.";
+    "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError),
+    " same as --output-postpone, but postponed output will only be printed for commands that fail";
 
-    "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), 
-    "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled (directly or via -p/-P).";
+    "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors),
+    " the output of the failed commands will be printed after OMake has stopped; \
+     off by default, unless -k is enabled (directly or via -p/-P)";
     "-o", Lm_arg.StringFold set_output_opts, (**)
-    "Short output options [01jwWpPxXsS] (see the manual)";
+    "SHORT-OPTION  short output options [012wWpPxXsS] (see the manual page or manual)";
   ]
-

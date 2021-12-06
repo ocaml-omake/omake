@@ -56,9 +56,9 @@ let shorten_version s =
 
 
 (* Figure out if the line is a magic directive. *)
-(* 
+(*
 {[
-magic_line_type "(\* %%MAGICEND%% *\)";; 
+magic_line_type "(\* %%MAGICEND%% *\)";;
 `END
 magic_line_type "(* %%MAGICBEGIN%% *)";;
 `Begin
@@ -107,16 +107,16 @@ let copy_magic_file outx inp : unit =
           output_char outx '\n'
         end;
       copy inx magic_flag in
-  match open_in inp with 
+  match open_in inp with
   | exception  Sys_error _ ->
     Printf.eprintf "Can't open %s\n" inp;
     flush stderr;
     exit 1
-  | inx -> 
+  | inx ->
     try copy inx false with End_of_file -> close_in inx
 
-    
-let omake_magic (buf : out_channel) 
+
+let omake_magic (buf : out_channel)
     version_txt
     default_save_interval
     libdir
@@ -140,7 +140,7 @@ let omake_magic (buf : out_channel)
       in
       String.escaped (code ^ digest) in
   let version = read_version version_txt in
-  let tm =  Unix.(localtime (time ())) in 
+  let tm =  Unix.(localtime (time ())) in
   Printf.fprintf buf {|
 let default_save_interval = %F
 let input_magic inx = let s = Bytes.make %d ' ' in really_input inx s 0 %d; Bytes.to_string s
@@ -150,7 +150,7 @@ let ir_magic = "%s"
 let obj_magic = "%s"
 let lib_dir = "%s"
 let version = "%s"
-let version_message = "OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s"
+let version_message = "OMake %s:\n    build [%s %s %d %02d:%02d:%02d %d]\n    on %s"
 |}
        default_save_interval
        digest_len
@@ -214,7 +214,7 @@ let output_file = ref None
 let cache_files = ref []
 let omc_files   = ref []
 let omo_files   = ref []
-let default_save_interval = ref 15.0 
+let default_save_interval = ref 15.0
 let vars        = ref []
 
 
@@ -232,22 +232,22 @@ let anon s =
 
 let spec : (string * Arg.spec * string) list =
    ["--magic", Set make_magic, "generate the omake_magic.ml file";
-    
+
     "--cache-files", Unit (fun () -> mode := CacheFiles), "specify the magic files for the cache magic number";
     "--omc-files", Unit (fun () -> mode := OmcFiles), "specify the files to scan for the IR magic number";
     "--omo-files", Unit (fun () -> mode := OmoFiles), "specify the files to scan for the object magic number";
     "--version", String (fun s -> version_txt := s), "specify the version.txt file";
-  
+
     "-o",String (fun s -> output_file := Some s), "set the output file";
     "--lib", String (fun s -> libdir := Some s), "specify the location of the library directory";
     "--root", String (fun s -> make_root := Some s),  "generate the OMakeroot file";
     "--default_save_interval",
     Float (fun f -> default_save_interval := f), "specify the default .omakedb save interval";
-    "--var", String (fun s -> 
+    "--var", String (fun s ->
                      let (name,value) =
                        try
                          let p = String.index s '=' in
-                         (String.sub s 0 p, 
+                         (String.sub s 0 p,
                           String.sub s (p+1) (String.length s - p - 1)
                          )
                        with Not_found -> failwith ("bad --var: " ^ s) in
@@ -270,8 +270,8 @@ let main () =
     | None ->
       raise (Invalid_argument "use the -o option to specify an output file")
   in
-  let libdir = 
-    match !libdir with 
+  let libdir =
+    match !libdir with
     | Some s -> Filename.concat s "omake"
     | None -> Filename.concat (Filename.dirname (Unix.getcwd ())) "lib"
   in
@@ -288,4 +288,3 @@ let main () =
 
 let _ =
    Printexc.catch main ()
-

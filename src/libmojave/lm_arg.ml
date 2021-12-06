@@ -159,7 +159,7 @@ let char_table_lookup table ch =
   with
     Not_found ->
     (* If the character is '_', try looking it up as '-'. This is a
-       hack to accomodate both '_' and '-' in option names (proper
+       hack to accommodate both '_' and '-' in option names (proper
        GCC style uses hyphen, but our old options used underscores). *)
     if ch = '_' then
       try
@@ -413,7 +413,7 @@ let usage_arg = function
 
 (* usage
    Display the usage message and help text for the options.  *)
-let usage opt_width spec =
+let print_usage opt_width spec =
    List.iter (fun (opt, spec, doc) ->
          (* Descriptive text for the option argument *)
          let opt = opt ^ (usage_arg spec) in
@@ -444,7 +444,7 @@ let usage (mode, spec) usage_msg =
    Lm_printf.printf "@[<v 0>%s." usage_msg;
    List.iter (fun (section, spec) ->
       Lm_printf.printf "@ @ @[<v 3>%s:" section;
-      usage opt_width spec;
+      print_usage opt_width spec;
       Lm_printf.printf "@]") spec;
    (match mode with
        StrictOptions ->
@@ -513,9 +513,6 @@ let rec get_next_option mode argv argv_length current =
    -help or --help is intercepted on the argument stream, then the
    usage message is displayed.  *)
 let fold_argv argv (mode_info, spec_info) arg default usage_msg =
-  (* Always add the --help flag *)
-  let spec_info = ("Help flags", ["--help", Usage, "Display a help message"]) :: spec_info in
-
   (* Set the current mode *)
   let mode =
     match mode_info with
