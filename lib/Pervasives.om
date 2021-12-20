@@ -62,8 +62,8 @@ shell-success(argv) =
     default
         value $(not true)
 
-last(array) =
-   return $(nth $(sub $(length $(array)), 1), $(array))
+last(an_array) =
+   return $(nth $(sub $(length $(an_array)), 1), $(an_array))
 
 Bool(v) =
    value $(not $(not $v))

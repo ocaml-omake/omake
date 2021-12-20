@@ -26,7 +26,7 @@ let pp_print_arity buf arity =
     Format.fprintf buf "%d..%d" lower upper
   | ArityExact i ->
     Lm_printf.pp_print_int buf i
-  | ArityAny ->
+  | ArityAny | ArityConstructor ->
     Lm_printf.pp_print_string buf "varargs"
   | ArityNone ->
     Lm_printf.pp_print_int buf 0

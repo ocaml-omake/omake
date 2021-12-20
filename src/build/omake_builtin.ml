@@ -84,6 +84,7 @@ let venv_add_builtins venv =
       let p = Omake_env.venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
       let no_args   =
         match (arity : Omake_ir.arity) with
+        | ArityConstructor
         | ArityExact 0 -> Omake_ir.ApplyEmpty
         | _ -> ApplyNonEmpty
       in
@@ -96,7 +97,8 @@ let venv_add_builtins venv =
       let p = Omake_env.venv_add_prim_fun venv name f in
       let (no_args : Omake_ir.apply_empty_strategy)  =
         match (arity : Omake_ir.arity) with
-        | ArityExact 0 -> ApplyEmpty
+        | ArityConstructor
+        | ArityExact 0 -> Omake_ir.ApplyEmpty
         | _ -> ApplyNonEmpty
       in
       Omake_env.venv_add_var venv v (ValPrim (arity, special,no_args,  p))) venv builtin_kfuns

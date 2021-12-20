@@ -342,7 +342,7 @@ let int_of_arity (arity : Omake_ir.arity) =
     i
   | ArityNone ->
     0
-  | ArityAny ->
+  | ArityAny | ArityConstructor ->
     max_int
 
 let sequence_length venv pos loc args =

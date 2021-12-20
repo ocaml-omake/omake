@@ -1089,14 +1089,13 @@ let setvar venv pos loc args kargs =
  * \fun{array}
  *
  * \begin{verbatim}
- *     $(array elements) : Array
+ *     $(array elements...) : Array
  *        elements : Sequence
  * \end{verbatim}
  *
- * The \verb+array+ function creates an array from a sequence.
- * If the \verb+<arg>+ is a string, the elements of the array
- * are the whitespace-separated elements of the string, respecting
- * quotes.
+ * The \verb+array+~function creates an array from a sequence of
+ * \verb+elements+.  Note that \verb+$(array)+ constructs an empty
+ * array.
  *
  * In addition, array variables can be declared as follows.
  *
@@ -1107,16 +1106,15 @@ let setvar venv pos loc args kargs =
  *        <valn>
  * \end{verbatim}
  *
- * In this case, the elements of the array are exactly
- * \verb+<val1>+, ..., \verb+<valn>+, and whitespace is
- * preserved literally.
+ * In this case, the elements of the array are exactly \verb+<val1>+,
+ * ..., \verb+<valn>+, and whitespace is preserved literally.
  * \end{doc}
 *)
 let array_fun venv pos _ args : Omake_value_type.t =
-   let pos = string_pos "array" pos in
+   let pos' = string_pos "array" pos in
    let args =
       List.fold_left (fun args arg ->
-            let args' = Omake_eval.values_of_value venv pos arg in
+            let args' = Omake_eval.values_of_value venv pos' arg in
                List.rev_append args' args) [] args
    in
       ValArray (List.rev args)
@@ -1128,26 +1126,29 @@ let array_fun venv pos _ args : Omake_value_type.t =
  * \fun{split}
  *
  * \begin{verbatim}
- *    $(split sep, elements) : Array
- *       sep : String
+ *    $(split separators, elements) : Array
+ *       separators : String
  *       elements : Sequence
  * \end{verbatim}
  *
- * The \verb+split+ function takes two arguments, a string of separators, and
- * a string argument.  The result is an array of elements determined by
- * splitting the elements by all occurrence of the separator in the
- * \verb+elements+ sequence.
+ * The \verb+split+~function takes two arguments, a string of
+ * separator characters, and the string elements to be split.  The
+ * result is an array of strings determined by splitting the elements
+ * by all occurrences of the separators in the elements' sequence.
+ * (Function~\verb+split+ resembles the C-library
+ * function~\verb+strtok+ with arguments swapped.)
  *
- * For example, in the following code, the \verb+X+ variable is
- * defined to be the array \verb+/bin /usr/bin /usr/local/bin+.
+ * For example, in the following code, the variable~\verb+X+ is
+ * defined to be the array~\verb+/bin /usr/bin /usr/local/bin+.
  *
  * \begin{verbatim}
  *     PATH = /bin:/usr/bin:/usr/local/bin
  *     X = $(split :, $(PATH))
  * \end{verbatim}
  *
- * The \verb+sep+ argument may be omitted. In this case \verb+split+ breaks its
- * arguments along the white space. Quotations are not split.
+ * The separator~argument may be omitted.  In this case \verb+split+
+ * breaks its arguments along the white space.  Quotations are not
+ * split.
  * \end{doc}
  *)
 let split_fun venv pos loc args =
@@ -1181,33 +1182,42 @@ let split_fun venv pos loc args =
  * \fun{concat}
  *
  * \begin{verbatim}
- *    $(concat sep, elements) : String
- *       sep : String
+ *    $(concat separator, elements...) : String
+ *       separator : String
  *       elements : Sequence
  * \end{verbatim}
  *
- * The \verb+concat+ function takes two arguments, a separator string, and
- * a sequence of elements.  The result is a string formed by concatenating
- * the elements, placing the separator between adjacent elements.
+ * The \verb+concat+~function takes a separator~string, and a sequence
+ * of elements.  The result is a string formed by concatenating the
+ * elements, placing the separator between adjacent elements.
  *
  * For example, in the following code, the \verb+X+ variable is
- * defined to be the string \verb+foo_x_bar_x_baz+.
+ * defined to be the string~\verb+foo_x_bar_x_baz+.
  *
  * \begin{verbatim}
  *     X = foo  bar     baz
  *     Y = $(concat _x_, $(X))
  * \end{verbatim}
+ *
+ * To abut \verb+elements+ without intervening separators use
+ *
+ * \begin{verbatim}
+ *     $(concat $(string), ...)
+ * \end{verbatim}
  * \end{doc}
  *)
 let concat_fun venv pos loc args : Omake_value_type.t =
-  let pos = string_pos "concat" pos in
+  let pos' = string_pos "concat" pos in
   match args with
-  |[sep; arg] ->
-    let sep = Omake_eval.string_of_value venv pos sep in
-    let args = Omake_eval.strings_of_value venv pos arg in
-    ValData (String.concat sep args)
+  | [sep] ->
+    ValData ""
+  | sep :: args' ->
+    let sep' = Omake_eval.string_of_value venv pos' sep
+    and all_strings = List.map (Omake_eval.strings_of_value venv pos') args' in
+    ValData (String.concat sep' (List.flatten all_strings))
   | _ ->
-    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+    raise (Omake_value_type.OmakeException (loc_pos loc pos,
+                                            ArityMismatch (ArityRange (1, max_int), List.length args)))
 
 (*
  * Length of a list.
@@ -1456,25 +1466,41 @@ let rev_fun venv pos loc args : Omake_value_type.t =
  * \fun{string}
  *
  * \begin{verbatim}
- *    $(string sequence) : String
+ *    $(string sequence...) : String
  *       sequence : Sequence
  * \end{verbatim}
  *
- * The \verb+string+ function flattens a sequence into a single string.
- * This is similar to the \verb+concat+ function, but the elements are
- * separated by whitespace.  The result is treated as a unit; whitespace
- * is significant.
+ * The \verb+string+~function flattens a sequence into a single
+ * string.  This is similar to the \verb+array+~function, but the
+ * elements are interpolated and concatenated by a single space.  The
+ * result always is a single string.  Whitespace in sequence is not
+ * significant.  Note that \verb+$(string)+ constructs an empty
+ * string.
+ *
+ * In addition, string variables can be declared as follows.
+ *
+ * \begin{verbatim}
+ *     S11 = $'<literal>'
+ *     S12 = $"<literal-with-interpolation>"
+ *     S21 = $'''<multi-line
+ *     literal>
+ *     '''
+ *     S22 = $"""<multi-line
+ *     literal
+ *     with
+ *     interpolation>"""
+ * \end{verbatim}
  * \end{doc}
  *)
-let string venv pos loc args : Omake_value_type.t =
-  let pos = string_pos "string" pos in
+let string_fun venv pos loc args : Omake_value_type.t =
+  let pos' = string_pos "string" pos in
   match args with
-  | [arg] ->
-    let args = Omake_eval.strings_of_value venv pos arg in
-    let s = String.concat " " args in
-    ValData s
-  | _ ->
-    raise (Omake_value_type.OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+  | [] ->
+    ValData ""
+  | args' ->
+    let all_strings = List.map (Omake_eval.strings_of_value venv pos') args' in
+    ValData (String.concat " " (List.flatten all_strings))
+
 
 (*
  * \begin{doc}
@@ -2899,7 +2925,7 @@ let () =
      true,  "replacesuffixes",       replacesuffixes,     ArityExact 3;
 
      (* String operations *)
-     true,  "string",                string,              ArityExact 1;
+     true,  "string",                string_fun,          ArityConstructor;
      true,  "string-escaped",        string_escaped,      ArityExact 1;
      true,  "string-length",         string_length,       ArityExact 1;
      true,  "subst",                 subst,               ArityExact 3;
@@ -2943,9 +2969,9 @@ let () =
      true,  "defined",               defined,             ArityExact 1;
 
      (* List operations *)
-     true,  "array",                 array_fun,           ArityAny;
+     true,  "array",                 array_fun,           ArityConstructor;
      true,  "split",                 split_fun,           ArityRange (1, 2);
-     true,  "concat",                concat_fun,          ArityExact 2;
+     true,  "concat",                concat_fun,          ArityRange (1, max_int);
      true,  "filter",                filter,              ArityExact 2;
      true,  "filter-out",            filter_out,          ArityExact 2;
      true,  "nth",                   nth_fun,             ArityExact 2;
