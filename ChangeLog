@@ -1,5 +1,12 @@
+2022-06-06  Gerd Stolpmann
+
+        * release omake-0.10.4. This release contains the GitHub PRs 100 to 147
+	  (so far accepted).
+
+2017-11-04  Gerd Stolpmann
+
+	*  release omake-0.10.3
+
 2016-01-03  Gerd Stolpmann  <gerd@e130.lan.sumadev.de>
 
 	* Starting another changelog
-
-
