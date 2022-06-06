@@ -13,6 +13,7 @@
 - doc: (need hevea and latex, otherwise it'll fail)
   cd doc
   mkdir -p html tex txt ps info
+  omake --configure
   omake clean
   omake html txt tex info
   omake distclean
