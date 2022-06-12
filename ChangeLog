@@ -1,3 +1,8 @@
+2022-06-12  Gerd Stolpmann
+
+	* release omake-0.10.5. The only change is a fix in the
+	  install script
+
 2022-06-06  Gerd Stolpmann
 
         * release omake-0.10.4. This release contains the GitHub PRs 100 to 147
