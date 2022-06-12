@@ -5,6 +5,8 @@
    ./version.txt
    ./doc/src/omake-doc.tex
 
+- update ChangeLog
+
 - rebuild
   ./configure
   make clean
