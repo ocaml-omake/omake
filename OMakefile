@@ -247,6 +247,7 @@ PUBFILES[] =
     mk/osconfig_unix.mk
 
     doc/OMakefile
+    doc/omake.1
     doc/html/*.html
     doc/html/*.css
     doc/images/*.ai
