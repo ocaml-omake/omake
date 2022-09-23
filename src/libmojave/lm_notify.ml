@@ -11,13 +11,13 @@ let debug_notify =
 module IntCompare =
 struct
    type t = int
-   let compare (x : int) (y : int) = Pervasives.compare x y
+   let compare (x : int) (y : int) = compare x y
 end
 
 module StringCompare =
 struct
    type t = string
-   let compare (x : string) (y : string) = Pervasives.compare x y
+   let compare (x : string) (y : string) = compare x y
 end
 
 module IntTable = Lm_map.LmMake (IntCompare)

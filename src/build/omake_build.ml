@@ -1698,7 +1698,7 @@ let save_aux (env : Omake_build_type.t) =
   let db_tmp = Lm_printf.sprintf ".#%s.%s.%i" Omake_state.db_name (Unix.gethostname ()) pid in
 
   (* Marshal the state to the output file *)
-  let outx = Pervasives.open_out_bin db_tmp in
+  let outx = open_out_bin db_tmp in
   let includes =
     Omake_node.NodeTable.fold (fun includes node _ ->
       Omake_node.NodeSet.add includes node) Omake_node.NodeSet.empty env.env_includes
@@ -2012,7 +2012,7 @@ let create_env exec options cache targets =
   (* Summary file *)
   let summary =
     let summary, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".error" in
-    Pervasives.close_out outx;
+    close_out outx;
     summary
   in
   let summary_value : Omake_value_type.t = ValNode (Omake_env.venv_intern venv PhonyProhibited summary) in
@@ -2128,7 +2128,7 @@ let load_osh venv options targets =
   (* Add the summary file *)
   let summary =
     let summary, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".error" in
-    Pervasives.close_out outx;
+    close_out outx;
     summary
   in
   let summary_value : Omake_value_type.t = 
@@ -2263,12 +2263,12 @@ let print_summary ?(unlink = true) (env : Omake_build_type.t) =
   let rec copy () =
     let amount = input inx buffer 0 (Bytes.length buffer) in
     if amount > 0 then begin
-      Pervasives.output Pervasives.stderr buffer 0 amount;
+      output stderr buffer 0 amount;
       copy ()
     end
   in
   copy ();
-  Pervasives.flush Pervasives.stderr;
+  flush stderr;
   close_in inx;
   if unlink then
     Lm_unix_util.try_unlink_file env.env_summary
@@ -2322,7 +2322,7 @@ let rec build_targets (env : Omake_build_type.t) save_flag start_time parallel p
  * Summary management.
  *)
   let create_tmpfile (env : Omake_build_type.t) =
-    close_out @@ Pervasives.open_out_gen 
+    close_out @@ open_out_gen
       [Open_wronly; Open_binary; Open_creat; Open_trunc] 0o600 env.env_summary  in
   let () =
     try
@@ -2526,7 +2526,7 @@ let build options dir_name targets =
     build_time (Unix.gettimeofday ()) None options dir_name targets
   with
     BuildExit code ->
-    Pervasives.exit code
+    exit code
 
 
 let build_fun venv targets =

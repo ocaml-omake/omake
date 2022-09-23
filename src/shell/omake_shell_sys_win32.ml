@@ -34,7 +34,7 @@ let () =
       if pid == Unix.getpid () then
          close ()
    in
-      Pervasives.at_exit do_close
+      at_exit do_close
 
 let set_interactive _ = ()
 let set_close_on_exec = Unix.set_close_on_exec
@@ -101,7 +101,7 @@ let create_thread info =
          _
        } = info
    in
-   Pervasives.flush_all();
+   flush_all();
    let pid    = create_thread_pid pgrp in
    let stdin  = Unix.dup stdin  in
    let stdout = Unix.dup stdout in

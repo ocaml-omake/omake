@@ -31,7 +31,6 @@ val eprintf : ('a, Format.formatter, unit) format -> 'a
 val printf  : ('a, Format.formatter, unit) format -> 'a
 val sprintf : ('a, unit, string) format -> 'a
 val fprintf : Format.formatter -> ('a, Format.formatter, unit) format -> 'a
-val bprintf : Buffer.t -> ('a, Format.formatter, unit) format -> 'a
 
 (*
  * List printing helpers.
@@ -112,24 +111,17 @@ val get_ellipsis_text : unit -> string
 (*
  * Redirecting formatter output.
  *)
-val set_formatter_out_channel      : Pervasives.out_channel -> unit
+val set_formatter_out_channel      : out_channel -> unit
 val set_formatter_output_functions : (string -> int -> int -> unit) -> (unit -> unit) -> unit
 val get_formatter_output_functions : unit -> (string -> int -> int -> unit) * (unit -> unit)
 
-
-val get_all_formatter_output_functions :
-   unit ->
-   (string -> int -> int -> unit) *
-   (unit -> unit) *
-   (unit -> unit) *
-   (int -> unit)
 
 (*
  * Multiple formatted output.
  *)
 type formatter = Format.formatter
 
-val formatter_of_out_channel     : Pervasives.out_channel -> formatter
+val formatter_of_out_channel     : out_channel -> formatter
 val std_formatter                : formatter
 val err_formatter                : formatter
 val str_formatter                : formatter
@@ -173,19 +165,11 @@ val pp_get_max_boxes             : formatter -> unit -> int
 val pp_over_max_boxes            : formatter -> unit -> bool
 val pp_set_ellipsis_text         : formatter -> string -> unit
 val pp_get_ellipsis_text         : formatter -> unit -> string
-val pp_set_formatter_out_channel : formatter -> Pervasives.out_channel -> unit
+val pp_set_formatter_out_channel : formatter -> out_channel -> unit
 
 val pp_set_formatter_output_functions :
    formatter -> (string -> int -> int -> unit) -> (unit -> unit) -> unit
 
-
-val pp_get_all_formatter_output_functions :
-   formatter ->
-   unit ->
-   (string -> int -> int -> unit) *
-   (unit -> unit) *
-   (unit -> unit) *
-   (int -> unit)
 
 (* Prints a "; "- separated list. *)
 val pp_print_any_list : (formatter -> 'a -> unit) -> formatter -> 'a list -> unit

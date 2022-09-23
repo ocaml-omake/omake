@@ -21,7 +21,7 @@ end)
 
 module FdTable = Lm_map.LmMake (struct
    type t = Unix.file_descr
-   let compare = Pervasives.compare
+   let compare = compare
 end
 );;
 
@@ -73,7 +73,7 @@ let copy_file name =
  * The files are created only if there is output.
  *)
 type tee_info =
- | TeeChannel of string * Pervasives.out_channel
+ | TeeChannel of string * out_channel
  | TeeFile of string
  | TeeMaybe
  | TeeNever
@@ -104,7 +104,7 @@ let tee_channel tee =
 let tee_close tee =
    match !tee with
    | TeeChannel (name, outx) ->
-       Pervasives.close_out outx;
+       close_out outx;
        tee := TeeFile name
    | TeeFile _
    | TeeMaybe
@@ -124,7 +124,7 @@ let tee_copy name fd flush_flag tee tee_only id buf off len =
          flush_flag := true;
       match !tee with
       |  TeeChannel (_, outx) ->
-          Pervasives.flush outx
+          flush outx
       | _ ->
             ()
    end else begin
@@ -137,7 +137,7 @@ let tee_copy name fd flush_flag tee tee_only id buf off len =
       end;
       match tee_channel tee with
          Some outx ->
-            Pervasives.output outx buf off len
+            output outx buf off len
        | None ->
             ()
    end

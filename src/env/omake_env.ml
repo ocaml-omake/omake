@@ -5,7 +5,7 @@ module TargetElem = struct
     if h1=h2 then
       let p1 = String.compare s1 s2 in
       if p1 = 0 then
-        Pervasives.compare k1 k2
+        compare k1 k2
       else
         p1
     else

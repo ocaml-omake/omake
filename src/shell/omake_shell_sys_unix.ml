@@ -31,7 +31,7 @@ let setpgid pid1 pid2 =
 module FdCompare =
 struct
    type t = Unix.file_descr
-   let compare = Pervasives.compare
+   let compare = compare
 end
 
 module FdSet = Lm_set.LmMake (FdCompare);;
@@ -161,7 +161,7 @@ let create_thread info =
          create_thread_background = bg
        } = info
    in
-   Pervasives.flush_all();
+   flush_all();
    Lm_unix_util.moncontrol false;
    let pid = Unix.fork () in
       if pid = 0 then

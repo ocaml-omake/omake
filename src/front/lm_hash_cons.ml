@@ -55,7 +55,7 @@ struct
    let hash index = index
 
    let compare (index1 : int) index2 =
-     Pervasives.compare index1  index2
+     compare index1  index2
 
    let map_array f state =
      Array.mapi f

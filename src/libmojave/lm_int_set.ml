@@ -2,7 +2,7 @@ module OrderedInt =
  struct
    type t = int
    let compare (i : int) (j : int) =
-     Pervasives.compare i j
+     compare i j
 end
 
 module IntSet = Lm_set.LmMake (OrderedInt)

@@ -1119,12 +1119,12 @@ module LexerInput =
          * Restart at a previous position.
          *)
     let lex_restart channel pos =
-      let { in_max = max;
+      let { in_max = in_max;
             in_index = index;
             _
           } = channel
       in
-      assert (pos >= 0 && pos <= max - index);
+      assert (pos >= 0 && pos <= in_max - index);
       channel.lex_index <- index + pos
 
           (*
@@ -1162,7 +1162,7 @@ module LexerInput =
          * We can't discard any of the existing data.
          *)
     let rec lex_fill channel =
-      let { in_max         = max;
+      let { in_max         = in_max;
             in_buffer      = buffer;
             in_index       = start;
             read_fun       = reader;
@@ -1171,10 +1171,10 @@ module LexerInput =
           } = channel
       in
       let len = Bytes.length buffer in
-      let amount = len - max in
+      let amount = len - in_max in
       (* If we have space, fill it *)
       if amount > 1 then
-        let count = reader buffer max (pred amount) in
+        let count = reader buffer in_max (pred amount) in
         if count = 0 then
           eof
         else
@@ -1183,16 +1183,16 @@ module LexerInput =
               count
             else
               let extra =
-                if Bytes.get buffer (max + count - 1) = '\r' then
-                  reader buffer (max + count) 1
+                if Bytes.get buffer (in_max + count - 1) = '\r' then
+                  reader buffer (in_max + count) 1
                 else
                   0
               in
-              squash_text buffer max (count + extra)
+              squash_text buffer in_max (count + extra)
           in
-          let c = Bytes.get buffer max in
-          channel.in_max <- max + count;
-          channel.lex_index <- succ max;
+          let c = Bytes.get buffer in_max in
+          channel.in_max <- in_max + count;
+          channel.lex_index <- succ in_max;
           Char.code c
 
             (* If we can shift left, do it *)
@@ -1210,8 +1210,8 @@ module LexerInput =
            * Otherwise grow it.
            *)
       else
-        let new_buffer = Bytes.create (Pervasives.max (len * 2) 32) in
-        Bytes.blit buffer 0 new_buffer 0 max;
+        let new_buffer = Bytes.create (max (len * 2) 32) in
+        Bytes.blit buffer 0 new_buffer 0 in_max;
         channel.in_buffer <- new_buffer;
         lex_fill channel
 
@@ -1219,13 +1219,13 @@ module LexerInput =
            * Get the next character in lex mode.
            *)
     let lex_next channel =
-      let { in_max = max;
+      let { in_max = in_max;
             in_buffer = buffer;
             lex_index = index;
             _
           } = channel
       in
-      if index = max then
+      if index = in_max then
         lex_fill channel
       else
         let c = Bytes.get buffer index in
@@ -1247,18 +1247,18 @@ module LexerInput =
             channel_file = file;
             lex_index = index;
             in_buffer = buffer;
-            in_max = max;
+            in_max = in_max;
             _
           } = channel
       in
       let line1, char1 =
-        if index > max then
+        if index > in_max then
           line, char
         else
           line_of_index channel buffer index
       in
       let line2, char2 =
-        if index + off > max then
+        if index + off > in_max then
           line1, char1
         else
           line_of_index channel buffer (index + off)
@@ -1269,14 +1269,14 @@ module LexerInput =
          * Add any remaining buffered text to a buffer.
          *)
     let lex_buffer channel buf =
-      let { in_max    = max;
+      let { in_max    = in_max;
             in_buffer = buffer;
             in_index  = start;
             _
           } = channel
       in
-      Buffer.add_subbytes buf buffer start (max - start);
-      channel.in_index <- max
+      Buffer.add_subbytes buf buffer start (in_max - start);
+      channel.in_index <- in_max
   end
 
 (*

@@ -47,7 +47,7 @@ module StringMTable = Lm_map.LmMakeList (OrderedString)
  *)
 module LexOrderedString = struct
    type t = string
-   let compare (s1: t) s2 = Pervasives.compare s1 s2
+   let compare (s1: t) s2 = compare s1 s2
 end
 
 module LexStringSet = Lm_set.LmMake (LexOrderedString)

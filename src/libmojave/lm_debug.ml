@@ -197,7 +197,7 @@ type profile = {
 let tbl = Hashtbl.create 19
 
 let compare (_,t1) (_,t2) =
-  Pervasives.compare
+  compare
     (t1.ok.wtime +. t1.exn.wtime) (t2.ok.wtime +. t2.exn.wtime)
 
 let report1 s t =

@@ -16,10 +16,10 @@ let copy_file force src dst =
    in
       if force || not (Sys.file_exists dst) || prompt () then
          let () = Lm_printf.printf "*** omake: creating %s@." dst in
-         let inx = Pervasives.open_in src in
-         let outx = Pervasives.open_out dst in
+         let inx = open_in src in
+         let outx = open_out dst in
          let rec copy () =
-            Pervasives.output_char outx (input_char inx);
+            output_char outx (input_char inx);
             copy ()
          in
          let () =

@@ -221,4 +221,4 @@ let main () =
   copy inx outx
 
 let () =
-  Printexc.catch main ()
+  main ()

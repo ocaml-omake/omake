@@ -33,7 +33,7 @@ EXE = .exe
 CCOMPTYPE = msvc
 STDLIB := $(shell $(OCAMLC) -where)
 
-OCAMLFLAGS = -safe-string -strict-sequence -thread -w +a-4-32-30-42-40-41-48-50-52-60 -g $(OCAMLFLAGS_EXTRA)
+OCAMLFLAGS = -safe-string -strict-sequence -thread -w +a-4-32-30-42-40-41-48-50-52-60 -g -I +unix $(OCAMLFLAGS_EXTRA)
 THREADSLIB = threads.cma
 THREADSLIB_OPT = threads.cmxa
 PREFERRED = .byte

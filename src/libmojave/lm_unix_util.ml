@@ -59,7 +59,7 @@ let finally x f  action =
 
 let with_file_fmt (file : string) (action : Format.formatter -> 'a) : 'a =
   let outx =
-    Pervasives.open_out_gen [Open_wronly; Open_binary; Open_creat; Open_append]
+    open_out_gen [Open_wronly; Open_binary; Open_creat; Open_append]
       0o600 file in
   let buf = Format.formatter_of_out_channel outx in
   match action buf with 

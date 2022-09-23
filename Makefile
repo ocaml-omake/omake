@@ -1,5 +1,5 @@
 OCAML = ocaml
-OCAMLFLAGS = -safe-string -strict-sequence
+OCAMLFLAGS = -safe-string -strict-sequence -I +unix -I +str
 
 .PHONY: all bootstrap force-bootstrap install default clean doc package
 
