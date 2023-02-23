@@ -2929,9 +2929,9 @@ let venv_find_implicit_rules_inner venv target =
             let commands = make_command_info venv source_args irule.irule_values commands in
             let effects =
               List.fold_left (fun effects pattern ->
-                let effect = Lm_wild.subst_in subst pattern in
-                let effect = venv_intern_rule_target venv multiple (TargetString effect) in
-                Omake_node.NodeSet.add effects effect) Omake_node.NodeSet.empty irule.irule_patterns
+                let eff = Lm_wild.subst_in subst pattern in
+                let eff = venv_intern_rule_target venv multiple (TargetString eff) in
+                Omake_node.NodeSet.add effects eff) Omake_node.NodeSet.empty irule.irule_patterns
             in
             let erule =
               { rule_loc         = irule.irule_loc;
