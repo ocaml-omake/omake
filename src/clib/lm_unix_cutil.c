@@ -81,7 +81,7 @@ value home_win32(value v_unit)
     TCHAR path[MAX_PATH];
 
     if(SUCCEEDED(CompatSHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path)))
-        CAMLreturn(copy_string(path));
+        CAMLreturn(caml_copy_string(path));
 
     failwith("home_win32");
     return Val_unit;
@@ -141,11 +141,11 @@ value lockf_win32(value v_fd, value v_kind, value v_len)
         overlapped.Offset = pos;
 
         /* Perform the lock */
-        enter_blocking_section();
+        caml_enter_blocking_section();
         code = LockFileEx(fd, flags, 0, len, 0, &overlapped);
         if(code == 0)
             error = GetLastError();
-        leave_blocking_section();
+        caml_leave_blocking_section();
 
         /* Fail if the lock was not successful */
         if(code == 0) {
@@ -283,7 +283,7 @@ value caml_registry_find(value v_hkey, value v_subkey, value v_field)
 #endif
 
     /* Got the value */
-    return copy_string(buffer);
+    return caml_copy_string(buffer);
 }
 
 #else /* WIN32 */
@@ -379,9 +379,9 @@ value lm_flock(value v_fd, value v_op)
     op = Int_val(v_op);
 #if defined(FLOCK_ENABLED)
     cmd = flock_of_flock[op];
-    enter_blocking_section();
+    caml_enter_blocking_section();
     code = flock(fd, cmd);
-    leave_blocking_section();
+    caml_leave_blocking_section();
 #elif defined(FCNTL_ENABLED)
     {
         struct flock info;
@@ -390,9 +390,9 @@ value lm_flock(value v_fd, value v_op)
         info.l_whence = SEEK_SET;
         info.l_start = 0;
         info.l_len = FLOCK_LEN;
-        enter_blocking_section();
+        caml_enter_blocking_section();
         code = fcntl(fd, cmd, &info);
-        leave_blocking_section();
+        caml_leave_blocking_section();
     }
 #elif defined(LOCKF_ENABLED)
     cmd = lockf_of_flock[op];
@@ -455,12 +455,12 @@ value lm_getpwents(value v_unit)
         Store_field(entry, 2, Val_int(entryp->pw_uid));
         Store_field(entry, 3, Val_int(entryp->pw_gid));
 #ifdef __BEOS__
-        Store_field(entry, 4, copy_string(""));
+        Store_field(entry, 4, caml_copy_string(""));
 #else
-        Store_field(entry, 4, copy_string(entryp->pw_gecos));
+        Store_field(entry, 4, caml_copy_string(entryp->pw_gecos));
 #endif
-        Store_field(entry, 5, copy_string(entryp->pw_dir));
-        Store_field(entry, 6, copy_string(entryp->pw_shell));
+        Store_field(entry, 5, caml_copy_string(entryp->pw_dir));
+        Store_field(entry, 6, caml_copy_string(entryp->pw_shell));
         cons = caml_alloc_tuple(2);
         Store_field(cons, 0, entry);
         Store_field(cons, 1, users);

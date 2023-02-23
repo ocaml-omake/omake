@@ -158,7 +158,7 @@ and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t=
     let fine_compare (dir1 : t) (dir2 : t) =
       match dir1, dir2 with
       | DirRoot root1, DirRoot root2 ->
-        Pervasives.compare root1 root2
+        compare root1 root2
       | DirSub (_, name1, parent1), DirSub (_, name2, parent2) ->
         let cmp = Lm_string_util.string_compare name1 name2 in
         if cmp = 0 then
@@ -173,7 +173,7 @@ and DirCompare : Lm_hash.MARSHAL_EQ with type t = DirElt.t=
     let  coarse_compare (dir1 : t) ( dir2 : t) =
       match dir1, dir2 with
       | DirRoot root1, DirRoot root2 ->
-        Pervasives.compare root1 root2
+        compare root1 root2
       | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
         let cmp = FileCase.compare name1 name2 in
         if cmp = 0 then
@@ -1612,7 +1612,7 @@ let pp_print_string_list buf sources =
    List.iter (fun s -> Format.fprintf buf "@ %s" s) (List.sort String.compare sources)
 
 (* let pp_compare_nodes n1 n2 = *)
-(*    let cmp = Pervasives.compare (Node.kind n1) (Node.kind n2) in *)
+(*    let cmp = compare (Node.kind n1) (Node.kind n2) in *)
 (*       if cmp = 0 then *)
 (*          let cmp = String.compare (Node.fullname n1) (Node.fullname n2) in *)
 (*             if cmp = 0 then *)

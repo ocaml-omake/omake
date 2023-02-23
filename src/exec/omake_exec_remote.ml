@@ -5,6 +5,8 @@
  *)
 (* FIXME: the remote servers never terminate regularly *)
 
+let flush_channel = flush
+
 open Lm_printf
 open Lm_debug
 
@@ -103,22 +105,22 @@ module Server = struct
    * Data is marshaled.
    *)
   
-  let stdin = Pervasives.stdin
-  let stdout = Pervasives.stdout
+  let stdin = stdin
+  let stdout = stdout
                  
   (*
    * Send the sync string.
    *)
   let send_sync () =
-    Pervasives.output_string stdout sync_string;
-    Pervasives.flush stdout
+    output_string stdout sync_string;
+    flush_channel stdout
                      
   (*
    * The actual marshalers.
    *)
   let sendmsg out msg =
     Marshal.to_channel out msg [];
-    Pervasives.flush out
+    flush_channel out
 
   let send_response response =
     sendmsg stdout response
@@ -279,8 +281,8 @@ type 'value job_state =
   * The state is an ssh channel.
   *)
  type ('exp, 'pid, 'value) t =
-    { server_out : Pervasives.out_channel;
-      server_in  : Pervasives.in_channel;
+    { server_out : out_channel;
+      server_in  : in_channel;
       server_pid : int;
 
       (* Keep track of running jobs, so we can kill them if the connection drops *)
@@ -341,8 +343,8 @@ type 'value job_state =
           Unix.Unix_error _ ->
              ()
     in
-       Pervasives.close_out requestc;
-       Pervasives.close_in responsec
+       close_out requestc;
+       close_in responsec
 
  (*
   * Start a new job.

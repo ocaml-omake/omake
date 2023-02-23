@@ -287,4 +287,4 @@ let main () =
       exit 2
 
 let _ =
-   Printexc.catch main ()
+   main ()

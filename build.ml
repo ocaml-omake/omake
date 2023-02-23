@@ -268,7 +268,8 @@ let make self makedir vars target =
       [] in
   let args_a =
     Array.of_list
-      (Filename.concat dir "make.ml" :: "-C" :: makedir :: target :: args) in
+      ("-I" :: "+str" :: "-I" :: "+unix" :: Filename.concat dir "make.ml" ::
+         "-C" :: makedir :: target :: args) in
   exec_command [] (ocaml vars) args_a
 
 let run_bootstrap self vars =

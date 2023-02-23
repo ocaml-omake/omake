@@ -555,7 +555,7 @@ main_exit:
 
     return return_value;
 #else
-     invalid_argument("Omake_shell_spawn.compat_spawn");
+     caml_invalid_argument("Omake_shell_spawn.compat_spawn");
 #endif
 }
 
@@ -680,7 +680,7 @@ CAMLprim value omake_shell_spawn_posix_nat(value v_pg,
             flags |= POSIX_SPAWN_SETPGROUP;
             break;
         case 2: /* Pg_new_fg_group */
-            invalid_argument("Omake_Shell_Spawn_posix.posix_spawn: Pg_new_fg_group not supported");
+            caml_invalid_argument("Omake_Shell_Spawn_posix.posix_spawn: Pg_new_fg_group not supported");
             break;
         default:
             RAISE_MAIN_ERROR(EINVAL, "omake_shell_spawn_posix/assert_pg");
@@ -705,7 +705,7 @@ CAMLprim value omake_shell_spawn_posix_nat(value v_pg,
             break;
         }
         case 1: /* Sig_ignore */
-            invalid_argument("Omake_Shell_Spawn_posix.posix_spawn: Sig_ignore not supported");
+            caml_invalid_argument("Omake_Shell_Spawn_posix.posix_spawn: Sig_ignore not supported");
             break;
         case 2: /* Sig_mask */
         {
@@ -873,13 +873,13 @@ CAMLprim value omake_shell_spawn_posix_nat(value v_pg,
     }
 
     if (use_fork_exec) {
-        failwith("USE_FORK_EXEC");
+        caml_failwith("USE_FORK_EXEC");
     }
 
     return return_value;
 
 #else
-    invalid_argument("Omake_shell_spawn.posix_spawn not available");
+    caml_invalid_argument("Omake_shell_spawn.posix_spawn not available");
 #endif
 }
 
@@ -899,6 +899,6 @@ CAMLprim value omake_shell_spawn_fchdir(value fd)
     }
     return Val_unit;
 #else
-    invalid_argument("Omake_shell_spawn.fchdir not available");
+    caml_invalid_argument("Omake_shell_spawn.fchdir not available");
 #endif
 }

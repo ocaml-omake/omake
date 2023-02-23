@@ -136,7 +136,7 @@ let set_current_directory venv =
  *)
 let exit code =
    Lm_readline.save ();
-   Pervasives.exit code
+   exit code
 
 (*
  * Abort if asked.

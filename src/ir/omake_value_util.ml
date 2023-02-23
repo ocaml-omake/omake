@@ -98,6 +98,8 @@ struct
     | _ ->
          raise (Invalid_argument "ValueCompare: value not supported")
 
+   let compare_values = (* Stdlib.*) compare
+
    let rec compare v1 v2 =
       match v1, v2 with
          ValNone, ValNone ->
@@ -120,7 +122,7 @@ struct
        | ValArray a1, ValArray a2 ->
             compare_list a1 a2
        | ValData s1, ValData s2 ->
-            Pervasives.compare s1 s2
+            compare_values s1 s2
        | ValNode node1, ValNode node2 ->
             Omake_node.Node.compare node1 node2
        | ValDir dir1, ValDir dir2 ->

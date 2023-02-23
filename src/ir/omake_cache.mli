@@ -25,7 +25,7 @@ val env_target  : Omake_node.Node.t
 (* Fetch the cache *)
 val create       : unit -> t
 val from_channel : Omake_options.t -> in_channel -> t
-val to_channel   : Pervasives.out_channel -> t -> unit
+val to_channel   : out_channel -> t -> unit
 
 (*
  * Stats.

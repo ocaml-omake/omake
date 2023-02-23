@@ -22,11 +22,11 @@ let rec string_compare_aux s1 s2 len i =
     if c1 = c2 then
       string_compare_aux s1 s2 len (i+1)
     else
-      Pervasives.compare c1 c2
+      compare c1 c2
 
 let string_compare s1 s2 =
   let len1 = String.length s1 in
-  match Pervasives.compare len1 (String.length s2) with
+  match compare len1 (String.length s2) with
     0 -> string_compare_aux s1 s2 len1 0
   | i -> i
 

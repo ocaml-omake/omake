@@ -808,7 +808,7 @@ let glob_argv_name options root dir name =
       dirs
     else
       let names = List.append dirs names in
-      List.sort Pervasives.compare names
+      List.sort compare names
   else
     let name      = unescape options name in
     let file_name = filename_concat dir name in

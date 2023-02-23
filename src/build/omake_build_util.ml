@@ -775,7 +775,7 @@ let wait_for_lock, unlock_db =
       Lm_unix_util.ftruncate fd;
       let outx = Unix.out_channel_of_descr fd in
       Printf.fprintf outx "*** omake: the project was last locked by %s:%d.\n" (Unix.gethostname ()) (Unix.getpid ());
-      Pervasives.flush outx
+      flush outx
     with
       Unix.Unix_error _
     | Sys_error _
@@ -825,7 +825,7 @@ let save_aux (env : Omake_build_type.t) =
   let db_tmp = Lm_printf.sprintf ".#%s.%s.%i" Omake_state.db_name (Unix.gethostname ()) pid in
 
   (* Marshal the state to the output file *)
-  let outx = Pervasives.open_out_bin db_tmp in
+  let outx = open_out_bin db_tmp in
   let includes =
     Omake_node.NodeTable.fold (fun includes node _ ->
       Omake_node.NodeSet.add includes node) Omake_node.NodeSet.empty env.env_includes

@@ -26,6 +26,8 @@ let debug_parse_conflict_is_warning =
         debug_value = false
       }
 
+let compare_values = compare
+
 (*
  * A precedence directive is left-associative, right-associative,
  * or nonassociative.
@@ -279,7 +281,7 @@ struct
                         if cmp = 0 then
                            let cmp = ivar_list_compare right1 right2 in
                               if cmp = 0 then
-                                 Pervasives.compare prec1 prec2
+                                 compare_values prec1 prec2
                               else
                                  cmp
                         else

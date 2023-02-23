@@ -91,15 +91,15 @@ value caml_tgetstr(value id) {
       in.  */
 #ifdef NCURSES
    if(load_terminfo() == 0) {
-      termdata = tigetstr(String_val(id));
+     termdata = tigetstr((char *) String_val(id));
    }
 #endif /* NCURSES */
 
    /* Note that tigetstr will return either 0 or -1 on error. */
    if(termdata == NULL || termdata == (char *)(-1)) {
-      result = copy_string("");
+      result = caml_copy_string("");
    } else {
-      result = copy_string(termdata);
+      result = caml_copy_string(termdata);
       /* apparently we're not supposed to free termdata here */
       /* TEMP:  I cannot find specs on this! */
       //free(termdata);

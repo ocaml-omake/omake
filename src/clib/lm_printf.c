@@ -33,12 +33,12 @@ value ml_print_char(value v_fmt, value v_char)
     char c = (char) Int_val(v_char);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, c) < 0)
-        failwith("ml_print_char");
+        caml_failwith("ml_print_char");
 #else
     if(sprintf(buffer, fmt, c) < 0)
-        failwith("ml_print_char");
+        caml_failwith("ml_print_char");
 #endif
-    return copy_string(buffer);
+    return caml_copy_string(buffer);
 }
 
 /*
@@ -51,12 +51,12 @@ value ml_print_int(value v_fmt, value v_int)
     int i = Int_val(v_int);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, i) < 0)
-        failwith("ml_print_int");
+        caml_failwith("ml_print_int");
 #else
     if(sprintf(buffer, fmt, i) < 0)
-        failwith("ml_print_int");
+        caml_failwith("ml_print_int");
 #endif
-    return copy_string(buffer);
+    return caml_copy_string(buffer);
 }
 
 
@@ -70,12 +70,12 @@ value ml_print_float(value v_fmt, value v_float)
     double x = Double_val(v_float);
 #ifdef HAVE_SNPRINTF
     if(snprintf(buffer, sizeof(buffer), fmt, x) < 0)
-        failwith("ml_print_float");
+        caml_failwith("ml_print_float");
 #else
     if(sprintf(buffer, fmt, x) < 0)
-        failwith("ml_print_float");
+        caml_failwith("ml_print_float");
 #endif
-    return copy_string(buffer);
+    return caml_copy_string(buffer);
 }
 
 /*
@@ -104,7 +104,7 @@ value ml_print_string(value v_fmt, value v_string)
         size = len * 2;
         bufp = malloc(size);
         if(bufp == 0)
-            failwith("ml_print_string");
+            caml_failwith("ml_print_string");
     }
 
 #ifdef HAVE_SNPRINTF
@@ -115,9 +115,9 @@ value ml_print_string(value v_fmt, value v_string)
     if(code < 0) {
         if(bufp != buffer)
             free(bufp);
-        failwith("ml_print_string");
+        caml_failwith("ml_print_string");
     }
-    v_result = copy_string(bufp);
+    v_result = caml_copy_string(bufp);
     if(bufp != buffer)
         free(bufp);
     return v_result;
@@ -152,7 +152,7 @@ value ml_print_string2(value v_width, value v_fmt, value v_string)
         size = len * 2;
         bufp = malloc(size);
         if(bufp == 0)
-            failwith("ml_print_string");
+            caml_failwith("ml_print_string");
     }
 
 #ifdef HAVE_SNPRINTF
@@ -163,9 +163,9 @@ value ml_print_string2(value v_width, value v_fmt, value v_string)
     if(code < 0) {
         if(bufp != buffer)
             free(bufp);
-        failwith("ml_print_string");
+        caml_failwith("ml_print_string");
     }
-    v_result = copy_string(bufp);
+    v_result = caml_copy_string(bufp);
     if(bufp != buffer)
         free(bufp);
     return v_result;

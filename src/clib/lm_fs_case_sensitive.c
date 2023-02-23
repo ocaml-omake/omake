@@ -66,7 +66,7 @@ value lm_fs_case_sensitive_available(value _unit) {
 value lm_fs_case_sensitive(value path_val) {
     CAMLparam1(path_val);
     struct statfs stat;
-    char *path = String_val(path_val);
+    const char *path = String_val(path_val);
     
     do {
         caml_enter_blocking_section();

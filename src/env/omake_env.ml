@@ -5,7 +5,7 @@ module TargetElem = struct
     if h1=h2 then
       let p1 = String.compare s1 s2 in
       if p1 = 0 then
-        Pervasives.compare k1 k2
+        compare k1 k2
       else
         p1
     else
@@ -2929,9 +2929,9 @@ let venv_find_implicit_rules_inner venv target =
             let commands = make_command_info venv source_args irule.irule_values commands in
             let effects =
               List.fold_left (fun effects pattern ->
-                let effect = Lm_wild.subst_in subst pattern in
-                let effect = venv_intern_rule_target venv multiple (TargetString effect) in
-                Omake_node.NodeSet.add effects effect) Omake_node.NodeSet.empty irule.irule_patterns
+                let eff = Lm_wild.subst_in subst pattern in
+                let eff = venv_intern_rule_target venv multiple (TargetString eff) in
+                Omake_node.NodeSet.add effects eff) Omake_node.NodeSet.empty irule.irule_patterns
             in
             let erule =
               { rule_loc         = irule.irule_loc;

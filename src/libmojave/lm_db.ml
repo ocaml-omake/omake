@@ -23,6 +23,9 @@
  * the file format backward-compatible.  So we stuff all the key/value
  * pairs in the magic number.
  *)
+
+let flush_channel = flush
+
 open Lm_printf
 open Lm_debug
 
@@ -259,7 +262,7 @@ let marshal_magic fd =
    seek_and_truncate fd 0;
    let outx = Unix.out_channel_of_descr fd in
       output_binary_int outx magic;
-      Pervasives.flush outx
+      flush_channel outx
 
 let remove_entry fd _filename test =
    let head = Bytes.create Marshal.header_size in
@@ -335,12 +338,12 @@ let marshal_tag outx tag =
 
 let marshal_digest outx digest =
    assert (String.length digest = digest_length);
-   Pervasives.output_string outx digest
+   output_string outx digest
 
 let marshal_string outx s =
    let len = String.length s in
       output_binary_int outx len;
-      Pervasives.output_string outx s
+      output_string outx s
 
 let marshal_strings outx sl =
    let len =
@@ -366,7 +369,7 @@ let marshal_entry fd filename tag magic_number digest x =
       Marshal.to_channel outx x [];
       if !debug_db then
          eprintf "Marshal.to_channel: %s: done@." filename;
-      Pervasives.flush outx
+      flush_channel outx
 
 let add fd filename ((code, _) as tag) magic digest x =
    remove fd filename tag magic;
@@ -386,7 +389,7 @@ let append_entry fd filename tag strings digest x =
       Marshal.to_channel outx x [];
       if !debug_db then
          eprintf "Marshal.to_channel: %s: done@." filename;
-      Pervasives.flush outx
+      flush_channel outx
 
 (*
  * -*-
