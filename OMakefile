@@ -90,15 +90,17 @@ compiler_config(a_compiler) =
         return $(config)
 
 static. =
-    OCAMLOPT_CONFIG = $(compiler_config $(OCAMLOPT))
     OCAMLOPT_OPTIMIZER_FLAGS[] =
-    ConfMsgChecking($'if ocamlopt was compiled with flambda')
-    if $(and $(OCAMLOPT_CONFIG.mem flambda), $(equal $(OCAMLOPT_CONFIG.find flambda), true))
-        ConfMsgResult($'yes')
-        OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
-        export
-    else
-        ConfMsgResult($'no')
+    if $(NATIVE_ENABLED)
+	OCAMLOPT_CONFIG = $(compiler_config $(OCAMLOPT))
+	ConfMsgChecking($'if ocamlopt was compiled with flambda')
+	if $(and $(OCAMLOPT_CONFIG.mem flambda), $(equal $(OCAMLOPT_CONFIG.find flambda), true))
+	    ConfMsgResult($'yes')
+	    OCAMLOPT_OPTIMIZER_FLAGS[] = -O3
+	    export
+	else
+	    ConfMsgResult($'no')
+	export
 
 OCAMLOPTFLAGS[] = $(OCAMLFLAGS) $(OCAMLOPT_OPTIMIZER_FLAGS)
 
