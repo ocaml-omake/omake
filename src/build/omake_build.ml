@@ -580,11 +580,11 @@ let build_explicit_command
 
   (* Check that all the effects have the same environment *)
   let bogus =
-    Omake_node.NodeSet.fold (fun bogus effect ->
+    Omake_node.NodeSet.fold (fun bogus eff ->
       try
-        let erule = Omake_node.NodeTable.find env.env_explicit_targets effect in
+        let erule = Omake_node.NodeTable.find env.env_explicit_targets eff in
         if erule.rule_env != venv then
-          Omake_node.NodeSet.add bogus effect
+          Omake_node.NodeSet.add bogus eff
         else
           bogus
       with
@@ -598,9 +598,9 @@ let build_explicit_command
       in
       let rec pp_print_bogus_set buf bogus =
         if not (Omake_node.NodeSet.is_empty bogus) then begin
-          let effect = Omake_node.NodeSet.choose bogus in
-          pp_print_target_loc buf (effect, (Omake_node.NodeTable.find env.env_explicit_targets effect).rule_loc);
-          pp_print_bogus_set buf (Omake_node.NodeSet.remove bogus effect)
+          let eff = Omake_node.NodeSet.choose bogus in
+          pp_print_target_loc buf (eff, (Omake_node.NodeTable.find env.env_explicit_targets eff).rule_loc);
+          pp_print_bogus_set buf (Omake_node.NodeSet.remove bogus eff)
         end
       in
       Format.eprintf "@[<v 3>*** omake:@ These file are targeted separately, but appear as effects of a single rule.@ This is likely to lead to unpredictable behavior.@ @[<v 3>targets:%a%a@]@]@." (**)
@@ -767,8 +767,8 @@ let start_or_build_effects env pos loc target effects =
   let pos = Pos.string_pos "start_or_build_effects" pos in
   let step effects =
     start_or_build_commands env pos loc target effects;
-    Omake_node.NodeSet.fold (fun (changed, effects) effect ->
-      let command = find_command env effect in
+    Omake_node.NodeSet.fold (fun (changed, effects) eff ->
+      let command = find_command env eff in
       let effects' = command.command_effects in
       if effects' == effects then
         changed, effects
@@ -880,12 +880,12 @@ let command_effects_are_scanned
     { command_target = target;
       command_effects = effects;
       _
-    } -> 
-    Omake_node.NodeSet.for_all (fun effect ->
-        if Omake_node.Node.equal effect target then
+    } ->
+    Omake_node.NodeSet.for_all (fun eff ->
+        if Omake_node.Node.equal eff target then
           true
         else
-          match (find_command env effect).command_state with
+          match (find_command env eff).command_state with
           | CommandScannedPending
           | CommandSucceeded _ ->
             true
@@ -1449,16 +1449,16 @@ let save_and_finish_rule_success
 
     (* Collect the effects that are not phony, check that they were created *)
     let effects =
-      Omake_node.NodeSet.fold (fun effects effect ->
-        Omake_cache.reset cache effect;
-        let effect_exists = Omake_cache.exists cache effect in
-        if Omake_node.Node.is_phony effect then
+      Omake_node.NodeSet.fold (fun effects eff ->
+        Omake_cache.reset cache eff;
+        let effect_exists = Omake_cache.exists cache eff in
+        if Omake_node.Node.is_phony eff then
           effects
         else if not effect_exists then begin
           abort_command env command Omake_state.exn_error_code;
-          raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("rule failed to build its target", effect)))
+          raise (Omake_value_type.OmakeException (Pos.loc_exp_pos loc, StringNodeError ("rule failed to build its target", eff)))
         end else
-          Omake_node.NodeSet.add effects effect) Omake_node.NodeSet.empty effects
+          Omake_node.NodeSet.add effects eff) Omake_node.NodeSet.empty effects
     in
 
     (* Re-stat the locks *)
