@@ -1,3 +1,11 @@
+2024-12-06  Chris Spiel  <cspiel@users.sourceforge.net>
+
+        Make OMake buildable with OCaml-5.3.
+
+	* src/build/omake_build.ml: Rename all identifiers called `effect'
+	to something else because `effect' has become a keyword in newer
+	versions of OCaml.  Patch by kit-ty-kate.
+
 2023-02-24  Gerd Stolpmann  <gerd@gerd-stolpmann.de>
 
 	* release omake-0.10.6
