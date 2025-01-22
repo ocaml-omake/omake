@@ -168,13 +168,25 @@ struct
                in
                   search best servers
           | [] ->
-               best
-      in
+              best in
          match search None server.server_servers with
             Some server ->
                server
           | None ->
-               raise (Invalid_argument "Omake_exec.find_best_server: all servers are disabled")
+              (* in doubt take the local one *)
+              ( try
+                  List.find
+                    (fun s ->
+                      s.server_enabled &&
+                        match s.server_handle with
+                          | LocalServer _ -> true
+                          | _ -> false
+                    )
+                    server.server_servers
+                with
+                  | Not_found ->
+                      raise (Invalid_argument "Omake_exec.find_best_server: all servers are disabled")
+              )
 
    (*
     * Start a job.
