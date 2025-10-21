@@ -43,7 +43,9 @@
 /*
  * Maximum file name length.
  */
+#ifndef NAME_MAX
 #define NAME_MAX                1024
+#endif
 
 /*
  * Possible events.
