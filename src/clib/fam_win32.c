@@ -44,7 +44,20 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <caml/compatibility.h>
+
+#define HAS_STDINT_H 1
+#if defined(HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC)
+#  define HAS_NANOSECOND_STAT 1
+#elif defined(HAVE_STRUCT_STAT_ST_ATIMESPEC_TV_NSEC)
+#  define HAS_NANOSECOND_STAT 2
+#elif defined(HAVE_STRUCT_STAT_ST_ATIMENSEC)
+#  define HAS_NANOSECOND_STAT 3
+#endif
+
+#ifndef _WIN32
+/* unistd.h is assumed to be available */
+#define HAS_UNISTD 1
+#endif
 
 #include "lm_compat_win32.h"
 #include "fam_pseudo.h"
