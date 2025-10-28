@@ -96,9 +96,9 @@ static int fam_connection_compare(value v1, value v2)
 #endif /* !FAM_PSEUDO */
 }
 
-static long fam_connection_hash(value v)
+static intptr_t fam_connection_hash(value v)
 {
-    return (long) FAMConnection_val(v);
+    return (intptr_t) FAMConnection_val(v);
 }
 
 static void fam_connection_finalize(value v_info)

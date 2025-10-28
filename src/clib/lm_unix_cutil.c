@@ -83,7 +83,7 @@ value home_win32(value v_unit)
     if(SUCCEEDED(CompatSHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, path)))
         CAMLreturn(caml_copy_string(path));
 
-    failwith("home_win32");
+    caml_failwith("home_win32");
     return Val_unit;
 }
 
@@ -132,7 +132,7 @@ value lockf_win32(value v_fd, value v_kind, value v_len)
             flags = LOCKFILE_FAIL_IMMEDIATELY;
             break;
         default:
-            invalid_argument("lockf_win32");
+            caml_invalid_argument("lockf_win32");
             break;
         }
 
@@ -159,14 +159,14 @@ value lockf_win32(value v_fd, value v_kind, value v_len)
                  * XXX: HACK: this exception is being caught
                  *            Do not change the string w/o changing the wrapper code.
                  */
-                failwith("lockf_win32: already locked");
+                caml_failwith("lockf_win32: already locked");
                 break;
             case ERROR_POSSIBLE_DEADLOCK:
                 /*
                  * XXX: HACK: this exception is being caught
                  *            Do not change the string w/o changing the wrapper code.
                  */
-                failwith("lockf_win32: possible deadlock");
+                caml_failwith("lockf_win32: possible deadlock");
                 break;
             default:
                 FormatMessage(
@@ -181,7 +181,7 @@ value lockf_win32(value v_fd, value v_kind, value v_len)
                 sprintf(szBuf, "lockf_win32 failed with error %u: %s", error, (char *) lpMsgBuf); 
                 LocalFree(lpMsgBuf);
 
-                failwith(szBuf);
+                caml_failwith(szBuf);
                 break;
             }
         }
