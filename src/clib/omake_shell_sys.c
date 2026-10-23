@@ -907,8 +907,13 @@ value omake_shell_sys_create_process(value v_info)
     for(i = 0; i != count; i++) {
         strp = String_val(Field(v_envp, i));
         length = strlen(strp);
-        if(index + length + 2 > SIZEOF_ENVIRONMENT)
+        if(index + length + 2 > SIZEOF_ENVIRONMENT) {
+            for(int k = 0; k != count; k++) {
+                fprintf(stderr, "ENV %s\n", String_val(Field(v_envp, k)));
+            }
+            fflush(stderr);
             caml_failwith("omake_shell_sys_create_process: environment is too big");
+        }
         strcpy(env + index, strp);
         index += length + 1;
     }
